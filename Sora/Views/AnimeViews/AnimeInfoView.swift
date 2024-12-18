@@ -7,30 +7,8 @@
 
 import AVKit
 import SwiftUI
-import SwiftSoup
 import Kingfisher
 import SafariServices
-
-struct EpisodeCell: View {
-    let episode: String
-    let episodeID: Int
-    let imageUrl: String
-    
-    var body: some View {
-        HStack {
-            KFImage(URL(string: "https://cdn.discordapp.com/attachments/1218851049625092138/1318941731349332029/IMG_5081.png?ex=676427b5&is=6762d635&hm=923252d3448fda337f52c964f1428538095cbd018e36a6cfb21d01918e071c9d&"))
-                .resizable()
-                .aspectRatio(16/9, contentMode: .fill)
-                .frame(width: 100, height: 56)
-                .cornerRadius(8)
-            
-            VStack(alignment: .leading) {
-                Text("Episode \(episodeID + 1)")
-                    .font(.headline)
-            }
-        }
-    }
-}
 
 struct AnimeInfoView: View {
     let module: ModuleStruct
@@ -44,7 +22,7 @@ struct AnimeInfoView: View {
     @State var isLoading: Bool = true
     @State var showFullSynopsis: Bool = false
     
-    @AppStorage("externalPlayer") private var externalPlayer: String = "default"
+    @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
     
     var body: some View {
         VStack {
@@ -152,9 +130,14 @@ struct AnimeInfoView: View {
                                     .fontWeight(.bold)
                                 
                                 ForEach(episodes.indices, id: \.self) { index in
-                                    EpisodeCell(episode: episodes[index], episodeID: index, imageUrl: anime.imageUrl)
+                                    let episodeURL = "\(module.module[0].details.baseURL)\(episodes[index])"
+                                    let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(episodeURL)")
+                                    let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(episodeURL)")
+                                    let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
+                                    
+                                    EpisodeCell(episode: episodes[index], episodeID: index, imageUrl: anime.imageUrl, progress: progress)
                                         .onTapGesture {
-                                            fetchEpisodeStream(urlString: "\(module.module[0].details.baseURL)\(episodes[index])")
+                                            fetchEpisodeStream(urlString: episodeURL)
                                         }
                                 }
                             }
@@ -194,6 +177,7 @@ struct AnimeInfoView: View {
         DispatchQueue.main.async {
             let videoPlayerViewController = VideoPlayerViewController()
             videoPlayerViewController.streamUrl = streamUrl
+            videoPlayerViewController.fullUrl = fullURL
             videoPlayerViewController.modalPresentationStyle = .fullScreen
             Logger.shared.log("Opening video player with url: \(streamUrl)")
             

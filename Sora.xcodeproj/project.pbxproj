@@ -17,7 +17,6 @@
 		132417A12D1319E800B4F2D2 /* ModuleStruct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132417992D1319E800B4F2D2 /* ModuleStruct.swift */; };
 		132417A22D1319E800B4F2D2 /* ModulesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1324179A2D1319E800B4F2D2 /* ModulesManager.swift */; };
 		132417A32D1319E800B4F2D2 /* NormalPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1324179C2D1319E800B4F2D2 /* NormalPlayer.swift */; };
-		132417A42D1319E800B4F2D2 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1324179D2D1319E800B4F2D2 /* PlayerView.swift */; };
 		132417B82D131A0600B4F2D2 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132417A72D131A0600B4F2D2 /* SearchView.swift */; };
 		132417B92D131A0600B4F2D2 /* SearchResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132417A82D131A0600B4F2D2 /* SearchResultsView.swift */; };
 		132417BA2D131A0600B4F2D2 /* SettingsAboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132417AB2D131A0600B4F2D2 /* SettingsAboutView.swift */; };
@@ -33,6 +32,9 @@
 		132417C42D131A0600B4F2D2 /* AnimeInfoExtraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132417B72D131A0600B4F2D2 /* AnimeInfoExtraction.swift */; };
 		132417CF2D131B7400B4F2D2 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 132417CE2D131B7400B4F2D2 /* SwiftSoup */; };
 		132417D22D131C5300B4F2D2 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 132417D12D131C5300B4F2D2 /* Kingfisher */; };
+		132417D52D13240200B4F2D2 /* EpisodeCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132417D42D13240200B4F2D2 /* EpisodeCell.swift */; };
+		132417D72D13242400B4F2D2 /* CircularProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132417D62D13242400B4F2D2 /* CircularProgressBar.swift */; };
+		132417D92D1328B900B4F2D2 /* VideoPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132417D82D1328B900B4F2D2 /* VideoPlayerView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,7 +49,6 @@
 		132417992D1319E800B4F2D2 /* ModuleStruct.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModuleStruct.swift; sourceTree = "<group>"; };
 		1324179A2D1319E800B4F2D2 /* ModulesManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModulesManager.swift; sourceTree = "<group>"; };
 		1324179C2D1319E800B4F2D2 /* NormalPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NormalPlayer.swift; sourceTree = "<group>"; };
-		1324179D2D1319E800B4F2D2 /* PlayerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		132417A72D131A0600B4F2D2 /* SearchView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		132417A82D131A0600B4F2D2 /* SearchResultsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchResultsView.swift; sourceTree = "<group>"; };
 		132417AB2D131A0600B4F2D2 /* SettingsAboutView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsAboutView.swift; sourceTree = "<group>"; };
@@ -62,6 +63,9 @@
 		132417B62D131A0600B4F2D2 /* AnimeInfoView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnimeInfoView.swift; sourceTree = "<group>"; };
 		132417B72D131A0600B4F2D2 /* AnimeInfoExtraction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnimeInfoExtraction.swift; sourceTree = "<group>"; };
 		132417C52D131AA500B4F2D2 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		132417D42D13240200B4F2D2 /* EpisodeCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeCell.swift; sourceTree = "<group>"; };
+		132417D62D13242400B4F2D2 /* CircularProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularProgressBar.swift; sourceTree = "<group>"; };
+		132417D82D1328B900B4F2D2 /* VideoPlayerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoPlayerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,8 +101,8 @@
 			isa = PBXGroup;
 			children = (
 				132417C52D131AA500B4F2D2 /* Info.plist */,
-				132417A52D131A0600B4F2D2 /* Views */,
 				132417912D1319E800B4F2D2 /* Utils */,
+				132417A52D131A0600B4F2D2 /* Views */,
 				132417832D13198000B4F2D2 /* SoraApp.swift */,
 				132417852D13198000B4F2D2 /* ContentView.swift */,
 				132417872D13198200B4F2D2 /* Assets.xcassets */,
@@ -163,8 +167,8 @@
 		1324179B2D1319E800B4F2D2 /* Player */ = {
 			isa = PBXGroup;
 			children = (
+				132417D82D1328B900B4F2D2 /* VideoPlayerView.swift */,
 				1324179C2D1319E800B4F2D2 /* NormalPlayer.swift */,
-				1324179D2D1319E800B4F2D2 /* PlayerView.swift */,
 			);
 			path = Player;
 			sourceTree = "<group>";
@@ -223,10 +227,20 @@
 		132417B52D131A0600B4F2D2 /* AnimeViews */ = {
 			isa = PBXGroup;
 			children = (
+				132417D32D1323F500B4F2D2 /* EpisodeCell */,
 				132417B62D131A0600B4F2D2 /* AnimeInfoView.swift */,
 				132417B72D131A0600B4F2D2 /* AnimeInfoExtraction.swift */,
 			);
 			path = AnimeViews;
+			sourceTree = "<group>";
+		};
+		132417D32D1323F500B4F2D2 /* EpisodeCell */ = {
+			isa = PBXGroup;
+			children = (
+				132417D42D13240200B4F2D2 /* EpisodeCell.swift */,
+				132417D62D13242400B4F2D2 /* CircularProgressBar.swift */,
+			);
+			path = EpisodeCell;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -310,7 +324,7 @@
 				132417BB2D131A0600B4F2D2 /* SettingsIUView.swift in Sources */,
 				132417C42D131A0600B4F2D2 /* AnimeInfoExtraction.swift in Sources */,
 				132417B82D131A0600B4F2D2 /* SearchView.swift in Sources */,
-				132417A42D1319E800B4F2D2 /* PlayerView.swift in Sources */,
+				132417D92D1328B900B4F2D2 /* VideoPlayerView.swift in Sources */,
 				1324179F2D1319E800B4F2D2 /* Notification.swift in Sources */,
 				132417BD2D131A0600B4F2D2 /* SettingsModuleView.swift in Sources */,
 				132417BC2D131A0600B4F2D2 /* SettingsLogsView.swift in Sources */,
@@ -318,6 +332,7 @@
 				132417862D13198000B4F2D2 /* ContentView.swift in Sources */,
 				132417C22D131A0600B4F2D2 /* LibraryView.swift in Sources */,
 				132417A32D1319E800B4F2D2 /* NormalPlayer.swift in Sources */,
+				132417D72D13242400B4F2D2 /* CircularProgressBar.swift in Sources */,
 				132417C02D131A0600B4F2D2 /* HomeView.swift in Sources */,
 				132417BF2D131A0600B4F2D2 /* SettingView.swift in Sources */,
 				132417C32D131A0600B4F2D2 /* AnimeInfoView.swift in Sources */,
@@ -328,6 +343,7 @@
 				132417C12D131A0600B4F2D2 /* LibraryManager.swift in Sources */,
 				132417BA2D131A0600B4F2D2 /* SettingsAboutView.swift in Sources */,
 				1324179E2D1319E800B4F2D2 /* MiruDataStruct.swift in Sources */,
+				132417D52D13240200B4F2D2 /* EpisodeCell.swift in Sources */,
 				132417A02D1319E800B4F2D2 /* HistoryManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
