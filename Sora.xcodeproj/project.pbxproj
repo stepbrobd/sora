@@ -31,8 +31,8 @@
 		132417C22D131A0600B4F2D2 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132417B42D131A0600B4F2D2 /* LibraryView.swift */; };
 		132417C32D131A0600B4F2D2 /* AnimeInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132417B62D131A0600B4F2D2 /* AnimeInfoView.swift */; };
 		132417C42D131A0600B4F2D2 /* AnimeInfoExtraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132417B72D131A0600B4F2D2 /* AnimeInfoExtraction.swift */; };
-		132417C92D131B0D00B4F2D2 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 132417C82D131B0D00B4F2D2 /* Kingfisher */; };
 		132417CF2D131B7400B4F2D2 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 132417CE2D131B7400B4F2D2 /* SwiftSoup */; };
+		132417D22D131C5300B4F2D2 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 132417D12D131C5300B4F2D2 /* Kingfisher */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -69,7 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				132417C92D131B0D00B4F2D2 /* Kingfisher in Frameworks */,
+				132417D22D131C5300B4F2D2 /* Kingfisher in Frameworks */,
 				132417CF2D131B7400B4F2D2 /* SwiftSoup in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -172,10 +172,10 @@
 		132417A52D131A0600B4F2D2 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				132417A62D131A0600B4F2D2 /* SearchViews */,
-				132417A92D131A0600B4F2D2 /* SettingsViews */,
 				132417B12D131A0600B4F2D2 /* HomeView.swift */,
 				132417B22D131A0600B4F2D2 /* LibraryViews */,
+				132417A62D131A0600B4F2D2 /* SearchViews */,
+				132417A92D131A0600B4F2D2 /* SettingsViews */,
 				132417B52D131A0600B4F2D2 /* AnimeViews */,
 			);
 			path = Views;
@@ -246,8 +246,8 @@
 			);
 			name = Sora;
 			packageProductDependencies = (
-				132417C82D131B0D00B4F2D2 /* Kingfisher */,
 				132417CE2D131B7400B4F2D2 /* SwiftSoup */,
+				132417D12D131C5300B4F2D2 /* Kingfisher */,
 			);
 			productName = Sora;
 			productReference = 132417802D13198000B4F2D2 /* Sora.app */;
@@ -278,8 +278,8 @@
 			);
 			mainGroup = 132417772D13198000B4F2D2;
 			packageReferences = (
-				132417C72D131B0D00B4F2D2 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				132417CD2D131B7400B4F2D2 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
+				132417D02D131C5300B4F2D2 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
 			productRefGroup = 132417812D13198000B4F2D2 /* Products */;
 			projectDirPath = "";
@@ -535,14 +535,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		132417C72D131B0D00B4F2D2 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
-			requirement = {
-				kind = exactVersion;
-				version = 7.9.1;
-			};
-		};
 		132417CD2D131B7400B4F2D2 /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/scinfu/SwiftSoup.git";
@@ -551,18 +543,26 @@
 				version = 2.4.0;
 			};
 		};
+		132417D02D131C5300B4F2D2 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = exactVersion;
+				version = 7.9.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		132417C82D131B0D00B4F2D2 /* Kingfisher */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 132417C72D131B0D00B4F2D2 /* XCRemoteSwiftPackageReference "Kingfisher" */;
-			productName = Kingfisher;
-		};
 		132417CE2D131B7400B4F2D2 /* SwiftSoup */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 132417CD2D131B7400B4F2D2 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
 			productName = SwiftSoup;
+		};
+		132417D12D131C5300B4F2D2 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 132417D02D131C5300B4F2D2 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

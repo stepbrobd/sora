@@ -172,7 +172,7 @@ struct AnimeInfoView: View {
     func playStream(urlString: String?, fullURL: String) {
         guard let streamUrl = urlString else { return }
         
-        if externalPlayer != "Default" {
+        if externalPlayer == "Infuse" || externalPlayer == "VLC" || externalPlayer == "OutPlayer" || externalPlayer == "nPlayer" {
             var scheme: String
             switch externalPlayer {
             case "Infuse":
@@ -184,9 +184,10 @@ struct AnimeInfoView: View {
             case "nPlayer":
                 scheme = "nplayer-"
             default:
-                scheme = "\(externalPlayer)://"
+                scheme = ""
             }
             openInExternalPlayer(scheme: scheme, url: streamUrl)
+            Logger.shared.log("Opening external app with scheme: \(scheme)")
             return
         }
         
@@ -194,6 +195,7 @@ struct AnimeInfoView: View {
             let videoPlayerViewController = VideoPlayerViewController()
             videoPlayerViewController.streamUrl = streamUrl
             videoPlayerViewController.modalPresentationStyle = .fullScreen
+            Logger.shared.log("Opening video player with url: \(streamUrl)")
             
             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                let rootVC = windowScene.windows.first?.rootViewController {
