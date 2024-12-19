@@ -21,6 +21,7 @@ struct AnimeInfoView: View {
     @State var episodes: [String] = []
     @State var isLoading: Bool = true
     @State var showFullSynopsis: Bool = false
+    @State var animeID: Int?
     
     @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
     
@@ -135,7 +136,7 @@ struct AnimeInfoView: View {
                                     let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(episodeURL)")
                                     let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
                                     
-                                    EpisodeCell(episode: episodes[index], episodeID: index, imageUrl: anime.imageUrl, progress: progress)
+                                    EpisodeCell(episode: episodes[index], episodeID: index, imageUrl: anime.imageUrl, progress: progress, animeID: animeID ?? 0)
                                         .onTapGesture {
                                             fetchEpisodeStream(urlString: episodeURL)
                                         }
@@ -149,6 +150,16 @@ struct AnimeInfoView: View {
         }
         .onAppear {
             fetchAnimeDetails()
+            fetchAnimeID(byTitle: anime.name) { result in
+                switch result {
+                case .success(let id):
+                    animeID = id
+                    Logger.shared.log("Fetched Anime ID: \(id)")
+                case .failure(let error):
+                    print("Failed to fetch Anime ID: \(error)")
+                    Logger.shared.log("Failed to fetch Anime ID: \(error)")
+                }
+            }
         }
     }
     
@@ -207,5 +218,53 @@ struct AnimeInfoView: View {
         }
         UIApplication.shared.open(streamUrl, options: [:], completionHandler: nil)
         Logger.shared.log("Unable to open the stream: 'streamUrl'")
+    }
+    
+    private func fetchAnimeID(byTitle title: String, completion: @escaping (Result<Int, Error>) -> Void) {
+        let query = """
+        query {
+            Media(search: "\(title)", type: ANIME) {
+                id
+            }
+        }
+        """
+        
+        guard let url = URL(string: "https://graphql.anilist.co") else {
+            completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let parameters: [String: Any] = ["query": query]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: parameters)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let data = data else {
+                completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                return
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                   let data = json["data"] as? [String: Any],
+                   let media = data["Media"] as? [String: Any],
+                   let id = media["id"] as? Int {
+                    completion(.success(id))
+                } else {
+                    let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])
+                    completion(.failure(error))
+                }
+            } catch {
+                completion(.failure(error))
+            }
+        }.resume()
     }
 }

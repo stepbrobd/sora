@@ -13,18 +13,35 @@ struct EpisodeCell: View {
     let episodeID: Int
     let imageUrl: String
     let progress: Double
+    let animeID: Int
+    
+    @State private var episodeTitle: String = ""
+    @State private var episodeImageUrl: String = ""
+    @State private var isLoading: Bool = true
     
     var body: some View {
         HStack {
-            KFImage(URL(string: "https://cdn.discordapp.com/attachments/1218851049625092138/1318941731349332029/IMG_5081.png?ex=676427b5&is=6762d635&hm=923252d3448fda337f52c964f1428538095cbd018e36a6cfb21d01918e071c9d&"))
-                .resizable()
-                .aspectRatio(16/9, contentMode: .fill)
-                .frame(width: 100, height: 56)
-                .cornerRadius(8)
+            ZStack {
+                KFImage(URL(string: episodeImageUrl.isEmpty ? imageUrl : episodeImageUrl))
+                    .resizable()
+                    .aspectRatio(16/9, contentMode: .fill)
+                    .frame(width: 100, height: 56)
+                    .cornerRadius(8)
+                
+                if isLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle())
+                }
+            }
             
             VStack(alignment: .leading) {
                 Text("Episode \(episodeID + 1)")
-                    .font(.headline)
+                    .font(.system(size: 15))
+                if !episodeTitle.isEmpty {
+                    Text(episodeTitle)
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                }
             }
             
             Spacer()
@@ -32,5 +49,57 @@ struct EpisodeCell: View {
             CircularProgressBar(progress: progress)
                 .frame(width: 40, height: 40)
         }
+        .onAppear {
+            fetchEpisodeDetails()
+        }
+    }
+    
+    func fetchEpisodeDetails() {
+        guard let url = URL(string: "https://api.ani.zip/mappings?anilist_id=\(animeID)") else {
+            isLoading = false
+            return
+        }
+        
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("Failed to fetch episode details: \(error)")
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                }
+                return
+            }
+            
+            guard let data = data else {
+                print("No data received")
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                }
+                return
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                   let episodes = json["episodes"] as? [String: Any],
+                   let episodeDetails = episodes["\(episodeID + 1)"] as? [String: Any],
+                   let title = episodeDetails["title"] as? [String: String],
+                   let image = episodeDetails["image"] as? String {
+                    DispatchQueue.main.async {
+                        self.episodeTitle = title["en"] ?? ""
+                        self.episodeImageUrl = image
+                        self.isLoading = false
+                    }
+                } else {
+                    print("Invalid response")
+                    DispatchQueue.main.async {
+                        self.isLoading = false
+                    }
+                }
+            } catch {
+                print("Failed to parse JSON: \(error)")
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                }
+            }
+        }.resume()
     }
 }
