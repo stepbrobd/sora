@@ -49,6 +49,12 @@ struct SettingsView: View {
                             Text("Modules")
                         }
                     }
+                    NavigationLink(destination: StorageSettingsView()) {
+                        HStack {
+                            Image(systemName: "externaldrive.fill")
+                            Text("Storage")
+                        }
+                    }
                     Button(action: {
                         isDocumentPickerPresented = true
                     }) {

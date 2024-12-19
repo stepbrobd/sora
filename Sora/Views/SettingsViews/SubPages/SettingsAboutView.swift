@@ -13,7 +13,7 @@ struct AboutView: View {
         Form {
             Section(footer: Text("Sora is a free open source app, under the GPLv3.0 License. You can find the entire Sora code in the github repo.")) {
                 HStack(alignment: .center, spacing: 10) {
-                    KFImage(URL(string: "https://raw.githubusercontent.com/cranci1/Sora/main/Sora/Assets.xcassets/AppIcon.appiconset/1024.jpg"))
+                    KFImage(URL(string: "https://raw.githubusercontent.com/cranci1/Sora/main/Sora/Assets.xcassets/AppIcon.appiconset/180.png"))
                         .resizable()
                         .frame(width: 80, height: 80)
                         .clipShape(Circle())
@@ -91,6 +91,21 @@ struct AboutView: View {
                         Spacer()
                         Image(systemName: "safari")
                             .foregroundColor(.orange)
+                    }
+                }
+                HStack {
+                    KFImage(URL(string: "https://cdn.discordapp.com/avatars/1072985316916469870/6bc6c23a6f22f932d23f2c2452f755f7.png?size=4096"))
+                        .resizable()
+                        .frame(width: 40, height: 40)
+                        .clipShape(Circle())
+                    
+                    VStack(alignment: .leading) {
+                        Text("50/50")
+                            .font(.headline)
+                            .foregroundColor(.orange)
+                        Text("Discord Helper & Designer")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                     }
                 }
             }

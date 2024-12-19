@@ -52,7 +52,7 @@ struct AnimeInfoView: View {
                                 
                                 Spacer()
                                 
-                                HStack(alignment: .top, spacing: 12) {
+                                HStack(alignment: .center, spacing: 12) {
                                     Text(module.name)
                                         .font(.system(size: 13))
                                         .padding(4)
