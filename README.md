@@ -68,7 +68,7 @@ along with Sora. If not, see <https://www.gnu.org/licenses/>.
 
 ## Legal
 
-**__Also, Sora is not made for Piracy! I don't promote piracy at all!__**
+**_Sora is not made for Piracy! I don't promote piracy at all!_**
 
 ### No Liability
 
