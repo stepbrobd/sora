@@ -12,7 +12,7 @@ struct CustomVideoPlayer: UIViewControllerRepresentable {
     let player: AVPlayer
     
     func makeUIViewController(context: Context) -> AVPlayerViewController {
-        let controller = CustomAVPlayerViewController()
+        let controller = NormalPlayer()
         controller.player = player
         controller.showsPlaybackControls = false
         player.play()
@@ -24,16 +24,6 @@ struct CustomVideoPlayer: UIViewControllerRepresentable {
     }
 }
 
-class CustomAVPlayerViewController: AVPlayerViewController {
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        if UserDefaults.standard.bool(forKey: "alwaysLandscape") {
-            return .landscape
-        } else {
-            return .all
-        }
-    }
-}
-
 struct CustomMediaPlayer: View {
     @State private var player: AVPlayer
     @State private var isPlaying = true
@@ -41,13 +31,23 @@ struct CustomMediaPlayer: View {
     @State private var duration: Double = 0.0
     @State private var showControls = false
     @State private var inactivityTimer: Timer?
+    @State private var timeObserverToken: Any?
     @Environment(\.presentationMode) var presentationMode
     
-    init(urlString: String) {
+    let fullUrl: String
+    let title: String
+    let episodeNumber: Int
+    let onWatchNext: () -> Void
+    
+    init(urlString: String, fullUrl: String, title: String, episodeNumber: Int, onWatchNext: @escaping () -> Void) {
         guard let url = URL(string: urlString) else {
             fatalError("Invalid URL string")
         }
         _player = State(initialValue: AVPlayer(url: url))
+        self.fullUrl = fullUrl
+        self.title = title
+        self.episodeNumber = episodeNumber
+        self.onWatchNext = onWatchNext
     }
     
     var body: some View {
@@ -63,6 +63,7 @@ struct CustomMediaPlayer: View {
                                 }
                             }
                             startUpdatingCurrentTime()
+                            addPeriodicTimeObserver(fullURL: fullUrl)
                         }
                         .edgesIgnoringSafeArea(.all)
                         .overlay(
@@ -118,11 +119,30 @@ struct CustomMediaPlayer: View {
                     
                     VStack {
                         Spacer()
-                        if showControls {
-                            VStack {
+                        VStack {
+                            Spacer()
+                            HStack {
                                 Spacer()
-                                HStack {
-                                    Spacer()
+                                if duration - currentTime <= duration * 0.06 {
+                                    Button(action: {
+                                        player.pause()
+                                        presentationMode.wrappedValue.dismiss()
+                                        onWatchNext()
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "forward.fill")
+                                                .foregroundColor(Color.black)
+                                            Text("Watch Next")
+                                                .font(.headline)
+                                                .foregroundColor(Color.black)
+                                        }
+                                        .padding()
+                                        .background(Color.white.opacity(0.8))
+                                        .cornerRadius(32)
+                                    }
+                                    .padding(.trailing, 10)
+                                }
+                                if showControls {
                                     Menu {
                                         Menu("Playback Speed") {
                                             Button(action: {
@@ -196,8 +216,10 @@ struct CustomMediaPlayer: View {
                                             .font(.system(size: 15))
                                     }
                                 }
-                                .padding(.trailing, 10)
-                                
+                            }
+                            .padding(.trailing, 10)
+                            
+                            if showControls {
                                 MusicProgressSlider(
                                     value: $currentTime,
                                     inRange: 0...duration,
@@ -211,8 +233,8 @@ struct CustomMediaPlayer: View {
                                         }
                                     }
                                 )
-                                    .frame(height: 45)
-                                    .padding(.bottom, 10)
+                                .frame(height: 45)
+                                .padding(.bottom, 10)
                             }
                         }
                     }
@@ -222,6 +244,10 @@ struct CustomMediaPlayer: View {
                     .onDisappear {
                         player.pause()
                         inactivityTimer?.invalidate()
+                        if let timeObserverToken = timeObserverToken {
+                            player.removeTimeObserver(timeObserverToken)
+                            self.timeObserverToken = nil
+                        }
                     }
                 }
             }
@@ -235,6 +261,7 @@ struct CustomMediaPlayer: View {
                                 .foregroundColor(.white)
                                 .font(.system(size: 20))
                         }
+                        .frame(width: 60, height: 60)
                         .padding()
                         Spacer()
                     }
@@ -247,6 +274,22 @@ struct CustomMediaPlayer: View {
     private func startUpdatingCurrentTime() {
         Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             currentTime = player.currentTime().seconds
+        }
+    }
+    
+    private func addPeriodicTimeObserver(fullURL: String) {
+        let interval = CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { time in
+            guard let currentItem = player.currentItem,
+                  currentItem.duration.seconds.isFinite else {
+                      return
+                  }
+            
+            let currentTime = time.seconds
+            let duration = currentItem.duration.seconds
+            
+            UserDefaults.standard.set(currentTime, forKey: "lastPlayedTime_\(fullURL)")
+            UserDefaults.standard.set(duration, forKey: "totalTime_\(fullURL)")
         }
     }
 }

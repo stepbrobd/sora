@@ -78,21 +78,23 @@ struct EpisodeCell: View {
             }
             
             do {
-                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                   let episodes = json["episodes"] as? [String: Any],
-                   let episodeDetails = episodes["\(episodeID + 1)"] as? [String: Any],
-                   let title = episodeDetails["title"] as? [String: String],
-                   let image = episodeDetails["image"] as? String {
-                    DispatchQueue.main.async {
-                        self.episodeTitle = title["en"] ?? ""
-                        self.episodeImageUrl = image
-                        self.isLoading = false
-                    }
-                } else {
-                    print("Invalid response")
-                    DispatchQueue.main.async {
-                        self.isLoading = false
-                    }
+                let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
+                guard let json = jsonObject as? [String: Any],
+                      let episodes = json["episodes"] as? [String: Any],
+                      let episodeDetails = episodes["\(episodeID + 1)"] as? [String: Any],
+                      let title = episodeDetails["title"] as? [String: String],
+                      let image = episodeDetails["image"] as? String else {
+                          print("Invalid response format")
+                          DispatchQueue.main.async {
+                              self.isLoading = false
+                          }
+                          return
+                      }
+                
+                DispatchQueue.main.async {
+                    self.episodeTitle = title["en"] ?? ""
+                    self.episodeImageUrl = image
+                    self.isLoading = false
                 }
             } catch {
                 print("Failed to parse JSON: \(error)")

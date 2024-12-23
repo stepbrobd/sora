@@ -22,6 +22,8 @@ struct AnimeInfoView: View {
     @State var isLoading: Bool = true
     @State var showFullSynopsis: Bool = false
     @State var animeID: Int?
+    @State private var selectedEpisode: String = ""
+    @State private var selectedEpisodeNumber: Int = 0
     
     @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
     
@@ -138,6 +140,8 @@ struct AnimeInfoView: View {
                                     
                                     EpisodeCell(episode: episodes[index], episodeID: index, imageUrl: anime.imageUrl, progress: progress, animeID: animeID ?? 0)
                                         .onTapGesture {
+                                            selectedEpisode = episodes[index]
+                                            selectedEpisodeNumber = index + 1
                                             fetchEpisodeStream(urlString: episodeURL)
                                         }
                                 }
@@ -185,7 +189,15 @@ struct AnimeInfoView: View {
             return
         } else if externalPlayer == "Custom" {
             DispatchQueue.main.async {
-                let customMediaPlayer = CustomMediaPlayer(urlString: streamUrl)
+                let customMediaPlayer = CustomMediaPlayer(
+                    urlString: streamUrl,
+                    fullUrl: fullURL,
+                    title: anime.name,
+                    episodeNumber: selectedEpisodeNumber,
+                    onWatchNext: {
+                        selectNextEpisode()
+                    }
+                )
                 let hostingController = UIHostingController(rootView: customMediaPlayer)
                 hostingController.modalPresentationStyle = .fullScreen
                 Logger.shared.log("Opening custom media player with url: \(streamUrl)")
@@ -209,6 +221,17 @@ struct AnimeInfoView: View {
                let rootVC = windowScene.windows.first?.rootViewController {
                 rootVC.present(videoPlayerViewController, animated: true, completion: nil)
             }
+        }
+    }
+    
+    private func selectNextEpisode() {
+        guard let currentEpisodeIndex = episodes.firstIndex(of: selectedEpisode) else { return }
+        let nextEpisodeIndex = currentEpisodeIndex + 1
+        if nextEpisodeIndex < episodes.count {
+            selectedEpisode = episodes[nextEpisodeIndex]
+            selectedEpisodeNumber = nextEpisodeIndex + 1
+            let nextEpisodeURL = "\(module.module[0].details.baseURL)\(episodes[nextEpisodeIndex])"
+            fetchEpisodeStream(urlString: nextEpisodeURL)
         }
     }
     
