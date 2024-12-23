@@ -23,7 +23,7 @@ class VideoPlayerViewController: UIViewController {
         }
         
         player = AVPlayer(url: url)
-        playerViewController = AVPlayerViewController()
+        playerViewController = NormalPlayer()
         playerViewController?.player = player
         addPeriodicTimeObserver(fullURL: fullUrl)
         

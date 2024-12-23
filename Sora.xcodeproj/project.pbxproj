@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1308CFBC2D19844A004CD38C /* Double+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1308CFBB2D19844A004CD38C /* Double+Extension.swift */; };
+		1308CFBE2D19844D004CD38C /* MusicProgressSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1308CFBD2D19844D004CD38C /* MusicProgressSlider.swift */; };
+		1308CFC12D198466004CD38C /* CustomPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1308CFC02D198466004CD38C /* CustomPlayer.swift */; };
 		132417842D13198000B4F2D2 /* SoraApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132417832D13198000B4F2D2 /* SoraApp.swift */; };
 		132417862D13198000B4F2D2 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132417852D13198000B4F2D2 /* ContentView.swift */; };
 		132417882D13198200B4F2D2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 132417872D13198200B4F2D2 /* Assets.xcassets */; };
@@ -39,6 +42,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1308CFBB2D19844A004CD38C /* Double+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Double+Extension.swift"; sourceTree = "<group>"; };
+		1308CFBD2D19844D004CD38C /* MusicProgressSlider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MusicProgressSlider.swift; sourceTree = "<group>"; };
+		1308CFC02D198466004CD38C /* CustomPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomPlayer.swift; sourceTree = "<group>"; };
 		132417802D13198000B4F2D2 /* Sora.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sora.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		132417832D13198000B4F2D2 /* SoraApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoraApp.swift; sourceTree = "<group>"; };
 		132417852D13198000B4F2D2 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -83,6 +89,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1308CFBA2D19843E004CD38C /* CustomPlayer */ = {
+			isa = PBXGroup;
+			children = (
+				1308CFC02D198466004CD38C /* CustomPlayer.swift */,
+				1308CFBF2D198450004CD38C /* Components */,
+			);
+			path = CustomPlayer;
+			sourceTree = "<group>";
+		};
+		1308CFBF2D198450004CD38C /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				1308CFBD2D19844D004CD38C /* MusicProgressSlider.swift */,
+				1308CFBB2D19844A004CD38C /* Double+Extension.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
 		132417772D13198000B4F2D2 = {
 			isa = PBXGroup;
 			children = (
@@ -124,6 +148,7 @@
 		132417912D1319E800B4F2D2 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				1308CFBA2D19843E004CD38C /* CustomPlayer */,
 				132417922D1319E800B4F2D2 /* Miru */,
 				132417942D1319E800B4F2D2 /* Extensions */,
 				132417962D1319E800B4F2D2 /* History */,
@@ -328,10 +353,12 @@
 				132417BB2D131A0600B4F2D2 /* SettingsIUView.swift in Sources */,
 				132417C42D131A0600B4F2D2 /* AnimeInfoExtraction.swift in Sources */,
 				132417B82D131A0600B4F2D2 /* SearchView.swift in Sources */,
+				1308CFBC2D19844A004CD38C /* Double+Extension.swift in Sources */,
 				132417D92D1328B900B4F2D2 /* VideoPlayerView.swift in Sources */,
 				1324179F2D1319E800B4F2D2 /* Notification.swift in Sources */,
 				132417BD2D131A0600B4F2D2 /* SettingsModuleView.swift in Sources */,
 				132417BC2D131A0600B4F2D2 /* SettingsLogsView.swift in Sources */,
+				1308CFC12D198466004CD38C /* CustomPlayer.swift in Sources */,
 				132417A22D1319E800B4F2D2 /* ModulesManager.swift in Sources */,
 				132417862D13198000B4F2D2 /* ContentView.swift in Sources */,
 				132417C22D131A0600B4F2D2 /* LibraryView.swift in Sources */,
@@ -347,6 +374,7 @@
 				132417C12D131A0600B4F2D2 /* LibraryManager.swift in Sources */,
 				132417BA2D131A0600B4F2D2 /* SettingsAboutView.swift in Sources */,
 				1324179E2D1319E800B4F2D2 /* MiruDataStruct.swift in Sources */,
+				1308CFBE2D19844D004CD38C /* MusicProgressSlider.swift in Sources */,
 				132417D52D13240200B4F2D2 /* EpisodeCell.swift in Sources */,
 				132417A02D1319E800B4F2D2 /* HistoryManager.swift in Sources */,
 			);

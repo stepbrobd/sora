@@ -14,30 +14,46 @@ struct SettingsPlayerView: View {
     
     var body: some View {
         Form {
-            Section(header: Text("Player"), footer: Text("The ForceLandscape and HoldSpeed only work inside the default iOS player.")) {
+            Section(header: Text("Player"), footer: Text("The ForceLandscape and HoldSpeed only work inside the default iOS player and custom player.")) {
                 HStack {
                     Text("Media Player")
                     Spacer()
                     Menu(externalPlayer) {
-                        Button("Default") {
+                        Button(action: {
                             externalPlayer = "Default"
+                        }) {
+                            Label("Default", systemImage: externalPlayer == "Default" ? "checkmark" : "")
                         }
-                        Button("VLC") {
+                        Button(action: {
                             externalPlayer = "VLC"
+                        }) {
+                            Label("VLC", systemImage: externalPlayer == "VLC" ? "checkmark" : "")
                         }
-                        Button("OutPlayer") {
+                        Button(action: {
                             externalPlayer = "OutPlayer"
+                        }) {
+                            Label("OutPlayer", systemImage: externalPlayer == "OutPlayer" ? "checkmark" : "")
                         }
-                        Button("Infuse") {
+                        Button(action: {
                             externalPlayer = "Infuse"
+                        }) {
+                            Label("Infuse", systemImage: externalPlayer == "Infuse" ? "checkmark" : "")
                         }
-                        Button("nPlayer") {
+                        Button(action: {
                             externalPlayer = "nPlayer"
+                        }) {
+                            Label("nPlayer", systemImage: externalPlayer == "nPlayer" ? "checkmark" : "")
+                        }
+                        Button(action: {
+                            externalPlayer = "Custom"
+                        }) {
+                            Label("Custom", systemImage: externalPlayer == "Custom" ? "checkmark" : "")
                         }
                     }
                 }
                 
                 Toggle("Force Landscape", isOn: $isAlwaysLandscape)
+                    .tint(.accentColor)
                 
                 HStack {
                     Text("Hold Speed:")

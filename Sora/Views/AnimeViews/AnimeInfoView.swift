@@ -183,6 +183,19 @@ struct AnimeInfoView: View {
             openInExternalPlayer(scheme: scheme, url: streamUrl)
             Logger.shared.log("Opening external app with scheme: \(scheme)")
             return
+        } else if externalPlayer == "Custom" {
+            DispatchQueue.main.async {
+                let customMediaPlayer = CustomMediaPlayer(urlString: streamUrl)
+                let hostingController = UIHostingController(rootView: customMediaPlayer)
+                hostingController.modalPresentationStyle = .fullScreen
+                Logger.shared.log("Opening custom media player with url: \(streamUrl)")
+                
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let rootVC = windowScene.windows.first?.rootViewController {
+                    rootVC.present(hostingController, animated: true, completion: nil)
+                }
+            }
+            return
         }
         
         DispatchQueue.main.async {
