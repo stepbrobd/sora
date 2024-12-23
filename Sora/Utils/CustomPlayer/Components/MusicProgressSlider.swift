@@ -4,7 +4,8 @@
 //
 //  Created by Pratik on 08/01/23.
 //
-// Thanks to pratikg29 for this code inside his open source project "https://github.com/pratikg29/Custom-Slider-Control?ref=iosexample.com"
+//  Thanks to pratikg29 for this code inside his open source project "https://github.com/pratikg29/Custom-Slider-Control?ref=iosexample.com"
+//  I did edit just a little bit the code for my liking
 //
 
 import SwiftUI

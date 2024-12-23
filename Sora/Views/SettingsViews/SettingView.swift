@@ -35,10 +35,7 @@ struct SettingsView: View {
                         Text("Minor Interface Settings")
                     }
                     NavigationLink(destination: SettingsPlayerView()) {
-                        HStack {
-                            Image(systemName: "play.fill")
-                            Text("Player")
-                        }
+                        Text("Player")
                     }
                 }
                 

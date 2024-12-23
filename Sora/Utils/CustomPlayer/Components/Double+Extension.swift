@@ -4,7 +4,7 @@
 //
 //  Created by Pratik on 14/01/23.
 //
-// Thanks to pratikg29 for this code inside his open source project "https://github.com/pratikg29/Custom-Slider-Control?ref=iosexample.com"
+//  Thanks to pratikg29 for this code inside his open source project "https://github.com/pratikg29/Custom-Slider-Control?ref=iosexample.com"
 //
 
 import Foundation
