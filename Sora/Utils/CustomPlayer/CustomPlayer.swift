@@ -120,10 +120,19 @@ struct CustomMediaPlayer: View {
                     VStack {
                         Spacer()
                         VStack {
-                            Spacer()
-                            HStack {
+                            HStack(alignment: .bottom) {
+                                if showControls {
+                                    VStack(alignment: .leading) {
+                                        Text("Episode \(episodeNumber)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                        Text(title)
+                                            .font(.headline)
+                                            .foregroundColor(.white)
+                                    }
+                                }
                                 Spacer()
-                                if duration - currentTime <= duration * 0.06 {
+                                if duration - currentTime <= duration * 0.07 {
                                     Button(action: {
                                         player.pause()
                                         presentationMode.wrappedValue.dismiss()
@@ -233,7 +242,6 @@ struct CustomMediaPlayer: View {
                                         }
                                     }
                                 )
-                                .frame(height: 45)
                                 .padding(.bottom, 10)
                             }
                         }
