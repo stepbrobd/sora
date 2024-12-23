@@ -190,6 +190,7 @@ struct AnimeInfoView: View {
         } else if externalPlayer == "Custom" {
             DispatchQueue.main.async {
                 let customMediaPlayer = CustomMediaPlayer(
+                    module: module,
                     urlString: streamUrl,
                     fullUrl: fullURL,
                     title: anime.name,
@@ -211,7 +212,7 @@ struct AnimeInfoView: View {
         }
         
         DispatchQueue.main.async {
-            let videoPlayerViewController = VideoPlayerViewController()
+            let videoPlayerViewController = VideoPlayerViewController(module: module)
             videoPlayerViewController.streamUrl = streamUrl
             videoPlayerViewController.fullUrl = fullURL
             videoPlayerViewController.modalPresentationStyle = .fullScreen

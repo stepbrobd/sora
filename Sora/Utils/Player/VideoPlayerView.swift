@@ -9,11 +9,22 @@ import UIKit
 import AVKit
 
 class VideoPlayerViewController: UIViewController {
+    let module: ModuleStruct
+    
     var player: AVPlayer?
     var playerViewController: AVPlayerViewController?
     var timeObserverToken: Any?
     var streamUrl: String?
     var fullUrl: String = ""
+    
+    init(module: ModuleStruct) {
+        self.module = module
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,7 +33,15 @@ class VideoPlayerViewController: UIViewController {
             return
         }
         
-        player = AVPlayer(url: url)
+        var request = URLRequest(url: url)
+        if streamUrl.contains("ascdn") {
+            request.addValue("\(module.module[0].details.baseURL)", forHTTPHeaderField: "Referer")
+        }
+        
+        let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])
+        let playerItem = AVPlayerItem(asset: asset)
+        
+        player = AVPlayer(playerItem: playerItem)
         playerViewController = NormalPlayer()
         playerViewController?.player = player
         addPeriodicTimeObserver(fullURL: fullUrl)

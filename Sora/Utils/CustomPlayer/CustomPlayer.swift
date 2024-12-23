@@ -34,16 +34,26 @@ struct CustomMediaPlayer: View {
     @State private var timeObserverToken: Any?
     @Environment(\.presentationMode) var presentationMode
     
+    let module: ModuleStruct
     let fullUrl: String
     let title: String
     let episodeNumber: Int
     let onWatchNext: () -> Void
     
-    init(urlString: String, fullUrl: String, title: String, episodeNumber: Int, onWatchNext: @escaping () -> Void) {
+    init(module: ModuleStruct, urlString: String, fullUrl: String, title: String, episodeNumber: Int, onWatchNext: @escaping () -> Void) {
         guard let url = URL(string: urlString) else {
             fatalError("Invalid URL string")
         }
-        _player = State(initialValue: AVPlayer(url: url))
+        
+        var request = URLRequest(url: url)
+        if urlString.contains("ascdn") {
+            request.addValue("\(module.module[0].details.baseURL)", forHTTPHeaderField: "Referer")
+        }
+        
+        let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])
+        _player = State(initialValue: AVPlayer(playerItem: AVPlayerItem(asset: asset)))
+        
+        self.module = module
         self.fullUrl = fullUrl
         self.title = title
         self.episodeNumber = episodeNumber
@@ -132,7 +142,7 @@ struct CustomMediaPlayer: View {
                                     }
                                 }
                                 Spacer()
-                                if duration - currentTime <= duration * 0.07 {
+                                if duration - currentTime <= duration * 0.07 && currentTime != 0 {
                                     Button(action: {
                                         player.pause()
                                         presentationMode.wrappedValue.dismiss()
