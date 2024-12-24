@@ -49,54 +49,6 @@ extension AnimeInfoView {
         }.resume()
     }
     
-    func extractStreamURLs(from html: String, streamType: String) -> [String] {
-        let pattern: String
-        switch streamType {
-        case "HLS":
-            pattern = #"https:\/\/[^"\s<>]+\.m3u8(?:\?[^\s"'<>]+)?"#
-        case "MP4":
-            pattern = #"https:\/\/(?:(?!php).)+\.mp4(?:\?[^\s"'<>]+)?"#
-        default:
-            return []
-        }
-        
-        do {
-            Logger.shared.log(streamType)
-            let regex = try NSRegularExpression(pattern: pattern, options: [])
-            let matches = regex.matches(in: html, options: [], range: NSRange(html.startIndex..., in: html))
-            return matches.compactMap {
-                Range($0.range, in: html).map { String(html[$0]) }
-            }
-        } catch {
-            print("Invalid regex: \(error)")
-            Logger.shared.log("Invalid regex: \(error)")
-            return []
-        }
-    }
-    
-    func extractDubSubURLs(from htmlContent: String) -> [(type: String, url: String)] {
-        let pattern = #""type":"(SUB|DUB)","url":"(.*?\.m3u8)""#
-        
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
-            return []
-        }
-        
-        let range = NSRange(htmlContent.startIndex..., in: htmlContent)
-        let matches = regex.matches(in: htmlContent, range: range)
-        
-        return matches.compactMap { match in
-            if match.numberOfRanges == 3,
-               let typeRange = Range(match.range(at: 1), in: htmlContent),
-               let urlRange = Range(match.range(at: 2), in: htmlContent) {
-                let type = String(htmlContent[typeRange])
-                let urlString = String(htmlContent[urlRange]).replacingOccurrences(of: "\\/", with: "/")
-                Logger.shared.log(urlString)
-                return (type, urlString)
-            }
-            return nil
-        }
-    }
-    
     func fetchEpisodeStream(urlString: String) {
         guard let url = URL(string: urlString) else { return }
         
@@ -123,6 +75,22 @@ extension AnimeInfoView {
                         self.playStream(urlString: streamURLs.first, fullURL: urlString)
                     }
                 }
+            } else if module.extractor == "pattern-mp4" {
+                Logger.shared.log("extracting for pattern-mp4")
+                let patternURL = extractPatternURL(from: html)
+                guard let patternURL = patternURL else { return }
+                
+                URLSession.custom.dataTask(with: patternURL) { data, response, error in
+                    guard let data = data, error == nil else { return }
+                    
+                    let patternHTML = String(data: data, encoding: .utf8) ?? ""
+                    let mp4URLs = extractStreamURLs(from: patternHTML, streamType: "MP4").map { $0.replacingOccurrences(of: "amp;", with: "") }
+                    
+                    DispatchQueue.main.async {
+                        Logger.shared.log("MP4 URLs: \(mp4URLs)")
+                        self.playStream(urlString: mp4URLs.first, fullURL: patternURL.absoluteString)
+                    }
+                }.resume()
             } else {
                 DispatchQueue.main.async {
                     Logger.shared.log("stream URLs: \(streamURLs)")
@@ -130,6 +98,72 @@ extension AnimeInfoView {
                 }
             }
         }.resume()
+    }
+    
+    func extractStreamURLs(from html: String, streamType: String) -> [String] {
+        let pattern: String
+        switch streamType {
+        case "HLS":
+            pattern = #"https:\/\/[^"\s<>]+\.m3u8(?:\?[^\s"'<>]+)?"#
+        case "MP4":
+            pattern = #"https:\/\/(?:(?!php).)+\.mp4(?:\?[^\s"'<>]+)?"#
+        default:
+            return []
+        }
+        
+        do {
+            Logger.shared.log(streamType)
+            let regex = try NSRegularExpression(pattern: pattern, options: [])
+            let matches = regex.matches(in: html, options: [], range: NSRange(html.startIndex..., in: html))
+            return matches.compactMap {
+                Range($0.range, in: html).map { String(html[$0]) }
+            }
+        } catch {
+            print("Invalid regex: \(error)")
+            Logger.shared.log("Invalid regex: \(error)")
+            return []
+        }
+    }
+    
+    func extractPatternURL(from html: String) -> URL? {
+        let pattern = module.module[0].episodes.pattern
+        
+        do {
+            let regex = try NSRegularExpression(pattern: pattern, options: [])
+            let matches = regex.matches(in: html, options: [], range: NSRange(html.startIndex..., in: html))
+            if let match = matches.first, let range = Range(match.range, in: html) {
+                var urlString = String(html[range])
+                urlString = urlString.replacingOccurrences(of: "amp;", with: "")
+                return URL(string: urlString)
+            }
+        } catch {
+            print("Invalid regex: \(error)")
+            Logger.shared.log("Invalid regex: \(error)")
+        }
+        return nil
+    }
+    
+    func extractDubSubURLs(from htmlContent: String) -> [(type: String, url: String)] {
+        let pattern = #""type":"(SUB|DUB)","url":"(.*?\.m3u8)""#
+        
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
+            return []
+        }
+        
+        let range = NSRange(htmlContent.startIndex..., in: htmlContent)
+        let matches = regex.matches(in: htmlContent, range: range)
+        
+        return matches.compactMap { match in
+            if match.numberOfRanges == 3,
+               let typeRange = Range(match.range(at: 1), in: htmlContent),
+               let urlRange = Range(match.range(at: 2), in: htmlContent) {
+                let type = String(htmlContent[typeRange])
+                let urlString = String(htmlContent[urlRange]).replacingOccurrences(of: "\\/", with: "/")
+                Logger.shared.log(urlString)
+                return (type, urlString)
+            }
+            return nil
+        }
     }
     
     func presentStreamSelection(subURLs: [String], dubURLs: [String]) {
