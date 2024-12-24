@@ -4,7 +4,7 @@
 
 <img src="https://raw.githubusercontent.com/cranci1/Sora/refs/heads/main/assets/banner.png" width="500px">
 
-[![Build and Release IPA](https://github.com/cranci1/Sora/actions/workflows/build.yml/badge.svg)](https://github.com/cranci1/Sora/actions/workflows/build.yml) [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2014.0%2B%7CmacOS%2012.0%2B-red?logo=apple&logoColor=white)](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2014.0%2B%7CmacOS%2012.0%2B-red?logo=apple&logoColor=white) [![Discord](https://img.shields.io/discord/1293430817841741899.svg?logo=discord&color=blue)](https://discord.gg/XR3SrmUbpd)
+[![Build and Release IPA](https://github.com/cranci1/Sora/actions/workflows/build.yml/badge.svg)](https://github.com/cranci1/Sora/actions/workflows/build.yml) [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2014.0%2B%20%26%20macOS%2012.0%2B-red?logo=apple&logoColor=white)](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2014.0%2B%20%26%20macOS%2012.0%2B-red?logo=apple&logoColor=white) [![Discord](https://img.shields.io/discord/1293430817841741899.svg?logo=discord&color=blue)](https://discord.gg/XR3SrmUbpd)
 
 A modular web scraping app, **Still in early builds** under the GPLv3.0 License
 
