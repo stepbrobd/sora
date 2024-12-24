@@ -142,12 +142,12 @@ struct AboutView: View {
                     }
                 }
                 Button(action: {
-                    if let url = URL(string: "https://github.com/Ibraheemraad1") {
+                    if let url = URL(string: "https://github.com/Seeike") {
                         UIApplication.shared.open(url)
                     }
                 }) {
                     HStack {
-                        KFImage(URL(string: "https://avatars.githubusercontent.com/u/116025932?v=4"))
+                        KFImage(URL(string: "https://avatars.githubusercontent.com/u/122684677?v=4"))
                             .resizable()
                             .frame(width: 40, height: 40)
                             .clipShape(Circle())
