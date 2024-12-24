@@ -118,18 +118,18 @@ struct AboutView: View {
                     }
                 }
                 Button(action: {
-                    if let url = URL(string: "https://github.com/Ibraheemraad1") {
+                    if let url = URL(string: "https://github.com/IBH-RAD") {
                         UIApplication.shared.open(url)
                     }
                 }) {
                     HStack {
-                        KFImage(URL(string: "https://avatars.githubusercontent.com/u/116025932?v=4"))
+                        KFImage(URL(string: "https://avatars.githubusercontent.com/u/116025932?u=393be7ee3f476362b9e09d4f195ac035c5060236&v=4"))
                             .resizable()
                             .frame(width: 40, height: 40)
                             .clipShape(Circle())
                         
                         VStack(alignment: .leading) {
-                            Text("ibh-rad")
+                            Text("IBH")
                                 .font(.headline)
                                 .foregroundColor(.purple)
                             Text("Discord Helper & Bug Hunter")
