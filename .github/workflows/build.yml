@@ -5,7 +5,7 @@ on:
       - main
 jobs:
   build:
-    name: Build IPA
+    name: Build IPA and Mac Catalyst
     runs-on: macOS-latest
     steps:
       - name: Use Node.js 20
@@ -26,4 +26,16 @@ jobs:
         with:
           name: Sora-IPA
           path: build/Sora.ipa
+          compression-level: 0
+
+      - name: Run macbuild.sh
+        run: |
+          chmod +x macbuild.sh
+          ./macbuild.sh
+
+      - name: Upload Mac Catalyst artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sora-Catalyst
+          path: build/Sora-catalyst.zip
           compression-level: 0

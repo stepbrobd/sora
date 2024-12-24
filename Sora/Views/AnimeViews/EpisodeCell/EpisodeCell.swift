@@ -60,7 +60,7 @@ struct EpisodeCell: View {
             return
         }
         
-        URLSession.shared.dataTask(with: url) { data, response, error in
+        URLSession.custom.dataTask(with: url) { data, response, error in
             if let error = error {
                 print("Failed to fetch episode details: \(error)")
                 DispatchQueue.main.async {

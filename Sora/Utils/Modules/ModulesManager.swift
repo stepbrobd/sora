@@ -30,7 +30,7 @@ class ModulesManager: ObservableObject {
             completion(.failure(ModuleError.invalidURL))
             return
         }
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+        let task = URLSession.custom.dataTask(with: url) { data, response, error in
             guard let data = data, error == nil else {
                 completion(.failure(error ?? ModuleError.unknown))
                 return
@@ -67,7 +67,7 @@ class ModulesManager: ObservableObject {
     func refreshModules() {
         for (name, urlString) in moduleURLs {
             guard let url = URL(string: urlString) else { continue }
-            let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            let task = URLSession.custom.dataTask(with: url) { data, response, error in
                 guard let data = data, error == nil else { return }
                 do {
                     let updatedModule = try JSONDecoder().decode(ModuleStruct.self, from: data)

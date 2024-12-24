@@ -133,7 +133,7 @@ struct AnimeInfoView: View {
                                     .fontWeight(.bold)
                                 
                                 ForEach(episodes.indices, id: \.self) { index in
-                                    let episodeURL = "\(module.module[0].details.baseURL)\(episodes[index])"
+                                    let episodeURL = episodes[index].hasPrefix("https") ? episodes[index] : "\(module.module[0].details.baseURL)\(episodes[index])"
                                     let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(episodeURL)")
                                     let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(episodeURL)")
                                     let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
@@ -278,7 +278,7 @@ struct AnimeInfoView: View {
         let parameters: [String: Any] = ["query": query]
         request.httpBody = try? JSONSerialization.data(withJSONObject: parameters)
         
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        URLSession.custom.dataTask(with: request) { data, response, error in
             if let error = error {
                 completion(.failure(error))
                 return

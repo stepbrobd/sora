@@ -71,6 +71,7 @@ struct ModuleStruct: Codable {
         struct Episodes: Codable, Hashable {
             let selector: String
             let order: String
+            let pattern: String
         }
     }
 }

@@ -175,7 +175,7 @@ struct SearchResultsView: View {
         let urlString = "\(module.module[0].search.url)?\(module.module[0].search.parameter)=\(encodedSearchText)"
         guard let url = URL(string: urlString) else { return }
         
-        URLSession.shared.dataTask(with: url) { data, response, error in
+        URLSession.custom.dataTask(with: url) { data, response, error in
             defer { isLoading = false }
             guard let data = data, error == nil else { return }
             

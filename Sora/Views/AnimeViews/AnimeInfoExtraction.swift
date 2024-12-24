@@ -12,7 +12,7 @@ extension AnimeInfoView {
     func fetchAnimeDetails() {
         guard let url = URL(string: anime.href.hasPrefix("https") ? anime.href : "\(module.module[0].details.baseURL)\(anime.href)") else { return }
         
-        URLSession.shared.dataTask(with: url) { data, response, error in
+        URLSession.custom.dataTask(with: url) { data, response, error in
             defer { isLoading = false }
             guard let data = data, error == nil else { return }
             
@@ -101,7 +101,7 @@ extension AnimeInfoView {
         guard let url = URL(string: urlString) else { return }
         
         Logger.shared.log("Pressed episode button")
-        URLSession.shared.dataTask(with: url) { data, response, error in
+        URLSession.custom.dataTask(with: url) { data, response, error in
             guard let data = data, error == nil else { return }
             
             let html = String(data: data, encoding: .utf8) ?? ""
