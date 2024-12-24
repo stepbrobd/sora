@@ -9,12 +9,12 @@ import SwiftUI
 
 struct SettingsPlayerView: View {
     @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
-    @AppStorage("alwaysLandscape") private var isAlwaysLandscape = false
+    @AppStorage("AlwaysLandscape") private var isAlwaysLandscape = false
     @AppStorage("holdSpeedPlayer") private var holdSpeedPlayer: Double = 2.0
     
     var body: some View {
         Form {
-            Section(header: Text("Player"), footer: Text("The ForceLandscape and HoldSpeed only work inside the default iOS player and custom player.")) {
+            Section(header: Text("Player"), footer: Text("The Force Landscape and HoldSpeed only work inside the default iOS player and custom player.")) {
                 HStack {
                     Text("Media Player")
                     Spacer()
