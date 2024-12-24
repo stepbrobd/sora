@@ -165,69 +165,15 @@ struct CustomMediaPlayer: View {
                                 if showControls {
                                     Menu {
                                         Menu("Playback Speed") {
-                                            Button(action: {
-                                                player.rate = 0.25
-                                                if player.timeControlStatus != .playing {
-                                                    player.pause()
+                                            ForEach([0.5, 1.0, 1.25, 1.5, 1.75, 2.0], id: \.self) { speed in
+                                                Button(action: {
+                                                    player.rate = Float(speed)
+                                                    if player.timeControlStatus != .playing {
+                                                        player.pause()
+                                                    }
+                                                }) {
+                                                    Text("\(speed, specifier: "%.2f")")
                                                 }
-                                            }) {
-                                                Label("0.25", systemImage: "tortoise")
-                                            }
-                                            Button(action: {
-                                                player.rate = 0.5
-                                                if player.timeControlStatus != .playing {
-                                                    player.pause()
-                                                }
-                                            }) {
-                                                Label("0.5", systemImage: "tortoise.fill")
-                                            }
-                                            Button(action: {
-                                                player.rate = 0.75
-                                                if player.timeControlStatus != .playing {
-                                                    player.pause()
-                                                }
-                                            }) {
-                                                Label("0.75", systemImage: "hare")
-                                            }
-                                            Button(action: {
-                                                player.rate = 1.0
-                                                if player.timeControlStatus != .playing {
-                                                    player.pause()
-                                                }
-                                            }) {
-                                                Label("1.0", systemImage: "hare.fill")
-                                            }
-                                            Button(action: {
-                                                player.rate = 1.25
-                                                if player.timeControlStatus != .playing {
-                                                    player.pause()
-                                                }
-                                            }) {
-                                                Label("1.25", systemImage: "speedometer")
-                                            }
-                                            Button(action: {
-                                                player.rate = 1.5
-                                                if player.timeControlStatus != .playing {
-                                                    player.pause()
-                                                }
-                                            }) {
-                                                Label("1.5", systemImage: "speedometer")
-                                            }
-                                            Button(action: {
-                                                player.rate = 1.75
-                                                if player.timeControlStatus != .playing {
-                                                    player.pause()
-                                                }
-                                            }) {
-                                                Label("1.75", systemImage: "speedometer")
-                                            }
-                                            Button(action: {
-                                                player.rate = 2.0
-                                                if player.timeControlStatus != .playing {
-                                                    player.pause()
-                                                }
-                                            }) {
-                                                Label("2.0", systemImage: "speedometer")
                                             }
                                         }
                                     } label: {
@@ -253,8 +199,8 @@ struct CustomMediaPlayer: View {
                                         }
                                     }
                                 )
-                                .padding(.horizontal, 32)
-                                .padding(.bottom, 10)
+                                    .padding(.horizontal, 32)
+                                    .padding(.bottom, 10)
                             }
                         }
                     }
