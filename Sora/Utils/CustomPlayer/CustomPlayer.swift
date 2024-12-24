@@ -140,9 +140,10 @@ struct CustomMediaPlayer: View {
                                             .font(.headline)
                                             .foregroundColor(.white)
                                     }
+                                    .padding(.horizontal, 32)
                                 }
                                 Spacer()
-                                if duration - currentTime <= duration * 0.07 && currentTime != 0 {
+                                if duration - currentTime <= duration * 0.10 && currentTime != 0 {
                                     Button(action: {
                                         player.pause()
                                         presentationMode.wrappedValue.dismiss()
@@ -156,7 +157,7 @@ struct CustomMediaPlayer: View {
                                                 .foregroundColor(Color.black)
                                         }
                                         .padding()
-                                        .background(Color.white.opacity(0.8))
+                                        .background(Color.white)
                                         .cornerRadius(32)
                                     }
                                     .padding(.trailing, 10)
@@ -236,7 +237,7 @@ struct CustomMediaPlayer: View {
                                     }
                                 }
                             }
-                            .padding(.trailing, 10)
+                            .padding(.trailing, 32)
                             
                             if showControls {
                                 MusicProgressSlider(
@@ -252,6 +253,7 @@ struct CustomMediaPlayer: View {
                                         }
                                     }
                                 )
+                                .padding(.horizontal, 32)
                                 .padding(.bottom, 10)
                             }
                         }
@@ -280,6 +282,7 @@ struct CustomMediaPlayer: View {
                                 .font(.system(size: 20))
                         }
                         .frame(width: 60, height: 60)
+                        .contentShape(Rectangle())
                         .padding()
                         Spacer()
                     }

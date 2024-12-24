@@ -159,6 +159,11 @@ extension AnimeInfoView {
         DispatchQueue.main.async {
             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                let rootVC = windowScene.windows.first?.rootViewController {
+                if let popoverController = alert.popoverPresentationController {
+                    popoverController.sourceView = rootVC.view
+                    popoverController.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
+                    popoverController.permittedArrowDirections = []
+                }
                 rootVC.present(alert, animated: true, completion: nil)
             }
         }
