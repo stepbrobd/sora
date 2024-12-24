@@ -93,19 +93,76 @@ struct AboutView: View {
                             .foregroundColor(.orange)
                     }
                 }
-                HStack {
-                    KFImage(URL(string: "https://cdn.discordapp.com/avatars/1072985316916469870/6bc6c23a6f22f932d23f2c2452f755f7.png?size=4096"))
-                        .resizable()
-                        .frame(width: 40, height: 40)
-                        .clipShape(Circle())
-                    
-                    VStack(alignment: .leading) {
-                        Text("50/50")
-                            .font(.headline)
+                Button(action: {
+                    if let url = URL(string: "https://github.com/50n50") {
+                        UIApplication.shared.open(url)
+                    }
+                }) {
+                    HStack {
+                        KFImage(URL(string: "https://avatars.githubusercontent.com/u/80717571?v=4"))
+                            .resizable()
+                            .frame(width: 40, height: 40)
+                            .clipShape(Circle())
+                        
+                        VStack(alignment: .leading) {
+                            Text("50/50")
+                                .font(.headline)
+                                .foregroundColor(.orange)
+                            Text("Discord Helper & Designer")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "safari")
                             .foregroundColor(.orange)
-                        Text("Discord Helper & Designer")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                    }
+                }
+                Button(action: {
+                    if let url = URL(string: "https://github.com/Ibraheemraad1") {
+                        UIApplication.shared.open(url)
+                    }
+                }) {
+                    HStack {
+                        KFImage(URL(string: "https://avatars.githubusercontent.com/u/116025932?v=4"))
+                            .resizable()
+                            .frame(width: 40, height: 40)
+                            .clipShape(Circle())
+                        
+                        VStack(alignment: .leading) {
+                            Text("ibh-rad")
+                                .font(.headline)
+                                .foregroundColor(.orange)
+                            Text("Discord Helper & Bug Hunter")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "safari")
+                            .foregroundColor(.orange)
+                    }
+                }
+                Button(action: {
+                    if let url = URL(string: "https://github.com/Ibraheemraad1") {
+                        UIApplication.shared.open(url)
+                    }
+                }) {
+                    HStack {
+                        KFImage(URL(string: "https://avatars.githubusercontent.com/u/116025932?v=4"))
+                            .resizable()
+                            .frame(width: 40, height: 40)
+                            .clipShape(Circle())
+                        
+                        VStack(alignment: .leading) {
+                            Text("Seiike")
+                                .font(.headline)
+                                .foregroundColor(.orange)
+                            Text("Discord Helper")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "safari")
+                            .foregroundColor(.orange)
                     }
                 }
             }
