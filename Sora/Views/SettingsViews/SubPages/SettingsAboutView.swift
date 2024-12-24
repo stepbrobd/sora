@@ -46,14 +46,14 @@ struct AboutView: View {
                         VStack(alignment: .leading) {
                             Text("cranci1")
                                 .font(.headline)
-                                .foregroundColor(.yellow)
+                                .foregroundColor(.pink)
                             Text("YAY it's me")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
                         Spacer()
                         Image(systemName: "safari")
-                            .foregroundColor(.yellow)
+                            .foregroundColor(.pink)
                     }
                 }
             }
@@ -107,14 +107,14 @@ struct AboutView: View {
                         VStack(alignment: .leading) {
                             Text("50/50")
                                 .font(.headline)
-                                .foregroundColor(.orange)
+                                .foregroundColor(.mint)
                             Text("Discord Helper & Designer")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
                         Spacer()
                         Image(systemName: "safari")
-                            .foregroundColor(.orange)
+                            .foregroundColor(.mint)
                     }
                 }
                 Button(action: {
@@ -131,14 +131,14 @@ struct AboutView: View {
                         VStack(alignment: .leading) {
                             Text("ibh-rad")
                                 .font(.headline)
-                                .foregroundColor(.orange)
+                                .foregroundColor(.purple)
                             Text("Discord Helper & Bug Hunter")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
                         Spacer()
                         Image(systemName: "safari")
-                            .foregroundColor(.orange)
+                            .foregroundColor(.purple)
                     }
                 }
                 Button(action: {
@@ -155,14 +155,14 @@ struct AboutView: View {
                         VStack(alignment: .leading) {
                             Text("Seiike")
                                 .font(.headline)
-                                .foregroundColor(.orange)
+                                .foregroundColor(.yellow)
                             Text("Discord Helper")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
                         Spacer()
                         Image(systemName: "safari")
-                            .foregroundColor(.orange)
+                            .foregroundColor(.yellow)
                     }
                 }
             }
