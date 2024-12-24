@@ -120,11 +120,14 @@ struct CustomMediaPlayer: View {
                                         .frame(width: 60, height: 60)
                                     }
                                 }
-                            },
+                            }
+                            .animation(.easeInOut(duration: 0.2), value: showControls),
                             alignment: .center
                         )
                         .onTapGesture {
-                            showControls.toggle()
+                            withAnimation {
+                                showControls.toggle()
+                            }
                         }
                     
                     VStack {
