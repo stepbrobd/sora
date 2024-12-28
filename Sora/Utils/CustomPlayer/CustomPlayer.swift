@@ -58,6 +58,12 @@ struct CustomMediaPlayer: View {
         self.title = title
         self.episodeNumber = episodeNumber
         self.onWatchNext = onWatchNext
+        
+        let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(fullUrl)")
+        if lastPlayedTime > 0 {
+            let seekTime = CMTime(seconds: lastPlayedTime, preferredTimescale: 1)
+            self._player.wrappedValue.seek(to: seekTime)
+        }
     }
     
     var body: some View {
@@ -146,7 +152,7 @@ struct CustomMediaPlayer: View {
                                     .padding(.horizontal, 32)
                                 }
                                 Spacer()
-                                if duration - currentTime <= duration * 0.10 && currentTime != 0 {
+                                if duration - currentTime <= duration * 0.10 && currentTime != duration {
                                     Button(action: {
                                         player.pause()
                                         presentationMode.wrappedValue.dismiss()
