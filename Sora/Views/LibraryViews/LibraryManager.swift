@@ -32,7 +32,7 @@ class LibraryManager: ObservableObject {
     }
     
     func addToLibrary(_ item: LibraryItem) {
-        if !libraryItems.contains(where: { $0.anilistID == item.anilistID }) {
+        if !libraryItems.contains(where: { $0.id == item.id }) {
             libraryItems.append(item)
             saveLibrary()
             Logger.shared.log("Added to library: \(item.title)")

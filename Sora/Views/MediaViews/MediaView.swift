@@ -26,6 +26,7 @@ struct MediaView: View {
     @State private var selectedEpisodeNumber: Int = 0
     
     @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
+    @StateObject private var libraryManager = LibraryManager.shared
     
     var body: some View {
         Group {
@@ -119,8 +120,13 @@ struct MediaView: View {
                             }
                             
                             Button(action: {
+                                if isItemInLibrary() {
+                                    removeFromLibrary()
+                                } else {
+                                    addToLibrary()
+                                }
                             }) {
-                                Image(systemName: "bookmark")
+                                Image(systemName: isItemInLibrary() ? "bookmark.fill" : "bookmark")
                                     .resizable()
                                     .frame(width: 20, height: 27)
                             }
@@ -167,6 +173,27 @@ struct MediaView: View {
                     Logger.shared.log("Failed to fetch Item ID: \(error)")
                 }
             }
+        }
+    }
+    
+    func isItemInLibrary() -> Bool {
+        return libraryManager.libraryItems.contains(where: { $0.url == item.href })
+    }
+    
+    func addToLibrary() {
+        let libraryItem = LibraryItem(
+            anilistID: itemID ?? 0,
+            title: item.name,
+            image: item.imageUrl,
+            url: item.href,
+            dateAdded: Date()
+        )
+        libraryManager.addToLibrary(libraryItem)
+    }
+    
+    func removeFromLibrary() {
+        if let libraryItem = libraryManager.libraryItems.first(where: { $0.url == item.href }) {
+            libraryManager.removeFromLibrary(libraryItem)
         }
     }
     
