@@ -151,6 +151,7 @@ struct AnimeInfoView: View {
                     .padding()
                     .navigationBarTitleDisplayMode(.inline)
                     .navigationBarTitle(anime.name)
+                    .navigationViewStyle(StackNavigationViewStyle())
                 }
             }
         }

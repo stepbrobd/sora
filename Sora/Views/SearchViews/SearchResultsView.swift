@@ -66,6 +66,7 @@ struct SearchResultsView: View {
                     }
                     .padding()
                 }
+                .navigationViewStyle(StackNavigationViewStyle())
                 .navigationTitle("Results")
                 .toolbar {
                     filterMenu
@@ -107,6 +108,7 @@ struct SearchResultsView: View {
                         }
                     }
                 }
+                .navigationViewStyle(StackNavigationViewStyle())
                 .navigationTitle("Results")
                 .toolbar {
                     filterMenu

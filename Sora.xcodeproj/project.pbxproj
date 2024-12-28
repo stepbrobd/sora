@@ -251,8 +251,8 @@
 		132417B22D131A0600B4F2D2 /* LibraryViews */ = {
 			isa = PBXGroup;
 			children = (
-				132417B32D131A0600B4F2D2 /* LibraryManager.swift */,
 				132417B42D131A0600B4F2D2 /* LibraryView.swift */,
+				132417B32D131A0600B4F2D2 /* LibraryManager.swift */,
 			);
 			path = LibraryViews;
 			sourceTree = "<group>";

@@ -118,6 +118,7 @@ struct SettingsView: View {
                     }
                 }
             }
+            .navigationViewStyle(StackNavigationViewStyle())
             .navigationTitle("Settings")
             .sheet(isPresented: $isDocumentPickerPresented) {
                 DocumentPicker(

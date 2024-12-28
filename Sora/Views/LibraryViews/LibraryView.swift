@@ -35,6 +35,7 @@ struct LibraryView: View {
                     .padding()
                 }
             }
+            .navigationViewStyle(StackNavigationViewStyle())
             .navigationTitle("Library")
         }
     }
