@@ -118,7 +118,6 @@ struct SettingsView: View {
                     }
                 }
             }
-            .navigationViewStyle(StackNavigationViewStyle())
             .navigationTitle("Settings")
             .sheet(isPresented: $isDocumentPickerPresented) {
                 DocumentPicker(
@@ -143,6 +142,7 @@ struct SettingsView: View {
                 Text(importErrorMessage)
             }
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
 }
 

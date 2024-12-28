@@ -108,13 +108,13 @@ struct SearchResultsView: View {
                         }
                     }
                 }
-                .navigationViewStyle(StackNavigationViewStyle())
                 .navigationTitle("Results")
                 .toolbar {
                     filterMenu
                 }
             }
         }
+        .navigationViewStyle(StackNavigationViewStyle())
         .onAppear {
             performSearch()
         }
