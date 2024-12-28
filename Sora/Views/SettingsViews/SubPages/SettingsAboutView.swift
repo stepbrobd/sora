@@ -23,7 +23,7 @@ struct AboutView: View {
                             .font(.largeTitle)
                             .fontWeight(.bold)
                         
-                        Text("Version b1.0.0")
+                        Text("Public beta 1")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -58,7 +58,7 @@ struct AboutView: View {
                 }
             }
             
-            Section(header: Text("Huge thanks"), footer: Text("A huge thanks to the Miru Development team for their support and contributions to Sora. I wont ever be able to thank them enough. Thanks a lot <3")) {
+            Section(header: Text("Huge thanks"), footer: Text("A huge thanks to the Miru Development team for their support and contributions to Sora. I wont ever be able to thank them enough. Thanks a lot to them and all my discord helper.")) {
                 HStack {
                     KFImage(URL(string: "https://storage.ko-fi.com/cdn/useruploads/e68c31f0-7e66-4d63-934a-0508ce443bc0_e71506-30ce-4a01-9ac3-892ffcd18b77.png"))
                         .resizable()

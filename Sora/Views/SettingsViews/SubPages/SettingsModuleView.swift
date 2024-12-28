@@ -4,6 +4,7 @@
 //
 //  Created by Francesco on 18/12/24.
 //
+
 import SwiftUI
 import Kingfisher
 
@@ -17,6 +18,7 @@ struct SettingsModuleView: View {
     @State private var showingAddModuleAlert = false
     @State private var moduleURL = ""
     @State private var errorMessage: ErrorMessage?
+    @State private var previusImageURLs: [String: String] = [:]
     
     var body: some View {
         VStack {
@@ -27,11 +29,22 @@ struct SettingsModuleView: View {
                     ForEach(modulesManager.modules, id: \.name) { module in
                         HStack {
                             if let url = URL(string: module.iconURL) {
-                                KFImage(url)
-                                    .resizable()
-                                    .frame(width: 50, height: 50)
-                                    .clipShape(Circle())
-                                    .padding(.trailing, 10)
+                                if previusImageURLs[module.name] != module.iconURL {
+                                    KFImage(url)
+                                        .resizable()
+                                        .frame(width: 50, height: 50)
+                                        .clipShape(Circle())
+                                        .padding(.trailing, 10)
+                                        .onAppear {
+                                            previusImageURLs[module.name] = module.iconURL
+                                        }
+                                } else {
+                                    KFImage(url)
+                                        .resizable()
+                                        .frame(width: 50, height: 50)
+                                        .clipShape(Circle())
+                                        .padding(.trailing, 10)
+                                }
                             }
                             VStack(alignment: .leading) {
                                 Text(module.name)

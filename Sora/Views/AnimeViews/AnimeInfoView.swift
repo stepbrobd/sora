@@ -190,7 +190,7 @@ struct AnimeInfoView: View {
             openInExternalPlayer(scheme: scheme, url: streamUrl)
             Logger.shared.log("Opening external app with scheme: \(scheme)")
             return
-        } else if externalPlayer == "Custom" {
+        } else if externalPlayer == "Sora" {
             DispatchQueue.main.async {
                 let customMediaPlayer = CustomMediaPlayer(
                     module: module,

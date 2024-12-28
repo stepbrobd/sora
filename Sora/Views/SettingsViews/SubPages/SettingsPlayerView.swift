@@ -14,7 +14,7 @@ struct SettingsPlayerView: View {
     
     var body: some View {
         Form {
-            Section(header: Text("Player"), footer: Text("The Force Landscape and HoldSpeed only work inside the default iOS player and custom player.")) {
+            Section(header: Text("Media Player"), footer: Text("The Force Landscape and HoldSpeed only work inside the default iOS player and Sora player.")) {
                 HStack {
                     Text("Media Player")
                     Spacer()
@@ -45,9 +45,9 @@ struct SettingsPlayerView: View {
                             Label("nPlayer", systemImage: externalPlayer == "nPlayer" ? "checkmark" : "")
                         }
                         Button(action: {
-                            externalPlayer = "Custom"
+                            externalPlayer = "Sora"
                         }) {
-                            Label("Custom", systemImage: externalPlayer == "Custom" ? "checkmark" : "")
+                            Label("Sora", systemImage: externalPlayer == "Sora" ? "checkmark" : "")
                         }
                     }
                 }

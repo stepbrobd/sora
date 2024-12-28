@@ -32,10 +32,10 @@ struct SettingsView: View {
                         .pickerStyle(SegmentedPickerStyle())
                     }
                     NavigationLink(destination: SettingsIUView()) {
-                        Text("Minor Interface Settings")
+                        Text("Interface Settings")
                     }
                     NavigationLink(destination: SettingsPlayerView()) {
-                        Text("Player")
+                        Text("Media Player")
                     }
                 }
                 
