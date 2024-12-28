@@ -43,6 +43,7 @@ class ModulesManager: ObservableObject {
                         self.moduleURLs[module.name] = urlString
                         self.saveModuleData()
                         self.saveModuleURLs()
+                        NotificationCenter.default.post(name: .moduleAdded, object: nil)
                         completion(.success(()))
                     } else {
                         completion(.failure(ModuleError.duplicateModule))
@@ -61,6 +62,7 @@ class ModulesManager: ObservableObject {
             moduleURLs.removeValue(forKey: name)
             saveModuleData()
             saveModuleURLs()
+            NotificationCenter.default.post(name: .moduleRemoved, object: nil)
         }
     }
     
