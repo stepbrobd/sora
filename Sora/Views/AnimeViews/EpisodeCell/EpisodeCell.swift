@@ -22,7 +22,7 @@ struct EpisodeCell: View {
     var body: some View {
         HStack {
             ZStack {
-                KFImage(URL(string: episodeImageUrl.isEmpty ? imageUrl : episodeImageUrl))
+                KFImage(URL(string: episodeImageUrl.isEmpty ? "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/main/assets/banner2.png" : episodeImageUrl))
                     .resizable()
                     .aspectRatio(16/9, contentMode: .fill)
                     .frame(width: 100, height: 56)

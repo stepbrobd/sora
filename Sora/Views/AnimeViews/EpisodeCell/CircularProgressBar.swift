@@ -24,7 +24,7 @@ struct CircularProgressBar: View {
                 .rotationEffect(Angle(degrees: 270.0))
                 .animation(.linear, value: progress)
             
-            if progress >= 0.95 {
+            if progress >= 0.90 {
                 Image(systemName: "checkmark")
                     .font(.system(size: 12))
             } else {
