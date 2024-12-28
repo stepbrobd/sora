@@ -107,7 +107,7 @@ struct SettingsModuleView: View {
     func showAddModuleAlert() {
         let alert = UIAlertController(title: "Add Module", message: "Enter the URL of the module file", preferredStyle: .alert)
         alert.addTextField { textField in
-            textField.placeholder = "https://cranci.tech/sora/animeworld.json"
+            textField.placeholder = "https://real.url/module.json"
         }
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         alert.addAction(UIAlertAction(title: "Add", style: .default, handler: { _ in

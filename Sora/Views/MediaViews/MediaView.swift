@@ -1,5 +1,5 @@
 //
-//  AnimeDetailsView.swift
+//  MediaView.swift
 //  Sora
 //
 //  Created by Francesco on 18/12/24.
@@ -10,9 +10,9 @@ import SwiftUI
 import Kingfisher
 import SafariServices
 
-struct AnimeInfoView: View {
+struct MediaView: View {
     let module: ModuleStruct
-    let anime: SearchResult
+    let item: ItemResult
     
     @State var aliases: String = ""
     @State var synopsis: String = ""
@@ -21,7 +21,7 @@ struct AnimeInfoView: View {
     @State var episodes: [String] = []
     @State var isLoading: Bool = true
     @State var showFullSynopsis: Bool = false
-    @State var animeID: Int?
+    @State var itemID: Int?
     @State private var selectedEpisode: String = ""
     @State private var selectedEpisodeNumber: Int = 0
     
@@ -36,18 +36,18 @@ struct AnimeInfoView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         HStack(alignment: .top, spacing: 10) {
-                            KFImage(URL(string: anime.imageUrl))
+                            KFImage(URL(string: item.imageUrl))
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(height: 190)
                                 .cornerRadius(10)
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(anime.name)
+                                Text(item.name)
                                     .font(.system(size: 17))
                                     .fontWeight(.bold)
                                 
-                                if !aliases.isEmpty && aliases != anime.name {
+                                if !aliases.isEmpty && aliases != item.name {
                                     Text(aliases)
                                         .font(.system(size: 13))
                                         .foregroundColor(.secondary)
@@ -138,7 +138,7 @@ struct AnimeInfoView: View {
                                     let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(episodeURL)")
                                     let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
                                     
-                                    EpisodeCell(episode: episodes[index], episodeID: index, imageUrl: anime.imageUrl, progress: progress, animeID: animeID ?? 0)
+                                    EpisodeCell(episode: episodes[index], episodeID: index, imageUrl: item.imageUrl, progress: progress, itemID: itemID ?? 0)
                                         .onTapGesture {
                                             selectedEpisode = episodes[index]
                                             selectedEpisodeNumber = index + 1
@@ -150,21 +150,21 @@ struct AnimeInfoView: View {
                     }
                     .padding()
                     .navigationBarTitleDisplayMode(.inline)
-                    .navigationBarTitle(anime.name)
+                    .navigationBarTitle(item.name)
                     .navigationViewStyle(StackNavigationViewStyle())
                 }
             }
         }
         .onAppear {
-            fetchAnimeDetails()
-            fetchAnimeID(byTitle: anime.name) { result in
+            fetchItemDetails()
+            fetchItemID(byTitle: item.name) { result in
                 switch result {
                 case .success(let id):
-                    animeID = id
-                    Logger.shared.log("Fetched Anime ID: \(id)")
+                    itemID = id
+                    Logger.shared.log("Fetched Item ID: \(id)")
                 case .failure(let error):
-                    print("Failed to fetch Anime ID: \(error)")
-                    Logger.shared.log("Failed to fetch Anime ID: \(error)")
+                    print("Failed to fetch Item ID: \(error)")
+                    Logger.shared.log("Failed to fetch Item ID: \(error)")
                 }
             }
         }
@@ -196,7 +196,7 @@ struct AnimeInfoView: View {
                     module: module,
                     urlString: streamUrl,
                     fullUrl: fullURL,
-                    title: anime.name,
+                    title: item.name,
                     episodeNumber: selectedEpisodeNumber,
                     onWatchNext: {
                         selectNextEpisode()
@@ -240,7 +240,7 @@ struct AnimeInfoView: View {
     }
     
     private func openSafariViewController(with urlString: String) {
-        guard let url = URL(string: anime.href.hasPrefix("http") ? anime.href : "\(module.module[0].details.baseURL)\(anime.href)") else {
+        guard let url = URL(string: item.href.hasPrefix("http") ? item.href : "\(module.module[0].details.baseURL)\(item.href)") else {
             Logger.shared.log("Unable to open the webpage")
             return
         }
@@ -260,7 +260,7 @@ struct AnimeInfoView: View {
         Logger.shared.log("Unable to open the stream: 'streamUrl'")
     }
     
-    private func fetchAnimeID(byTitle title: String, completion: @escaping (Result<Int, Error>) -> Void) {
+    private func fetchItemID(byTitle title: String, completion: @escaping (Result<Int, Error>) -> Void) {
         let query = """
         query {
             Media(search: "\(title)", type: ANIME) {

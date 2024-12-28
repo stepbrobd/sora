@@ -12,7 +12,7 @@ import SwiftSoup
 struct SearchResultsView: View {
     let module: ModuleStruct?
     let searchText: String
-    @State private var searchResults: [SearchResult] = []
+    @State private var searchResults: [ItemResult] = []
     @State private var isLoading: Bool = true
     @State private var filter: FilterType = .all
     @AppStorage("listSearch") private var isListSearchEnabled: Bool = false
@@ -47,7 +47,7 @@ struct SearchResultsView: View {
                 ScrollView {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 20) {
                         ForEach(filteredResults) { result in
-                            NavigationLink(destination: AnimeInfoView(module: module!, anime: result)) {
+                            NavigationLink(destination: MediaView(module: module!, item: result)) {
                                 VStack {
                                     KFImage(URL(string: result.imageUrl))
                                         .resizable()
@@ -90,7 +90,7 @@ struct SearchResultsView: View {
             } else {
                 List {
                     ForEach(filteredResults) { result in
-                        NavigationLink(destination: AnimeInfoView(module: module!, anime: result)) {
+                        NavigationLink(destination: MediaView(module: module!, item: result)) {
                             HStack {
                                 KFImage(URL(string: result.imageUrl))
                                     .resizable()
@@ -155,7 +155,7 @@ struct SearchResultsView: View {
         }
     }
     
-    var filteredResults: [SearchResult] {
+    var filteredResults: [ItemResult] {
         switch filter {
         case .all:
             return searchResults
@@ -186,7 +186,7 @@ struct SearchResultsView: View {
                 let document = try SwiftSoup.parse(html)
                 let elements = try document.select(module.module[0].search.documentSelector)
                 
-                var results: [SearchResult] = []
+                var results: [ItemResult] = []
                 for element in elements {
                     let title = try element.select(module.module[0].search.title).text()
                     let href = try element.select(module.module[0].search.href).attr("href")
@@ -196,7 +196,7 @@ struct SearchResultsView: View {
                         imageURL = "\(module.module[0].details.baseURL)\(imageURL)"
                     }
                     
-                    let result = SearchResult(name: title, imageUrl: imageURL, href: href)
+                    let result = ItemResult(name: title, imageUrl: imageURL, href: href)
                     results.append(result)
                 }
                 

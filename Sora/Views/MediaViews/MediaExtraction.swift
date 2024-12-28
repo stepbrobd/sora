@@ -1,5 +1,5 @@
 //
-//  AnimeInfoExtraction.swift
+//  MediaExtraction.swift
 //  Sora
 //
 //  Created by Francesco on 18/12/24.
@@ -8,9 +8,9 @@
 import SwiftUI
 import SwiftSoup
 
-extension AnimeInfoView {
-    func fetchAnimeDetails() {
-        guard let url = URL(string: anime.href.hasPrefix("https") ? anime.href : "\(module.module[0].details.baseURL)\(anime.href)") else { return }
+extension MediaView {
+    func fetchItemDetails() {
+        guard let url = URL(string: item.href.hasPrefix("https") ? item.href : "\(module.module[0].details.baseURL)\(item.href)") else { return }
         
         URLSession.custom.dataTask(with: url) { data, response, error in
             defer { isLoading = false }

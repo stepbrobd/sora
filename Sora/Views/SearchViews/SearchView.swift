@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct SearchResult: Identifiable {
+struct ItemResult: Identifiable {
     let id = UUID()
     let name: String
     let imageUrl: String
@@ -16,7 +16,7 @@ struct SearchResult: Identifiable {
 
 struct SearchView: View {
     @State private var searchText: String = ""
-    @State private var searchResults: [SearchResult] = []
+    @State private var searchResults: [ItemResult] = []
     @State private var navigateToResults: Bool = false
     @State private var selectedModule: ModuleStruct?
     @State private var showAlert = false

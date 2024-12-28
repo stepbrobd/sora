@@ -11,7 +11,7 @@ import SwiftSoup
 
 struct HomeView: View {
     @StateObject private var modulesManager = ModulesManager()
-    @State private var featuredItems: [String: [SearchResult]] = [:]
+    @State private var featuredItems: [String: [ItemResult]] = [:]
     @State private var isLoading = true
     
     var body: some View {
@@ -40,7 +40,7 @@ struct HomeView: View {
                                     ScrollView(.horizontal, showsIndicators: false) {
                                         HStack(spacing: 20) {
                                             ForEach(items) { item in
-                                                NavigationLink(destination: AnimeInfoView(module: module, anime: item)) {
+                                                NavigationLink(destination: MediaView(module: module, item: item)) {
                                                     VStack {
                                                         KFImage(URL(string: item.imageUrl))
                                                             .resizable()
@@ -97,7 +97,7 @@ struct HomeView: View {
         }
     }
     
-    private func fetchFeaturedItems(for module: ModuleStruct, completion: @escaping ([SearchResult]) -> Void) {
+    private func fetchFeaturedItems(for module: ModuleStruct, completion: @escaping ([ItemResult]) -> Void) {
         let urlString = module.module[0].featured.url
         guard let url = URL(string: urlString) else {
             completion([])
@@ -115,7 +115,7 @@ struct HomeView: View {
                 let document = try SwiftSoup.parse(html)
                 let elements = try document.select(module.module[0].featured.documentSelector)
                 
-                var results: [SearchResult] = []
+                var results: [ItemResult] = []
                 for element in elements {
                     let title = try element.select(module.module[0].featured.title).text()
                     let href = try element.select(module.module[0].featured.href).attr("href")
@@ -125,7 +125,7 @@ struct HomeView: View {
                         imageURL = "\(module.module[0].details.baseURL)\(imageURL)"
                     }
                     
-                    let result = SearchResult(name: title, imageUrl: imageURL, href: href)
+                    let result = ItemResult(name: title, imageUrl: imageURL, href: href)
                     results.append(result)
                 }
                 

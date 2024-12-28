@@ -13,7 +13,7 @@ struct EpisodeCell: View {
     let episodeID: Int
     let imageUrl: String
     let progress: Double
-    let animeID: Int
+    let itemID: Int
     
     @State private var episodeTitle: String = ""
     @State private var episodeImageUrl: String = ""
@@ -55,7 +55,7 @@ struct EpisodeCell: View {
     }
     
     func fetchEpisodeDetails() {
-        guard let url = URL(string: "https://api.ani.zip/mappings?anilist_id=\(animeID)") else {
+        guard let url = URL(string: "https://api.ani.zip/mappings?anilist_id=\(itemID)") else {
             isLoading = false
             return
         }
