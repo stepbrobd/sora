@@ -28,7 +28,7 @@ struct AnimeInfoView: View {
     @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
     
     var body: some View {
-        VStack {
+        Group {
             if isLoading {
                 ProgressView()
                     .padding()
@@ -149,6 +149,8 @@ struct AnimeInfoView: View {
                         }
                     }
                     .padding()
+                    .navigationBarTitleDisplayMode(.inline)
+                    .navigationBarTitle(anime.name)
                 }
             }
         }
