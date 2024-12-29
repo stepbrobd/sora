@@ -10,7 +10,7 @@ import SwiftSoup
 
 extension MediaView {
     func fetchItemDetails() {
-        guard let url = URL(string: item.href.hasPrefix("https") ? item.href : "\(module.module[0].details.baseURL)\(item.href)") else { return }
+        guard let url = URL(string: item.href.hasPrefix("https") ? item.href : "\(module.module[0].details.baseURL.hasSuffix("/") ? module.module[0].details.baseURL : "\(module.module[0].details.baseURL)/")\(item.href.hasPrefix("/") ? String(item.href.dropFirst()) : item.href)") else { return }
         
         URLSession.custom.dataTask(with: url) { data, response, error in
             defer { isLoading = false }
@@ -50,7 +50,7 @@ extension MediaView {
     }
     
     func fetchEpisodeStream(urlString: String) {
-        guard let url = URL(string: urlString) else { return }
+        guard let url = URL(string: urlString.hasPrefix("https") ? urlString : "\(module.module[0].details.baseURL)\(urlString)") else { return }
         
         Logger.shared.log("Pressed episode button")
         URLSession.custom.dataTask(with: url) { data, response, error in
