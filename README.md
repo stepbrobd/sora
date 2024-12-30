@@ -37,7 +37,7 @@ A modular web scraping app, **Still in early builds** under the GPLv3.0 License
    - No, Sora will always remain free without subscriptions, paid content, or any type of login.
 
 4. **How can i get module?**
-   - I do not provide any module for the app. Search for them on google or i dont know. I only create 1 module that is to watch videos of my school.
+   - I do not provide any module for the app. Search for them on google or i dont know. I only created 1 module to watch videos of my school.
 
 ## Acknowledgements
 
