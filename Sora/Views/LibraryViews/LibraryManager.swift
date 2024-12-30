@@ -45,7 +45,7 @@ class LibraryManager: ObservableObject {
         Logger.shared.log("Removed from library: \(item.title)")
     }
     
-    func importFromMiruData(_ miruData: MiruDataStruct) {
+    func importFromMiruData(_ miruData: MiruDataStruct, module: ModuleStruct) {
         var newLibraryItems: [LibraryItem] = []
         
         for like in miruData.likes {
@@ -54,6 +54,7 @@ class LibraryManager: ObservableObject {
                 title: like.title,
                 image: like.cover,
                 url: like.gogoSlug,
+                module: module,
                 dateAdded: Date()
             )
             newLibraryItems.append(libraryItem)
@@ -61,7 +62,7 @@ class LibraryManager: ObservableObject {
         }
         
         DispatchQueue.main.async {
-            self.libraryItems = newLibraryItems
+            self.libraryItems.append(contentsOf: newLibraryItems)
             self.saveLibrary()
             Logger.shared.log("Completed importing \(newLibraryItems.count) items")
         }

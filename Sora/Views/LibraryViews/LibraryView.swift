@@ -15,6 +15,7 @@ struct LibraryItem: Identifiable, Codable {
     let title: String
     let image: String
     let url: String
+    let module: ModuleStruct
     var dateAdded: Date
 }
 
@@ -29,7 +30,9 @@ struct LibraryView: View {
                 } else {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 20) {
                         ForEach(libraryManager.libraryItems.sorted(by: { $0.dateAdded > $1.dateAdded })) { item in
-                            itemView(item)
+                            NavigationLink(destination: MediaView(module: item.module, item: ItemResult(name: item.title, imageUrl: item.image, href: item.url))) {
+                                itemView(item)
+                            }
                         }
                     }
                     .padding()

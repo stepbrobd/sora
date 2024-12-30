@@ -186,6 +186,7 @@ struct MediaView: View {
             title: item.name,
             image: item.imageUrl,
             url: item.href,
+            module: module,
             dateAdded: Date()
         )
         libraryManager.addToLibrary(libraryItem)
@@ -267,7 +268,7 @@ struct MediaView: View {
     }
     
     private func openSafariViewController(with urlString: String) {
-        guard let url = URL(string: item.href.hasPrefix("http") ? item.href : "\(module.module[0].details.baseURL)\(item.href)") else {
+        guard let url = URL(string: item.href.hasPrefix("https") ? item.href : "\(module.module[0].details.baseURL.hasSuffix("/") ? module.module[0].details.baseURL : "\(module.module[0].details.baseURL)/")\(item.href.hasPrefix("/") ? String(item.href.dropFirst()) : item.href)") else {
             Logger.shared.log("Unable to open the webpage")
             return
         }

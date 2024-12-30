@@ -8,11 +8,11 @@
 import Foundation
 
 struct MiruDataStruct: Codable {
-    let likes: [Like]
+    var likes: [Like]
     
     struct Like: Codable {
         let anilistID: Int
-        let gogoSlug: String
+        var gogoSlug: String
         let title: String
         let cover: String
         

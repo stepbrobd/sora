@@ -15,8 +15,11 @@ struct SettingsView: View {
     @State private var showImportSuccessAlert = false
     @State private var showImportFailAlert = false
     @State private var importErrorMessage = ""
+    @State private var miruDataToImport: MiruDataStruct?
+    @State private var selectedModule: ModuleStruct?
     @StateObject private var libraryManager = LibraryManager.shared
-    
+    @StateObject private var modulesManager = ModulesManager()
+
     var body: some View {
         NavigationView {
             Form {
@@ -52,12 +55,15 @@ struct SettingsView: View {
                             Text("Storage")
                         }
                     }
-                    Button(action: {
-                        isDocumentPickerPresented = true
-                    }) {
-                        HStack {
-                            Image(systemName: "tray.and.arrow.down.fill")
-                            Text("Import Miru Bookmarks")
+                    ForEach(modulesManager.modules.filter { $0.extractor == "dub-sub" }, id: \.name) { module in
+                        Button(action: {
+                            isDocumentPickerPresented = true
+                            selectedModule = module
+                        }) {
+                            HStack {
+                                Image(systemName: "tray.and.arrow.down.fill")
+                                Text("Import Miru Bookmarks into \(module.name)")
+                            }
                         }
                     }
                 }
@@ -122,8 +128,12 @@ struct SettingsView: View {
             .sheet(isPresented: $isDocumentPickerPresented) {
                 DocumentPicker(
                     libraryManager: libraryManager,
-                    onSuccess: {
-                        showImportSuccessAlert = true
+                    onSuccess: { miruData in
+                        miruDataToImport = miruData
+                        if let selectedModule = selectedModule {
+                            libraryManager.importFromMiruData(miruData, module: selectedModule)
+                            showImportSuccessAlert = true
+                        }
                     },
                     onFailure: { errorMessage in
                         importErrorMessage = errorMessage
@@ -148,7 +158,7 @@ struct SettingsView: View {
 
 struct DocumentPicker: UIViewControllerRepresentable {
     var libraryManager: LibraryManager
-    var onSuccess: () -> Void
+    var onSuccess: (MiruDataStruct) -> Void
     var onFailure: (String) -> Void
     
     func makeCoordinator() -> Coordinator {
@@ -166,10 +176,10 @@ struct DocumentPicker: UIViewControllerRepresentable {
     class Coordinator: NSObject, UIDocumentPickerDelegate {
         var parent: DocumentPicker
         var libraryManager: LibraryManager
-        var onSuccess: () -> Void
+        var onSuccess: (MiruDataStruct) -> Void
         var onFailure: (String) -> Void
         
-        init(_ parent: DocumentPicker, libraryManager: LibraryManager, onSuccess: @escaping () -> Void, onFailure: @escaping (String) -> Void) {
+        init(_ parent: DocumentPicker, libraryManager: LibraryManager, onSuccess: @escaping (MiruDataStruct) -> Void, onFailure: @escaping (String) -> Void) {
             self.parent = parent
             self.libraryManager = libraryManager
             self.onSuccess = onSuccess
@@ -199,10 +209,16 @@ struct DocumentPicker: UIViewControllerRepresentable {
             
             do {
                 let data = try Data(contentsOf: selectedFileURL)
-                let miruData = try JSONDecoder().decode(MiruDataStruct.self, from: data)
-                libraryManager.importFromMiruData(miruData)
+                var miruData = try JSONDecoder().decode(MiruDataStruct.self, from: data)
+                
+                miruData.likes = miruData.likes.map { like in
+                    var updatedLike = like
+                    updatedLike.gogoSlug = "/series/" + like.gogoSlug
+                    return updatedLike
+                }
+                
                 Logger.shared.log("Imported Miru data from \(selectedFileURL)")
-                onSuccess()
+                onSuccess(miruData)
             } catch {
                 let errorMessage = "Failed to import Miru data: \(error.localizedDescription)"
                 print(errorMessage)
@@ -212,7 +228,7 @@ struct DocumentPicker: UIViewControllerRepresentable {
         }
         
         func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
-            let errorMessage = "Document picker was cancelled"
+            let errorMessage = "Document picker was closed"
             print(errorMessage)
             Logger.shared.log(errorMessage)
             onFailure(errorMessage)
