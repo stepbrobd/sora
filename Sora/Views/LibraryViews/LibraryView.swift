@@ -61,12 +61,22 @@ struct LibraryView: View {
     }
     
     func itemView(_ item: LibraryItem) -> some View {
-        VStack {
-            KFImage(URL(string: item.image))
-                .resizable()
-                .aspectRatio(2/3, contentMode: .fill)
-                .cornerRadius(10)
-                .frame(width: 150, height: 225)
+        VStack() {
+            ZStack(alignment: .bottomTrailing) {
+                KFImage(URL(string: item.image))
+                    .resizable()
+                    .aspectRatio(2/3, contentMode: .fill)
+                    .cornerRadius(10)
+                    .frame(width: 150, height: 225)
+                
+                KFImage(URL(string: item.module.iconURL))
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 30, height: 30)
+                    .background(Color.white)
+                    .clipShape(Circle())
+                    .padding(5)
+            }
             
             Text(item.title)
                 .font(.subheadline)

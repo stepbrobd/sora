@@ -39,7 +39,7 @@
 		132417D72D13242400B4F2D2 /* CircularProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132417D62D13242400B4F2D2 /* CircularProgressBar.swift */; };
 		132417D92D1328B900B4F2D2 /* VideoPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132417D82D1328B900B4F2D2 /* VideoPlayerView.swift */; };
 		1352BA712D1ABC30000A9AF9 /* URLSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1352BA702D1ABC30000A9AF9 /* URLSession.swift */; };
-		13B3A4B22D1477F100BCC0D5 /* StorageSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B3A4B12D1477F100BCC0D5 /* StorageSettingsView.swift */; };
+		13B3A4B22D1477F100BCC0D5 /* SettingsStorageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B3A4B12D1477F100BCC0D5 /* SettingsStorageView.swift */; };
 		13C9821F2D2152B1007A0132 /* GitHubRelease.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C9821E2D2152B1007A0132 /* GitHubRelease.swift */; };
 /* End PBXBuildFile section */
 
@@ -77,7 +77,7 @@
 		132417D82D1328B900B4F2D2 /* VideoPlayerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoPlayerView.swift; sourceTree = "<group>"; };
 		1352BA6F2D1AB113000A9AF9 /* Sora.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Sora.entitlements; sourceTree = "<group>"; };
 		1352BA702D1ABC30000A9AF9 /* URLSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSession.swift; sourceTree = "<group>"; };
-		13B3A4B12D1477F100BCC0D5 /* StorageSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageSettingsView.swift; sourceTree = "<group>"; };
+		13B3A4B12D1477F100BCC0D5 /* SettingsStorageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStorageView.swift; sourceTree = "<group>"; };
 		13C9821E2D2152B1007A0132 /* GitHubRelease.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubRelease.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -246,7 +246,7 @@
 				132417AD2D131A0600B4F2D2 /* SettingsLogsView.swift */,
 				132417AE2D131A0600B4F2D2 /* SettingsModuleView.swift */,
 				132417AF2D131A0600B4F2D2 /* SettingsPlayerView.swift */,
-				13B3A4B12D1477F100BCC0D5 /* StorageSettingsView.swift */,
+				13B3A4B12D1477F100BCC0D5 /* SettingsStorageView.swift */,
 			);
 			path = SubPages;
 			sourceTree = "<group>";
@@ -365,7 +365,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				13B3A4B22D1477F100BCC0D5 /* StorageSettingsView.swift in Sources */,
+				13B3A4B22D1477F100BCC0D5 /* SettingsStorageView.swift in Sources */,
 				132417BB2D131A0600B4F2D2 /* SettingsIUView.swift in Sources */,
 				132417C42D131A0600B4F2D2 /* MediaExtraction.swift in Sources */,
 				132417B82D131A0600B4F2D2 /* SearchView.swift in Sources */,

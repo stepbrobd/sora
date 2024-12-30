@@ -39,9 +39,9 @@ struct MediaView: View {
                         HStack(alignment: .top, spacing: 10) {
                             KFImage(URL(string: item.imageUrl))
                                 .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(height: 190)
+                                .aspectRatio(2/3, contentMode: .fill)
                                 .cornerRadius(10)
+                                .frame(width: 150, height: 225)
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(item.name)

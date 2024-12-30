@@ -49,7 +49,7 @@ struct SettingsView: View {
                             Text("Modules")
                         }
                     }
-                    NavigationLink(destination: StorageSettingsView()) {
+                    NavigationLink(destination: SettingsStorageView()) {
                         HStack {
                             Image(systemName: "externaldrive.fill")
                             Text("Storage")

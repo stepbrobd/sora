@@ -31,6 +31,7 @@ struct ContentView: View {
         }
         .onAppear {
             checkForUpdate()
+            Logger.shared.log("Started Sora")
         }
     }
     

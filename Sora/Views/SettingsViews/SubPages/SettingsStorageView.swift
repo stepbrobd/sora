@@ -1,5 +1,5 @@
 //
-//  StorageSettingsView.swift
+//  SettingsStorageView.swift
 //  Sora
 //
 //  Created by Francesco on 19/12/24.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct StorageSettingsView: View {
+struct SettingsStorageView: View {
     @State private var appSize: String = "Calculating..."
     @State private var storageDetails: [(String, Double, Color)] = []
     @State private var deviceStorage: (total: Int64, used: Int64) = (0, 0)
@@ -42,9 +42,9 @@ struct StorageSettingsView: View {
                                         RoundedRectangle(cornerRadius: 0)
                                             .fill(detail.2)
                                             .frame(width: geometry.size.width * CGFloat(detail.1 * 1024 * 1024) / CGFloat(deviceStorage.total))
+                                            .frame(height: 24)
                                     }
                                 }
-                                .frame(height: 24)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                             }
                         }
