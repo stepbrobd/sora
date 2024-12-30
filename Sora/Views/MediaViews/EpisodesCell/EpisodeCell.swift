@@ -14,10 +14,12 @@ struct EpisodeCell: View {
     let imageUrl: String
     let progress: Double
     let itemID: Int
+    let module: ModuleStruct
     
     @State private var episodeTitle: String = ""
     @State private var episodeImageUrl: String = ""
     @State private var isLoading: Bool = true
+    @State private var currentProgress: Double = 0.0
     
     var body: some View {
         HStack {
@@ -46,11 +48,12 @@ struct EpisodeCell: View {
             
             Spacer()
             
-            CircularProgressBar(progress: progress)
+            CircularProgressBar(progress: currentProgress)
                 .frame(width: 40, height: 40)
         }
         .onAppear {
             fetchEpisodeDetails()
+            updateProgress()
         }
     }
     
@@ -103,5 +106,12 @@ struct EpisodeCell: View {
                 }
             }
         }.resume()
+    }
+    
+    func updateProgress() {
+        let episodeURL = episode.hasPrefix("https") ? episode : "\(module.module[0].details.baseURL)\(episode)"
+        let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(episodeURL)")
+        let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(episodeURL)")
+        currentProgress = totalTime > 0 ? lastPlayedTime / totalTime : 0
     }
 }

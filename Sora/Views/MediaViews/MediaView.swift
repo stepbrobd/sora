@@ -24,6 +24,8 @@ struct MediaView: View {
     @State var itemID: Int?
     @State private var selectedEpisode: String = ""
     @State private var selectedEpisodeNumber: Int = 0
+    @State private var episodeRange: ClosedRange<Int> = 0...99
+    @State private var selectedRange: String = "1-100"
     
     @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
     @StateObject private var libraryManager = LibraryManager.shared
@@ -134,22 +136,46 @@ struct MediaView: View {
                         
                         if !episodes.isEmpty {
                             VStack(alignment: .leading, spacing: 10) {
-                                Text("Episodes")
-                                    .font(.system(size: 18))
-                                    .fontWeight(.bold)
-                                
-                                ForEach(episodes.indices, id: \.self) { index in
-                                    let episodeURL = episodes[index].hasPrefix("https") ? episodes[index] : "\(module.module[0].details.baseURL)\(episodes[index])"
-                                    let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(episodeURL)")
-                                    let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(episodeURL)")
-                                    let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
+                                HStack {
+                                    Text("Episodes")
+                                        .font(.system(size: 18))
+                                        .fontWeight(.bold)
                                     
-                                    EpisodeCell(episode: episodes[index], episodeID: index, imageUrl: item.imageUrl, progress: progress, itemID: itemID ?? 0)
-                                        .onTapGesture {
-                                            selectedEpisode = episodes[index]
-                                            selectedEpisodeNumber = index + 1
-                                            fetchEpisodeStream(urlString: episodeURL)
+                                    Spacer()
+                                    
+                                    if episodes.count > 100 {
+                                        Menu {
+                                            ForEach(0..<(episodes.count / 100) + 1, id: \.self) { index in
+                                                let start = index * 100 + 1
+                                                let end = min((index + 1) * 100, episodes.count)
+                                                Button(action: {
+                                                    episodeRange = (start - 1)...(end - 1)
+                                                    selectedRange = "\(start)-\(end)"
+                                                }) {
+                                                    Text("\(start)-\(end)")
+                                                }
+                                            }
+                                        } label: {
+                                            Text(selectedRange)
+                                                .font(.system(size: 14))
                                         }
+                                    }
+                                }
+                                
+                                ForEach(episodeRange, id: \.self) { index in
+                                    if index < episodes.count {
+                                        let episodeURL = episodes[index].hasPrefix("https") ? episodes[index] : "\(module.module[0].details.baseURL)\(episodes[index])"
+                                        let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(episodeURL)")
+                                        let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(episodeURL)")
+                                        let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
+                                        
+                                        EpisodeCell(episode: episodes[index], episodeID: index, imageUrl: item.imageUrl, progress: progress, itemID: itemID ?? 0, module: module)
+                                            .onTapGesture {
+                                                selectedEpisode = episodes[index]
+                                                selectedEpisodeNumber = index + 1
+                                                fetchEpisodeStream(urlString: episodeURL)
+                                            }
+                                    }
                                 }
                             }
                         }
