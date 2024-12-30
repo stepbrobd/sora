@@ -69,7 +69,7 @@ extension MediaView {
                 
                 if !subURLs.isEmpty || !dubURLs.isEmpty {
                     DispatchQueue.main.async {
-                        self.presentStreamSelection(subURLs: subURLs, dubURLs: dubURLs)
+                        self.presentStreamSelection(subURLs: subURLs, dubURLs: dubURLs, fullURL: urlString)
                     }
                 } else {
                     DispatchQueue.main.async {
@@ -88,13 +88,11 @@ extension MediaView {
                     let mp4URLs = extractStreamURLs(from: patternHTML, streamType: "MP4").map { $0.replacingOccurrences(of: "amp;", with: "") }
                     
                     DispatchQueue.main.async {
-                        Logger.shared.log("MP4 URLs: \(mp4URLs)")
-                        self.playStream(urlString: mp4URLs.first, fullURL: patternURL.absoluteString)
+                        self.playStream(urlString: mp4URLs.first, fullURL: urlString)
                     }
                 }.resume()
             } else {
                 DispatchQueue.main.async {
-                    Logger.shared.log("stream URLs: \(streamURLs)")
                     self.playStream(urlString: streamURLs.first, fullURL: urlString)
                 }
             }
@@ -167,7 +165,7 @@ extension MediaView {
         }
     }
     
-    func presentStreamSelection(subURLs: [String], dubURLs: [String]) {
+    func presentStreamSelection(subURLs: [String], dubURLs: [String], fullURL: String) {
         let uniqueSubURLs = Array(Set(subURLs))
         let uniqueDubURLs = Array(Set(dubURLs))
         
@@ -176,7 +174,7 @@ extension MediaView {
         if !uniqueDubURLs.isEmpty {
             for dubURL in uniqueDubURLs {
                 alert.addAction(UIAlertAction(title: "DUB", style: .default) { _ in
-                    self.playStream(urlString: dubURL, fullURL: dubURL)
+                    self.playStream(urlString: dubURL, fullURL: fullURL)
                 })
             }
         }
@@ -184,7 +182,7 @@ extension MediaView {
         if !uniqueSubURLs.isEmpty {
             for subURL in uniqueSubURLs {
                 alert.addAction(UIAlertAction(title: "SUB", style: .default) { _ in
-                    self.playStream(urlString: subURL, fullURL: subURL)
+                    self.playStream(urlString: subURL, fullURL: fullURL)
                 })
             }
         }
