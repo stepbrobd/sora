@@ -12,7 +12,6 @@ extension MediaView {
     func fetchItemDetails() {
         guard let url = URL(string: item.href.hasPrefix("https") ? item.href : "\(module.module[0].details.baseURL.hasSuffix("/") ? module.module[0].details.baseURL : "\(module.module[0].details.baseURL)/")\(item.href.hasPrefix("/") ? String(item.href.dropFirst()) : item.href)") else { return }
         
-        print(url)
         URLSession.custom.dataTask(with: url) { data, response, error in
             defer { isLoading = false }
             guard let data = data, error == nil else { return }
