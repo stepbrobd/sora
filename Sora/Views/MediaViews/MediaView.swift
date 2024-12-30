@@ -169,7 +169,7 @@ struct MediaView: View {
                                         let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(episodeURL)")
                                         let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
                                         
-                                        EpisodeCell(episode: episodes[index], episodeID: index, imageUrl: item.imageUrl, progress: progress, itemID: itemID ?? 0, module: module)
+                                        EpisodeCell(episode: episodes[index], episodeID: index, imageUrl: item.imageUrl, progress: progress, itemID: itemID ?? 0)
                                             .onTapGesture {
                                                 selectedEpisode = episodes[index]
                                                 selectedEpisodeNumber = index + 1
