@@ -75,8 +75,8 @@ extension MediaView {
                         self.playStream(urlString: streamURLs.first, fullURL: urlString)
                     }
                 }
-            } else if module.extractor == "pattern-mp4" {
-                Logger.shared.log("extracting for pattern-mp4")
+            } else if module.extractor == "pattern-mp4" || module.extractor == "pattern-HLS"{
+                Logger.shared.log("extracting for pattern")
                 let patternURL = extractPatternURL(from: html)
                 guard let patternURL = patternURL else { return }
                 
@@ -84,7 +84,7 @@ extension MediaView {
                     guard let data = data, error == nil else { return }
                     
                     let patternHTML = String(data: data, encoding: .utf8) ?? ""
-                    let mp4URLs = extractStreamURLs(from: patternHTML, streamType: "MP4").map { $0.replacingOccurrences(of: "amp;", with: "") }
+                    let mp4URLs = extractStreamURLs(from: patternHTML, streamType: streamType).map { $0.replacingOccurrences(of: "amp;", with: "") }
                     
                     DispatchQueue.main.async {
                         self.playStream(urlString: mp4URLs.first, fullURL: urlString)
