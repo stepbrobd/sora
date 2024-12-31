@@ -107,6 +107,7 @@ struct MediaView: View {
                         
                         HStack {
                             Button(action: {
+                                startWatchingFirstUnfinishedEpisode()
                             }) {
                                 HStack {
                                     Image(systemName: "play.fill")
@@ -221,6 +222,22 @@ struct MediaView: View {
     func removeFromLibrary() {
         if let libraryItem = libraryManager.libraryItems.first(where: { $0.url == item.href }) {
             libraryManager.removeFromLibrary(libraryItem)
+        }
+    }
+    
+    private func startWatchingFirstUnfinishedEpisode() {
+        for (index, episode) in episodes.enumerated() {
+            let episodeURL = episode.hasPrefix("https") ? episode : "\(module.module[0].details.baseURL)\(episode)"
+            let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(episodeURL)")
+            let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(episodeURL)")
+            let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
+            
+            if progress < 0.90 {
+                selectedEpisode = episode
+                selectedEpisodeNumber = index + 1
+                fetchEpisodeStream(urlString: episodeURL)
+                break
+            }
         }
     }
     
