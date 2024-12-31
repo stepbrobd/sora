@@ -16,7 +16,9 @@ class HistoryManager: ObservableObject {
     init() {
         NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)
             .sink { [weak self] _ in
-                self?.searchHistory = UserDefaults.standard.stringArray(forKey: "SearchHistory") ?? []
+                DispatchQueue.main.async {
+                    self?.searchHistory = UserDefaults.standard.stringArray(forKey: "SearchHistory") ?? []
+                }
             }
             .store(in: &cancellables)
     }
