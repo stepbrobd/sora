@@ -76,7 +76,7 @@ extension MediaView {
                     }
                 }
             } else if module.extractor == "pattern-mp4" || module.extractor == "pattern-HLS" {
-                Logger.shared.log("extracting for pattern")
+                Logger.shared.log("extracting for pattern-mp4/hls")
                 let patternURL = extractPatternURL(from: html)
                 guard let patternURL = patternURL else { return }
                 
@@ -91,6 +91,7 @@ extension MediaView {
                     }
                 }.resume()
             } else if module.extractor == "pattern" {
+                Logger.shared.log("extracting for pattern")
                 let patternURL = extractPatternURL(from: html)
                 
                 DispatchQueue.main.async {

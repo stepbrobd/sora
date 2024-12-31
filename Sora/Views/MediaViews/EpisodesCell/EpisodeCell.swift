@@ -69,7 +69,6 @@ struct EpisodeCell: View {
         URLSession.custom.dataTask(with: url) { data, response, error in
             if let error = error {
                 print("Failed to fetch episode details: \(error)")
-                Logger.shared.log("Failed to fetch episode details: \(error)")
                 DispatchQueue.main.async {
                     self.isLoading = false
                 }
@@ -113,7 +112,6 @@ struct EpisodeCell: View {
             }
         } catch {
             print("Failed to parse JSON: \(error)")
-            Logger.shared.log("Failed to parse JSON: \(error)")
             DispatchQueue.main.async {
                 self.isLoading = false
             }
