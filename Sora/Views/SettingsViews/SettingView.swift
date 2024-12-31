@@ -79,9 +79,10 @@ struct SettingsView: View {
                 
                 Section(header: Text("Info")) {
                     NavigationLink(destination: AboutView()) {
-                        HStack {
-                            Text("About")
-                        }
+                        Text("About")
+                    }
+                    NavigationLink(destination: SettingsReleasesView()) {
+                        Text("Releases")
                     }
                     Button(action: {
                         if let url = URL(string: "https://github.com/cranci1/Sora") {
