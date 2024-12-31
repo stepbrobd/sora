@@ -53,7 +53,7 @@ struct ContentView: View {
     func fetchLatestRelease(completion: @escaping (GitHubRelease?) -> Void) {
         let url = URL(string: "https://api.github.com/repos/cranci1/Sora/releases/latest")!
         
-        URLSession.shared.dataTask(with: url) { data, response, error in
+        URLSession.custom.dataTask(with: url) { data, response, error in
             guard let data = data, error == nil else {
                 completion(nil)
                 return
