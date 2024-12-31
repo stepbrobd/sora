@@ -75,7 +75,7 @@ extension MediaView {
                         self.playStream(urlString: streamURLs.first, fullURL: urlString)
                     }
                 }
-            } else if module.extractor == "pattern-mp4" || module.extractor == "pattern-HLS"{
+            } else if module.extractor == "pattern-mp4" || module.extractor == "pattern-HLS" {
                 Logger.shared.log("extracting for pattern")
                 let patternURL = extractPatternURL(from: html)
                 guard let patternURL = patternURL else { return }
@@ -90,7 +90,15 @@ extension MediaView {
                         self.playStream(urlString: mp4URLs.first, fullURL: urlString)
                     }
                 }.resume()
-            } else {
+            } else if module.extractor == "pattern" {
+                let patternURL = extractPatternURL(from: html)
+                
+                DispatchQueue.main.async {
+                    self.playStream(urlString: patternURL?.absoluteString, fullURL: urlString)
+                }
+            }
+            
+            else {
                 DispatchQueue.main.async {
                     self.playStream(urlString: streamURLs.first, fullURL: urlString)
                 }
