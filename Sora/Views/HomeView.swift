@@ -104,7 +104,7 @@ struct HomeView: View {
             return
         }
         
-        URLSession.custom.dataTask(with: url) { data, response, error in
+        URLSession.custom.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else {
                 completion([])
                 return
