@@ -97,9 +97,7 @@ extension MediaView {
                 DispatchQueue.main.async {
                     self.playStream(urlString: patternURL?.absoluteString, fullURL: urlString)
                 }
-            }
-            
-            else {
+            } else {
                 DispatchQueue.main.async {
                     self.playStream(urlString: streamURLs.first, fullURL: urlString)
                 }
@@ -133,14 +131,32 @@ extension MediaView {
     }
     
     func extractPatternURL(from html: String) -> URL? {
-        let pattern = module.module[0].episodes.pattern
+        var pattern = module.module[0].episodes.pattern
+        
+        if module.extractor == "pattern" {
+            if let data = Data(base64Encoded: pattern), let decodedPattern = String(data: data, encoding: .utf8) {
+                pattern = decodedPattern
+            } else {
+                print("Failed to decode base64 pattern")
+                Logger.shared.log("Failed to decode base64 pattern")
+                return nil
+            }
+        }
         
         do {
             let regex = try NSRegularExpression(pattern: pattern, options: [])
-            let matches = regex.matches(in: html, options: [], range: NSRange(html.startIndex..., in: html))
-            if let match = matches.first, let range = Range(match.range, in: html) {
-                var urlString = String(html[range])
+            let range = NSRange(html.startIndex..<html.endIndex, in: html)
+            
+            if let match = regex.firstMatch(in: html, options: [], range: range),
+               let matchRange = Range(match.range, in: html) {
+                var urlString = String(html[matchRange])
                 urlString = urlString.replacingOccurrences(of: "amp;", with: "")
+                urlString = urlString.replacingOccurrences(of: "\"", with: "")
+                
+                if let httpsRange = urlString.range(of: "https") {
+                    urlString = String(urlString[httpsRange.lowerBound...])
+                }
+                
                 return URL(string: urlString)
             }
         } catch {

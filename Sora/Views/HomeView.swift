@@ -121,9 +121,15 @@ struct HomeView: View {
                     let href = try element.select(module.module[0].featured.href).attr("href")
                     var imageURL = try element.select(module.module[0].featured.image.url).attr(module.module[0].featured.image.attribute)
                     
-                    if !imageURL.starts(with: "http") {
-                        imageURL = "\(module.module[0].details.baseURL)\(imageURL)"
+                    if imageURL.contains(",") {
+                        imageURL = imageURL.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.first ?? imageURL
                     }
+                    
+                    if !imageURL.starts(with: "http") {
+                        imageURL = "\(module.module[0].details.baseURL.hasSuffix("/") ? module.module[0].details.baseURL : "\(module.module[0].details.baseURL)/")\(imageURL.hasPrefix("/") ? String(imageURL.dropFirst()) : imageURL)"
+                    }
+                    
+                    imageURL = imageURL.replacingOccurrences(of: " ", with: "%20")
                     
                     let result = ItemResult(name: title, imageUrl: imageURL, href: href)
                     results.append(result)
