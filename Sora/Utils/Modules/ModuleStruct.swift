@@ -72,6 +72,7 @@ struct ModuleStruct: Codable {
             let selector: String
             let order: String
             let pattern: String
+            let pattern2: String?
         }
     }
 }
