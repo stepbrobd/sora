@@ -174,7 +174,15 @@ struct SearchResultsView: View {
         guard let module = module, !searchText.isEmpty else { return }
         
         let encodedSearchText = searchText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? searchText
-        let urlString = "\(module.module[0].search.url)?\(module.module[0].search.parameter)=\(encodedSearchText)"
+        let parameter = module.module[0].search.parameter
+        let urlString: String
+        
+        if parameter == "blank" {
+            urlString = "\(module.module[0].search.url)\(encodedSearchText)"
+        } else {
+            urlString = "\(module.module[0].search.url)?\(parameter)=\(encodedSearchText)"
+        }
+        
         guard let url = URL(string: urlString) else { return }
         
         URLSession.custom.dataTask(with: url) { data, _, error in
