@@ -12,7 +12,7 @@ extension MediaView {
     func fetchItemDetails() {
         guard let url = URL(string: item.href.hasPrefix("https") ? item.href : "\(module.module[0].details.baseURL.hasSuffix("/") ? module.module[0].details.baseURL : "\(module.module[0].details.baseURL)/")\(item.href.hasPrefix("/") ? String(item.href.dropFirst()) : item.href)") else { return }
         
-        URLSession.custom.dataTask(with: url) { data, response, error in
+        URLSession.custom.dataTask(with: url) { data, _, error in
             defer { isLoading = false }
             guard let data = data, error == nil else { return }
             
@@ -53,7 +53,7 @@ extension MediaView {
         guard let url = URL(string: urlString.hasPrefix("https") ? urlString : "\(module.module[0].details.baseURL)\(urlString)") else { return }
         
         Logger.shared.log("Pressed episode button")
-        URLSession.custom.dataTask(with: url) { data, response, error in
+        URLSession.custom.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else { return }
             
             let html = String(data: data, encoding: .utf8) ?? ""
@@ -80,7 +80,7 @@ extension MediaView {
                 let patternURL = extractPatternURL(from: html)
                 guard let patternURL = patternURL else { return }
                 
-                URLSession.custom.dataTask(with: patternURL) { data, response, error in
+                URLSession.custom.dataTask(with: patternURL) { data, _, error in
                     guard let data = data, error == nil else { return }
                     
                     let patternHTML = String(data: data, encoding: .utf8) ?? ""

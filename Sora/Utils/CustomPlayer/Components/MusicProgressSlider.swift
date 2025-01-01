@@ -55,13 +55,13 @@ struct MusicProgressSlider<T: BinaryFloatingPoint>: View {
             .frame(width: bounds.size.width, height: bounds.size.height, alignment: .center)
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local)
-                .updating($isActive) { value, state, transaction in
+                .updating($isActive) { _, state, _ in
                     state = true
                 }
                 .onChanged { gesture in
                     localTempProgress = T(gesture.translation.width / bounds.size.width)
                     value = max(min(getPrgValue(), inRange.upperBound), inRange.lowerBound)
-                }.onEnded { value in
+                }.onEnded { _ in
                     localRealProgress = max(min(localRealProgress + localTempProgress, 1), 0)
                     localTempProgress = 0
                 })

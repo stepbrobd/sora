@@ -352,7 +352,7 @@ struct MediaView: View {
         let parameters: [String: Any] = ["query": query]
         request.httpBody = try? JSONSerialization.data(withJSONObject: parameters)
         
-        URLSession.custom.dataTask(with: request) { data, response, error in
+        URLSession.custom.dataTask(with: request) { data, _, error in
             if let error = error {
                 completion(.failure(error))
                 return
