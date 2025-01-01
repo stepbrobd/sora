@@ -77,7 +77,6 @@ struct EpisodeCell: View {
             
             guard let data = data else {
                 print("No data received")
-                Logger.shared.log("No data received")
                 DispatchQueue.main.async {
                     self.isLoading = false
                 }
@@ -98,7 +97,6 @@ struct EpisodeCell: View {
                   let title = episodeDetails["title"] as? [String: String],
                   let image = episodeDetails["image"] as? String else {
                       print("Invalid response format")
-                      Logger.shared.log("Invalid response format")
                       DispatchQueue.main.async {
                           self.isLoading = false
                       }

@@ -111,7 +111,7 @@ extension MediaView {
         case "HLS":
             pattern = #"https:\/\/[^"\s<>]+\.m3u8(?:\?[^\s"'<>]+)?"#
         case "MP4":
-            pattern = #"https:\/\/(?:(?!php).)+\.mp4(?:\?[^\s"'<>]+)?"#
+            pattern = #"https:\/\/[^"\s<>]+\.mp4(?:\?[^\s"'<>]+)?"#
         default:
             return []
         }
