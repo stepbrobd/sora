@@ -52,9 +52,6 @@ struct SettingsPlayerView: View {
                     }
                 }
                 
-                Toggle("Force Landscape", isOn: $isAlwaysLandscape)
-                    .tint(.accentColor)
-                
                 HStack {
                     Text("Hold Speed:")
                     Spacer()
