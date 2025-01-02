@@ -214,6 +214,78 @@ struct AboutView: View {
                             .foregroundColor(.blue)
                     }
                 }
+                Button(action: {
+                    if let url = URL(string: "https://github.com/ipavlidakis/OpenCastSwift") {
+                        UIApplication.shared.open(url)
+                    }
+                }) {
+                    HStack {
+                        KFImage(URL(string: "https://avatars.githubusercontent.com/u/575802?v=4"))
+                            .resizable()
+                            .frame(width: 40, height: 40)
+                            .clipShape(Circle())
+                        
+                        VStack(alignment: .leading) {
+                            Text("OpenCastSwift")
+                                .font(.headline)
+                                .foregroundColor(.green)
+                            Text("Casting support")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "safari")
+                            .foregroundColor(.green)
+                    }
+                }
+                Button(action: {
+                    if let url = URL(string: "https://github.com/SwiftyJSON/SwiftyJSON") {
+                        UIApplication.shared.open(url)
+                    }
+                }) {
+                    HStack {
+                        KFImage(URL(string: "https://avatars.githubusercontent.com/u/8858017?s=200&v=4"))
+                            .resizable()
+                            .frame(width: 40, height: 40)
+                            .clipShape(Circle())
+                        
+                        VStack(alignment: .leading) {
+                            Text("SwiftyJSON")
+                                .font(.headline)
+                                .foregroundColor(.orange)
+                            Text("Opencast dependency")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "safari")
+                            .foregroundColor(.orange)
+                    }
+                }
+                Button(action: {
+                    if let url = URL(string: "https://github.com/apple/swift-protobuf") {
+                        UIApplication.shared.open(url)
+                    }
+                }) {
+                    HStack {
+                        KFImage(URL(string: "https://avatars.githubusercontent.com/u/10639145?s=200&v=4"))
+                            .resizable()
+                            .frame(width: 40, height: 40)
+                            .clipShape(Circle())
+                        
+                        VStack(alignment: .leading) {
+                            Text("Swift Protobuf")
+                                .font(.headline)
+                                .foregroundColor(.purple)
+                            Text("Opencast dependency")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "safari")
+                            .foregroundColor(.purple)
+                    }
+                }
             }
         }
         .navigationTitle("About")

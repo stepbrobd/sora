@@ -193,6 +193,16 @@ extension MediaView {
         let uniqueSubURLs = Array(Set(subURLs))
         let uniqueDubURLs = Array(Set(dubURLs))
         
+        if uniqueSubURLs.count == 1 && uniqueDubURLs.isEmpty {
+            self.playStream(urlString: uniqueSubURLs.first, fullURL: fullURL)
+            return
+        }
+        
+        if uniqueDubURLs.count == 1 && uniqueSubURLs.isEmpty {
+            self.playStream(urlString: uniqueDubURLs.first, fullURL: fullURL)
+            return
+        }
+        
         let alert = UIAlertController(title: "Select Stream", message: "Choose the audio type", preferredStyle: .actionSheet)
         
         if !uniqueDubURLs.isEmpty {

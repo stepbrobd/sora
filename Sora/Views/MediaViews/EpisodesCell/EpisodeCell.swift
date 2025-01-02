@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Kingfisher
+import SwiftyJSON
 
 struct EpisodeCell: View {
     let episode: String
@@ -59,6 +60,7 @@ struct EpisodeCell: View {
         
         if let cachedData = UserDefaults.standard.data(forKey: cacheKey) {
             parseEpisodeDetails(data: cachedData)
+            return
         }
         
         guard let url = URL(string: "https://api.ani.zip/mappings?anilist_id=\(itemID)") else {
@@ -90,12 +92,10 @@ struct EpisodeCell: View {
     
     func parseEpisodeDetails(data: Data) {
         do {
-            let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-            guard let json = jsonObject as? [String: Any],
-                  let episodes = json["episodes"] as? [String: Any],
-                  let episodeDetails = episodes["\(episodeID + 1)"] as? [String: Any],
-                  let title = episodeDetails["title"] as? [String: String],
-                  let image = episodeDetails["image"] as? String else {
+            let json = try JSON(data: data)
+            guard let episodeDetails = json["episodes"]["\(episodeID + 1)"].dictionary,
+                  let title = episodeDetails["title"]?.dictionary,
+                  let image = episodeDetails["image"]?.string else {
                       print("Invalid response format")
                       DispatchQueue.main.async {
                           self.isLoading = false
@@ -104,7 +104,7 @@ struct EpisodeCell: View {
                   }
             
             DispatchQueue.main.async {
-                self.episodeTitle = title["en"] ?? ""
+                self.episodeTitle = title["en"]?.string ?? ""
                 self.episodeImageUrl = image
                 self.isLoading = false
             }

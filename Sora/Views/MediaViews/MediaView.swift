@@ -8,6 +8,7 @@
 import AVKit
 import SwiftUI
 import Kingfisher
+import SwiftyJSON
 import SafariServices
 
 struct MediaView: View {
@@ -331,7 +332,7 @@ struct MediaView: View {
         Logger.shared.log("Unable to open the stream: 'streamUrl'")
     }
     
-    private func fetchItemID(byTitle title: String, completion: @escaping (Result<Int, Error>) -> Void) {
+    func fetchItemID(byTitle title: String, completion: @escaping (Result<Int, Error>) -> Void) {
         let query = """
         query {
             Media(search: "\(title)", type: ANIME) {
@@ -363,17 +364,11 @@ struct MediaView: View {
                 return
             }
             
-            do {
-                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                   let data = json["data"] as? [String: Any],
-                   let media = data["Media"] as? [String: Any],
-                   let id = media["id"] as? Int {
-                    completion(.success(id))
-                } else {
-                    let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])
-                    completion(.failure(error))
-                }
-            } catch {
+            let json = JSON(data)
+            if let id = json["data"]["Media"]["id"].int {
+                completion(.success(id))
+            } else {
+                let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])
                 completion(.failure(error))
             }
         }.resume()
