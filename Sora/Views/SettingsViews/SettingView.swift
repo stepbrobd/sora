@@ -19,7 +19,7 @@ struct SettingsView: View {
     @State private var selectedModule: ModuleStruct?
     @StateObject private var libraryManager = LibraryManager.shared
     @StateObject private var modulesManager = ModulesManager()
-
+    
     var body: some View {
         NavigationView {
             Form {

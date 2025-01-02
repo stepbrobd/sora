@@ -6,8 +6,8 @@
 //
 
 import SwiftUI
-import Kingfisher
 import SwiftSoup
+import Kingfisher
 
 struct SearchResultsView: View {
     let module: ModuleStruct?

@@ -105,7 +105,7 @@ struct SearchView: View {
             .alert(isPresented: $showAlert) {
                 Alert(
                     title: Text("No module selected"),
-                    message: Text("Please select a module before searching or add it in settings."),
+                    message: Text("Please select a module before searching."),
                     dismissButton: .default(Text("OK"))
                 )
             }
