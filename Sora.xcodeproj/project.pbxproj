@@ -42,6 +42,7 @@
 		13AEE7BA2D2451F200CA634A /* GitHubAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AEE7B92D2451F200CA634A /* GitHubAPI.swift */; };
 		13AEE7BC2D24521200CA634A /* SettingsReleasesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AEE7BB2D24521200CA634A /* SettingsReleasesView.swift */; };
 		13B3A4B22D1477F100BCC0D5 /* SettingsStorageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B3A4B12D1477F100BCC0D5 /* SettingsStorageView.swift */; };
+		13B544B02D26D8E900CC6C59 /* OpenCastSwift iOS in Frameworks */ = {isa = PBXBuildFile; productRef = 13B544AF2D26D8E900CC6C59 /* OpenCastSwift iOS */; };
 		13C9821F2D2152B1007A0132 /* GitHubRelease.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C9821E2D2152B1007A0132 /* GitHubRelease.swift */; };
 /* End PBXBuildFile section */
 
@@ -92,6 +93,7 @@
 			files = (
 				132417D22D131C5300B4F2D2 /* Kingfisher in Frameworks */,
 				132417CF2D131B7400B4F2D2 /* SwiftSoup in Frameworks */,
+				13B544B02D26D8E900CC6C59 /* OpenCastSwift iOS in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -312,6 +314,7 @@
 			packageProductDependencies = (
 				132417CE2D131B7400B4F2D2 /* SwiftSoup */,
 				132417D12D131C5300B4F2D2 /* Kingfisher */,
+				13B544AF2D26D8E900CC6C59 /* OpenCastSwift iOS */,
 			);
 			productName = Sora;
 			productReference = 132417802D13198000B4F2D2 /* Sora.app */;
@@ -344,6 +347,7 @@
 			packageReferences = (
 				132417CD2D131B7400B4F2D2 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				132417D02D131C5300B4F2D2 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				13B544AE2D26D8E900CC6C59 /* XCRemoteSwiftPackageReference "OpenCastSwift" */,
 			);
 			productRefGroup = 132417812D13198000B4F2D2 /* Products */;
 			projectDirPath = "";
@@ -631,6 +635,14 @@
 				version = 7.9.1;
 			};
 		};
+		13B544AE2D26D8E900CC6C59 /* XCRemoteSwiftPackageReference "OpenCastSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/danwilliams64/OpenCastSwift.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -643,6 +655,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 132417D02D131C5300B4F2D2 /* XCRemoteSwiftPackageReference "Kingfisher" */;
 			productName = Kingfisher;
+		};
+		13B544AF2D26D8E900CC6C59 /* OpenCastSwift iOS */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 13B544AE2D26D8E900CC6C59 /* XCRemoteSwiftPackageReference "OpenCastSwift" */;
+			productName = "OpenCastSwift iOS";
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
