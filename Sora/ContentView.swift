@@ -40,7 +40,7 @@ struct ContentView: View {
             guard let release = release else { return }
             
             let latestVersion = release.tagName
-            let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+            let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.1.1"
             
             if latestVersion.compare(currentVersion, options: .numeric) == .orderedDescending {
                 DispatchQueue.main.async {
