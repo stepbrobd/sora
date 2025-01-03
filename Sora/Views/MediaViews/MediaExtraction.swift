@@ -61,7 +61,7 @@ extension MediaView {
         
         if pageRedirects {
             dispatchGroup.enter() // Start tracking the redirect task
-            URLSession.custom.dataTask(with: url) { data, response, error in
+            URLSession.custom.dataTask(with: url) { data, _, error in
                 guard let data = data, error == nil else {
                     dispatchGroup.leave() // End tracking if there's an error
                     return
