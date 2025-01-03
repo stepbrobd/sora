@@ -44,6 +44,7 @@
 		13B3A4B22D1477F100BCC0D5 /* SettingsStorageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B3A4B12D1477F100BCC0D5 /* SettingsStorageView.swift */; };
 		13B544B02D26D8E900CC6C59 /* OpenCastSwift iOS in Frameworks */ = {isa = PBXBuildFile; productRef = 13B544AF2D26D8E900CC6C59 /* OpenCastSwift iOS */; };
 		13C9821F2D2152B1007A0132 /* GitHubRelease.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C9821E2D2152B1007A0132 /* GitHubRelease.swift */; };
+		13ED65752D284045008F4C23 /* SettingsEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13ED65742D284045008F4C23 /* SettingsEditorView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -84,6 +85,7 @@
 		13AEE7BB2D24521200CA634A /* SettingsReleasesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsReleasesView.swift; sourceTree = "<group>"; };
 		13B3A4B12D1477F100BCC0D5 /* SettingsStorageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStorageView.swift; sourceTree = "<group>"; };
 		13C9821E2D2152B1007A0132 /* GitHubRelease.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubRelease.swift; sourceTree = "<group>"; };
+		13ED65742D284045008F4C23 /* SettingsEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsEditorView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -254,6 +256,7 @@
 				132417AF2D131A0600B4F2D2 /* SettingsPlayerView.swift */,
 				13B3A4B12D1477F100BCC0D5 /* SettingsStorageView.swift */,
 				13AEE7BB2D24521200CA634A /* SettingsReleasesView.swift */,
+				13ED65742D284045008F4C23 /* SettingsEditorView.swift */,
 			);
 			path = SubPages;
 			sourceTree = "<group>";
@@ -402,6 +405,7 @@
 				132417C12D131A0600B4F2D2 /* LibraryManager.swift in Sources */,
 				132417BA2D131A0600B4F2D2 /* SettingsAboutView.swift in Sources */,
 				1324179E2D1319E800B4F2D2 /* MiruDataStruct.swift in Sources */,
+				13ED65752D284045008F4C23 /* SettingsEditorView.swift in Sources */,
 				1308CFBE2D19844D004CD38C /* MusicProgressSlider.swift in Sources */,
 				132417D52D13240200B4F2D2 /* EpisodeCell.swift in Sources */,
 				13C9821F2D2152B1007A0132 /* GitHubRelease.swift in Sources */,

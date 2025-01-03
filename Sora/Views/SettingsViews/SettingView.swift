@@ -75,6 +75,12 @@ struct SettingsView: View {
                             Text("Logs")
                         }
                     }
+                    NavigationLink(destination: SettingsEditorView(modulesManager: ModulesManager())) {
+                        HStack {
+                            Image(systemName: "pencil.and.outline")
+                            Text("Modules Editor")
+                        }
+                    }
                 }
                 
                 Section(header: Text("Info")) {

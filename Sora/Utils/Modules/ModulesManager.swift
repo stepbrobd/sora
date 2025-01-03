@@ -110,7 +110,7 @@ class ModulesManager: ObservableObject {
         }
     }
     
-    private func saveModuleData() {
+    func saveModuleData() {
         let fileURL = getDocumentsDirectory().appendingPathComponent(modulesFileName)
         do {
             let data = try JSONEncoder().encode(modules)
