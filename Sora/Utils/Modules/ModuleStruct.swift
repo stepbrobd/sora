@@ -35,6 +35,7 @@ struct ModuleStruct: Codable {
             let title: String
             let image: Image
             let href: String
+            let searchable: Bool?
             
             struct Image: Codable, Hashable {
                 let url: String
@@ -57,6 +58,7 @@ struct ModuleStruct: Codable {
         
         struct Details: Codable, Hashable {
             let baseURL: String
+            let pageRedirects: Bool?
             let aliases: Aliases
             let synopsis: String
             let airdate: String

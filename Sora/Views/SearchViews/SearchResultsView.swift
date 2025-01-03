@@ -210,8 +210,18 @@ struct SearchResultsView: View {
                     
                     imageURL = imageURL.replacingOccurrences(of: " ", with: "%20")
                     
+                    // If imageURL is not available or is the same as the baseURL, use a default image
+                    if imageURL.isEmpty || imageURL == module.module[0].details.baseURL + "/" {
+                        imageURL = "https://s4.anilist.co/file/anilistcdn/character/large/default.jpg"
+                    }
+                    
                     let result = ItemResult(name: title, imageUrl: imageURL, href: href)
                     results.append(result)
+                }
+                
+                // Filter out non-searchable modules
+                if module.module[0].search.searchable == false {
+                    results = results.filter { $0.name.lowercased().contains(searchText.lowercased()) }
                 }
                 
                 DispatchQueue.main.async {
