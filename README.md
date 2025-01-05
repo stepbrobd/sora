@@ -6,7 +6,7 @@
 
 [![Build and Release IPA](https://github.com/cranci1/Sora/actions/workflows/build.yml/badge.svg)](https://github.com/cranci1/Sora/actions/workflows/build.yml) [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2015.0%2B%20%26%20macOS%2012.0%2B-red?logo=apple&logoColor=white)](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2015.0%2B%20%26%20macOS%2012.0%2B-red?logo=apple&logoColor=white) [![Discord](https://img.shields.io/discord/1293430817841741899.svg?logo=discord&color=blue)](https://discord.gg/XR3SrmUbpd)
 
-A modular web scraping app, **Still in early builds** under the GPLv3.0 License
+A modular web scraping app, under the GPLv3.0 License
 
 </div>
 
@@ -21,28 +21,26 @@ A modular web scraping app, **Still in early builds** under the GPLv3.0 License
 ## Features
 
 - [x] iOS/iPadOS 15+ support
-- [x] macOS 12+ support
-- [x] JSON module support
+- [ ] macOS support
 - [ ] JavaScript module support
 
 ## Frequently Asked Questions
 
 1. **What is Sora?**
-   - Sora is a module based web scraping app, made to work with modules only
+Sora is a module based web scraping app, made to work with modules only
 
 2. **Is Sora safe?**
-   - Yes, Sora is open-source and does not store user data on external servers.
+Yes, Sora is open-source and does not store user data on external servers.
 
 3. **Will Sora ever be paid?**
-   - No, Sora will always remain free without subscriptions, paid content, or any type of login.
+No, Sora will always remain free without subscriptions, paid content, or any type of login.
 
 4. **How can i get module?**
-   - I do not provide any module for the app. Search for them on google or i dont know. I only created 1 module to watch videos of my school.
+I do not provide any module for the app. Search for them on google or i dont know. I only created 1 module to watch videos of my school.
 
 ## Acknowledgements
 
 FrameWorks:
-- [SwiftSoup](https://github.com/scinfu/SwiftSoup) - MIT License
 - [KingFisher](https://github.com/onevcat/Kingfisher) - MIT License
 
 ## License
