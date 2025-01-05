@@ -28,7 +28,7 @@ class JSController: ObservableObject {
         context.evaluateScript(script)
     }
     
-    func searchContent(keyword: String, module: ScrapingModule, completion: @escaping ([MediaItem]) -> Void) {
+    func fetchSearchResults(keyword: String, module: ScrapingModule, completion: @escaping ([MediaItem]) -> Void) {
         let searchUrl = module.metadata.searchBaseUrl.replacingOccurrences(of: "%s", with: keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")
         
         guard let url = URL(string: searchUrl) else {
@@ -51,17 +51,63 @@ class JSController: ObservableObject {
                 return
             }
             
-            if let parseFunction = self.context.objectForKeyedSubscript("parseHTML"),
+            if let parseFunction = self.context.objectForKeyedSubscript("searchResults"),
                let results = parseFunction.call(withArguments: [html]).toArray() as? [[String: String]] {
                 let mediaItems = results.map { item in
                     MediaItem(
                         title: item["title"] ?? "",
-                        imageUrl: item["image"] ?? ""
+                        imageUrl: item["image"] ?? "",
+                        href: item["href"] ?? ""
                     )
                 }
                 DispatchQueue.main.async {
                     completion(mediaItems)
-                    print(mediaItems)
+                }
+            } else {
+                print("Failed to parse results")
+                DispatchQueue.main.async { completion([]) }
+            }
+        }.resume()
+    }
+    
+    func fetchInfoContent(href: String, module: ScrapingModule, completion: @escaping ([MediaItem]) -> Void) {
+        var baseUrl = module.metadata.baseUrl
+        if !baseUrl.hasSuffix("/") && !href.hasPrefix("/") {
+            baseUrl += "/"
+        }
+        baseUrl += href
+        
+        guard let url = URL(string: baseUrl) else {
+            completion([])
+            return
+        }
+        
+        URLSession.custom.dataTask(with: url) { [weak self] data, response, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                print("Network error: \(error)")
+                DispatchQueue.main.async { completion([]) }
+                return
+            }
+            
+            guard let data = data, let html = String(data: data, encoding: .utf8) else {
+                print("Failed to decode HTML")
+                DispatchQueue.main.async { completion([]) }
+                return
+            }
+            
+            if let parseFunction = self.context.objectForKeyedSubscript("fetchInfo"),
+               let results = parseFunction.call(withArguments: [html]).toArray() as? [[String: String]] {
+                let mediaItems = results.map { item in
+                    MediaItem(
+                        title: item["title"] ?? "",
+                        imageUrl: item["image"] ?? "",
+                        href: item["href"] ?? ""
+                    )
+                }
+                DispatchQueue.main.async {
+                    completion(mediaItems)
                 }
             } else {
                 print("Failed to parse results")

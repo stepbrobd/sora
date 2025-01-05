@@ -15,17 +15,14 @@ struct ContentView: View {
                 .tabItem {
                     Label("Home", systemImage: "house")
                 }
-            
             LibraryView()
                 .tabItem {
                     Label("Library", systemImage: "books.vertical")
                 }
-            
             SearchView()
                 .tabItem {
                     Label("Search", systemImage: "magnifyingglass")
                 }
-            
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gear")

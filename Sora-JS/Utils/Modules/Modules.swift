@@ -42,6 +42,7 @@ struct ScrapingModule: Codable, Identifiable, Hashable {
 
 class ModuleManager: ObservableObject {
     @Published var modules: [ScrapingModule] = []
+    
     private let fileManager = FileManager.default
     private let modulesFileName = "modules.json"
     

@@ -9,10 +9,11 @@ import SwiftUI
 import Kingfisher
 
 struct SettingsViewModule: View {
-    @EnvironmentObject var moduleManager: ModuleManager
     @AppStorage("selectedModuleId") private var selectedModuleId: String?
-    @State private var isLoading = false
+    @EnvironmentObject var moduleManager: ModuleManager
+    
     @State private var errorMessage: String?
+    @State private var isLoading = false
     
     var body: some View {
         VStack {

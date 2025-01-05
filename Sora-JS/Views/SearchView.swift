@@ -12,15 +12,18 @@ struct MediaItem: Identifiable {
     let id = UUID()
     let title: String
     let imageUrl: String
+    let href: String
 }
 
 struct SearchView: View {
+    @AppStorage("selectedModuleId") private var selectedModuleId: String?
     @StateObject private var jsController = JSController()
     @EnvironmentObject var moduleManager: ModuleManager
-    @State private var searchText = ""
+    
     @State private var mediaItems: [MediaItem] = []
+    @State private var selectedMediaItem: MediaItem?
     @State private var isSearching = false
-    @AppStorage("selectedModuleId") private var selectedModuleId: String?
+    @State private var searchText = ""
     
     private var selectedModule: ScrapingModule? {
         guard let id = selectedModuleId else { return nil }
@@ -69,6 +72,9 @@ struct SearchView: View {
                                     .padding([.leading, .bottom], 8)
                                     .lineLimit(1)
                             }
+                            .onTapGesture {
+                                selectedMediaItem = item
+                            }
                         }
                     }
                     .padding()
@@ -111,6 +117,9 @@ struct SearchView: View {
                     }
                 }
             }
+            .sheet(item: $selectedMediaItem) { item in
+                MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: selectedModule!)
+            }
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .onChange(of: selectedModuleId) { _ in
@@ -132,7 +141,7 @@ struct SearchView: View {
                 do {
                     let jsContent = try moduleManager.getModuleContent(module)
                     jsController.loadScript(jsContent)
-                    jsController.searchContent(keyword: searchText, module: module) { items in
+                    jsController.fetchSearchResults(keyword: searchText, module: module) { items in
                         mediaItems = items
                         isSearching = false
                     }
