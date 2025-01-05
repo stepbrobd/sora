@@ -2,7 +2,7 @@ name: Build and Release IPA
 on:
   push:
     branches:
-      - Sora-JS
+      - Sora-JSCore
 jobs:
   build:
     name: Build IPA
