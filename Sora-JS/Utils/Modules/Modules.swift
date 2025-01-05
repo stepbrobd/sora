@@ -74,14 +74,14 @@ class ModuleManager: ObservableObject {
             throw NSError(domain: "Invalid metadata URL", code: -1)
         }
         
-        let (metadataData, _) = try await URLSession.shared.data(from: url)
+        let (metadataData, _) = try await URLSession.custom.data(from: url)
         let metadata = try JSONDecoder().decode(ModuleMetadata.self, from: metadataData)
         
         guard let scriptUrl = URL(string: metadata.scriptUrl) else {
             throw NSError(domain: "Invalid script URL", code: -1)
         }
         
-        let (scriptData, _) = try await URLSession.shared.data(from: scriptUrl)
+        let (scriptData, _) = try await URLSession.custom.data(from: scriptUrl)
         guard let jsContent = String(data: scriptData, encoding: .utf8) else {
             throw NSError(domain: "Invalid script encoding", code: -1)
         }

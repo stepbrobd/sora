@@ -36,10 +36,7 @@ class JSController: ObservableObject {
             return
         }
         
-        var request = URLRequest(url: url)
-        request.setValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36", forHTTPHeaderField: "User-Agent")
-        
-        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+        URLSession.custom.dataTask(with: url) { [weak self] data, response, error in
             guard let self = self else { return }
             
             if let error = error {
@@ -64,6 +61,7 @@ class JSController: ObservableObject {
                 }
                 DispatchQueue.main.async {
                     completion(mediaItems)
+                    print(mediaItems)
                 }
             } else {
                 print("Failed to parse results")
