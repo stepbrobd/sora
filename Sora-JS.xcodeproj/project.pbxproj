@@ -12,8 +12,13 @@
 		1329D5CB2D298199008AEDA2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1329D5CA2D298199008AEDA2 /* Assets.xcassets */; };
 		1329D5CE2D298199008AEDA2 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1329D5CD2D298199008AEDA2 /* Preview Assets.xcassets */; };
 		13AEE6192D2A75110096D953 /* Modules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AEE6182D2A75110096D953 /* Modules.swift */; };
-		13AEE61B2D2A78050096D953 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AEE61A2D2A78050096D953 /* Settings.swift */; };
+		13AEE61B2D2A78050096D953 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AEE61A2D2A78050096D953 /* SettingsView.swift */; };
 		13AEE61D2D2A78160096D953 /* JSController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AEE61C2D2A78160096D953 /* JSController.swift */; };
+		13AEE6232D2AAF160096D953 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 13AEE6222D2AAF160096D953 /* Kingfisher */; };
+		13AEE6252D2AB1730096D953 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AEE6242D2AB1730096D953 /* HomeView.swift */; };
+		13AEE6272D2AB1990096D953 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AEE6262D2AB1990096D953 /* LibraryView.swift */; };
+		13AEE6292D2AB2070096D953 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AEE6282D2AB2070096D953 /* SearchView.swift */; };
+		13AEE62D2D2ABCD30096D953 /* SettingsViewModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AEE62C2D2ABCD30096D953 /* SettingsViewModule.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,8 +29,12 @@
 		1329D5CD2D298199008AEDA2 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		1329D5DA2D29821B008AEDA2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		13AEE6182D2A75110096D953 /* Modules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modules.swift; sourceTree = "<group>"; };
-		13AEE61A2D2A78050096D953 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		13AEE61A2D2A78050096D953 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		13AEE61C2D2A78160096D953 /* JSController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSController.swift; sourceTree = "<group>"; };
+		13AEE6242D2AB1730096D953 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		13AEE6262D2AB1990096D953 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		13AEE6282D2AB2070096D953 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
+		13AEE62C2D2ABCD30096D953 /* SettingsViewModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModule.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -33,6 +42,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				13AEE6232D2AAF160096D953 /* Kingfisher in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -58,14 +68,14 @@
 		1329D5C52D298198008AEDA2 /* Sora-JS */ = {
 			isa = PBXGroup;
 			children = (
+				13AEE6202D2AAD390096D953 /* Modules */,
+				13AEE61F2D2AAD2D0096D953 /* Loaders */,
+				13AEE61E2D2AAD1E0096D953 /* Views */,
 				1329D5DA2D29821B008AEDA2 /* Info.plist */,
 				1329D5C62D298198008AEDA2 /* Sora_JSApp.swift */,
 				1329D5C82D298198008AEDA2 /* ContentView.swift */,
-				13AEE6182D2A75110096D953 /* Modules.swift */,
 				1329D5CA2D298199008AEDA2 /* Assets.xcassets */,
 				1329D5CC2D298199008AEDA2 /* Preview Content */,
-				13AEE61A2D2A78050096D953 /* Settings.swift */,
-				13AEE61C2D2A78160096D953 /* JSController.swift */,
 			);
 			path = "Sora-JS";
 			sourceTree = "<group>";
@@ -76,6 +86,50 @@
 				1329D5CD2D298199008AEDA2 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		13AEE61E2D2AAD1E0096D953 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				13AEE62A2D2ABCB40096D953 /* SettingsView */,
+				13AEE6242D2AB1730096D953 /* HomeView.swift */,
+				13AEE6262D2AB1990096D953 /* LibraryView.swift */,
+				13AEE6282D2AB2070096D953 /* SearchView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		13AEE61F2D2AAD2D0096D953 /* Loaders */ = {
+			isa = PBXGroup;
+			children = (
+				13AEE61C2D2A78160096D953 /* JSController.swift */,
+			);
+			path = Loaders;
+			sourceTree = "<group>";
+		};
+		13AEE6202D2AAD390096D953 /* Modules */ = {
+			isa = PBXGroup;
+			children = (
+				13AEE6182D2A75110096D953 /* Modules.swift */,
+			);
+			path = Modules;
+			sourceTree = "<group>";
+		};
+		13AEE62A2D2ABCB40096D953 /* SettingsView */ = {
+			isa = PBXGroup;
+			children = (
+				13AEE62B2D2ABCC10096D953 /* SubViews */,
+				13AEE61A2D2A78050096D953 /* SettingsView.swift */,
+			);
+			path = SettingsView;
+			sourceTree = "<group>";
+		};
+		13AEE62B2D2ABCC10096D953 /* SubViews */ = {
+			isa = PBXGroup;
+			children = (
+				13AEE62C2D2ABCD30096D953 /* SettingsViewModule.swift */,
+			);
+			path = SubViews;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -94,6 +148,9 @@
 			dependencies = (
 			);
 			name = "Sora-JS";
+			packageProductDependencies = (
+				13AEE6222D2AAF160096D953 /* Kingfisher */,
+			);
 			productName = "Sora-JS";
 			productReference = 1329D5C32D298198008AEDA2 /* Sora-JS.app */;
 			productType = "com.apple.product-type.application";
@@ -122,6 +179,9 @@
 				Base,
 			);
 			mainGroup = 1329D5BA2D298198008AEDA2;
+			packageReferences = (
+				13AEE6212D2AAF160096D953 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+			);
 			productRefGroup = 1329D5C42D298198008AEDA2 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -148,10 +208,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				13AEE6272D2AB1990096D953 /* LibraryView.swift in Sources */,
 				1329D5C92D298198008AEDA2 /* ContentView.swift in Sources */,
+				13AEE62D2D2ABCD30096D953 /* SettingsViewModule.swift in Sources */,
 				13AEE61D2D2A78160096D953 /* JSController.swift in Sources */,
 				13AEE6192D2A75110096D953 /* Modules.swift in Sources */,
-				13AEE61B2D2A78050096D953 /* Settings.swift in Sources */,
+				13AEE6292D2AB2070096D953 /* SearchView.swift in Sources */,
+				13AEE6252D2AB1730096D953 /* HomeView.swift in Sources */,
+				13AEE61B2D2A78050096D953 /* SettingsView.swift in Sources */,
 				1329D5C72D298198008AEDA2 /* Sora_JSApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -210,7 +274,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -265,7 +329,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -292,6 +356,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -322,6 +387,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -357,6 +423,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		13AEE6212D2AAF160096D953 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = exactVersion;
+				version = 7.9.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		13AEE6222D2AAF160096D953 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 13AEE6212D2AAF160096D953 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 1329D5BB2D298198008AEDA2 /* Project object */;
 }
