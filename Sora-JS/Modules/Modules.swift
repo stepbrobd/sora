@@ -8,14 +8,14 @@
 import Foundation
 
 struct ModuleMetadata: Codable, Hashable {
+    let sourceName: String
     let author: String
     let iconUrl: String
+    let version: String
     let language: String
-    let mediaType: String
+    let baseUrl: String
     let searchBaseUrl: String
     let scriptUrl: String
-    let version: String
-    let description: String
 }
 
 struct ScrapingModule: Codable, Identifiable, Hashable {

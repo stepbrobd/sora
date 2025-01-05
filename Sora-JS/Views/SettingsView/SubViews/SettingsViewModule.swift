@@ -26,14 +26,19 @@ struct SettingsViewModule: View {
                             .padding(.trailing, 10)
                         
                         VStack(alignment: .leading) {
-                            Text(module.metadata.mediaType)
-                                .font(.system(size: 16))
-                                .foregroundColor(.primary)
+                            HStack(alignment: .bottom, spacing: 4) {
+                                Text(module.metadata.sourceName)
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                Text("v\(module.metadata.version)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
                             Text("Author: \(module.metadata.author)")
-                                .font(.system(size: 14))
+                                .font(.subheadline)
                                 .foregroundColor(.secondary)
-                            Text("\(module.metadata.language) • v\(module.metadata.version)")
-                                .font(.system(size: 14))
+                            Text("Language: \(module.metadata.language)")
+                                .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
                         

@@ -28,7 +28,7 @@ class JSController: ObservableObject {
         context.evaluateScript(script)
     }
     
-    func scrapeAnime(keyword: String, module: ScrapingModule, completion: @escaping ([AnimeItem]) -> Void) {
+    func searchContent(keyword: String, module: ScrapingModule, completion: @escaping ([MediaItem]) -> Void) {
         let searchUrl = module.metadata.searchBaseUrl.replacingOccurrences(of: "%s", with: keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")
         
         guard let url = URL(string: searchUrl) else {
@@ -56,14 +56,14 @@ class JSController: ObservableObject {
             
             if let parseFunction = self.context.objectForKeyedSubscript("parseHTML"),
                let results = parseFunction.call(withArguments: [html]).toArray() as? [[String: String]] {
-                let animeItems = results.map { item in
-                    AnimeItem(
+                let mediaItems = results.map { item in
+                    MediaItem(
                         title: item["title"] ?? "",
                         imageUrl: item["image"] ?? ""
                     )
                 }
                 DispatchQueue.main.async {
-                    completion(animeItems)
+                    completion(mediaItems)
                 }
             } else {
                 print("Failed to parse results")

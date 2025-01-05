@@ -8,7 +8,7 @@
 import SwiftUI
 import Kingfisher
 
-struct AnimeItem: Identifiable {
+struct MediaItem: Identifiable {
     let id = UUID()
     let title: String
     let imageUrl: String
@@ -18,7 +18,7 @@ struct SearchView: View {
     @StateObject private var jsController = JSController()
     @EnvironmentObject var moduleManager: ModuleManager
     @State private var searchText = ""
-    @State private var animeItems: [AnimeItem] = []
+    @State private var mediaItems: [MediaItem] = []
     @State private var isSearching = false
     @AppStorage("selectedModuleId") private var selectedModuleId: String?
     
@@ -37,7 +37,7 @@ struct SearchView: View {
                                 .font(.headline)
                             Text("Please select a module from settings")
                                 .font(.caption)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.secondary)
                         }
                         .padding()
                         .frame(maxWidth: .infinity)
@@ -55,7 +55,7 @@ struct SearchView: View {
                     }
                     
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 16) {
-                        ForEach(animeItems) { item in
+                        ForEach(mediaItems) { item in
                             VStack {
                                 KFImage(URL(string: item.imageUrl))
                                     .resizable()
@@ -80,9 +80,9 @@ struct SearchView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack {
                         if let selectedModule = selectedModule {
-                            Text(selectedModule.metadata.mediaType)
+                            Text(selectedModule.metadata.sourceName)
                                 .font(.headline)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.secondary)
                         }
                         Menu {
                             ForEach(moduleManager.modules) { module in
@@ -96,7 +96,7 @@ struct SearchView: View {
                                             .frame(width: 20, height: 20)
                                             .cornerRadius(4)
                                         
-                                        Text(module.metadata.mediaType)
+                                        Text(module.metadata.sourceName)
                                         Spacer()
                                         if module.id.uuidString == selectedModuleId {
                                             Image(systemName: "checkmark")
@@ -106,18 +106,23 @@ struct SearchView: View {
                             }
                         } label: {
                             Image(systemName: "chevron.up.chevron.down")
-                                .foregroundColor(.gray)
+                                .foregroundColor(.secondary)
                         }
                     }
                 }
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
+        .onChange(of: selectedModuleId) { _ in
+            if !searchText.isEmpty {
+                performSearch()
+            }
+        }
     }
     
     private func performSearch() {
         guard !searchText.isEmpty, let module = selectedModule else {
-            animeItems = []
+            mediaItems = []
             return
         }
         
@@ -127,8 +132,8 @@ struct SearchView: View {
                 do {
                     let jsContent = try moduleManager.getModuleContent(module)
                     jsController.loadScript(jsContent)
-                    jsController.scrapeAnime(keyword: searchText, module: module) { items in
-                        animeItems = items
+                    jsController.searchContent(keyword: searchText, module: module) { items in
+                        mediaItems = items
                         isSearching = false
                     }
                 } catch {
@@ -154,7 +159,7 @@ struct SearchBar: View {
                 .overlay(
                     HStack {
                         Image(systemName: "magnifyingglass")
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                             .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                             .padding(.leading, 8)
                         
@@ -163,7 +168,7 @@ struct SearchBar: View {
                                 self.text = ""
                             }) {
                                 Image(systemName: "multiply.circle.fill")
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.secondary)
                                     .padding(.trailing, 8)
                             }
                         }
