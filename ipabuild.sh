@@ -12,7 +12,7 @@ if [ ! -d "build" ]; then
 fi
 
 cd build
-Sora-JS
+
 xcodebuild -project "$WORKING_LOCATION/$APPLICATION_NAME.xcodeproj" \
     -scheme "$APPLICATION_NAME" \
     -configuration Release \
