@@ -26,7 +26,8 @@ struct MediaView: View {
     @State private var selectedEpisode: String = ""
     @State private var selectedEpisodeNumber: Int = 0
     @State private var episodeRange: ClosedRange<Int> = 0...99
-    @State private var selectedRange: String = "1-100"
+    @State var selectedRange: String = "1-100"
+    @State var isFetchingStream: Bool = false
     
     @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
     @StateObject private var libraryManager = LibraryManager.shared

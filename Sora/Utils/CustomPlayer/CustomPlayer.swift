@@ -32,6 +32,8 @@ struct CustomMediaPlayer: View {
     @State private var showControls = false
     @State private var inactivityTimer: Timer?
     @State private var timeObserverToken: Any?
+    @State private var isVideoLoaded = false
+    @State private var showWatchNextButton = true
     @Environment(\.presentationMode) var presentationMode
     
     let module: ModuleStruct
@@ -76,6 +78,7 @@ struct CustomMediaPlayer: View {
                                 currentTime = time.seconds
                                 if let itemDuration = player.currentItem?.duration.seconds, itemDuration.isFinite && !itemDuration.isNaN {
                                     duration = itemDuration
+                                    isVideoLoaded = true
                                 }
                             }
                             startUpdatingCurrentTime()
@@ -152,7 +155,7 @@ struct CustomMediaPlayer: View {
                                     .padding(.horizontal, 32)
                                 }
                                 Spacer()
-                                if duration - currentTime <= duration * 0.10 && currentTime != duration {
+                                if duration - currentTime <= duration * 0.10 && currentTime != duration && showWatchNextButton {
                                     Button(action: {
                                         player.pause()
                                         presentationMode.wrappedValue.dismiss()
@@ -170,6 +173,13 @@ struct CustomMediaPlayer: View {
                                         .cornerRadius(32)
                                     }
                                     .padding(.trailing, 10)
+                                    .onAppear {
+                                        if UserDefaults.standard.bool(forKey: "hideNextButton") {
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                                                showWatchNextButton = false
+                                            }
+                                        }
+                                    }
                                 }
                                 if showControls {
                                     Menu {
@@ -203,13 +213,14 @@ struct CustomMediaPlayer: View {
                                     emptyColor: .white.opacity(0.3),
                                     height: 28,
                                     onEditingChanged: { editing in
-                                        if !editing {
+                                        if !editing && isVideoLoaded {
                                             player.seek(to: CMTime(seconds: currentTime, preferredTimescale: 600))
                                         }
                                     }
                                 )
                                     .padding(.horizontal, 32)
                                     .padding(.bottom, 10)
+                                    .disabled(!isVideoLoaded)
                             }
                         }
                     }

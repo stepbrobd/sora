@@ -10,6 +10,9 @@ import SwiftSoup
 
 extension MediaView {
     func fetchItemDetails() {
+        guard !isFetchingStream else { return }
+        isFetchingStream = true
+        
         guard let url = URL(string: item.href.hasPrefix("https") ? item.href : "\(module.module[0].details.baseURL.hasSuffix("/") ? module.module[0].details.baseURL : "\(module.module[0].details.baseURL)/")\(item.href.hasPrefix("/") ? String(item.href.dropFirst()) : item.href)") else { return }
         
         URLSession.custom.dataTask(with: url) { data, _, error in
@@ -47,6 +50,7 @@ extension MediaView {
                 Logger.shared.log("Error parsing HTML: \(error)")
             }
         }.resume()
+        isFetchingStream = false
     }
     
     func fetchEpisodeStream(urlString: String) {

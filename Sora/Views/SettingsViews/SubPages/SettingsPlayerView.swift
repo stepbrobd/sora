@@ -10,6 +10,7 @@ import SwiftUI
 struct SettingsPlayerView: View {
     @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
     @AppStorage("AlwaysLandscape") private var isAlwaysLandscape = false
+    @AppStorage("hideNextButton") private var isHideNextButton = false
     @AppStorage("holdSpeedPlayer") private var holdSpeedPlayer: Double = 2.0
     
     var body: some View {
@@ -51,6 +52,9 @@ struct SettingsPlayerView: View {
                         }
                     }
                 }
+                
+                Toggle("Hide 'Watch Next' after 5s", isOn: $isHideNextButton)
+                    .tint(.accentColor)
                 
                 HStack {
                     Text("Hold Speed:")
