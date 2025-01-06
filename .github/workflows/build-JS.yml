@@ -25,5 +25,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Sora-IPA
-          path: build/Sora-JS.ipa
+          path: build/Sora.ipa
           compression-level: 0

@@ -1,14 +1,14 @@
 //
-//  Sora_JSApp.swift
-//  Sora-JS
+//  SoraApp.swift
+//  Sora
 //
-//  Created by Francesco on 04/01/25.
+//  Created by Francesco on 06/01/25.
 //
 
 import SwiftUI
 
 @main
-struct Sora_JSApp: App {
+struct SoraApp: App {
     @StateObject private var settings = Settings()
     @StateObject private var moduleManager = ModuleManager()
     

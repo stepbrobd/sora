@@ -1,8 +1,8 @@
 //
 //  ContentView.swift
-//  Sora-JS
+//  Sora
 //
-//  Created by Francesco on 04/01/25.
+//  Created by Francesco on 06/01/25.
 //
 
 import SwiftUI

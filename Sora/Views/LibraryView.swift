@@ -1,6 +1,6 @@
 //
 //  LibraryView.swift
-//  Sora-JS
+//  Sora
 //
 //  Created by Francesco on 05/01/25.
 //

@@ -5,7 +5,7 @@ set -e
 cd "$(dirname "$0")"
 
 WORKING_LOCATION="$(pwd)"
-APPLICATION_NAME=Sora-JS
+APPLICATION_NAME=Sora
 
 if [ ! -d "build" ]; then
     mkdir build
@@ -35,8 +35,8 @@ fi
 
 
 mkdir Payload
-cp -r Sora-JS.app Payload/Sora-JS.app
-strip Payload/Sora-JS.app/Sora-JS
-zip -vr Sora-JS.ipa Payload
-rm -rf Sora-JS.app
+cp -r Sora.app Payload/Sora.app
+strip Payload/Sora.app/Sora
+zip -vr Sora.ipa Payload
+rm -rf Sora.app
 rm -rf Payload
