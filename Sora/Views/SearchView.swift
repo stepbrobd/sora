@@ -59,21 +59,20 @@ struct SearchView: View {
                     
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 16) {
                         ForEach(searchItems) { item in
-                            VStack {
-                                KFImage(URL(string: item.imageUrl))
-                                    .resizable()
-                                    .aspectRatio(2/3, contentMode: .fill)
-                                    .cornerRadius(10)
-                                    .frame(width: 150, height: 225)
-                                
-                                Text(item.title)
-                                    .font(.subheadline)
-                                    .foregroundColor(Color.primary)
-                                    .padding([.leading, .bottom], 8)
-                                    .lineLimit(1)
-                            }
-                            .onTapGesture {
-                                selectedSearchItem = item
+                            NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: selectedModule!)) {
+                                VStack {
+                                    KFImage(URL(string: item.imageUrl))
+                                        .resizable()
+                                        .aspectRatio(2/3, contentMode: .fill)
+                                        .cornerRadius(10)
+                                        .frame(width: 150, height: 225)
+                                    
+                                    Text(item.title)
+                                        .font(.subheadline)
+                                        .foregroundColor(Color.primary)
+                                        .padding([.leading, .bottom], 8)
+                                        .lineLimit(1)
+                                }
                             }
                         }
                     }
@@ -116,9 +115,6 @@ struct SearchView: View {
                         }
                     }
                 }
-            }
-            .sheet(item: $selectedSearchItem) { item in
-                MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: selectedModule!)
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
