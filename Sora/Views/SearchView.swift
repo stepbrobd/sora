@@ -8,7 +8,7 @@
 import SwiftUI
 import Kingfisher
 
-struct MediaItem: Identifiable {
+struct SearchItem: Identifiable {
     let id = UUID()
     let title: String
     let imageUrl: String
@@ -20,8 +20,8 @@ struct SearchView: View {
     @StateObject private var jsController = JSController()
     @EnvironmentObject var moduleManager: ModuleManager
     
-    @State private var mediaItems: [MediaItem] = []
-    @State private var selectedMediaItem: MediaItem?
+    @State private var searchItems: [SearchItem] = []
+    @State private var selectedSearchItem: SearchItem?
     @State private var isSearching = false
     @State private var searchText = ""
     
@@ -58,7 +58,7 @@ struct SearchView: View {
                     }
                     
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 16) {
-                        ForEach(mediaItems) { item in
+                        ForEach(searchItems) { item in
                             VStack {
                                 KFImage(URL(string: item.imageUrl))
                                     .resizable()
@@ -73,7 +73,7 @@ struct SearchView: View {
                                     .lineLimit(1)
                             }
                             .onTapGesture {
-                                selectedMediaItem = item
+                                selectedSearchItem = item
                             }
                         }
                     }
@@ -117,7 +117,7 @@ struct SearchView: View {
                     }
                 }
             }
-            .sheet(item: $selectedMediaItem) { item in
+            .sheet(item: $selectedSearchItem) { item in
                 MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: selectedModule!)
             }
         }
@@ -131,7 +131,7 @@ struct SearchView: View {
     
     private func performSearch() {
         guard !searchText.isEmpty, let module = selectedModule else {
-            mediaItems = []
+            searchItems = []
             return
         }
         
@@ -142,7 +142,7 @@ struct SearchView: View {
                     let jsContent = try moduleManager.getModuleContent(module)
                     jsController.loadScript(jsContent)
                     jsController.fetchSearchResults(keyword: searchText, module: module) { items in
-                        mediaItems = items
+                        searchItems = items
                         isSearching = false
                     }
                 } catch {

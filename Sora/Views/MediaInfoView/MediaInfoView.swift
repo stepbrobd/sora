@@ -27,15 +27,7 @@ struct MediaInfoView: View {
                 .padding()
             
             Button(action: {
-                var finalHref = href
-                if !href.starts(with: "http") {
-                    var baseUrl = module.metadata.baseUrl
-                    if !baseUrl.hasSuffix("/") && !href.hasPrefix("/") {
-                        baseUrl += "/"
-                    }
-                    finalHref = baseUrl + href
-                }
-                if let url = URL(string: finalHref) {
+                if let url = URL(string: href) {
                     UIApplication.shared.open(url)
                 }
             }) {

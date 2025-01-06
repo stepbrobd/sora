@@ -92,11 +92,12 @@
 		133D7C7B2D2BE2630075467E /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				133D7C812D2BE2630075467E /* SettingsView */,
+				133D7C832D2BE2630075467E /* SettingsSubViews */,
 				133D7C7F2D2BE2630075467E /* MediaInfoView */,
-				133D7C7C2D2BE2630075467E /* SearchView.swift */,
 				133D7C7D2D2BE2630075467E /* HomeView.swift */,
 				133D7C7E2D2BE2630075467E /* LibraryView.swift */,
+				133D7C7C2D2BE2630075467E /* SearchView.swift */,
+				133D7C822D2BE2630075467E /* SettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -109,21 +110,12 @@
 			path = MediaInfoView;
 			sourceTree = "<group>";
 		};
-		133D7C812D2BE2630075467E /* SettingsView */ = {
-			isa = PBXGroup;
-			children = (
-				133D7C822D2BE2630075467E /* SettingsView.swift */,
-				133D7C832D2BE2630075467E /* SubViews */,
-			);
-			path = SettingsView;
-			sourceTree = "<group>";
-		};
-		133D7C832D2BE2630075467E /* SubViews */ = {
+		133D7C832D2BE2630075467E /* SettingsSubViews */ = {
 			isa = PBXGroup;
 			children = (
 				133D7C842D2BE2630075467E /* SettingsViewModule.swift */,
 			);
-			path = SubViews;
+			path = SettingsSubViews;
 			sourceTree = "<group>";
 		};
 		133D7C852D2BE2640075467E /* Utils */ = {
