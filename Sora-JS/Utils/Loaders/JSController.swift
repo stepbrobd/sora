@@ -71,13 +71,7 @@ class JSController: ObservableObject {
     }
     
     func fetchInfoContent(href: String, module: ScrapingModule, completion: @escaping ([MediaItem]) -> Void) {
-        var baseUrl = module.metadata.baseUrl
-        if !baseUrl.hasSuffix("/") && !href.hasPrefix("/") {
-            baseUrl += "/"
-        }
-        baseUrl += href
-        
-        guard let url = URL(string: baseUrl) else {
+        guard let url = URL(string: href) else {
             completion([])
             return
         }

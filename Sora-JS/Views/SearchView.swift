@@ -34,6 +34,10 @@ struct SearchView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 0) {
+                    SearchBar(text: $searchText, onSearchButtonClicked: performSearch)
+                        .padding()
+                        .disabled(selectedModule == nil)
+                    
                     if selectedModule == nil {
                         VStack(spacing: 8) {
                             Text("No Module Selected")
@@ -47,10 +51,6 @@ struct SearchView: View {
                         .background(Color(.systemBackground))
                         .shadow(color: Color.black.opacity(0.1), radius: 2, y: 1)
                     }
-                    
-                    SearchBar(text: $searchText, onSearchButtonClicked: performSearch)
-                        .padding()
-                        .disabled(selectedModule == nil)
                     
                     if isSearching {
                         ProgressView()
