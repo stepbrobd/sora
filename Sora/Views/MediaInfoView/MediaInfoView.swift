@@ -24,9 +24,8 @@ struct MediaInfoView: View {
     @State var aliases: String = ""
     @State var synopsis: String = ""
     @State var airdate: String = ""
-    @State var genres: [String] = []
-    @State var episodes: [String] = []
-    
+    @State var episodeLinks: [EpisodeLink] = []
+    @State var itemID: Int?
     @State var isLoading: Bool = true
     @State var showFullSynopsis: Bool = false
     
@@ -132,32 +131,57 @@ struct MediaInfoView: View {
                                     .frame(width: 20, height: 27)
                             }
                         }
+                        
+                        if !episodeLinks.isEmpty {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("Episodes")
+                                    .font(.system(size: 18))
+                                    .fontWeight(.bold)
+                                
+                                ForEach(episodeLinks.indices, id: \.self) { i in
+                                    let ep = episodeLinks[i]
+                                    let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+                                    let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+                                    let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
+                                    
+                                    EpisodeCell(episode: ep.href, episodeID: ep.number - 1, progress: progress, itemID: itemID ?? 0)
+                                }
+                            }
+                        }
                     }
                     .padding()
                     .navigationBarTitleDisplayMode(.inline)
-                    .navigationBarTitle(title)
+                    .navigationBarTitle("")
                     .navigationViewStyle(StackNavigationViewStyle())
                 }
             }
         }
         .onAppear {
-            getDetails()
+            fetchDetails()
+            fetchItemID(byTitle: title) { result in
+                switch result {
+                case .success(let id):
+                    itemID = id
+                case .failure(let error):
+                    print("Failed to fetch Item ID: \(error)")
+                }
+            }
         }
     }
     
-    func getDetails() {
+    func fetchDetails() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             Task {
                 do {
                     let jsContent = try moduleManager.getModuleContent(module)
                     jsController.loadScript(jsContent)
-                    jsController.fetchDetails(url: href) { items in
+                    jsController.fetchDetails(url: href) { items, episodes in
                         if let item = items.first {
-                            print("Fetched item: \(item)")
                             self.synopsis = item.description
                             self.aliases = item.aliases
                             self.airdate = item.airdate
                         }
+                        self.episodeLinks = episodes
                         self.isLoading = false
                     }
                 } catch {
@@ -166,5 +190,53 @@ struct MediaInfoView: View {
                 }
             }
         }
+    }
+    
+    private func fetchItemID(byTitle title: String, completion: @escaping (Result<Int, Error>) -> Void) {
+        let query = """
+        query {
+            Media(search: "\(title)", type: ANIME) {
+                id
+            }
+        }
+        """
+        
+        guard let url = URL(string: "https://graphql.anilist.co") else {
+            completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let parameters: [String: Any] = ["query": query]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: parameters)
+        
+        URLSession.custom.dataTask(with: request) { data, _, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let data = data else {
+                completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                return
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                   let data = json["data"] as? [String: Any],
+                   let media = data["Media"] as? [String: Any],
+                   let id = media["id"] as? Int {
+                    completion(.success(id))
+                } else {
+                    let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])
+                    completion(.failure(error))
+                }
+            } catch {
+                completion(.failure(error))
+            }
+        }.resume()
     }
 }

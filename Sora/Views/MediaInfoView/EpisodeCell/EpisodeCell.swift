@@ -8,10 +8,15 @@
 import SwiftUI
 import Kingfisher
 
+struct EpisodeLink: Identifiable {
+    let id = UUID()
+    let number: Int
+    let href: String
+}
+
 struct EpisodeCell: View {
     let episode: String
     let episodeID: Int
-    let imageUrl: String
     let progress: Double
     let itemID: Int
     

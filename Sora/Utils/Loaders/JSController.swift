@@ -70,9 +70,9 @@ class JSController: ObservableObject {
         }.resume()
     }
     
-    func fetchDetails(url: String, completion: @escaping ([MediaItem]) -> Void) {
+    func fetchDetails(url: String, completion: @escaping ([MediaItem], [EpisodeLink]) -> Void) {
         guard let url = URL(string: url) else {
-            completion([])
+            completion([], [])
             return
         }
         
@@ -81,31 +81,43 @@ class JSController: ObservableObject {
             
             if let error = error {
                 print("Network error: \(error)")
-                DispatchQueue.main.async { completion([]) }
+                DispatchQueue.main.async { completion([], []) }
                 return
             }
             
             guard let data = data, let html = String(data: data, encoding: .utf8) else {
                 print("Failed to decode HTML")
-                DispatchQueue.main.async { completion([]) }
+                DispatchQueue.main.async { completion([], []) }
                 return
             }
             
+            var resultItems: [MediaItem] = []
+            var episodeLinks: [EpisodeLink] = []
+            
             if let parseFunction = self.context.objectForKeyedSubscript("extractDetails"),
                let results = parseFunction.call(withArguments: [html]).toArray() as? [[String: String]] {
-                let resultItems = results.map { item in
+                resultItems = results.map { item in
                     MediaItem(
                         description: item["description"] ?? "",
                         aliases: item["aliases"] ?? "",
                         airdate: item["airdate"] ?? ""
                     )
                 }
-                DispatchQueue.main.async {
-                    completion(resultItems)
-                }
             } else {
                 print("Failed to parse results")
-                DispatchQueue.main.async { completion([]) }
+            }
+            
+            if let fetchEpisodesFunction = self.context.objectForKeyedSubscript("extractEpisodes"),
+               let episodesResult = fetchEpisodesFunction.call(withArguments: [html]).toArray() as? [[String: String]] {
+                for episodeData in episodesResult {
+                    if let num = episodeData["number"], let link = episodeData["href"], let number = Int(num) {
+                        episodeLinks.append(EpisodeLink(number: number, href: link))
+                    }
+                }
+            }
+            
+            DispatchQueue.main.async {
+                completion(resultItems, episodeLinks)
             }
         }.resume()
     }
