@@ -32,7 +32,8 @@ struct MediaInfoView: View {
     
     @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
     
-    @ObservedObject var jsController = JSController()
+    @StateObject private var jsController = JSController()
+    @EnvironmentObject var moduleManager: ModuleManager
     
     var body: some View {
         Group {
@@ -140,14 +141,29 @@ struct MediaInfoView: View {
             }
         }
         .onAppear {
-            jsController.fetchDetails(url: href) { items in
-                if let item = items.first {
-                    print("Fetched item: \(item)")
-                    self.synopsis = item.description
-                    self.aliases = item.aliases
-                    self.airdate = item.airdate
+            getDetails()
+        }
+    }
+    
+    func getDetails() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            Task {
+                do {
+                    let jsContent = try moduleManager.getModuleContent(module)
+                    jsController.loadScript(jsContent)
+                    jsController.fetchDetails(url: href) { items in
+                        if let item = items.first {
+                            print("Fetched item: \(item)")
+                            self.synopsis = item.description
+                            self.aliases = item.aliases
+                            self.airdate = item.airdate
+                        }
+                        self.isLoading = false
+                    }
+                } catch {
+                    print("Error loading module: \(error)")
+                    self.isLoading = false
                 }
-                self.isLoading = false
             }
         }
     }
