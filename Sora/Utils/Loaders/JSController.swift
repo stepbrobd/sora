@@ -121,4 +121,37 @@ class JSController: ObservableObject {
             }
         }.resume()
     }
+    
+    func fetchStreamUrl(episodeUrl: String, completion: @escaping (String?) -> Void) {
+        guard let url = URL(string: episodeUrl) else {
+            completion(nil)
+            return
+        }
+        
+        URLSession.custom.dataTask(with: url) { [weak self] data, _, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                print("Network error: \(error)")
+                DispatchQueue.main.async { completion(nil) }
+                return
+            }
+            
+            guard let data = data, let html = String(data: data, encoding: .utf8) else {
+                print("Failed to decode HTML")
+                DispatchQueue.main.async { completion(nil) }
+                return
+            }
+            
+            if let parseFunction = self.context.objectForKeyedSubscript("extractStreamUrl"),
+               let streamUrl = parseFunction.call(withArguments: [html]).toString() {
+                DispatchQueue.main.async {
+                    completion(streamUrl)
+                }
+            } else {
+                print("Failed to extract stream URL")
+                DispatchQueue.main.async { completion(nil) }
+            }
+        }.resume()
+    }
 }

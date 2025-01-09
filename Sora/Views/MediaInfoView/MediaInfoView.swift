@@ -165,6 +165,9 @@ struct MediaInfoView: View {
                                     let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
                                     
                                     EpisodeCell(episode: ep.href, episodeID: ep.number - 1, progress: progress, itemID: itemID ?? 0)
+                                        .onTapGesture {
+                                            fetchStream(href: ep.href)
+                                        }
                                 }
                             }
                         }
@@ -208,6 +211,39 @@ struct MediaInfoView: View {
                     print("Error loading module: \(error)")
                     self.isLoading = false
                 }
+            }
+        }
+    }
+    
+    func fetchStream(href: String) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            Task {
+                do {
+                    let jsContent = try moduleManager.getModuleContent(module)
+                    jsController.loadScript(jsContent)
+                    jsController.fetchStreamUrl(episodeUrl: href) { streamUrl in
+                        if let url = streamUrl {
+                            playStream(url: url, fullURL: url)
+                        }
+                    }
+                } catch {
+                    print("Error loading module: \(error)")
+                    self.isLoading = false
+                }
+            }
+        }
+    }
+    
+    func playStream(url: String, fullURL: String) {
+        DispatchQueue.main.async {
+            let videoPlayerViewController = VideoPlayerViewController(module: module)
+            videoPlayerViewController.streamUrl = url
+            videoPlayerViewController.fullUrl = fullURL
+            videoPlayerViewController.modalPresentationStyle = .fullScreen
+            
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let rootVC = windowScene.windows.first?.rootViewController {
+                rootVC.present(videoPlayerViewController, animated: true, completion: nil)
             }
         }
     }
