@@ -24,6 +24,7 @@ struct SearchView: View {
     @State private var selectedSearchItem: SearchItem?
     @State private var isSearching = false
     @State private var searchText = ""
+    @State private var hasNoResults = false
     
     private var selectedModule: ScrapingModule? {
         guard let id = selectedModuleId else { return nil }
@@ -55,6 +56,19 @@ struct SearchView: View {
                     if isSearching {
                         ProgressView()
                             .padding()
+                    } else if hasNoResults {
+                        VStack(spacing: 8) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.largeTitle)
+                                .foregroundColor(.secondary)
+                            Text("No Results Found")
+                                .font(.headline)
+                            Text("Try different keywords/titles")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
                     }
                     
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 16) {
@@ -128,10 +142,13 @@ struct SearchView: View {
     private func performSearch() {
         guard !searchText.isEmpty, let module = selectedModule else {
             searchItems = []
+            hasNoResults = false
             return
         }
         
         isSearching = true
+        hasNoResults = false
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             Task {
                 do {
@@ -139,11 +156,13 @@ struct SearchView: View {
                     jsController.loadScript(jsContent)
                     jsController.fetchSearchResults(keyword: searchText, module: module) { items in
                         searchItems = items
+                        hasNoResults = items.isEmpty
                         isSearching = false
                     }
                 } catch {
                     print("Error loading module: \(error)")
                     isSearching = false
+                    hasNoResults = true
                 }
             }
         }
