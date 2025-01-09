@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Kingfisher
+import SafariServices
 
 struct MediaItem: Identifiable {
     let id = UUID()
@@ -63,21 +64,40 @@ struct MediaInfoView: View {
                                 Spacer()
                                 
                                 HStack(alignment: .center, spacing: 12) {
-                                    Text(module.metadata.sourceName)
-                                        .font(.system(size: 13))
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "calendar")
+                                            .resizable()
+                                            .frame(width: 15, height: 15)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text(airdate)
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .padding(4)
+                                }
+                                
+                                HStack(alignment: .center, spacing: 12) {
+                                    Button(action: {
+                                        openSafariViewController(with: href)
+                                    }) {
+                                        HStack(spacing: 4) {
+                                            Text(module.metadata.sourceName)
+                                                .font(.system(size: 13))
+                                                .foregroundColor(.primary)
+                                            
+                                            Image(systemName: "safari")
+                                                .resizable()
+                                                .frame(width: 20, height: 20)
+                                                .foregroundColor(.primary)
+                                        }
                                         .padding(4)
                                         .background(Capsule().fill(Color.accentColor.opacity(0.4)))
-                                    
-                                    Button(action: {
-                                    }) {
-                                        Image(systemName: "ellipsis.circle")
-                                            .resizable()
-                                            .frame(width: 20, height: 20)
                                     }
                                     
                                     Button(action: {
                                     }) {
-                                        Image(systemName: "safari")
+                                        Image(systemName: "ellipsis.circle")
                                             .resizable()
                                             .frame(width: 20, height: 20)
                                     }
@@ -189,6 +209,18 @@ struct MediaInfoView: View {
                     self.isLoading = false
                 }
             }
+        }
+    }
+    
+    private func openSafariViewController(with urlString: String) {
+        guard let url = URL(string: urlString) else {
+            print("Unable to open the webpage")
+            return
+        }
+        let safariViewController = SFSafariViewController(url: url)
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootVC = windowScene.windows.first?.rootViewController {
+            rootVC.present(safariViewController, animated: true, completion: nil)
         }
     }
     
