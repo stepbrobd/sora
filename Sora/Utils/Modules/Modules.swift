@@ -16,6 +16,7 @@ struct ModuleMetadata: Codable, Hashable {
     let baseUrl: String
     let searchBaseUrl: String
     let scriptUrl: String
+    let asyncJS: Bool?
 }
 
 struct ScrapingModule: Codable, Identifiable, Hashable {

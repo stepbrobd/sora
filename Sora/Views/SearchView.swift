@@ -154,10 +154,18 @@ struct SearchView: View {
                 do {
                     let jsContent = try moduleManager.getModuleContent(module)
                     jsController.loadScript(jsContent)
-                    jsController.fetchSearchResults(keyword: searchText, module: module) { items in
-                        searchItems = items
-                        hasNoResults = items.isEmpty
-                        isSearching = false
+                    if(module.metadata.asyncJS == false || module.metadata.asyncJS == nil) {
+                        jsController.fetchSearchResults(keyword: searchText, module: module) { items in
+                            searchItems = items
+                            hasNoResults = items.isEmpty
+                            isSearching = false
+                        }
+                    } else {
+                        jsController.fetchJsSearchResults(keyword: searchText, module: module) { items in
+                            searchItems = items
+                            hasNoResults = items.isEmpty
+                            isSearching = false
+                        }
                     }
                 } catch {
                     print("Error loading module: \(error)")
