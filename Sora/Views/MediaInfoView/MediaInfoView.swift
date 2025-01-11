@@ -198,14 +198,27 @@ struct MediaInfoView: View {
                 do {
                     let jsContent = try moduleManager.getModuleContent(module)
                     jsController.loadScript(jsContent)
-                    jsController.fetchDetails(url: href) { items, episodes in
-                        if let item = items.first {
-                            self.synopsis = item.description
-                            self.aliases = item.aliases
-                            self.airdate = item.airdate
+                    if(module.metadata.asyncJS == false || module.metadata.asyncJS == nil) {
+                        jsController.fetchDetails(url: href) { items, episodes in
+                            if let item = items.first {
+                                self.synopsis = item.description
+                                self.aliases = item.aliases
+                                self.airdate = item.airdate
+                            }
+                            self.episodeLinks = episodes
+                            self.isLoading = false
                         }
-                        self.episodeLinks = episodes
-                        self.isLoading = false
+                    }
+                    else {
+                        jsController.fetchDetailsJS(url: href) { items, episodes in
+                            if let item = items.first {
+                                self.synopsis = item.description
+                                self.aliases = item.aliases
+                                self.airdate = item.airdate
+                            }
+                            self.episodeLinks = episodes
+                            self.isLoading = false
+                        }
                     }
                 } catch {
                     print("Error loading module: \(error)")
