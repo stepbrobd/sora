@@ -21,15 +21,13 @@ class JSController: ObservableObject {
         }
         context.setObject(logFunction, forKeyedSubscript: "log" as NSString)
         
-        // Because fetch isnt available in JSContext, it simulates the fetch api for Javascript.
-        // Performs network calls with URLSession
         let fetchNativeFunction: @convention(block) (String, JSValue, JSValue) -> Void = { urlString, resolve, reject in
             guard let url = URL(string: urlString) else {
                 print("Invalid URL")
                 reject.call(withArguments: ["Invalid URL"])
                 return
             }
-            let task = URLSession.shared.dataTask(with: url) { data, _, error in
+            let task = URLSession.custom.dataTask(with: url) { data, _, error in
                 if let error = error {
                     print(url)
                     print("Network error in fetchNativeFunction: \(error.localizedDescription)")
@@ -52,7 +50,6 @@ class JSController: ObservableObject {
         }
         context.setObject(fetchNativeFunction, forKeyedSubscript: "fetchNative" as NSString)
         
-        // Define fetch for JavaScript
         let fetchDefinition = """
                     function fetch(url) {
                         return new Promise(function(resolve, reject) {
@@ -196,7 +193,6 @@ class JSController: ObservableObject {
         }.resume()
     }
     
-    /// Use Javascript to fetch search results
     func fetchJsSearchResults(keyword: String, module: ScrapingModule, completion: @escaping ([SearchItem]) -> Void) {
         if let exception = context.exception {
             print("JavaScript exception: \(exception)")
@@ -210,7 +206,6 @@ class JSController: ObservableObject {
             return
         }
         
-        // Call the JavaScript function, passing in the parameter
         let promiseValue = searchResultsFunction.call(withArguments: [keyword])
         guard let promise = promiseValue else {
             print("searchResults did not return a Promise")
@@ -218,7 +213,6 @@ class JSController: ObservableObject {
             return
         }
         
-        // Handles successful promise resolution.
         let thenBlock: @convention(block) (JSValue) -> Void = { result in
             
             if let jsonString = result.toString(),
@@ -256,7 +250,6 @@ class JSController: ObservableObject {
             }
         }
         
-        // Handles promise rejection.
         let catchBlock: @convention(block) (JSValue) -> Void = { error in
             print("Promise rejected: \(String(describing: error.toString()))")
             DispatchQueue.main.async {
@@ -264,16 +257,13 @@ class JSController: ObservableObject {
             }
         }
         
-        // Wrap the Swift blocks into JSValue functions
         let thenFunction = JSValue(object: thenBlock, in: context)
         let catchFunction = JSValue(object: catchBlock, in: context)
         
-        // Attach the 'then' and 'catch' callbacks to the Promise
-        promise.invokeMethod("then", withArguments: [thenFunction])
-        promise.invokeMethod("catch", withArguments: [catchFunction])
+        promise.invokeMethod("then", withArguments: [thenFunction as Any])
+        promise.invokeMethod("catch", withArguments: [catchFunction as Any])
     }
     
-    /// Use Javascript to fetch details
     func fetchDetailsJS(url: String, completion: @escaping ([MediaItem], [EpisodeLink]) -> Void) {
         guard let url = URL(string: url) else {
             completion([], [])
@@ -301,7 +291,6 @@ class JSController: ObservableObject {
         var resultItems: [MediaItem] = []
         var episodeLinks: [EpisodeLink] = []
         
-        // Call the JavaScript function, passing in the parameter
         let promiseValueDetails = extractDetailsFunction.call(withArguments: [url.absoluteString])
         guard let promiseDetails = promiseValueDetails else {
             print("extractDetails did not return a Promise")
@@ -309,7 +298,6 @@ class JSController: ObservableObject {
             return
         }
         
-        // Handles successful promise resolution.
         let thenBlockDetails: @convention(block) (JSValue) -> Void = { result in
             
             if let jsonOfDetails = result.toString(),
@@ -342,7 +330,6 @@ class JSController: ObservableObject {
             }
         }
         
-        // Handles promise rejection.
         let catchBlockDetails: @convention(block) (JSValue) -> Void = { error in
             print("Promise rejected of extractDetails: \(String(describing: error.toString()))")
             DispatchQueue.main.async {
@@ -350,16 +337,13 @@ class JSController: ObservableObject {
             }
         }
         
-        // Wrap the Swift blocks into JSValue functions
         let thenFunctionDetails = JSValue(object: thenBlockDetails, in: context)
         let catchFunctionDetails = JSValue(object: catchBlockDetails, in: context)
         
-        // Attach the 'then' and 'catch' callbacks to the Promise
-        promiseDetails.invokeMethod("then", withArguments: [thenFunctionDetails])
-        promiseDetails.invokeMethod("catch", withArguments: [catchFunctionDetails])
+        promiseDetails.invokeMethod("then", withArguments: [thenFunctionDetails as Any])
+        promiseDetails.invokeMethod("catch", withArguments: [catchFunctionDetails as Any])
         
         
-        // Call the JavaScript function, passing in the parameter
         let promiseValueEpisodes = extractEpisodesFunction.call(withArguments: [url.absoluteString])
         guard let promiseEpisodes = promiseValueEpisodes else {
             print("extractEpisodes did not return a Promise")
@@ -367,7 +351,6 @@ class JSController: ObservableObject {
             return
         }
         
-        // Handles successful promise resolution.
         let thenBlockEpisodes: @convention(block) (JSValue) -> Void = { result in
             
             if let jsonOfEpisodes = result.toString(),
@@ -404,7 +387,6 @@ class JSController: ObservableObject {
             }
         }
         
-        // Handles promise rejection.
         let catchBlockEpisodes: @convention(block) (JSValue) -> Void = { error in
             print("Promise rejected of extractEpisodes: \(String(describing: error.toString()))")
             DispatchQueue.main.async {
@@ -412,13 +394,11 @@ class JSController: ObservableObject {
             }
         }
         
-        // Wrap the Swift blocks into JSValue functions
         let thenFunctionEpisodes = JSValue(object: thenBlockEpisodes, in: context)
         let catchFunctionEpisodes = JSValue(object: catchBlockEpisodes, in: context)
         
-        // Attach the 'then' and 'catch' callbacks to the Promise
-        promiseEpisodes.invokeMethod("then", withArguments: [thenFunctionEpisodes])
-        promiseEpisodes.invokeMethod("catch", withArguments: [catchFunctionEpisodes])
+        promiseEpisodes.invokeMethod("then", withArguments: [thenFunctionEpisodes as Any])
+        promiseEpisodes.invokeMethod("catch", withArguments: [catchFunctionEpisodes as Any])
     }
     
 }

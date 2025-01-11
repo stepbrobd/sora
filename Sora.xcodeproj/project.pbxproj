@@ -78,8 +78,8 @@
 		133D7C6C2D2BE2500075467E /* Sora */ = {
 			isa = PBXGroup;
 			children = (
-				13DC0C442D302C6A00D0F966 /* MediaPlayer */,
 				13DC0C412D2EC9BA00D0F966 /* Info.plist */,
+				13DC0C442D302C6A00D0F966 /* MediaPlayer */,
 				133D7C852D2BE2640075467E /* Utils */,
 				133D7C7B2D2BE2630075467E /* Views */,
 				133D7C6D2D2BE2500075467E /* SoraApp.swift */,
