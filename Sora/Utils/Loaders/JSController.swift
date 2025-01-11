@@ -31,6 +31,7 @@ class JSController: ObservableObject {
             }
             let task = URLSession.shared.dataTask(with: url) { data, _, error in
                 if let error = error {
+                    print(url)
                     print("Network error in fetchNativeFunction: \(error.localizedDescription)")
                     reject.call(withArguments: [error.localizedDescription])
                     return
@@ -271,4 +272,153 @@ class JSController: ObservableObject {
         promise.invokeMethod("then", withArguments: [thenFunction])
         promise.invokeMethod("catch", withArguments: [catchFunction])
     }
+    
+    /// Use Javascript to fetch details
+    func fetchDetailsJS(url: String, completion: @escaping ([MediaItem], [EpisodeLink]) -> Void) {
+        guard let url = URL(string: url) else {
+            completion([], [])
+            return
+        }
+        
+        if let exception = context.exception {
+            print("JavaScript exception: \(exception)")
+            completion([], [])
+            return
+        }
+        
+        guard let extractDetailsFunction = context.objectForKeyedSubscript("extractDetails") else {
+            print("No JavaScript function extractDetails found")
+            completion([], [])
+            return
+        }
+        
+        guard let extractEpisodesFunction = context.objectForKeyedSubscript("extractEpisodes") else {
+            print("No JavaScript function extractEpisodes found")
+            completion([], [])
+            return
+        }
+        
+        var resultItems: [MediaItem] = []
+        var episodeLinks: [EpisodeLink] = []
+        
+        // Call the JavaScript function, passing in the parameter
+        let promiseValueDetails = extractDetailsFunction.call(withArguments: [url.absoluteString])
+        guard let promiseDetails = promiseValueDetails else {
+            print("extractDetails did not return a Promise")
+            completion([], [])
+            return
+        }
+        
+        // Handles successful promise resolution.
+        let thenBlockDetails: @convention(block) (JSValue) -> Void = { result in
+            
+            if let jsonOfDetails = result.toString(),
+               let dataDetails = jsonOfDetails.data(using: .utf8) {
+                do {
+                    if let array = try JSONSerialization.jsonObject(with: dataDetails, options: []) as? [[String: Any]] {
+                        resultItems = array.map { item -> MediaItem in
+                            let description = item["description"] as? String ?? ""
+                            let aliases = item["aliases"] as? String ?? ""
+                            let airdate = item["airdate"] as? String ?? ""
+                            return MediaItem(description: description, aliases: aliases, airdate: airdate)
+                        }
+                    } else {
+                        print("Failed to parse JSON of extractDetails")
+                        DispatchQueue.main.async {
+                            completion([], [])
+                        }
+                    }
+                } catch {
+                    print("JSON parsing error of extract details: \(error)")
+                    DispatchQueue.main.async {
+                        completion([], [])
+                    }
+                }
+            } else {
+                print("Result is not a string of extractDetails")
+                DispatchQueue.main.async {
+                    completion([], [])
+                }
+            }
+        }
+        
+        // Handles promise rejection.
+        let catchBlockDetails: @convention(block) (JSValue) -> Void = { error in
+            print("Promise rejected of extractDetails: \(String(describing: error.toString()))")
+            DispatchQueue.main.async {
+                completion([], [])
+            }
+        }
+        
+        // Wrap the Swift blocks into JSValue functions
+        let thenFunctionDetails = JSValue(object: thenBlockDetails, in: context)
+        let catchFunctionDetails = JSValue(object: catchBlockDetails, in: context)
+        
+        // Attach the 'then' and 'catch' callbacks to the Promise
+        promiseDetails.invokeMethod("then", withArguments: [thenFunctionDetails])
+        promiseDetails.invokeMethod("catch", withArguments: [catchFunctionDetails])
+        
+        
+        // Call the JavaScript function, passing in the parameter
+        let promiseValueEpisodes = extractEpisodesFunction.call(withArguments: [url.absoluteString])
+        guard let promiseEpisodes = promiseValueEpisodes else {
+            print("extractEpisodes did not return a Promise")
+            completion([], [])
+            return
+        }
+        
+        // Handles successful promise resolution.
+        let thenBlockEpisodes: @convention(block) (JSValue) -> Void = { result in
+            
+            if let jsonOfEpisodes = result.toString(),
+               let dataEpisodes = jsonOfEpisodes.data(using: .utf8) {
+                do {
+                    if let array = try JSONSerialization.jsonObject(with: dataEpisodes, options: []) as? [[String: Any]] {
+                        episodeLinks = array.map { item -> EpisodeLink in
+                            let number = item["number"] as? Int ?? 0
+                            let href = item["href"] as? String ?? ""
+                            return EpisodeLink(number: number, href: href)
+                        }
+                        
+                        DispatchQueue.main.async {
+                            completion(resultItems, episodeLinks)
+                        }
+                        
+                    } else {
+                        print("Failed to parse JSON of extractEpisodes")
+                        DispatchQueue.main.async {
+                            completion([], [])
+                        }
+                    }
+                } catch {
+                    print("JSON parsing error of extractEpisodes: \(error)")
+                    DispatchQueue.main.async {
+                        completion([], [])
+                    }
+                }
+            } else {
+                print("Result is not a string of extractEpisodes")
+                DispatchQueue.main.async {
+                    completion([], [])
+                }
+            }
+        }
+        
+        // Handles promise rejection.
+        let catchBlockEpisodes: @convention(block) (JSValue) -> Void = { error in
+            print("Promise rejected of extractEpisodes: \(String(describing: error.toString()))")
+            DispatchQueue.main.async {
+                completion([], [])
+            }
+        }
+        
+        // Wrap the Swift blocks into JSValue functions
+        let thenFunctionEpisodes = JSValue(object: thenBlockEpisodes, in: context)
+        let catchFunctionEpisodes = JSValue(object: catchBlockEpisodes, in: context)
+        
+        // Attach the 'then' and 'catch' callbacks to the Promise
+        promiseEpisodes.invokeMethod("then", withArguments: [thenFunctionEpisodes])
+        promiseEpisodes.invokeMethod("catch", withArguments: [catchFunctionEpisodes])
+    }
+    
 }
