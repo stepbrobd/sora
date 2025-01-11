@@ -36,20 +36,20 @@ struct CustomMediaPlayer: View {
     @State private var showWatchNextButton = true
     @Environment(\.presentationMode) var presentationMode
     
-    let module: ModuleStruct
+    let module: ScrapingModule
     let fullUrl: String
     let title: String
     let episodeNumber: Int
     let onWatchNext: () -> Void
     
-    init(module: ModuleStruct, urlString: String, fullUrl: String, title: String, episodeNumber: Int, onWatchNext: @escaping () -> Void) {
+    init(module: ScrapingModule, urlString: String, fullUrl: String, title: String, episodeNumber: Int, onWatchNext: @escaping () -> Void) {
         guard let url = URL(string: urlString) else {
             fatalError("Invalid URL string")
         }
         
         var request = URLRequest(url: url)
         if urlString.contains("ascdn") {
-            request.addValue("\(module.module[0].details.baseURL)", forHTTPHeaderField: "Referer")
+            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
         }
         
         let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])

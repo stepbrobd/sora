@@ -1,23 +1,23 @@
 //
-//  VideoPlayerView.swift
+//  VideoPlayer.swift
 //  Sora
 //
-//  Created by Francesco on 18/12/24.
+//  Created by Francesco on 09/01/25.
 //
 
 import UIKit
 import AVKit
 
 class VideoPlayerViewController: UIViewController {
-    let module: ModuleStruct
+    let module: ScrapingModule
     
     var player: AVPlayer?
-    var playerViewController: AVPlayerViewController?
+    var playerViewController: NormalPlayer?
     var timeObserverToken: Any?
     var streamUrl: String?
     var fullUrl: String = ""
     
-    init(module: ModuleStruct) {
+    init(module: ScrapingModule) {
         self.module = module
         super.init(nibName: nil, bundle: nil)
     }
@@ -35,7 +35,7 @@ class VideoPlayerViewController: UIViewController {
         
         var request = URLRequest(url: url)
         if streamUrl.contains("ascdn") {
-            request.addValue("\(module.module[0].details.baseURL)", forHTTPHeaderField: "Referer")
+            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
         }
         
         let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])

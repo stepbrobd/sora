@@ -7,12 +7,16 @@
 
 import SwiftUI
 import Kingfisher
-import SwiftyJSON
+
+struct EpisodeLink: Identifiable {
+    let id = UUID()
+    let number: Int
+    let href: String
+}
 
 struct EpisodeCell: View {
     let episode: String
     let episodeID: Int
-    let imageUrl: String
     let progress: Double
     let itemID: Int
     
@@ -92,10 +96,12 @@ struct EpisodeCell: View {
     
     func parseEpisodeDetails(data: Data) {
         do {
-            let json = try JSON(data: data)
-            guard let episodeDetails = json["episodes"]["\(episodeID + 1)"].dictionary,
-                  let title = episodeDetails["title"]?.dictionary,
-                  let image = episodeDetails["image"]?.string else {
+            let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
+            guard let json = jsonObject as? [String: Any],
+                  let episodes = json["episodes"] as? [String: Any],
+                  let episodeDetails = episodes["\(episodeID + 1)"] as? [String: Any],
+                  let title = episodeDetails["title"] as? [String: String],
+                  let image = episodeDetails["image"] as? String else {
                       print("Invalid response format")
                       DispatchQueue.main.async {
                           self.isLoading = false
@@ -104,7 +110,7 @@ struct EpisodeCell: View {
                   }
             
             DispatchQueue.main.async {
-                self.episodeTitle = title["en"]?.string ?? ""
+                self.episodeTitle = title["en"] ?? ""
                 self.episodeImageUrl = image
                 self.isLoading = false
             }
