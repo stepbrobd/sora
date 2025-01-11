@@ -4,9 +4,9 @@
 
 <img src="https://raw.githubusercontent.com/cranci1/Sora/refs/heads/main/assets/Sora_banner.png" width="500px">
 
-[![Build and Release IPA](https://github.com/cranci1/Sora/actions/workflows/build.yml/badge.svg)](https://github.com/cranci1/Sora/actions/workflows/build.yml) [![Discord](https://img.shields.io/discord/1293430817841741899.svg?logo=discord&color=blue)](https://discord.gg/XR3SrmUbpd) [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2015.0%2B%20%26%20macOS%2012.0%2B-red?logo=apple&logoColor=white)](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2015.0%2B%20%26%20macOS%2012.0%2B-red?logo=apple&logoColor=white)
+[![Build and Release IPA](https://github.com/cranci1/Sora/actions/workflows/build.yml/badge.svg)](https://github.com/cranci1/Sora/actions/workflows/build.yml) [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2015.0%2B%20%26%20macOS%2012.0%2B-red?logo=apple&logoColor=white)](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2015.0%2B%20%26%20macOS%2012.0%2B-red?logo=apple&logoColor=white) [![Discord](https://img.shields.io/discord/1293430817841741899.svg?logo=discord&color=blue)](https://discord.gg/XR3SrmUbpd)
 
-A modular web scraping app, under the GPLv3.0 License
+A modular web scraping app, **Still in early builds** under the GPLv3.0 License
 
 </div>
 
@@ -21,26 +21,28 @@ A modular web scraping app, under the GPLv3.0 License
 ## Features
 
 - [x] iOS/iPadOS 15+ support
-- [ ] macOS support
+- [x] macOS 12+ support
+- [x] JSON module support
 - [ ] JavaScript module support
 
 ## Frequently Asked Questions
 
 1. **What is Sora?**
-Sora is a module based web scraping app, made to work with modules only
+   - Sora is a modular web scraping app designed to work exclusively with modules.
 
 2. **Is Sora safe?**
-Yes, Sora is open-source and does not store user data on external servers.
+   - Yes, Sora is open-source and does not store user data on external servers.
 
 3. **Will Sora ever be paid?**
-No, Sora will always remain free without subscriptions, paid content, or any type of login.
+   - No, Sora will always remain free, with no subscriptions, paid content, or required logins.
 
-4. **How can i get module?**
-I do not provide any module for the app. Search for them on google or i dont know. I only created 1 module to watch videos of my school.
+4. **Where can I get modules?**
+   - I do not provide any modules for the app. Search for them on google or elsewhere. I only created 1 module to watch videos of my school.
 
 ## Acknowledgements
 
 FrameWorks:
+- [SwiftSoup](https://github.com/scinfu/SwiftSoup) - MIT License
 - [KingFisher](https://github.com/onevcat/Kingfisher) - MIT License
 
 ## License
@@ -48,7 +50,7 @@ FrameWorks:
 This project is licensed under the [GNU General Public License v3.0](LICENSE).
 
 ```
-Copyright © 2024-2025 cranci. All rights reserved.
+Copyright © 2024 cranci. All rights reserved.
 
 Sora is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
