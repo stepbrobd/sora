@@ -12,7 +12,7 @@ class VideoPlayerViewController: UIViewController {
     let module: ScrapingModule
     
     var player: AVPlayer?
-    var playerViewController: AVPlayerViewController?
+    var playerViewController: NormalPlayer?
     var timeObserverToken: Any?
     var streamUrl: String?
     var fullUrl: String = ""
@@ -42,7 +42,7 @@ class VideoPlayerViewController: UIViewController {
         let playerItem = AVPlayerItem(asset: asset)
         
         player = AVPlayer(playerItem: playerItem)
-        playerViewController = AVPlayerViewController()
+        playerViewController = NormalPlayer()
         playerViewController?.player = player
         addPeriodicTimeObserver(fullURL: fullUrl)
         
