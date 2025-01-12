@@ -23,6 +23,25 @@ struct EpisodeCell: View {
     @State private var episodeTitle: String = ""
     @State private var episodeImageUrl: String = ""
     @State private var isLoading: Bool = true
+    @State private var currentProgress: Double = 0.0
+    
+    private func markAsWatched() {
+        UserDefaults.standard.set(9999999.0, forKey: "lastPlayedTime_\(episode)")
+        UserDefaults.standard.set(9999999.0, forKey: "totalTime_\(episode)")
+        updateProgress()
+    }
+    
+    private func resetProgress() {
+        UserDefaults.standard.set(0.0, forKey: "lastPlayedTime_\(episode)")
+        UserDefaults.standard.set(0.0, forKey: "totalTime_\(episode)")
+        updateProgress()
+    }
+    
+    private func updateProgress() {
+        let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(episode)")
+        let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(episode)")
+        currentProgress = totalTime > 0 ? lastPlayedTime / totalTime : 0
+    }
     
     var body: some View {
         HStack {
@@ -51,11 +70,21 @@ struct EpisodeCell: View {
             
             Spacer()
             
-            CircularProgressBar(progress: progress)
+            CircularProgressBar(progress: currentProgress)
                 .frame(width: 40, height: 40)
+        }
+        .contextMenu {
+            Button(action: markAsWatched) {
+                Label("Mark as Watched", systemImage: "checkmark.circle")
+            }
+            
+            Button(action: resetProgress) {
+                Label("Reset Progress", systemImage: "arrow.counterclockwise")
+            }
         }
         .onAppear {
             fetchEpisodeDetails()
+            updateProgress()
         }
     }
     
@@ -82,15 +111,17 @@ struct EpisodeCell: View {
             }
             
             guard let data = data else {
-                print("No data received")
                 DispatchQueue.main.async {
                     self.isLoading = false
                 }
                 return
             }
             
-            UserDefaults.standard.set(data, forKey: cacheKey)
-            self.parseEpisodeDetails(data: data)
+            DispatchQueue.main.async {
+                self.parseEpisodeDetails(data: data)
+                UserDefaults.standard.set(data, forKey: cacheKey)
+                self.isLoading = false
+            }
         }.resume()
     }
     
