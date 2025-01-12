@@ -246,7 +246,7 @@ struct MediaInfoView: View {
                     jsController.loadScript(jsContent)
                     jsController.fetchStreamUrl(episodeUrl: href) { streamUrl in
                         if let url = streamUrl {
-                            playStream(url: url, fullURL: url)
+                            playStream(url: url, fullURL: href)
                         }
                     }
                 } catch {
