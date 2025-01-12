@@ -34,6 +34,7 @@ struct MediaInfoView: View {
     
     @StateObject private var jsController = JSController()
     @EnvironmentObject var moduleManager: ModuleManager
+    @EnvironmentObject private var libraryManager: LibraryManager
     
     var body: some View {
         Group {
@@ -147,10 +148,17 @@ struct MediaInfoView: View {
                             }
                             
                             Button(action: {
+                                libraryManager.toggleBookmark(
+                                    title: title,
+                                    imageUrl: imageUrl,
+                                    href: href,
+                                    moduleId: module.id.uuidString
+                                )
                             }) {
-                                Image(systemName: "bookmark")
+                                Image(systemName: libraryManager.isBookmarked(href: href) ? "bookmark.fill" : "bookmark")
                                     .resizable()
                                     .frame(width: 20, height: 27)
+                                    .foregroundColor(Color.accentColor)
                             }
                         }
                         

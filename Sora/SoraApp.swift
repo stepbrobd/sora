@@ -11,12 +11,14 @@ import SwiftUI
 struct SoraApp: App {
     @StateObject private var settings = Settings()
     @StateObject private var moduleManager = ModuleManager()
+    @StateObject private var librarykManager = LibraryManager()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(moduleManager)
                 .environmentObject(settings)
+                .environmentObject(librarykManager)
                 .accentColor(settings.accentColor)
                 .onAppear {
                     settings.updateAppearance()
