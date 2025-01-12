@@ -63,18 +63,20 @@ struct MediaInfoView: View {
                                 
                                 Spacer()
                                 
-                                HStack(alignment: .center, spacing: 12) {
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "calendar")
-                                            .resizable()
-                                            .frame(width: 15, height: 15)
-                                            .foregroundColor(.secondary)
-                                        
-                                        Text(airdate)
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.secondary)
+                                if !airdate.isEmpty {
+                                    HStack(alignment: .center, spacing: 12) {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "calendar")
+                                                .resizable()
+                                                .frame(width: 15, height: 15)
+                                                .foregroundColor(.secondary)
+                                            
+                                            Text(airdate)
+                                                .font(.system(size: 12))
+                                                .foregroundColor(.secondary)
+                                        }
+                                        .padding(4)
                                     }
-                                    .padding(4)
                                 }
                                 
                                 HStack(alignment: .center, spacing: 12) {
@@ -198,8 +200,8 @@ struct MediaInfoView: View {
                 do {
                     let jsContent = try moduleManager.getModuleContent(module)
                     jsController.loadScript(jsContent)
-                    if(module.metadata.asyncJS == false || module.metadata.asyncJS == nil) {
-                        jsController.fetchDetails(url: href) { items, episodes in
+                    if module.metadata.asyncJS == true {
+                        jsController.fetchDetailsJS(url: href) { items, episodes in
                             if let item = items.first {
                                 self.synopsis = item.description
                                 self.aliases = item.aliases
@@ -210,7 +212,7 @@ struct MediaInfoView: View {
                         }
                     }
                     else {
-                        jsController.fetchDetailsJS(url: href) { items, episodes in
+                        jsController.fetchDetails(url: href) { items, episodes in
                             if let item = items.first {
                                 self.synopsis = item.description
                                 self.aliases = item.aliases

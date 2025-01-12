@@ -154,14 +154,14 @@ struct SearchView: View {
                 do {
                     let jsContent = try moduleManager.getModuleContent(module)
                     jsController.loadScript(jsContent)
-                    if(module.metadata.asyncJS == false || module.metadata.asyncJS == nil) {
-                        jsController.fetchSearchResults(keyword: searchText, module: module) { items in
+                    if module.metadata.asyncJS == true {
+                        jsController.fetchJsSearchResults(keyword: searchText, module: module) { items in
                             searchItems = items
                             hasNoResults = items.isEmpty
                             isSearching = false
                         }
                     } else {
-                        jsController.fetchJsSearchResults(keyword: searchText, module: module) { items in
+                        jsController.fetchSearchResults(keyword: searchText, module: module) { items in
                             searchItems = items
                             hasNoResults = items.isEmpty
                             isSearching = false
