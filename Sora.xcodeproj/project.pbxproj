@@ -30,6 +30,7 @@
 		13EA2BD72D32D97400C1EBD7 /* MusicProgressSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD42D32D97400C1EBD7 /* MusicProgressSlider.swift */; };
 		13EA2BD92D32D98400C1EBD7 /* NormalPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD82D32D98400C1EBD7 /* NormalPlayer.swift */; };
 		13EA2BDC2D32D9FF00C1EBD7 /* MiruDataStruct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BDB2D32D9FF00C1EBD7 /* MiruDataStruct.swift */; };
+		1EE1DA962D3553C2002AEF73 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 1EE1DA952D3553C2002AEF73 /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -57,6 +58,7 @@
 		13EA2BD42D32D97400C1EBD7 /* MusicProgressSlider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MusicProgressSlider.swift; sourceTree = "<group>"; };
 		13EA2BD82D32D98400C1EBD7 /* NormalPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NormalPlayer.swift; sourceTree = "<group>"; };
 		13EA2BDB2D32D9FF00C1EBD7 /* MiruDataStruct.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MiruDataStruct.swift; sourceTree = "<group>"; };
+		1EE1DA952D3553C2002AEF73 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,6 +92,7 @@
 		133D7C6C2D2BE2500075467E /* Sora */ = {
 			isa = PBXGroup;
 			children = (
+				1EE1DA952D3553C2002AEF73 /* Localizable.xcstrings */,
 				13DC0C412D2EC9BA00D0F966 /* Info.plist */,
 				13DC0C442D302C6A00D0F966 /* MediaPlayer */,
 				133D7C852D2BE2640075467E /* Utils */,
@@ -274,6 +277,9 @@
 			knownRegions = (
 				en,
 				Base,
+				sk,
+				it,
+				ar,
 			);
 			mainGroup = 133D7C612D2BE2500075467E;
 			packageReferences = (
@@ -295,6 +301,7 @@
 			files = (
 				133D7C752D2BE2520075467E /* Preview Assets.xcassets in Resources */,
 				133D7C722D2BE2520075467E /* Assets.xcassets in Resources */,
+				1EE1DA962D3553C2002AEF73 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -388,6 +395,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -442,6 +450,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
 			};
@@ -455,7 +464,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Sora/Preview Content\"";
-				DEVELOPMENT_TEAM = 399LMK6Q2Y;
+				DEVELOPMENT_TEAM = 385Y24WAN5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Sora/Info.plist;
@@ -486,7 +495,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Sora/Preview Content\"";
-				DEVELOPMENT_TEAM = 399LMK6Q2Y;
+				DEVELOPMENT_TEAM = 385Y24WAN5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Sora/Info.plist;
