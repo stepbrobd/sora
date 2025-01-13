@@ -5,124 +5,406 @@
 
     },
     "%.2f" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.2f"
+          }
+        }
+      }
     },
     "Accent Color" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Akzentfarben"
+          }
+        }
+      }
     },
     "Appearance" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Erscheinungsbild"
+            }
+            }
+        }
     },
     "Author: %@" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Autor: %@"
+            }
+            }
+        }
     },
     "Copy URL" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "URL kopieren"
+            }
+            }
+        }
     },
     "Dark" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Dunkel"
+            }
+            }
+        }
     },
     "Delete" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Löschen"
+            }
+            }
+        }
     },
     "Episode %lld" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Episode %lld"
+            }
+            }
+        }
     },
     "Episodes" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Episoden"
+            }
+            }
+        }
     },
     "External Features" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Externe Funktionen"
+            }
+            }
+        }
     },
     "Home" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Home"
+            }
+            }
+        }
     },
     "Home View" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Home-Ansicht"
+            }
+            }
+        }
     },
     "Info" : {
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Info"
+            }
+            }
+        }
 
     },
     "Interface" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Schnittstelle"
+            }
+            }
+        }
     },
     "Join the Discord" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Trete dem Discord bei"
+            }
+            }
+        }
     },
     "Language: %@" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Sprache: %@"
+            }
+            }
+        }
     },
     "Less" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Weniger"
+            }
+            }
+        }
     },
     "Library" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Bibliothek"
+            }
+            }
+        }
     },
     "Light" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Hell"
+            }
+            }
+        }
     },
     "Mark as Watched" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Als gesehen markieren"
+            }
+            }
+        }
     },
     "Modules" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Module"
+            }
+            }
+        }
     },
     "More" : {
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Mehr"
+            }
+            }
+        }
 
     },
     "No Items saved" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Keine Elemente gespeichert"
+            }
+            }
+        }
     },
     "No Module Selected" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Kein Modul ausgewählt"
+            }
+            }
+        }
     },
     "No Results Found" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Keine Ergebnisse gefunden"
+            }
+            }
+        }
     },
     "Playback Speed" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Wiedergabegeschwindigkeit"
+            }
+            }
+        }
     },
     "Please select a module from settings" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Bitte wählen ein Modul aus den Einstellungen"
+            }
+            }
+        }
     },
     "Report an issue" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Ein Problem melden"
+            }
+            }
+        }
     },
     "Reset Progress" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Fortschritt zurücksetzen"
+            }
+            }
+        }
     },
     "Search" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Suche"
+            }
+            }
+        }
     },
     "Search..." : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Suchen..."
+            }
+            }
+        }
     },
     "Settings" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Einstellungen"
+            }
+            }
+        }
     },
     "Sora github repo" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Sora GitHub Repo"
+            }
+            }
+        }
     },
     "Start Watching" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Anschauen"
+            }
+            }
+        }
     },
     "Synopsis" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Zusammenfassung"
+            }
+            }
+        }
     },
     "System" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "System"
+            }
+            }
+        }
     },
     "Try different keywords/titles" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Versuchen es mit anderen Stichwörtern/Titeln"
+            }
+            }
+        }
     },
     "v%@" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "v%@"
+            }
+            }
+        }
     },
     "Watch Next" : {
-
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Als nächstes ansehen"
+            }
+            }
+        }
     },
-    "You can bookmark items to then find them easily here" : {
-
+    "You can bookmark items to find them easily here" : {
+        "localizations" : {
+            "de" : {
+            "stringUnit" : {
+                "state" : "translated",
+                "value" : "Du kannst Elemente als Lesezeichen markieren, um sie hier leicht zu finden"
+            }
+            }
+        }
     }
   },
   "version" : "1.0"
