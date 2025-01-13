@@ -1,0 +1,129 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    "%.2f" : {
+
+    },
+    "Accent Color" : {
+
+    },
+    "Appearance" : {
+
+    },
+    "Author: %@" : {
+
+    },
+    "Copy URL" : {
+
+    },
+    "Dark" : {
+
+    },
+    "Delete" : {
+
+    },
+    "Episode %lld" : {
+
+    },
+    "Episodes" : {
+
+    },
+    "External Features" : {
+
+    },
+    "Home" : {
+
+    },
+    "Home View" : {
+
+    },
+    "Info" : {
+
+    },
+    "Interface" : {
+
+    },
+    "Join the Discord" : {
+
+    },
+    "Language: %@" : {
+
+    },
+    "Less" : {
+
+    },
+    "Library" : {
+
+    },
+    "Light" : {
+
+    },
+    "Mark as Watched" : {
+
+    },
+    "Modules" : {
+
+    },
+    "More" : {
+
+    },
+    "No Items saved" : {
+
+    },
+    "No Module Selected" : {
+
+    },
+    "No Results Found" : {
+
+    },
+    "Playback Speed" : {
+
+    },
+    "Please select a module from settings" : {
+
+    },
+    "Report an issue" : {
+
+    },
+    "Reset Progress" : {
+
+    },
+    "Search" : {
+
+    },
+    "Search..." : {
+
+    },
+    "Settings" : {
+
+    },
+    "Sora github repo" : {
+
+    },
+    "Start Watching" : {
+
+    },
+    "Synopsis" : {
+
+    },
+    "System" : {
+
+    },
+    "Try different keywords/titles" : {
+
+    },
+    "v%@" : {
+
+    },
+    "Watch Next" : {
+
+    },
+    "You can bookmark items to then find them easily here" : {
+
+    }
+  },
+  "version" : "1.0"
+}
