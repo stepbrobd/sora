@@ -97,13 +97,6 @@ struct MediaInfoView: View {
                                         .padding(4)
                                         .background(Capsule().fill(Color.accentColor.opacity(0.4)))
                                     }
-                                    
-                                    Button(action: {
-                                    }) {
-                                        Image(systemName: "ellipsis.circle")
-                                            .resizable()
-                                            .frame(width: 20, height: 20)
-                                    }
                                 }
                             }
                         }
