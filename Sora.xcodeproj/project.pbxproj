@@ -24,6 +24,8 @@
 		133F55BB2D33B55100E08EEA /* LibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133F55BA2D33B55100E08EEA /* LibraryManager.swift */; };
 		138AA1B82D2D66FD0021F9DF /* EpisodeCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138AA1B62D2D66FD0021F9DF /* EpisodeCell.swift */; };
 		138AA1B92D2D66FD0021F9DF /* CircularProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138AA1B72D2D66FD0021F9DF /* CircularProgressBar.swift */; };
+		1399FAD42D3AB38C00E97C31 /* SettingsViewLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1399FAD32D3AB38C00E97C31 /* SettingsViewLogger.swift */; };
+		1399FAD62D3AB3DB00E97C31 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1399FAD52D3AB3DB00E97C31 /* Logger.swift */; };
 		13DC0C462D302C7500D0F966 /* VideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DC0C452D302C7500D0F966 /* VideoPlayer.swift */; };
 		13EA2BD52D32D97400C1EBD7 /* CustomPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD12D32D97400C1EBD7 /* CustomPlayer.swift */; };
 		13EA2BD62D32D97400C1EBD7 /* Double+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD32D32D97400C1EBD7 /* Double+Extension.swift */; };
@@ -51,6 +53,8 @@
 		133F55BA2D33B55100E08EEA /* LibraryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryManager.swift; sourceTree = "<group>"; };
 		138AA1B62D2D66FD0021F9DF /* EpisodeCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpisodeCell.swift; sourceTree = "<group>"; };
 		138AA1B72D2D66FD0021F9DF /* CircularProgressBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CircularProgressBar.swift; sourceTree = "<group>"; };
+		1399FAD32D3AB38C00E97C31 /* SettingsViewLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewLogger.swift; sourceTree = "<group>"; };
+		1399FAD52D3AB3DB00E97C31 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		13DC0C412D2EC9BA00D0F966 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		13DC0C452D302C7500D0F966 /* VideoPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayer.swift; sourceTree = "<group>"; };
 		13EA2BD12D32D97400C1EBD7 /* CustomPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomPlayer.swift; sourceTree = "<group>"; };
@@ -116,12 +120,11 @@
 		133D7C7B2D2BE2630075467E /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				1399FAD22D3AB34F00E97C31 /* SettingsView */,
 				133F55B92D33B53E00E08EEA /* LibraryView */,
-				133D7C832D2BE2630075467E /* SettingsSubViews */,
 				133D7C7F2D2BE2630075467E /* MediaInfoView */,
 				133D7C7D2D2BE2630075467E /* HomeView.swift */,
 				133D7C7C2D2BE2630075467E /* SearchView.swift */,
-				133D7C822D2BE2630075467E /* SettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -138,6 +141,7 @@
 		133D7C832D2BE2630075467E /* SettingsSubViews */ = {
 			isa = PBXGroup;
 			children = (
+				1399FAD32D3AB38C00E97C31 /* SettingsViewLogger.swift */,
 				133D7C842D2BE2630075467E /* SettingsViewModule.swift */,
 			);
 			path = SettingsSubViews;
@@ -146,10 +150,11 @@
 		133D7C852D2BE2640075467E /* Utils */ = {
 			isa = PBXGroup;
 			children = (
-				13EA2BDA2D32D9FF00C1EBD7 /* Miru */,
 				133D7C862D2BE2640075467E /* Extensions */,
 				133D7C882D2BE2640075467E /* Modules */,
 				133D7C8A2D2BE2640075467E /* Loaders */,
+				1399FAD12D3AB33D00E97C31 /* Logger */,
+				13EA2BDA2D32D9FF00C1EBD7 /* Miru */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -194,6 +199,23 @@
 				138AA1B62D2D66FD0021F9DF /* EpisodeCell.swift */,
 			);
 			path = EpisodeCell;
+			sourceTree = "<group>";
+		};
+		1399FAD12D3AB33D00E97C31 /* Logger */ = {
+			isa = PBXGroup;
+			children = (
+				1399FAD52D3AB3DB00E97C31 /* Logger.swift */,
+			);
+			path = Logger;
+			sourceTree = "<group>";
+		};
+		1399FAD22D3AB34F00E97C31 /* SettingsView */ = {
+			isa = PBXGroup;
+			children = (
+				133D7C832D2BE2630075467E /* SettingsSubViews */,
+				133D7C822D2BE2630075467E /* SettingsView.swift */,
+			);
+			path = SettingsView;
 			sourceTree = "<group>";
 		};
 		13DC0C442D302C6A00D0F966 /* MediaPlayer */ = {
@@ -315,6 +337,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				13DC0C462D302C7500D0F966 /* VideoPlayer.swift in Sources */,
+				1399FAD62D3AB3DB00E97C31 /* Logger.swift in Sources */,
 				133D7C902D2BE2640075467E /* SettingsView.swift in Sources */,
 				13EA2BD72D32D97400C1EBD7 /* MusicProgressSlider.swift in Sources */,
 				13EA2BD92D32D98400C1EBD7 /* NormalPlayer.swift in Sources */,
@@ -334,6 +357,7 @@
 				133D7C6E2D2BE2500075467E /* SoraApp.swift in Sources */,
 				138AA1B92D2D66FD0021F9DF /* CircularProgressBar.swift in Sources */,
 				13EA2BD52D32D97400C1EBD7 /* CustomPlayer.swift in Sources */,
+				1399FAD42D3AB38C00E97C31 /* SettingsViewLogger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

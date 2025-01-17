@@ -32,6 +32,12 @@ struct SettingsView: View {
                     }
                 }
                 
+                Section(header: Text("Debug")) {
+                    NavigationLink(destination: SettingsViewLogger()) {
+                        Text("Logs")
+                    }
+                }
+                
                 Section(header: Text("Info")) {
                     Button(action: {
                         if let url = URL(string: "https://github.com/cranci1/Sora") {
@@ -121,7 +127,7 @@ class Settings: ObservableObject {
             let colorData = try NSKeyedArchiver.archivedData(withRootObject: uiColor, requiringSecureCoding: false)
             UserDefaults.standard.set(colorData, forKey: "accentColor")
         } catch {
-            print("Failed to save accent color: \(error.localizedDescription)")
+            Logger.shared.log("Failed to save accent color: \(error.localizedDescription)")
         }
     }
     

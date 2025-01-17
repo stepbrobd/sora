@@ -189,7 +189,7 @@ struct MediaInfoView: View {
                 case .success(let id):
                     itemID = id
                 case .failure(let error):
-                    print("Failed to fetch Item ID: \(error)")
+                    Logger.shared.log("Failed to fetch Item ID: \(error)")
                 }
             }
         }
@@ -224,7 +224,7 @@ struct MediaInfoView: View {
                         }
                     }
                 } catch {
-                    print("Error loading module: \(error)")
+                    Logger.shared.log("Error loading module: \(error)")
                     self.isLoading = false
                 }
             }
@@ -243,7 +243,7 @@ struct MediaInfoView: View {
                         }
                     }
                 } catch {
-                    print("Error loading module: \(error)")
+                    Logger.shared.log("Error loading module: \(error)")
                     self.isLoading = false
                 }
             }
@@ -266,7 +266,7 @@ struct MediaInfoView: View {
     
     private func openSafariViewController(with urlString: String) {
         guard let url = URL(string: urlString) else {
-            print("Unable to open the webpage")
+            Logger.shared.log("Unable to open the webpage")
             return
         }
         let safariViewController = SFSafariViewController(url: url)
