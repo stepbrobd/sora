@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftUI
 
 struct LibraryItem: Codable, Identifiable {
     let id: UUID
@@ -35,15 +34,24 @@ class LibraryManager: ObservableObject {
     }
     
     private func loadBookmarks() {
-        if let data = UserDefaults.standard.data(forKey: bookmarksKey),
-           let decoded = try? JSONDecoder().decode([LibraryItem].self, from: data) {
-            bookmarks = decoded
+        guard let data = UserDefaults.standard.data(forKey: bookmarksKey) else {
+            print("No bookmarks data found in UserDefaults.")
+            return
+        }
+        
+        do {
+            bookmarks = try JSONDecoder().decode([LibraryItem].self, from: data)
+        } catch {
+            Logger.shared.log("Failed to decode bookmarks: \(error.localizedDescription)")
         }
     }
     
     private func saveBookmarks() {
-        if let encoded = try? JSONEncoder().encode(bookmarks) {
+        do {
+            let encoded = try JSONEncoder().encode(bookmarks)
             UserDefaults.standard.set(encoded, forKey: bookmarksKey)
+        } catch {
+            Logger.shared.log("Failed to encode bookmarks: \(error.localizedDescription)")
         }
     }
     

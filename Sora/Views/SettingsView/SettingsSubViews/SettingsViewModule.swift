@@ -14,6 +14,7 @@ struct SettingsViewModule: View {
     
     @State private var errorMessage: String?
     @State private var isLoading = false
+    @State private var addedModuleUrl: String?
     
     var body: some View {
         VStack {
@@ -57,7 +58,7 @@ struct SettingsViewModule: View {
                     }
                     .contextMenu {
                         Button(action: {
-                            UIPasteboard.general.string = module.metadata.iconUrl
+                            UIPasteboard.general.string = module.metadataUrl
                         }) {
                             Label("Copy URL", systemImage: "doc.on.doc")
                         }
@@ -91,6 +92,15 @@ struct SettingsViewModule: View {
                     .padding(5)
             })
         }
+        .alert(isPresented: .constant(errorMessage != nil)) {
+            Alert(
+                title: Text("Error"),
+                message: Text(errorMessage ?? "Unknown error"),
+                dismissButton: .default(Text("OK")) {
+                    errorMessage = nil
+                }
+            )
+        }
     }
     
     func showAddModuleAlert() {
@@ -114,6 +124,7 @@ struct SettingsViewModule: View {
     private func addModule(from url: String) {
         isLoading = true
         errorMessage = nil
+        addedModuleUrl = url
         
         Task {
             do {
@@ -124,7 +135,8 @@ struct SettingsViewModule: View {
             } catch {
                 DispatchQueue.main.async {
                     isLoading = false
-                    errorMessage = error.localizedDescription
+                    errorMessage = "Failed to add module: \(error.localizedDescription)"
+                    Logger.shared.log("Failed to add module: \(error.localizedDescription)")
                 }
             }
         }
