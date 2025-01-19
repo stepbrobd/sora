@@ -23,12 +23,14 @@ struct ScrapingModule: Codable, Identifiable, Hashable {
     let id: UUID
     let metadata: ModuleMetadata
     let localPath: String
+    let metadataUrl: String
     var isActive: Bool
     
-    init(id: UUID = UUID(), metadata: ModuleMetadata, localPath: String, isActive: Bool = false) {
+    init(id: UUID = UUID(), metadata: ModuleMetadata, localPath: String, metadataUrl: String, isActive: Bool = false) {
         self.id = id
         self.metadata = metadata
         self.localPath = localPath
+        self.metadataUrl = metadataUrl
         self.isActive = isActive
     }
     
@@ -94,7 +96,8 @@ class ModuleManager: ObservableObject {
         
         let module = ScrapingModule(
             metadata: metadata,
-            localPath: fileName
+            localPath: fileName,
+            metadataUrl: metadataUrl
         )
         
         DispatchQueue.main.async {
