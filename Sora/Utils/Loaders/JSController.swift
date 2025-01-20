@@ -95,6 +95,7 @@ class JSController: ObservableObject {
                 return
             }
             
+            Logger.shared.log(html)
             if let parseFunction = self.context.objectForKeyedSubscript("searchResults"),
                let results = parseFunction.call(withArguments: [html]).toArray() as? [[String: String]] {
                 let resultItems = results.map { item in
@@ -138,6 +139,7 @@ class JSController: ObservableObject {
             var resultItems: [MediaItem] = []
             var episodeLinks: [EpisodeLink] = []
             
+            Logger.shared.log(html)
             if let parseFunction = self.context.objectForKeyedSubscript("extractDetails"),
                let results = parseFunction.call(withArguments: [html]).toArray() as? [[String: String]] {
                 resultItems = results.map { item in
@@ -187,6 +189,7 @@ class JSController: ObservableObject {
                 return
             }
             
+            Logger.shared.log(html)
             if let parseFunction = self.context.objectForKeyedSubscript("extractStreamUrl"),
                let streamUrl = parseFunction.call(withArguments: [html]).toString() {
                 Logger.shared.log("Staring stream from: \(streamUrl)", level: .info)
@@ -222,6 +225,7 @@ class JSController: ObservableObject {
         
         let thenBlock: @convention(block) (JSValue) -> Void = { result in
             
+            Logger.shared.log(result.toString())
             if let jsonString = result.toString(),
                let data = jsonString.data(using: .utf8) {
                 do {
@@ -307,6 +311,7 @@ class JSController: ObservableObject {
         
         let thenBlockDetails: @convention(block) (JSValue) -> Void = { result in
             
+            Logger.shared.log(result.toString())
             if let jsonOfDetails = result.toString(),
                let dataDetails = jsonOfDetails.data(using: .utf8) {
                 do {
@@ -360,6 +365,7 @@ class JSController: ObservableObject {
         
         let thenBlockEpisodes: @convention(block) (JSValue) -> Void = { result in
             
+            Logger.shared.log(result.toString())
             if let jsonOfEpisodes = result.toString(),
                let dataEpisodes = jsonOfEpisodes.data(using: .utf8) {
                 do {
@@ -407,5 +413,4 @@ class JSController: ObservableObject {
         promiseEpisodes.invokeMethod("then", withArguments: [thenFunctionEpisodes as Any])
         promiseEpisodes.invokeMethod("catch", withArguments: [catchFunctionEpisodes as Any])
     }
-    
 }
