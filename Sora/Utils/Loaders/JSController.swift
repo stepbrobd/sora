@@ -17,45 +17,52 @@ class JSController: ObservableObject {
     
     private func setupContext() {
         let logFunction: @convention(block) (String) -> Void = { message in
-            Logger.shared.log("JavaScript log: \(message)")
+            Logger.shared.log("JavaScript log: \(message)", level: .info)
         }
         context.setObject(logFunction, forKeyedSubscript: "log" as NSString)
-        
+
+        // Override console.log
+        let consoleLogOverride = """
+        var console = {
+            log: function() {
+                var message = Array.from(arguments).map(String).join(" ");
+                log(message);
+            }
+        };
+        """
+        context.evaluateScript(consoleLogOverride)
+
+        // Add other JavaScript functions like fetchNative
         let fetchNativeFunction: @convention(block) (String, JSValue, JSValue) -> Void = { urlString, resolve, reject in
             guard let url = URL(string: urlString) else {
-                Logger.shared.log("Invalid URL")
+                Logger.shared.log("Invalid URL", level: .error)
                 reject.call(withArguments: ["Invalid URL"])
                 return
             }
-            let task = URLSession.custom.dataTask(with: url) { data, _, error in
+            let task = URLSession.shared.dataTask(with: url) { data, _, error in
                 if let error = error {
-                    Logger.shared.log("Network error in fetchNativeFunction: \(error.localizedDescription)")
+                    Logger.shared.log("Network error in fetchNative: \(error.localizedDescription)", level: .error)
                     reject.call(withArguments: [error.localizedDescription])
                     return
                 }
-                guard let data = data else {
-                    Logger.shared.log("No data in response")
-                    reject.call(withArguments: ["No data"])
+                guard let data = data, let text = String(data: data, encoding: .utf8) else {
+                    Logger.shared.log("Failed to decode response data", level: .error)
+                    reject.call(withArguments: ["Failed to decode response data"])
                     return
                 }
-                if let text = String(data: data, encoding: .utf8) {
-                    resolve.call(withArguments: [text])
-                } else {
-                    Logger.shared.log("Unable to decode data to text")
-                    reject.call(withArguments: ["Unable to decode data"])
-                }
+                resolve.call(withArguments: [text])
             }
             task.resume()
         }
         context.setObject(fetchNativeFunction, forKeyedSubscript: "fetchNative" as NSString)
-        
+
         let fetchDefinition = """
-                    function fetch(url) {
-                        return new Promise(function(resolve, reject) {
-                            fetchNative(url, resolve, reject);
-                        });
-                    }
-                    """
+        function fetch(url) {
+            return new Promise(function(resolve, reject) {
+                fetchNative(url, resolve, reject);
+            });
+        }
+        """
         context.evaluateScript(fetchDefinition)
     }
     
@@ -182,6 +189,7 @@ class JSController: ObservableObject {
             
             if let parseFunction = self.context.objectForKeyedSubscript("extractStreamUrl"),
                let streamUrl = parseFunction.call(withArguments: [html]).toString() {
+                Logger.shared.log("Staring stream from: \(streamUrl)", level: .info)
                 DispatchQueue.main.async {
                     completion(streamUrl)
                 }
@@ -230,13 +238,13 @@ class JSController: ObservableObject {
                         }
                         
                     } else {
-                        Logger.shared.log("Failed to parse JSON")
+                        Logger.shared.log("Failed to parse JSON", level: .error)
                         DispatchQueue.main.async {
                             completion([])
                         }
                     }
                 } catch {
-                    Logger.shared.log("JSON parsing error: \(error)")
+                    Logger.shared.log("JSON parsing error: \(error)", level: .error)
                     DispatchQueue.main.async {
                         completion([])
                     }
