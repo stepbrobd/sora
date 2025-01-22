@@ -56,7 +56,7 @@ struct MediaInfoView: View {
                                     .font(.system(size: 17))
                                     .fontWeight(.bold)
                                 
-                                if !aliases.isEmpty && aliases != title && aliases != "N/A" {
+                                if !aliases.isEmpty && aliases != title && aliases != "N/A" && aliases != "No Data" {
                                     Text(aliases)
                                         .font(.system(size: 13))
                                         .foregroundColor(.secondary)
@@ -64,7 +64,7 @@ struct MediaInfoView: View {
                                 
                                 Spacer()
                                 
-                                if !airdate.isEmpty && airdate != "N/A" {
+                                if !airdate.isEmpty && airdate != "N/A" && airdate != "No Data" {
                                     HStack(alignment: .center, spacing: 12) {
                                         HStack(spacing: 4) {
                                             Image(systemName: "calendar")
