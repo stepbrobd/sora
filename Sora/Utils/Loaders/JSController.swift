@@ -17,52 +17,45 @@ class JSController: ObservableObject {
     
     private func setupContext() {
         let logFunction: @convention(block) (String) -> Void = { message in
-            Logger.shared.log("JavaScript log: \(message)", type: "Debug")
+            Logger.shared.log("JavaScript log: \(message)")
         }
         context.setObject(logFunction, forKeyedSubscript: "log" as NSString)
-
-        // Override console.log
-        let consoleLogOverride = """
-        var console = {
-            log: function() {
-                var message = Array.from(arguments).map(String).join(" ");
-                log(message);
-            }
-        };
-        """
-        context.evaluateScript(consoleLogOverride)
-
-        // Add other JavaScript functions like fetchNative
+        
         let fetchNativeFunction: @convention(block) (String, JSValue, JSValue) -> Void = { urlString, resolve, reject in
             guard let url = URL(string: urlString) else {
-                Logger.shared.log("Invalid URL", type: "Error")
+                Logger.shared.log("Invalid URL")
                 reject.call(withArguments: ["Invalid URL"])
                 return
             }
-            let task = URLSession.shared.dataTask(with: url) { data, _, error in
+            let task = URLSession.custom.dataTask(with: url) { data, _, error in
                 if let error = error {
-                    Logger.shared.log("Network error in fetchNative: \(error.localizedDescription)", type: "Error")
+                    Logger.shared.log("Network error in fetchNativeFunction: \(error.localizedDescription)")
                     reject.call(withArguments: [error.localizedDescription])
                     return
                 }
-                guard let data = data, let text = String(data: data, encoding: .utf8) else {
-                    Logger.shared.log("Failed to decode response data", type: "Error")
-                    reject.call(withArguments: ["Failed to decode response data"])
+                guard let data = data else {
+                    Logger.shared.log("No data in response")
+                    reject.call(withArguments: ["No data"])
                     return
                 }
-                resolve.call(withArguments: [text])
+                if let text = String(data: data, encoding: .utf8) {
+                    resolve.call(withArguments: [text])
+                } else {
+                    Logger.shared.log("Unable to decode data to text")
+                    reject.call(withArguments: ["Unable to decode data"])
+                }
             }
             task.resume()
         }
         context.setObject(fetchNativeFunction, forKeyedSubscript: "fetchNative" as NSString)
-
+        
         let fetchDefinition = """
-        function fetch(url) {
-            return new Promise(function(resolve, reject) {
-                fetchNative(url, resolve, reject);
-            });
-        }
-        """
+                    function fetch(url) {
+                        return new Promise(function(resolve, reject) {
+                            fetchNative(url, resolve, reject);
+                        });
+                    }
+                    """
         context.evaluateScript(fetchDefinition)
     }
     
@@ -84,18 +77,18 @@ class JSController: ObservableObject {
             guard let self = self else { return }
             
             if let error = error {
-                Logger.shared.log("Network error: \(error)", type: "Error")
+                Logger.shared.log("Network error: \(error)")
                 DispatchQueue.main.async { completion([]) }
                 return
             }
             
             guard let data = data, let html = String(data: data, encoding: .utf8) else {
-                Logger.shared.log("Failed to decode HTML", type: "Error")
+                Logger.shared.log("Failed to decode HTML")
                 DispatchQueue.main.async { completion([]) }
                 return
             }
             
-            Logger.shared.log(html, type: "Debug")
+            Logger.shared.log(html)
             if let parseFunction = self.context.objectForKeyedSubscript("searchResults"),
                let results = parseFunction.call(withArguments: [html]).toArray() as? [[String: String]] {
                 let resultItems = results.map { item in
@@ -109,7 +102,7 @@ class JSController: ObservableObject {
                     completion(resultItems)
                 }
             } else {
-                Logger.shared.log("Failed to parse results", type: "Error")
+                Logger.shared.log("Failed to parse results")
                 DispatchQueue.main.async { completion([]) }
             }
         }.resume()
@@ -125,13 +118,13 @@ class JSController: ObservableObject {
             guard let self = self else { return }
             
             if let error = error {
-                Logger.shared.log("Network error: \(error)", type: "Error")
+                Logger.shared.log("Network error: \(error)")
                 DispatchQueue.main.async { completion([], []) }
                 return
             }
             
             guard let data = data, let html = String(data: data, encoding: .utf8) else {
-                Logger.shared.log("Failed to decode HTML", type: "Error")
+                Logger.shared.log("Failed to decode HTML")
                 DispatchQueue.main.async { completion([], []) }
                 return
             }
@@ -139,7 +132,7 @@ class JSController: ObservableObject {
             var resultItems: [MediaItem] = []
             var episodeLinks: [EpisodeLink] = []
             
-            Logger.shared.log(html, type: "Debug")
+            Logger.shared.log(html)
             if let parseFunction = self.context.objectForKeyedSubscript("extractDetails"),
                let results = parseFunction.call(withArguments: [html]).toArray() as? [[String: String]] {
                 resultItems = results.map { item in
@@ -150,7 +143,7 @@ class JSController: ObservableObject {
                     )
                 }
             } else {
-                Logger.shared.log("Failed to parse results", type: "Error")
+                Logger.shared.log("Failed to parse results")
             }
             
             if let fetchEpisodesFunction = self.context.objectForKeyedSubscript("extractEpisodes"),
@@ -178,26 +171,25 @@ class JSController: ObservableObject {
             guard let self = self else { return }
             
             if let error = error {
-                Logger.shared.log("Network error: \(error)", type: "Error")
+                Logger.shared.log("Network error: \(error)")
                 DispatchQueue.main.async { completion(nil) }
                 return
             }
             
             guard let data = data, let html = String(data: data, encoding: .utf8) else {
-                Logger.shared.log("Failed to decode HTML", type: "Error")
+                Logger.shared.log("Failed to decode HTML")
                 DispatchQueue.main.async { completion(nil) }
                 return
             }
             
-            Logger.shared.log(html, type: "Debug")
+            Logger.shared.log(html)
             if let parseFunction = self.context.objectForKeyedSubscript("extractStreamUrl"),
                let streamUrl = parseFunction.call(withArguments: [html]).toString() {
-                Logger.shared.log("Staring stream from: \(streamUrl)", type: "Stream")
                 DispatchQueue.main.async {
                     completion(streamUrl)
                 }
             } else {
-                Logger.shared.log("Failed to extract stream URL", type: "Error")
+                Logger.shared.log("Failed to extract stream URL")
                 DispatchQueue.main.async { completion(nil) }
             }
         }.resume()
@@ -205,27 +197,27 @@ class JSController: ObservableObject {
     
     func fetchJsSearchResults(keyword: String, module: ScrapingModule, completion: @escaping ([SearchItem]) -> Void) {
         if let exception = context.exception {
-            Logger.shared.log("JavaScript exception: \(exception)", type: "Error")
+            Logger.shared.log("JavaScript exception: \(exception)")
             completion([])
             return
         }
         
         guard let searchResultsFunction = context.objectForKeyedSubscript("searchResults") else {
-            Logger.shared.log("No JavaScript function searchResults found", type: "Error")
+            Logger.shared.log("No JavaScript function searchResults found")
             completion([])
             return
         }
         
         let promiseValue = searchResultsFunction.call(withArguments: [keyword])
         guard let promise = promiseValue else {
-            Logger.shared.log("searchResults did not return a Promise", type: "Error")
+            Logger.shared.log("searchResults did not return a Promise")
             completion([])
             return
         }
         
         let thenBlock: @convention(block) (JSValue) -> Void = { result in
             
-            Logger.shared.log(result.toString(), type: "Debug")
+            Logger.shared.log(result.toString())
             if let jsonString = result.toString(),
                let data = jsonString.data(using: .utf8) {
                 do {
@@ -242,13 +234,13 @@ class JSController: ObservableObject {
                         }
                         
                     } else {
-                        Logger.shared.log("Failed to parse JSON", type: "Error")
+                        Logger.shared.log("Failed to parse JSON")
                         DispatchQueue.main.async {
                             completion([])
                         }
                     }
                 } catch {
-                    Logger.shared.log("JSON parsing error: \(error)", type: "Error")
+                    Logger.shared.log("JSON parsing error: \(error)")
                     DispatchQueue.main.async {
                         completion([])
                     }
@@ -262,7 +254,7 @@ class JSController: ObservableObject {
         }
         
         let catchBlock: @convention(block) (JSValue) -> Void = { error in
-            Logger.shared.log("Promise rejected: \(String(describing: error.toString()))", type: "Error")
+            Logger.shared.log("Promise rejected: \(String(describing: error.toString()))")
             DispatchQueue.main.async {
                 completion([])
             }
@@ -282,19 +274,19 @@ class JSController: ObservableObject {
         }
         
         if let exception = context.exception {
-            Logger.shared.log("JavaScript exception: \(exception)", type: "Error")
+            Logger.shared.log("JavaScript exception: \(exception)")
             completion([], [])
             return
         }
         
         guard let extractDetailsFunction = context.objectForKeyedSubscript("extractDetails") else {
-            Logger.shared.log("No JavaScript function extractDetails found", type: "Error")
+            Logger.shared.log("No JavaScript function extractDetails found")
             completion([], [])
             return
         }
         
         guard let extractEpisodesFunction = context.objectForKeyedSubscript("extractEpisodes") else {
-            Logger.shared.log("No JavaScript function extractEpisodes found", type: "Error")
+            Logger.shared.log("No JavaScript function extractEpisodes found")
             completion([], [])
             return
         }
@@ -302,51 +294,44 @@ class JSController: ObservableObject {
         var resultItems: [MediaItem] = []
         var episodeLinks: [EpisodeLink] = []
         
+        let dispatchGroup = DispatchGroup()
+        
+        dispatchGroup.enter()
         let promiseValueDetails = extractDetailsFunction.call(withArguments: [url.absoluteString])
         guard let promiseDetails = promiseValueDetails else {
-            Logger.shared.log("extractDetails did not return a Promise", type: "Error")
+            Logger.shared.log("extractDetails did not return a Promise")
             completion([], [])
             return
         }
         
         let thenBlockDetails: @convention(block) (JSValue) -> Void = { result in
-            
-            Logger.shared.log(result.toString(), type: "Debug")
+            Logger.shared.log(result.toString())
             if let jsonOfDetails = result.toString(),
                let dataDetails = jsonOfDetails.data(using: .utf8) {
                 do {
                     if let array = try JSONSerialization.jsonObject(with: dataDetails, options: []) as? [[String: Any]] {
                         resultItems = array.map { item -> MediaItem in
-                            let description = item["description"] as? String ?? ""
-                            let aliases = item["aliases"] as? String ?? ""
-                            let airdate = item["airdate"] as? String ?? ""
-                            return MediaItem(description: description, aliases: aliases, airdate: airdate)
+                            MediaItem(
+                                description: item["description"] as? String ?? "",
+                                aliases: item["aliases"] as? String ?? "",
+                                airdate: item["airdate"] as? String ?? ""
+                            )
                         }
                     } else {
-                        Logger.shared.log("Failed to parse JSON of extractDetails", type: "Error")
-                        DispatchQueue.main.async {
-                            completion([], [])
-                        }
+                        Logger.shared.log("Failed to parse JSON of extractDetails")
                     }
                 } catch {
-                    Logger.shared.log("JSON parsing error of extract details: \(error)", type: "Error")
-                    DispatchQueue.main.async {
-                        completion([], [])
-                    }
+                    Logger.shared.log("JSON parsing error of extract details: \(error)")
                 }
             } else {
-                Logger.shared.log("Result is not a string of extractDetails", type: "Error")
-                DispatchQueue.main.async {
-                    completion([], [])
-                }
+                Logger.shared.log("Result is not a string of extractDetails")
             }
+            dispatchGroup.leave()
         }
         
         let catchBlockDetails: @convention(block) (JSValue) -> Void = { error in
-            Logger.shared.log("Promise rejected of extractDetails: \(String(describing: error.toString()))", type: "Error")
-            DispatchQueue.main.async {
-                completion([], [])
-            }
+            Logger.shared.log("Promise rejected of extractDetails: \(String(describing: error.toString()))")
+            dispatchGroup.leave()
         }
         
         let thenFunctionDetails = JSValue(object: thenBlockDetails, in: context)
@@ -355,56 +340,41 @@ class JSController: ObservableObject {
         promiseDetails.invokeMethod("then", withArguments: [thenFunctionDetails as Any])
         promiseDetails.invokeMethod("catch", withArguments: [catchFunctionDetails as Any])
         
-        
+        dispatchGroup.enter()
         let promiseValueEpisodes = extractEpisodesFunction.call(withArguments: [url.absoluteString])
         guard let promiseEpisodes = promiseValueEpisodes else {
-            Logger.shared.log("extractEpisodes did not return a Promise", type: "Error")
+            Logger.shared.log("extractEpisodes did not return a Promise")
             completion([], [])
             return
         }
         
         let thenBlockEpisodes: @convention(block) (JSValue) -> Void = { result in
-            
-            Logger.shared.log(result.toString(), type: "Debug")
+            Logger.shared.log(result.toString())
             if let jsonOfEpisodes = result.toString(),
                let dataEpisodes = jsonOfEpisodes.data(using: .utf8) {
                 do {
                     if let array = try JSONSerialization.jsonObject(with: dataEpisodes, options: []) as? [[String: Any]] {
                         episodeLinks = array.map { item -> EpisodeLink in
-                            let number = item["number"] as? Int ?? 0
-                            let href = item["href"] as? String ?? ""
-                            return EpisodeLink(number: number, href: href)
+                            EpisodeLink(
+                                number: item["number"] as? Int ?? 0,
+                                href: item["href"] as? String ?? ""
+                            )
                         }
-                        
-                        DispatchQueue.main.async {
-                            completion(resultItems, episodeLinks)
-                        }
-                        
                     } else {
-                        Logger.shared.log("Failed to parse JSON of extractEpisodes", type: "Error")
-                        DispatchQueue.main.async {
-                            completion([], [])
-                        }
+                        Logger.shared.log("Failed to parse JSON of extractEpisodes")
                     }
                 } catch {
-                    Logger.shared.log("JSON parsing error of extractEpisodes: \(error)", type: "Error")
-                    DispatchQueue.main.async {
-                        completion([], [])
-                    }
+                    Logger.shared.log("JSON parsing error of extractEpisodes: \(error)")
                 }
             } else {
-                Logger.shared.log("Result is not a string of extractEpisodes", type: "Error")
-                DispatchQueue.main.async {
-                    completion([], [])
-                }
+                Logger.shared.log("Result is not a string of extractEpisodes")
             }
+            dispatchGroup.leave()
         }
         
         let catchBlockEpisodes: @convention(block) (JSValue) -> Void = { error in
-            Logger.shared.log("Promise rejected of extractEpisodes: \(String(describing: error.toString()))", type: "Error")
-            DispatchQueue.main.async {
-                completion([], [])
-            }
+            Logger.shared.log("Promise rejected of extractEpisodes: \(String(describing: error.toString()))")
+            dispatchGroup.leave()
         }
         
         let thenFunctionEpisodes = JSValue(object: thenBlockEpisodes, in: context)
@@ -412,5 +382,9 @@ class JSController: ObservableObject {
         
         promiseEpisodes.invokeMethod("then", withArguments: [thenFunctionEpisodes as Any])
         promiseEpisodes.invokeMethod("catch", withArguments: [catchFunctionEpisodes as Any])
+        
+        dispatchGroup.notify(queue: .main) {
+            completion(resultItems, episodeLinks)
+        }
     }
 }
