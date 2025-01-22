@@ -294,6 +294,9 @@ class JSController: ObservableObject {
         var resultItems: [MediaItem] = []
         var episodeLinks: [EpisodeLink] = []
         
+        let dispatchGroup = DispatchGroup()
+        
+        dispatchGroup.enter()
         let promiseValueDetails = extractDetailsFunction.call(withArguments: [url.absoluteString])
         guard let promiseDetails = promiseValueDetails else {
             Logger.shared.log("extractDetails did not return a Promise")
@@ -302,43 +305,33 @@ class JSController: ObservableObject {
         }
         
         let thenBlockDetails: @convention(block) (JSValue) -> Void = { result in
-            
             Logger.shared.log(result.toString())
             if let jsonOfDetails = result.toString(),
                let dataDetails = jsonOfDetails.data(using: .utf8) {
                 do {
                     if let array = try JSONSerialization.jsonObject(with: dataDetails, options: []) as? [[String: Any]] {
                         resultItems = array.map { item -> MediaItem in
-                            let description = item["description"] as? String ?? ""
-                            let aliases = item["aliases"] as? String ?? ""
-                            let airdate = item["airdate"] as? String ?? ""
-                            return MediaItem(description: description, aliases: aliases, airdate: airdate)
+                            MediaItem(
+                                description: item["description"] as? String ?? "",
+                                aliases: item["aliases"] as? String ?? "",
+                                airdate: item["airdate"] as? String ?? ""
+                            )
                         }
                     } else {
                         Logger.shared.log("Failed to parse JSON of extractDetails")
-                        DispatchQueue.main.async {
-                            completion([], [])
-                        }
                     }
                 } catch {
                     Logger.shared.log("JSON parsing error of extract details: \(error)")
-                    DispatchQueue.main.async {
-                        completion([], [])
-                    }
                 }
             } else {
                 Logger.shared.log("Result is not a string of extractDetails")
-                DispatchQueue.main.async {
-                    completion([], [])
-                }
             }
+            dispatchGroup.leave()
         }
         
         let catchBlockDetails: @convention(block) (JSValue) -> Void = { error in
             Logger.shared.log("Promise rejected of extractDetails: \(String(describing: error.toString()))")
-            DispatchQueue.main.async {
-                completion([], [])
-            }
+            dispatchGroup.leave()
         }
         
         let thenFunctionDetails = JSValue(object: thenBlockDetails, in: context)
@@ -347,7 +340,7 @@ class JSController: ObservableObject {
         promiseDetails.invokeMethod("then", withArguments: [thenFunctionDetails as Any])
         promiseDetails.invokeMethod("catch", withArguments: [catchFunctionDetails as Any])
         
-        
+        dispatchGroup.enter()
         let promiseValueEpisodes = extractEpisodesFunction.call(withArguments: [url.absoluteString])
         guard let promiseEpisodes = promiseValueEpisodes else {
             Logger.shared.log("extractEpisodes did not return a Promise")
@@ -356,47 +349,32 @@ class JSController: ObservableObject {
         }
         
         let thenBlockEpisodes: @convention(block) (JSValue) -> Void = { result in
-            
             Logger.shared.log(result.toString())
             if let jsonOfEpisodes = result.toString(),
                let dataEpisodes = jsonOfEpisodes.data(using: .utf8) {
                 do {
                     if let array = try JSONSerialization.jsonObject(with: dataEpisodes, options: []) as? [[String: Any]] {
                         episodeLinks = array.map { item -> EpisodeLink in
-                            let number = item["number"] as? Int ?? 0
-                            let href = item["href"] as? String ?? ""
-                            return EpisodeLink(number: number, href: href)
+                            EpisodeLink(
+                                number: item["number"] as? Int ?? 0,
+                                href: item["href"] as? String ?? ""
+                            )
                         }
-                        
-                        DispatchQueue.main.async {
-                            completion(resultItems, episodeLinks)
-                        }
-                        
                     } else {
                         Logger.shared.log("Failed to parse JSON of extractEpisodes")
-                        DispatchQueue.main.async {
-                            completion([], [])
-                        }
                     }
                 } catch {
                     Logger.shared.log("JSON parsing error of extractEpisodes: \(error)")
-                    DispatchQueue.main.async {
-                        completion([], [])
-                    }
                 }
             } else {
                 Logger.shared.log("Result is not a string of extractEpisodes")
-                DispatchQueue.main.async {
-                    completion([], [])
-                }
             }
+            dispatchGroup.leave()
         }
         
         let catchBlockEpisodes: @convention(block) (JSValue) -> Void = { error in
             Logger.shared.log("Promise rejected of extractEpisodes: \(String(describing: error.toString()))")
-            DispatchQueue.main.async {
-                completion([], [])
-            }
+            dispatchGroup.leave()
         }
         
         let thenFunctionEpisodes = JSValue(object: thenBlockEpisodes, in: context)
@@ -404,5 +382,9 @@ class JSController: ObservableObject {
         
         promiseEpisodes.invokeMethod("then", withArguments: [thenFunctionEpisodes as Any])
         promiseEpisodes.invokeMethod("catch", withArguments: [catchFunctionEpisodes as Any])
+        
+        dispatchGroup.notify(queue: .main) {
+            completion(resultItems, episodeLinks)
+        }
     }
 }
