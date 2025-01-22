@@ -266,7 +266,7 @@ struct MediaInfoView: View {
     
     private func openSafariViewController(with urlString: String) {
         guard let url = URL(string: urlString) else {
-            Logger.shared.log("Unable to open the webpage")
+            Logger.shared.log("Unable to open the webpage", type: "Error")
             return
         }
         let safariViewController = SFSafariViewController(url: url)

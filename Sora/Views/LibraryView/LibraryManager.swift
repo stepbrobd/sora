@@ -42,7 +42,7 @@ class LibraryManager: ObservableObject {
         do {
             bookmarks = try JSONDecoder().decode([LibraryItem].self, from: data)
         } catch {
-            Logger.shared.log("Failed to decode bookmarks: \(error.localizedDescription)")
+            Logger.shared.log("Failed to decode bookmarks: \(error.localizedDescription)", type: "Error")
         }
     }
     
@@ -51,7 +51,7 @@ class LibraryManager: ObservableObject {
             let encoded = try JSONEncoder().encode(bookmarks)
             UserDefaults.standard.set(encoded, forKey: bookmarksKey)
         } catch {
-            Logger.shared.log("Failed to encode bookmarks: \(error.localizedDescription)")
+            Logger.shared.log("Failed to encode bookmarks: \(error.localizedDescription)", type: "Error")
         }
     }
     

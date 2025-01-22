@@ -32,6 +32,7 @@
 		13EA2BD72D32D97400C1EBD7 /* MusicProgressSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD42D32D97400C1EBD7 /* MusicProgressSlider.swift */; };
 		13EA2BD92D32D98400C1EBD7 /* NormalPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD82D32D98400C1EBD7 /* NormalPlayer.swift */; };
 		13EA2BDC2D32D9FF00C1EBD7 /* MiruDataStruct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BDB2D32D9FF00C1EBD7 /* MiruDataStruct.swift */; };
+		1E9FF1D32D403E49008AC100 /* SettingsViewLoggerFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E9FF1D22D403E42008AC100 /* SettingsViewLoggerFilter.swift */; };
 		1EE1DA962D3553C2002AEF73 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 1EE1DA952D3553C2002AEF73 /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
@@ -62,6 +63,7 @@
 		13EA2BD42D32D97400C1EBD7 /* MusicProgressSlider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MusicProgressSlider.swift; sourceTree = "<group>"; };
 		13EA2BD82D32D98400C1EBD7 /* NormalPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NormalPlayer.swift; sourceTree = "<group>"; };
 		13EA2BDB2D32D9FF00C1EBD7 /* MiruDataStruct.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MiruDataStruct.swift; sourceTree = "<group>"; };
+		1E9FF1D22D403E42008AC100 /* SettingsViewLoggerFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewLoggerFilter.swift; sourceTree = "<group>"; };
 		1EE1DA952D3553C2002AEF73 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -141,6 +143,7 @@
 		133D7C832D2BE2630075467E /* SettingsSubViews */ = {
 			isa = PBXGroup;
 			children = (
+				1E9FF1D22D403E42008AC100 /* SettingsViewLoggerFilter.swift */,
 				1399FAD32D3AB38C00E97C31 /* SettingsViewLogger.swift */,
 				133D7C842D2BE2630075467E /* SettingsViewModule.swift */,
 			);
@@ -340,6 +343,7 @@
 				1399FAD62D3AB3DB00E97C31 /* Logger.swift in Sources */,
 				133D7C902D2BE2640075467E /* SettingsView.swift in Sources */,
 				13EA2BD72D32D97400C1EBD7 /* MusicProgressSlider.swift in Sources */,
+				1E9FF1D32D403E49008AC100 /* SettingsViewLoggerFilter.swift in Sources */,
 				13EA2BD92D32D98400C1EBD7 /* NormalPlayer.swift in Sources */,
 				133D7C932D2BE2640075467E /* Modules.swift in Sources */,
 				133D7C702D2BE2500075467E /* ContentView.swift in Sources */,

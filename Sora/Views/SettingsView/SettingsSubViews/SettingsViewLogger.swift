@@ -9,7 +9,8 @@ import SwiftUI
 
 struct SettingsViewLogger: View {
     @State private var logs: String = ""
-    
+    @StateObject private var filterViewModel = LogFilterViewModel.shared // Use shared instance
+
     var body: some View {
         VStack {
             ScrollView {
@@ -27,22 +28,27 @@ struct SettingsViewLogger: View {
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Menu {
-                    Button(action: {
-                        UIPasteboard.general.string = logs
-                    }) {
-                        Label("Copy to Clipboard", systemImage: "doc.on.doc")
+                HStack {
+                    Menu {
+                        Button(action: {
+                            UIPasteboard.general.string = logs
+                        }) {
+                            Label("Copy to Clipboard", systemImage: "doc.on.doc")
+                        }
+                        Button(role: .destructive, action: {
+                            Logger.shared.clearLogs()
+                            logs = Logger.shared.getLogs()
+                        }) {
+                            Label("Clear Logs", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .resizable()
+                            .frame(width: 20, height: 20)
                     }
-                    Button(role: .destructive, action: {
-                        Logger.shared.clearLogs()
-                        logs = Logger.shared.getLogs()
-                    }) {
-                        Label("Clear Logs", systemImage: "trash")
+                    NavigationLink(destination: SettingsViewLoggerFilter(viewModel: filterViewModel)) {
+                        Image(systemName: "slider.horizontal.3")
                     }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .resizable()
-                        .frame(width: 20, height: 20)
                 }
             }
         }
