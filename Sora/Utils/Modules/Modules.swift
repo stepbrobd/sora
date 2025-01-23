@@ -103,19 +103,21 @@ class ModuleManager: ObservableObject {
         DispatchQueue.main.async {
             self.modules.append(module)
             self.saveModules()
+            Logger.shared.log("Added module: \(module.metadata.sourceName)")
         }
         
         return module
     }
-    
+
     func deleteModule(_ module: ScrapingModule) {
         let localUrl = getDocumentsDirectory().appendingPathComponent(module.localPath)
         try? fileManager.removeItem(at: localUrl)
         
         modules.removeAll { $0.id == module.id }
         saveModules()
+        Logger.shared.log("Deleted module: \(module.metadata.sourceName)")
     }
-    
+
     func getModuleContent(_ module: ScrapingModule) throws -> String {
         let localUrl = getDocumentsDirectory().appendingPathComponent(module.localPath)
         return try String(contentsOf: localUrl, encoding: .utf8)

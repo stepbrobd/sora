@@ -224,7 +224,7 @@ struct MediaInfoView: View {
                         }
                     }
                 } catch {
-                    Logger.shared.log("Error loading module: \(error)")
+                    Logger.shared.log("Error loading module: \(error)", type: "Error")
                     self.isLoading = false
                 }
             }
@@ -243,7 +243,7 @@ struct MediaInfoView: View {
                         }
                     }
                 } catch {
-                    Logger.shared.log("Error loading module: \(error)")
+                    Logger.shared.log("Error loading module: \(error)", type: "Error")
                     self.isLoading = false
                 }
             }
@@ -266,7 +266,7 @@ struct MediaInfoView: View {
     
     private func openSafariViewController(with urlString: String) {
         guard let url = URL(string: urlString) else {
-            Logger.shared.log("Unable to open the webpage")
+            Logger.shared.log("Unable to open the webpage", type: "Error")
             return
         }
         let safariViewController = SFSafariViewController(url: url)

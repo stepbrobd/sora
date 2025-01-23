@@ -103,7 +103,7 @@ struct EpisodeCell: View {
         
         URLSession.custom.dataTask(with: url) { data, _, error in
             if let error = error {
-                Logger.shared.log("Failed to fetch episode details: \(error)")
+                Logger.shared.log("Failed to fetch episode details: \(error)", type: "Error")
                 DispatchQueue.main.async {
                     self.isLoading = false
                 }
@@ -133,7 +133,7 @@ struct EpisodeCell: View {
                   let episodeDetails = episodes["\(episodeID + 1)"] as? [String: Any],
                   let title = episodeDetails["title"] as? [String: String],
                   let image = episodeDetails["image"] as? String else {
-                      Logger.shared.log("Invalid response format")
+                      Logger.shared.log("Invalid response format", type: "Error")
                       DispatchQueue.main.async {
                           self.isLoading = false
                       }
@@ -146,7 +146,7 @@ struct EpisodeCell: View {
                 self.isLoading = false
             }
         } catch {
-            Logger.shared.log("Failed to parse JSON: \(error)")
+            Logger.shared.log("Failed to parse JSON: \(error)", type: "Error")
             DispatchQueue.main.async {
                 self.isLoading = false
             }

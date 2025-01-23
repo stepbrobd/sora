@@ -9,7 +9,8 @@ import SwiftUI
 
 struct SettingsViewLogger: View {
     @State private var logs: String = ""
-    
+    @StateObject private var filterViewModel = LogFilterViewModel.shared
+
     var body: some View {
         VStack {
             ScrollView {
@@ -27,22 +28,28 @@ struct SettingsViewLogger: View {
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Menu {
-                    Button(action: {
-                        UIPasteboard.general.string = logs
-                    }) {
-                        Label("Copy to Clipboard", systemImage: "doc.on.doc")
+                HStack {
+                    NavigationLink(destination: SettingsViewLoggerFilter(viewModel: filterViewModel)) {
+                        Image(systemName: "gearshape")
+                        
+                    Menu {
+                        Button(action: {
+                            UIPasteboard.general.string = logs
+                        }) {
+                            Label("Copy to Clipboard", systemImage: "doc.on.doc")
+                        }
+                        Button(role: .destructive, action: {
+                            Logger.shared.clearLogs()
+                            logs = Logger.shared.getLogs()
+                        }) {
+                            Label("Clear Logs", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .resizable()
+                            .frame(width: 20, height: 20)
                     }
-                    Button(role: .destructive, action: {
-                        Logger.shared.clearLogs()
-                        logs = Logger.shared.getLogs()
-                    }) {
-                        Label("Clear Logs", systemImage: "trash")
                     }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .resizable()
-                        .frame(width: 20, height: 20)
                 }
             }
         }

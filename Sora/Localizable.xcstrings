@@ -60,6 +60,12 @@
             "value" : "Autor: %@"
           }
         },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autor: %@"
+          }
+        },
         "sq" : {
           "stringUnit" : {
             "state" : "translated",
@@ -67,6 +73,12 @@
           }
         }
       }
+    },
+    "Clear Logs" : {
+
+    },
+    "Copy to Clipboard" : {
+
     },
     "Copy URL" : {
       "localizations" : {
@@ -99,6 +111,9 @@
           }
         }
       }
+    },
+    "Debug" : {
+
     },
     "Delete" : {
       "localizations" : {
@@ -307,6 +322,9 @@
           }
         }
       }
+    },
+    "Logs" : {
+
     },
     "Mark as Watched" : {
       "localizations" : {
