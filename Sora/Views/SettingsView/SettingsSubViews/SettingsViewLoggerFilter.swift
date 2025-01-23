@@ -26,10 +26,10 @@ class LogFilterViewModel: ObservableObject {
     
     private let userDefaultsKey = "LogFilterStates"
     private let hardcodedFilters: [(type: String, description: String, defaultState: Bool)] = [
-        ("General", "Logs for general events and activities.", true), // Turned on by default
-        ("Stream", "Logs for streaming and video playback.", true), // Turned on by default
-        ("Error", "Logs for errors and critical issues.", true), // Turned on by default
-        ("Debug", "Logs for debugging and troubleshooting.", false) // Turned off by default
+        ("General", "Logs for general events and activities.", true),
+        ("Stream", "Logs for streaming and video playback.", true),
+        ("Error", "Logs for errors and critical issues.", true),
+        ("Debug", "Logs for debugging and troubleshooting.", false)
     ]
     
     private init() {
@@ -41,7 +41,7 @@ class LogFilterViewModel: ObservableObject {
             filters = hardcodedFilters.map {
                 LogFilter(
                     type: $0.type,
-                    isEnabled: savedStates[$0.type] ?? $0.defaultState, // Use saved state if available, otherwise default
+                    isEnabled: savedStates[$0.type] ?? $0.defaultState,
                     description: $0.description
                 )
             }
@@ -84,7 +84,7 @@ struct SettingsViewLoggerFilter: View {
                     Text(filter.description)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
-                        .padding(.leading, 5) // Indent description slightly
+                        .padding(.leading, 5)
                 }
                 .padding(.vertical, 5)
             }

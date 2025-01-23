@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SettingsViewLogger: View {
     @State private var logs: String = ""
-    @StateObject private var filterViewModel = LogFilterViewModel.shared // Use shared instance
+    @StateObject private var filterViewModel = LogFilterViewModel.shared
 
     var body: some View {
         VStack {

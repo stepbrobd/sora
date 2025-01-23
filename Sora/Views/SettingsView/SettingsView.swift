@@ -28,14 +28,12 @@ struct SettingsView: View {
                 
                 Section(header: Text("External Features")) {
                     NavigationLink(destination: SettingsViewModule()) {
-                        Image(systemName: "puzzlepiece.fill")
                         Text("Modules")
                     }
                 }
                 
                 Section(header: Text("Debug")) {
                     NavigationLink(destination: SettingsViewLogger()) {
-                        Image(systemName: "doc.text.fill")
                         Text("Logs")
                     }
                 }

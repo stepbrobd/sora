@@ -18,7 +18,7 @@ class Logger {
     
     private var logs: [LogEntry] = []
     private let logFileURL: URL
-    private let logFilterViewModel = LogFilterViewModel.shared // Use shared instance
+    private let logFilterViewModel = LogFilterViewModel.shared
     
     private init() {
         let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
@@ -26,7 +26,6 @@ class Logger {
     }
     
     func log(_ message: String, type: String = "General") {
-        // Check if the log type is enabled
         guard logFilterViewModel.isFilterEnabled(for: type) else { return }
         
         let entry = LogEntry(message: message, type: type, timestamp: Date())
@@ -38,7 +37,7 @@ class Logger {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd-MM-yyyy HH:mm:ss"
         return logs.map { "[\(dateFormatter.string(from: $0.timestamp))] [\($0.type)] \($0.message)" }
-        .joined(separator: "\n----------------------------------------------------------\n")
+        .joined(separator: "\n----\n")
     }
     
     func clearLogs() {
