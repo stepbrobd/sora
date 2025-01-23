@@ -224,7 +224,7 @@ struct MediaInfoView: View {
                         }
                     }
                 } catch {
-                    Logger.shared.log("Error loading module: \(error)")
+                    Logger.shared.log("Error loading module: \(error)", type: "Error")
                     self.isLoading = false
                 }
             }
@@ -243,7 +243,7 @@ struct MediaInfoView: View {
                         }
                     }
                 } catch {
-                    Logger.shared.log("Error loading module: \(error)")
+                    Logger.shared.log("Error loading module: \(error)", type: "Error")
                     self.isLoading = false
                 }
             }

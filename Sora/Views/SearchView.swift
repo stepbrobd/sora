@@ -140,6 +140,7 @@ struct SearchView: View {
     }
     
     private func performSearch() {
+        Logger.shared.log("Searching for: \(searchText)", type: "General")
         guard !searchText.isEmpty, let module = selectedModule else {
             searchItems = []
             hasNoResults = false
@@ -168,7 +169,7 @@ struct SearchView: View {
                         }
                     }
                 } catch {
-                    Logger.shared.log("Error loading module: \(error)")
+                    Logger.shared.log("Error loading module: \(error)", type: "Error")
                     isSearching = false
                     hasNoResults = true
                 }

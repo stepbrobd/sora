@@ -26,7 +26,7 @@ class LogFilterViewModel: ObservableObject {
     
     private let userDefaultsKey = "LogFilterStates"
     private let hardcodedFilters: [(type: String, description: String, defaultState: Bool)] = [
-        ("Global", "Logs for general events and activities.", true), // Turned on by default
+        ("General", "Logs for general events and activities.", true), // Turned on by default
         ("Stream", "Logs for streaming and video playback.", true), // Turned on by default
         ("Error", "Logs for errors and critical issues.", true), // Turned on by default
         ("Debug", "Logs for debugging and troubleshooting.", false) // Turned off by default

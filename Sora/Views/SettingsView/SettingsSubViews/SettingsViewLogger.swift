@@ -29,6 +29,9 @@ struct SettingsViewLogger: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack {
+                    NavigationLink(destination: SettingsViewLoggerFilter(viewModel: filterViewModel)) {
+                        Image(systemName: "gearshape")
+                        
                     Menu {
                         Button(action: {
                             UIPasteboard.general.string = logs
@@ -46,8 +49,6 @@ struct SettingsViewLogger: View {
                             .resizable()
                             .frame(width: 20, height: 20)
                     }
-                    NavigationLink(destination: SettingsViewLoggerFilter(viewModel: filterViewModel)) {
-                        Image(systemName: "slider.horizontal.3")
                     }
                 }
             }
