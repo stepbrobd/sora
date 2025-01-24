@@ -388,4 +388,46 @@ class JSController: ObservableObject {
             completion(resultItems, episodeLinks)
         }
     }
+    
+    func fetchStreamUrlJS(episodeUrl: String, completion: @escaping (String?) -> Void) {
+        if let exception = context.exception {
+            Logger.shared.log("JavaScript exception: \(exception)", type: "Error")
+            completion(nil)
+            return
+        }
+        
+        guard let extractStreamUrlFunction = context.objectForKeyedSubscript("extractStreamUrl") else {
+            Logger.shared.log("No JavaScript function extractStreamUrl found", type: "Error")
+            completion(nil)
+            return
+        }
+        
+        let promiseValue = extractStreamUrlFunction.call(withArguments: [episodeUrl])
+        guard let promise = promiseValue else {
+            Logger.shared.log("extractStreamUrl did not return a Promise", type: "Error")
+            completion(nil)
+            return
+        }
+        
+        let thenBlock: @convention(block) (JSValue) -> Void = { result in
+            let streamUrl = result.toString()
+            Logger.shared.log("Starting stream from: \(streamUrl ?? "nil")", type: "Stream")
+            DispatchQueue.main.async {
+                completion(streamUrl)
+            }
+        }
+        
+        let catchBlock: @convention(block) (JSValue) -> Void = { error in
+            Logger.shared.log("Promise rejected: \(String(describing: error.toString()))", type: "Error")
+            DispatchQueue.main.async {
+                completion(nil)
+            }
+        }
+        
+        let thenFunction = JSValue(object: thenBlock, in: context)
+        let catchFunction = JSValue(object: catchBlock, in: context)
+        
+        promise.invokeMethod("then", withArguments: [thenFunction as Any])
+        promise.invokeMethod("catch", withArguments: [catchFunction as Any])
+    }
 }

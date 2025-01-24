@@ -235,11 +235,20 @@ struct MediaInfoView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             Task {
                 do {
+                    print(href)
                     let jsContent = try moduleManager.getModuleContent(module)
                     jsController.loadScript(jsContent)
-                    jsController.fetchStreamUrl(episodeUrl: href) { streamUrl in
-                        if let url = streamUrl {
-                            playStream(url: url, fullURL: href)
+                    if module.metadata.asyncJS == true {
+                        jsController.fetchStreamUrlJS(episodeUrl: href) { streamUrl in
+                            if let url = streamUrl {
+                                playStream(url: url, fullURL: href)
+                            }
+                        }
+                    } else {
+                        jsController.fetchStreamUrl(episodeUrl: href) { streamUrl in
+                            if let url = streamUrl {
+                                playStream(url: url, fullURL: href)
+                            }
                         }
                     }
                 } catch {
@@ -256,7 +265,7 @@ struct MediaInfoView: View {
             videoPlayerViewController.streamUrl = url
             videoPlayerViewController.fullUrl = fullURL
             videoPlayerViewController.modalPresentationStyle = .fullScreen
-            
+            print(url)
             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                let rootVC = windowScene.windows.first?.rootViewController {
                 rootVC.present(videoPlayerViewController, animated: true, completion: nil)
