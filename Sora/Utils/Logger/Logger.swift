@@ -35,7 +35,7 @@ class Logger {
     
     func getLogs() -> String {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "dd-MM-yyyy HH:mm:ss"
+        dateFormatter.dateFormat = "dd-MM HH:mm:ss"
         return logs.map { "[\(dateFormatter.string(from: $0.timestamp))] [\($0.type)] \($0.message)" }
         .joined(separator: "\n----\n")
     }
@@ -47,7 +47,7 @@ class Logger {
     
     private func saveLogToFile(_ log: LogEntry) {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "dd-MM-yyyy HH:mm:ss"
+        dateFormatter.dateFormat = "dd-MM HH:mm:ss"
         
         let logString = "[\(dateFormatter.string(from: log.timestamp))] [\(log.type)] \(log.message)\n---\n"
         
