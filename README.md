@@ -36,7 +36,7 @@ Yes, Sora is open-source and does not store user data on external servers.
 No, Sora will always remain free without subscriptions, paid content, or any type of login.
 
 4. **How can i get module?**
-I do not provide any module for the app. Search for them on google or i dont know. I only created 1 module to watch videos of my school.
+I do not provide any module for the app and so the app is not installed with any module. Search for them on google or i dont know.
 
 ## Acknowledgements
 
