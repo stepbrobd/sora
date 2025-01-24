@@ -14,10 +14,9 @@ struct LogFilter: Identifiable, Hashable {
     let description: String
 }
 
-
 class LogFilterViewModel: ObservableObject {
-    static let shared = LogFilterViewModel() // Singleton instance
-
+    static let shared = LogFilterViewModel()
+    
     @Published var filters: [LogFilter] = [] {
         didSet {
             saveFiltersToUserDefaults()
@@ -26,10 +25,10 @@ class LogFilterViewModel: ObservableObject {
     
     private let userDefaultsKey = "LogFilterStates"
     private let hardcodedFilters: [(type: String, description: String, defaultState: Bool)] = [
-        ("General", "Logs for general events and activities.", true),
-        ("Stream", "Logs for streaming and video playback.", true),
-        ("Error", "Logs for errors and critical issues.", true),
-        ("Debug", "Logs for debugging and troubleshooting.", false)
+        ("General", "General events and activities.", true),
+        ("Stream", "Streaming and video playback.", true),
+        ("Error", "Errors and critical issues.", true),
+        ("Debug", "Debugging and troubleshooting.", false)
     ]
     
     private init() {
@@ -70,21 +69,21 @@ class LogFilterViewModel: ObservableObject {
     }
 }
 
-
 struct SettingsViewLoggerFilter: View {
     @ObservedObject var viewModel = LogFilterViewModel.shared
-
+    
     var body: some View {
         List {
             ForEach($viewModel.filters) { $filter in
-                VStack(alignment: .leading, spacing: 5) {
-                    Toggle(filter.type, isOn: $filter.isEnabled)
-                        .font(.headline)
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack {
+                        Toggle(filter.type, isOn: $filter.isEnabled)
+                        Spacer()
+                    }
                     
                     Text(filter.description)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
-                        .padding(.leading, 5)
                 }
                 .padding(.vertical, 5)
             }
