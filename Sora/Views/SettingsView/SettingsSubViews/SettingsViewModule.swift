@@ -5,6 +5,7 @@
 //  Created by Francesco on 05/01/25.
 //
 
+import Drops
 import SwiftUI
 import Kingfisher
 
@@ -131,6 +132,7 @@ struct SettingsViewModule: View {
                 _ = try await moduleManager.addModule(metadataUrl: url)
                 DispatchQueue.main.async {
                     isLoading = false
+                    showDrop()
                 }
             } catch {
                 DispatchQueue.main.async {
@@ -140,5 +142,14 @@ struct SettingsViewModule: View {
                 }
             }
         }
+    }
+    
+    private func showDrop() {
+        let aTitle = "Module Added!"
+        let subtitle = "clicking it to select it"
+        let duration = 2.0
+        let icon = UIImage(systemName: "app.badge.checkmark")
+        
+        DropManager.shared.showDrop(title: aTitle, subtitle: subtitle, duration: duration, icon: icon)
     }
 }

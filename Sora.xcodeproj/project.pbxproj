@@ -26,6 +26,8 @@
 		138AA1B92D2D66FD0021F9DF /* CircularProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138AA1B72D2D66FD0021F9DF /* CircularProgressBar.swift */; };
 		1399FAD42D3AB38C00E97C31 /* SettingsViewLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1399FAD32D3AB38C00E97C31 /* SettingsViewLogger.swift */; };
 		1399FAD62D3AB3DB00E97C31 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1399FAD52D3AB3DB00E97C31 /* Logger.swift */; };
+		13D842522D4523B800EBBFA6 /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = 13D842512D4523B800EBBFA6 /* Drops */; };
+		13D842552D45267500EBBFA6 /* DropManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D842542D45267500EBBFA6 /* DropManager.swift */; };
 		13DC0C462D302C7500D0F966 /* VideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DC0C452D302C7500D0F966 /* VideoPlayer.swift */; };
 		13EA2BD52D32D97400C1EBD7 /* CustomPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD12D32D97400C1EBD7 /* CustomPlayer.swift */; };
 		13EA2BD62D32D97400C1EBD7 /* Double+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD32D32D97400C1EBD7 /* Double+Extension.swift */; };
@@ -56,6 +58,7 @@
 		138AA1B72D2D66FD0021F9DF /* CircularProgressBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CircularProgressBar.swift; sourceTree = "<group>"; };
 		1399FAD32D3AB38C00E97C31 /* SettingsViewLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewLogger.swift; sourceTree = "<group>"; };
 		1399FAD52D3AB3DB00E97C31 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		13D842542D45267500EBBFA6 /* DropManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropManager.swift; sourceTree = "<group>"; };
 		13DC0C412D2EC9BA00D0F966 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		13DC0C452D302C7500D0F966 /* VideoPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayer.swift; sourceTree = "<group>"; };
 		13EA2BD12D32D97400C1EBD7 /* CustomPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomPlayer.swift; sourceTree = "<group>"; };
@@ -72,6 +75,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				13D842522D4523B800EBBFA6 /* Drops in Frameworks */,
 				133D7C972D2BE2AF0075467E /* Kingfisher in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -155,8 +159,9 @@
 			children = (
 				133D7C862D2BE2640075467E /* Extensions */,
 				133D7C882D2BE2640075467E /* Modules */,
-				133D7C8A2D2BE2640075467E /* Loaders */,
+				133D7C8A2D2BE2640075467E /* Loader */,
 				1399FAD12D3AB33D00E97C31 /* Logger */,
+				13D842532D45266900EBBFA6 /* Drops */,
 				13EA2BDA2D32D9FF00C1EBD7 /* Miru */,
 			);
 			path = Utils;
@@ -178,12 +183,12 @@
 			path = Modules;
 			sourceTree = "<group>";
 		};
-		133D7C8A2D2BE2640075467E /* Loaders */ = {
+		133D7C8A2D2BE2640075467E /* Loader */ = {
 			isa = PBXGroup;
 			children = (
 				133D7C8B2D2BE2640075467E /* JSController.swift */,
 			);
-			path = Loaders;
+			path = Loader;
 			sourceTree = "<group>";
 		};
 		133F55B92D33B53E00E08EEA /* LibraryView */ = {
@@ -219,6 +224,14 @@
 				133D7C822D2BE2630075467E /* SettingsView.swift */,
 			);
 			path = SettingsView;
+			sourceTree = "<group>";
+		};
+		13D842532D45266900EBBFA6 /* Drops */ = {
+			isa = PBXGroup;
+			children = (
+				13D842542D45267500EBBFA6 /* DropManager.swift */,
+			);
+			path = Drops;
 			sourceTree = "<group>";
 		};
 		13DC0C442D302C6A00D0F966 /* MediaPlayer */ = {
@@ -275,6 +288,7 @@
 			name = Sora;
 			packageProductDependencies = (
 				133D7C962D2BE2AF0075467E /* Kingfisher */,
+				13D842512D4523B800EBBFA6 /* Drops */,
 			);
 			productName = Sora;
 			productReference = 133D7C6A2D2BE2500075467E /* Sora.app */;
@@ -311,6 +325,7 @@
 			mainGroup = 133D7C612D2BE2500075467E;
 			packageReferences = (
 				133D7C952D2BE2AF0075467E /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				13D842502D4523B800EBBFA6 /* XCRemoteSwiftPackageReference "Drops" */,
 			);
 			productRefGroup = 133D7C6B2D2BE2500075467E /* Products */;
 			projectDirPath = "";
@@ -351,6 +366,7 @@
 				133D7C8F2D2BE2640075467E /* MediaInfoView.swift in Sources */,
 				133D7C8D2D2BE2640075467E /* HomeView.swift in Sources */,
 				13EA2BDC2D32D9FF00C1EBD7 /* MiruDataStruct.swift in Sources */,
+				13D842552D45267500EBBFA6 /* DropManager.swift in Sources */,
 				138AA1B82D2D66FD0021F9DF /* EpisodeCell.swift in Sources */,
 				133D7C8C2D2BE2640075467E /* SearchView.swift in Sources */,
 				133D7C942D2BE2640075467E /* JSController.swift in Sources */,
@@ -580,6 +596,14 @@
 				version = 7.9.1;
 			};
 		};
+		13D842502D4523B800EBBFA6 /* XCRemoteSwiftPackageReference "Drops" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/omaralbeik/Drops.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -587,6 +611,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 133D7C952D2BE2AF0075467E /* XCRemoteSwiftPackageReference "Kingfisher" */;
 			productName = Kingfisher;
+		};
+		13D842512D4523B800EBBFA6 /* Drops */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 13D842502D4523B800EBBFA6 /* XCRemoteSwiftPackageReference "Drops" */;
+			productName = Drops;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

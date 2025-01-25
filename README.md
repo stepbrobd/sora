@@ -41,7 +41,8 @@ I do not provide any module for the app and so the app is not installed with any
 ## Acknowledgements
 
 FrameWorks:
-- [KingFisher](https://github.com/onevcat/Kingfisher) - MIT License
+[KingFisher](https://github.com/onevcat/Kingfisher) - MIT License
+[Drops](https://github.com/omaralbeik/Drops) - MIT License
 
 ## License
 

@@ -29,6 +29,7 @@ struct MediaInfoView: View {
     @State var itemID: Int?
     @State var isLoading: Bool = true
     @State var showFullSynopsis: Bool = false
+    @State var showedDrop: Bool = false
     
     @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
     
@@ -183,6 +184,9 @@ struct MediaInfoView: View {
             }
         }
         .onAppear {
+            if !showedDrop {
+                showDrop()
+            }
             fetchDetails()
             fetchItemID(byTitle: title) { result in
                 switch result {
@@ -193,6 +197,16 @@ struct MediaInfoView: View {
                 }
             }
         }
+    }
+    
+    private func showDrop() {
+        let aTitle = "Fetching Data"
+        let subtitle = "Please wait while fetching"
+        let duration = 1.0
+        let icon = UIImage(systemName: "exclamationmark.triangle")
+        
+        DropManager.shared.showDrop(title: aTitle, subtitle: subtitle, duration: duration, icon: icon)
+        showedDrop = true
     }
     
     func fetchDetails() {
