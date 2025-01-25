@@ -247,26 +247,37 @@ struct MediaInfoView: View {
                 do {
                     let jsContent = try moduleManager.getModuleContent(module)
                     jsController.loadScript(jsContent)
+                    
                     if module.metadata.asyncJS == true {
                         jsController.fetchStreamUrlJS(episodeUrl: href) { streamUrl in
-                            if let url = streamUrl {
-                                playStream(url: url, fullURL: href)
+                            guard let url = streamUrl, url != "null" else {
+                                handleStreamFailure()
+                                return
                             }
+                            playStream(url: url, fullURL: href)
                         }
                     } else {
                         jsController.fetchStreamUrl(episodeUrl: href) { streamUrl in
-                            if let url = streamUrl {
-                                playStream(url: url, fullURL: href)
+                            guard let url = streamUrl, url != "null" else {
+                                handleStreamFailure()
+                                return
                             }
+                            playStream(url: url, fullURL: href)
                         }
                     }
                 } catch {
-                    Logger.shared.log("Error loading module: \(error)", type: "Error")
-                    DropManager.shared.showDrop(title: "Stream not Found", subtitle: "", duration: 1.0, icon: UIImage(systemName: "xmark"))
-                    self.isLoading = false
+                    handleStreamFailure(error: error)
                 }
             }
         }
+    }
+    
+    func handleStreamFailure(error: Error? = nil) {
+        if let error = error {
+            Logger.shared.log("Error loading module: \(error)", type: "Error")
+        }
+        DropManager.shared.showDrop(title: "Stream not Found", subtitle: "", duration: 1.0, icon: UIImage(systemName: "xmark"))
+        self.isLoading = false
     }
     
     func playStream(url: String, fullURL: String) {
