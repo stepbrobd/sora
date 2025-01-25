@@ -32,6 +32,7 @@ struct SettingsViewLogger: View {
                     Menu {
                         Button(action: {
                             UIPasteboard.general.string = logs
+                            DropManager.shared.showDrop(title: "Copied to Clipboard", subtitle: "", duration: 1.0, icon: UIImage(systemName: "doc.on.clipboard.fill"))
                         }) {
                             Label("Copy to Clipboard", systemImage: "doc.on.doc")
                         }

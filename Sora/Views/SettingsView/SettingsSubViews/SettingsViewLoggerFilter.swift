@@ -76,16 +76,8 @@ struct SettingsViewLoggerFilter: View {
         List {
             ForEach($viewModel.filters) { $filter in
                 VStack(alignment: .leading, spacing: 0) {
-                    HStack {
-                        Toggle(filter.type, isOn: $filter.isEnabled)
-                        Spacer()
-                    }
-                    
-                    Text(filter.description)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                    Toggle(filter.type, isOn: $filter.isEnabled)
                 }
-                .padding(.vertical, 5)
             }
         }
         .navigationTitle("Log Filters")

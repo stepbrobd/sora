@@ -60,27 +60,30 @@ struct SettingsViewModule: View {
                     .contextMenu {
                         Button(action: {
                             UIPasteboard.general.string = module.metadataUrl
+                            DropManager.shared.showDrop(title: "Copied to Clipboard", subtitle: "", duration: 1.0, icon: UIImage(systemName: "doc.on.clipboard.fill"))
                         }) {
                             Label("Copy URL", systemImage: "doc.on.doc")
                         }
                         Button(role: .destructive) {
-                            if selectedModuleId == module.id.uuidString {
-                                selectedModuleId = nil
+                            if selectedModuleId != module.id.uuidString {
+                                moduleManager.deleteModule(module)
+                                DropManager.shared.showDrop(title: "Module Removed", subtitle: "", duration: 1.0, icon: UIImage(systemName: "trash"))
                             }
-                            moduleManager.deleteModule(module)
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
+                        .disabled(selectedModuleId == module.id.uuidString)
                     }
                     .swipeActions {
                         Button(role: .destructive) {
-                            if selectedModuleId == module.id.uuidString {
-                                selectedModuleId = nil
+                            if selectedModuleId != module.id.uuidString {
+                                moduleManager.deleteModule(module)
+                                DropManager.shared.showDrop(title: "Module Removed", subtitle: "", duration: 1.0, icon: UIImage(systemName: "trash"))
                             }
-                            moduleManager.deleteModule(module)
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
+                        .disabled(selectedModuleId == module.id.uuidString)
                     }
                 }
             }

@@ -171,7 +171,7 @@ struct MediaInfoView: View {
                                     EpisodeCell(episode: ep.href, episodeID: ep.number - 1, progress: progress, itemID: itemID ?? 0)
                                         .onTapGesture {
                                             fetchStream(href: ep.href)
-                                            showDrop(title: "Fetching Stream", subtitle: "", icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
+                                            DropManager.shared.showDrop(title: "Fetching Stream", subtitle: "", duration: 1.0, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
                                         }
                                 }
                             }
@@ -186,7 +186,8 @@ struct MediaInfoView: View {
         }
         .onAppear {
             if !showedDrop {
-                showDrop(title: "Fetching Data", subtitle: "Please wait while fetching", icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
+                DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching", duration: 1.0, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
+                showedDrop = true
             }
             fetchDetails()
             fetchItemID(byTitle: title) { result in
@@ -198,13 +199,6 @@ struct MediaInfoView: View {
                 }
             }
         }
-    }
-    
-    private func showDrop(title: String, subtitle: String, icon: UIImage?) {
-        let duration = 1.0
-        
-        DropManager.shared.showDrop(title: title, subtitle: subtitle, duration: duration, icon: icon)
-        showedDrop = true
     }
     
     func fetchDetails() {
@@ -264,7 +258,7 @@ struct MediaInfoView: View {
                     }
                 } catch {
                     Logger.shared.log("Error loading module: \(error)", type: "Error")
-                    self.showDrop(title: "Stream not Found", subtitle: "", icon: UIImage(systemName: "xmark"))
+                    DropManager.shared.showDrop(title: "Stream not Found", subtitle: "", duration: 1.0, icon: UIImage(systemName: "xmark"))
                     self.isLoading = false
                 }
             }
