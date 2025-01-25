@@ -56,6 +56,10 @@ struct MediaInfoView: View {
                                 Text(title)
                                     .font(.system(size: 17))
                                     .fontWeight(.bold)
+                                    .onLongPressGesture {
+                                        UIPasteboard.general.string = title
+                                        DropManager.shared.showDrop(title: "Copied to Clipboard", subtitle: "", duration: 1.0, icon: UIImage(systemName: "doc.on.clipboard.fill"))
+                                    }
                                 
                                 if !aliases.isEmpty && aliases != title && aliases != "N/A" && aliases != "No Data" {
                                     Text(aliases)
