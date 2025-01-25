@@ -171,6 +171,7 @@ struct MediaInfoView: View {
                                     EpisodeCell(episode: ep.href, episodeID: ep.number - 1, progress: progress, itemID: itemID ?? 0)
                                         .onTapGesture {
                                             fetchStream(href: ep.href)
+                                            showDrop(title: "Fetching Stream", subtitle: "", icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
                                         }
                                 }
                             }
@@ -185,7 +186,7 @@ struct MediaInfoView: View {
         }
         .onAppear {
             if !showedDrop {
-                showDrop()
+                showDrop(title: "Fetching Data", subtitle: "Please wait while fetching", icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
             }
             fetchDetails()
             fetchItemID(byTitle: title) { result in
@@ -199,13 +200,10 @@ struct MediaInfoView: View {
         }
     }
     
-    private func showDrop() {
-        let aTitle = "Fetching Data"
-        let subtitle = "Please wait while fetching"
+    private func showDrop(title: String, subtitle: String, icon: UIImage?) {
         let duration = 1.0
-        let icon = UIImage(systemName: "exclamationmark.triangle")
         
-        DropManager.shared.showDrop(title: aTitle, subtitle: subtitle, duration: duration, icon: icon)
+        DropManager.shared.showDrop(title: title, subtitle: subtitle, duration: duration, icon: icon)
         showedDrop = true
     }
     
@@ -266,6 +264,7 @@ struct MediaInfoView: View {
                     }
                 } catch {
                     Logger.shared.log("Error loading module: \(error)", type: "Error")
+                    self.showDrop(title: "Stream not Found", subtitle: "", icon: UIImage(systemName: "xmark"))
                     self.isLoading = false
                 }
             }
