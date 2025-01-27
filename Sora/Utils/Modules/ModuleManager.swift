@@ -42,6 +42,10 @@ class ModuleManager: ObservableObject {
             throw NSError(domain: "Invalid metadata URL", code: -1)
         }
         
+        if modules.contains(where: { $0.metadataUrl == metadataUrl }) {
+            throw NSError(domain: "Module already exists", code: -1)
+        }
+        
         let (metadataData, _) = try await URLSession.custom.data(from: url)
         let metadata = try JSONDecoder().decode(ModuleMetadata.self, from: metadataData)
         
@@ -72,7 +76,7 @@ class ModuleManager: ObservableObject {
         
         return module
     }
-
+    
     func deleteModule(_ module: ScrapingModule) {
         let localUrl = getDocumentsDirectory().appendingPathComponent(module.localPath)
         try? fileManager.removeItem(at: localUrl)
@@ -81,10 +85,9 @@ class ModuleManager: ObservableObject {
         saveModules()
         Logger.shared.log("Deleted module: \(module.metadata.sourceName)")
     }
-
+    
     func getModuleContent(_ module: ScrapingModule) throws -> String {
         let localUrl = getDocumentsDirectory().appendingPathComponent(module.localPath)
         return try String(contentsOf: localUrl, encoding: .utf8)
     }
 }
-

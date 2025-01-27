@@ -153,7 +153,11 @@ struct SettingsViewModule: View {
             } catch {
                 DispatchQueue.main.async {
                     isLoading = false
-                    errorMessage = "Failed to add module: \(error.localizedDescription)"
+                    if (error as NSError).domain == "Module already exists" {
+                        errorMessage = "Module already exists"
+                    } else {
+                        errorMessage = "Failed to add module: \(error.localizedDescription)"
+                    }
                     Logger.shared.log("Failed to add module: \(error.localizedDescription)")
                 }
             }
