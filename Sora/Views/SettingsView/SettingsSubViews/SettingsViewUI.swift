@@ -26,8 +26,8 @@ struct SettingsViewUI: View {
                 }
             }
             
-            Section(header: Text("Episode Chunk Size")) {
-                Text("Chunk Size")
+            Section(header: Text("Media View"), footer: Text("The episode range controls how many episodes appear on each page. Episodes are grouped into sets (like 1-25, 26-50, and so on), allowing you to navigate through them more easily.")) {
+                Text("Episodes Range")
                 Spacer()
                 Menu {
                     Button(action: { episodeChunkSize = 25 }) {
