@@ -27,6 +27,8 @@ struct SettingsViewUI: View {
             }
             
             Section(header: Text("Episode Chunk Size")) {
+                Text("Chunk Size")
+                Spacer()
                 Menu {
                     Button(action: { episodeChunkSize = 25 }) {
                         Text("25")
@@ -41,7 +43,7 @@ struct SettingsViewUI: View {
                         Text("100")
                     }
                 } label: {
-                    Text("Chunk Size: \(episodeChunkSize)")
+                    Text("\(episodeChunkSize)")
                 }
             }
         }
