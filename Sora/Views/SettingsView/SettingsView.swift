@@ -8,27 +8,19 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @EnvironmentObject var settings: Settings
     
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Interface")) {
-                    ColorPicker("Accent Color", selection: $settings.accentColor)
-                    HStack() {
-                        Text("Appearance")
-                        Picker("Appearance", selection: $settings.selectedAppearance) {
-                            Text("System").tag(Appearance.system)
-                            Text("Light").tag(Appearance.light)
-                            Text("Dark").tag(Appearance.dark)
-                        }
-                        .pickerStyle(SegmentedPickerStyle())
+                Section(header: Text("Main Settings")) {
+                    NavigationLink(destination: SettingsViewUI()) {
+                        Text("UI Settings")
                     }
-                }
-                
-                Section(header: Text("External Features")) {
                     NavigationLink(destination: SettingsViewModule()) {
                         Text("Modules")
+                    }
+                    NavigationLink(destination: SettingsViewModule()) {
+                        Text("Media Player")
                     }
                 }
                 
