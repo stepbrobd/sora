@@ -17,10 +17,10 @@ struct SettingsView: View {
                         Text("UI Settings")
                     }
                     NavigationLink(destination: SettingsViewModule()) {
-                        Text("Modules")
+                        Text("Media Player")
                     }
                     NavigationLink(destination: SettingsViewModule()) {
-                        Text("Media Player")
+                        Text("Modules")
                     }
                 }
                 

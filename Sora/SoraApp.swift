@@ -40,7 +40,7 @@ struct SoraApp: App {
         Task {
             do {
                 let module = try await moduleManager.addModule(metadataUrl: moduleURL)
-                DropManager.shared.showDrop(title: "Module Added!", subtitle: "Check settings to select it", duration: 2.0, icon: UIImage(systemName: "app.badge.checkmark"))
+                DropManager.shared.showDrop(title: "Added \(module.metadata.sourceName)", subtitle: "Check settings to select it", duration: 2.0, icon: UIImage(systemName: "app.badge.checkmark"))
             } catch {
                 Logger.shared.log("Failed to add module from URL scheme: \(error.localizedDescription)", type: "Error")
             }
