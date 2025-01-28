@@ -433,7 +433,7 @@ class JSController: ObservableObject {
     
     func fetchStreamUrlJSSecond(episodeUrl: String, completion: @escaping (String?) -> Void) {
         let url = URL(string: episodeUrl)!
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+        let task = URLSession.custom.dataTask(with: url) { data, response, error in
             if let error = error {
                 Logger.shared.log("URLSession error: \(error.localizedDescription)", type: "Error")
                 DispatchQueue.main.async {
