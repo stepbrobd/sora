@@ -324,8 +324,16 @@ struct MediaInfoView: View {
                     let jsContent = try moduleManager.getModuleContent(module)
                     jsController.loadScript(jsContent)
                     
-                    if module.metadata.asyncJS == true || module.metadata.streamAsyncJS == true {
+                    if module.metadata.asyncJS == true {
                         jsController.fetchStreamUrlJS(episodeUrl: href) { streamUrl in
+                            guard let url = streamUrl, url != "null" else {
+                                handleStreamFailure()
+                                return
+                            }
+                            playStream(url: url, fullURL: href)
+                        }
+                    } else if module.metadata.streamAsyncJS == true {
+                        jsController.fetchStreamUrlJSSecond(episodeUrl: href) { streamUrl in
                             guard let url = streamUrl, url != "null" else {
                                 handleStreamFailure()
                                 return
