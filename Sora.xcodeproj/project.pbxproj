@@ -163,8 +163,8 @@
 			isa = PBXGroup;
 			children = (
 				133D7C862D2BE2640075467E /* Extensions */,
+				133D7C8A2D2BE2640075467E /* JSLoader */,
 				133D7C882D2BE2640075467E /* Modules */,
-				133D7C8A2D2BE2640075467E /* Loader */,
 				1399FAD12D3AB33D00E97C31 /* Logger */,
 				13D842532D45266900EBBFA6 /* Drops */,
 				13EA2BDA2D32D9FF00C1EBD7 /* Miru */,
@@ -189,12 +189,12 @@
 			path = Modules;
 			sourceTree = "<group>";
 		};
-		133D7C8A2D2BE2640075467E /* Loader */ = {
+		133D7C8A2D2BE2640075467E /* JSLoader */ = {
 			isa = PBXGroup;
 			children = (
 				133D7C8B2D2BE2640075467E /* JSController.swift */,
 			);
-			path = Loader;
+			path = JSLoader;
 			sourceTree = "<group>";
 		};
 		133F55B92D33B53E00E08EEA /* LibraryView */ = {

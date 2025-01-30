@@ -88,7 +88,8 @@ class JSController: ObservableObject {
                 return
             }
             
-            Logger.shared.log(html,type: "Debug")
+            print(html)
+            Logger.shared.log(html,type: "HTMLStrings")
             if let parseFunction = self.context.objectForKeyedSubscript("searchResults"),
                let results = parseFunction.call(withArguments: [html]).toArray() as? [[String: String]] {
                 let resultItems = results.map { item in
@@ -132,7 +133,7 @@ class JSController: ObservableObject {
             var resultItems: [MediaItem] = []
             var episodeLinks: [EpisodeLink] = []
             
-            Logger.shared.log(html,type: "Debug")
+            Logger.shared.log(html,type: "HTMLStrings")
             if let parseFunction = self.context.objectForKeyedSubscript("extractDetails"),
                let results = parseFunction.call(withArguments: [html]).toArray() as? [[String: String]] {
                 resultItems = results.map { item in
@@ -182,7 +183,7 @@ class JSController: ObservableObject {
                 return
             }
             
-            Logger.shared.log(html,type: "Debug")
+            Logger.shared.log(html,type: "HTMLStrings")
             if let parseFunction = self.context.objectForKeyedSubscript("extractStreamUrl"),
                let streamUrl = parseFunction.call(withArguments: [html]).toString() {
                 Logger.shared.log("Staring stream from: \(streamUrl)", type: "Stream")
@@ -218,7 +219,7 @@ class JSController: ObservableObject {
         
         let thenBlock: @convention(block) (JSValue) -> Void = { result in
             
-            Logger.shared.log(result.toString(),type: "Debug")
+            Logger.shared.log(result.toString(),type: "HTMLStrings")
             if let jsonString = result.toString(),
                let data = jsonString.data(using: .utf8) {
                 do {
