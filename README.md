@@ -4,7 +4,7 @@
 
 <img src="https://raw.githubusercontent.com/cranci1/Sora/refs/heads/main/assets/Sora_banner.png" width="500px">
 
-[![Build and Release IPA](https://github.com/cranci1/Sora/actions/workflows/build.yml/badge.svg)](https://github.com/cranci1/Sora/actions/workflows/build.yml) [![Discord](https://img.shields.io/discord/1293430817841741899.svg?logo=discord&color=blue)](https://discord.gg/XR3SrmUbpd) [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2015.0%2B%20%26%20macOS%2012.0%2B-red?logo=apple&logoColor=white)](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2015.0%2B%20%26%20macOS%2012.0%2B-red?logo=apple&logoColor=white)
+[![Build and Release IPA](https://github.com/cranci1/Sora/actions/workflows/build.yml/badge.svg)](https://github.com/cranci1/Sora/actions/workflows/build.yml) [![Discord](https://img.shields.io/discord/1293430817841741899.svg?logo=discord&color=blue)](https://discord.gg/XR3SrmUbpd) [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2015.0%2B-orange?logo=apple&logoColor=white)](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2015.0%2B-red?logo=apple&logoColor=white)
 
 A modular web scraping app, under the GPLv3.0 License
 
@@ -40,13 +40,12 @@ Sora does not include any modules by default. You will need to find and add the 
 
 ## Acknowledgements
 
-FrameWorks:
-[KingFisher](https://github.com/onevcat/Kingfisher) - MIT License
-[Drops](https://github.com/omaralbeik/Drops) - MIT License
+<p>[KingFisher](https://github.com/onevcat/Kingfisher) - MIT License</p>
+<p>[Drops](https://github.com/omaralbeik/Drops) - MIT License</p>
 
 ## License
 
-This project is licensed under the [GNU General Public License v3.0](LICENSE).
+This project is licensed under the [GNU General Public License v3.0](LICENSE) (GPLv3.0).
 
 ```
 Copyright © 2024-2025 cranci. All rights reserved.
