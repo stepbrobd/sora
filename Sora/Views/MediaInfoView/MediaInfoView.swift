@@ -105,7 +105,7 @@ struct MediaInfoView: View {
                                                 .frame(width: 20, height: 20)
                                                 .foregroundColor(.primary)
                                         }
-                                        .padding(4)
+                                        .padding(5)
                                         .background(Capsule().fill(Color.accentColor.opacity(0.4)))
                                     }
                                 }

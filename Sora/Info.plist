@@ -2,6 +2,13 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>outplayer</string>
+		<string>infuse</string>
+		<string>vlc</string>
+		<string>nplayer-https</string>
+	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
