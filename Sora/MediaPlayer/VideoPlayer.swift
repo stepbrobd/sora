@@ -95,4 +95,20 @@ class VideoPlayerViewController: UIViewController {
             UserDefaults.standard.set(duration, forKey: "totalTime_\(fullURL)")
         }
     }
+    
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        if UserDefaults.standard.bool(forKey: "AlwaysLandscape") {
+            return .landscape
+        } else {
+            return .all
+        }
+    }
+    
+    override var prefersHomeIndicatorAutoHidden: Bool {
+        return true
+    }
+    
+    override var prefersStatusBarHidden: Bool {
+        return true
+    }
 }
