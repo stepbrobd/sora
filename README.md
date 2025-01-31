@@ -40,8 +40,8 @@ Sora does not include any modules by default. You will need to find and add the 
 
 ## Acknowledgements
 
-<p>[KingFisher](https://github.com/onevcat/Kingfisher) - MIT License</p>
-<p>[Drops](https://github.com/omaralbeik/Drops) - MIT License</p>
+- [KingFisher](https://github.com/onevcat/Kingfisher) - MIT License
+- [Drops](https://github.com/omaralbeik/Drops) - MIT License
 
 ## License
 
