@@ -203,7 +203,7 @@ struct MediaInfoView: View {
                                             if !isFetchingEpisode {
                                                 isFetchingEpisode = true
                                                 fetchStream(href: ep.href)
-                                                DropManager.shared.showDrop(title: "Fetching Stream", subtitle: "", duration: 1.0, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
+                                                DropManager.shared.showDrop(title: "Fetching Stream", subtitle: "", duration: 0.5, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
                                             }
                                         }
                                         .disabled(isFetchingEpisode)
@@ -330,6 +330,7 @@ struct MediaInfoView: View {
                                 handleStreamFailure()
                                 return
                             }
+                            isFetchingEpisode = false
                             playStream(url: url, fullURL: href)
                         }
                     } else if module.metadata.streamAsyncJS == true {
@@ -338,6 +339,7 @@ struct MediaInfoView: View {
                                 handleStreamFailure()
                                 return
                             }
+                            isFetchingEpisode = false
                             playStream(url: url, fullURL: href)
                         }
                     } else {
@@ -346,6 +348,7 @@ struct MediaInfoView: View {
                                 handleStreamFailure()
                                 return
                             }
+                            isFetchingEpisode = false
                             playStream(url: url, fullURL: href)
                         }
                     }
@@ -354,7 +357,6 @@ struct MediaInfoView: View {
                 }
             }
         }
-        isFetchingEpisode = false
     }
     
     func handleStreamFailure(error: Error? = nil) {
