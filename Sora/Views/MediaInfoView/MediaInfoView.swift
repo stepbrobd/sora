@@ -372,14 +372,35 @@ struct MediaInfoView: View {
     
     func playStream(url: String, fullURL: String) {
         DispatchQueue.main.async {
-            let videoPlayerViewController = VideoPlayerViewController(module: module)
-            videoPlayerViewController.streamUrl = url
-            videoPlayerViewController.fullUrl = fullURL
-            videoPlayerViewController.modalPresentationStyle = .fullScreen
+            let externalPlayer = UserDefaults.standard.string(forKey: "externalPlayer") ?? "Default"
+            var scheme: String?
             
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let rootVC = windowScene.windows.first?.rootViewController {
-                rootVC.present(videoPlayerViewController, animated: true, completion: nil)
+            switch externalPlayer {
+            case "Infuse":
+                scheme = "infuse://x-callback-url/play?url=\(url)"
+            case "VLC":
+                scheme = "vlc://\(url)"
+            case "OutPlayer":
+                scheme = "outplayer://\(url)"
+            case "nPlayer":
+                scheme = "nplayer-\(url)"
+            default:
+                break
+            }
+            
+            if let scheme = scheme, let url = URL(string: scheme), UIApplication.shared.canOpenURL(url) {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                Logger.shared.log("Opening external app with scheme: \(url)", type: "General")
+            } else {
+                let videoPlayerViewController = VideoPlayerViewController(module: module)
+                videoPlayerViewController.streamUrl = url
+                videoPlayerViewController.fullUrl = fullURL
+                videoPlayerViewController.modalPresentationStyle = .fullScreen
+                
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let rootVC = windowScene.windows.first?.rootViewController {
+                    rootVC.present(videoPlayerViewController, animated: true, completion: nil)
+                }
             }
         }
     }
