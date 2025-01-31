@@ -16,7 +16,7 @@ struct SettingsView: View {
                     NavigationLink(destination: SettingsViewGeneral()) {
                         Text("General Settings")
                     }
-                    NavigationLink(destination: SettingsViewModule()) {
+                    NavigationLink(destination: SettingsViewPlayer()) {
                         Text("Media Player")
                     }
                     NavigationLink(destination: SettingsViewModule()) {

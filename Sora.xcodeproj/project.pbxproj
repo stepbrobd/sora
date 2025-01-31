@@ -23,6 +23,7 @@
 		133D7C942D2BE2640075467E /* JSController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C8B2D2BE2640075467E /* JSController.swift */; };
 		133D7C972D2BE2AF0075467E /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 133D7C962D2BE2AF0075467E /* Kingfisher */; };
 		133F55BB2D33B55100E08EEA /* LibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133F55BA2D33B55100E08EEA /* LibraryManager.swift */; };
+		135CCBE22D4D1138008B9C0E /* SettingsViewPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135CCBE12D4D1138008B9C0E /* SettingsViewPlayer.swift */; };
 		138AA1B82D2D66FD0021F9DF /* EpisodeCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138AA1B62D2D66FD0021F9DF /* EpisodeCell.swift */; };
 		138AA1B92D2D66FD0021F9DF /* CircularProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138AA1B72D2D66FD0021F9DF /* CircularProgressBar.swift */; };
 		139935662D468C450065CEFF /* ModuleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 139935652D468C450065CEFF /* ModuleManager.swift */; };
@@ -57,6 +58,7 @@
 		133D7C892D2BE2640075467E /* Modules.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Modules.swift; sourceTree = "<group>"; };
 		133D7C8B2D2BE2640075467E /* JSController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSController.swift; sourceTree = "<group>"; };
 		133F55BA2D33B55100E08EEA /* LibraryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryManager.swift; sourceTree = "<group>"; };
+		135CCBE12D4D1138008B9C0E /* SettingsViewPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewPlayer.swift; sourceTree = "<group>"; };
 		138AA1B62D2D66FD0021F9DF /* EpisodeCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpisodeCell.swift; sourceTree = "<group>"; };
 		138AA1B72D2D66FD0021F9DF /* CircularProgressBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CircularProgressBar.swift; sourceTree = "<group>"; };
 		139935652D468C450065CEFF /* ModuleManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModuleManager.swift; sourceTree = "<group>"; };
@@ -155,6 +157,7 @@
 				1399FAD32D3AB38C00E97C31 /* SettingsViewLogger.swift */,
 				133D7C842D2BE2630075467E /* SettingsViewModule.swift */,
 				131845F82D47C62D00CA7A54 /* SettingsViewGeneral.swift */,
+				135CCBE12D4D1138008B9C0E /* SettingsViewPlayer.swift */,
 			);
 			path = SettingsSubViews;
 			sourceTree = "<group>";
@@ -360,6 +363,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				135CCBE22D4D1138008B9C0E /* SettingsViewPlayer.swift in Sources */,
 				13DC0C462D302C7500D0F966 /* VideoPlayer.swift in Sources */,
 				1399FAD62D3AB3DB00E97C31 /* Logger.swift in Sources */,
 				139935662D468C450065CEFF /* ModuleManager.swift in Sources */,
