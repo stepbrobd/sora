@@ -88,7 +88,6 @@ class JSController: ObservableObject {
                 return
             }
             
-            print(html)
             Logger.shared.log(html,type: "HTMLStrings")
             if let parseFunction = self.context.objectForKeyedSubscript("searchResults"),
                let results = parseFunction.call(withArguments: [html]).toArray() as? [[String: String]] {
