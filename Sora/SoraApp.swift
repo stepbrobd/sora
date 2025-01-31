@@ -22,6 +22,11 @@ struct SoraApp: App {
                 .accentColor(settings.accentColor)
                 .onAppear {
                     settings.updateAppearance()
+                    if UserDefaults.standard.bool(forKey: "refreshModulesOnLaunch") {
+                        Task {
+                            await moduleManager.refreshModules()
+                        }
+                    }
                 }
                 .onOpenURL { url in
                     handleURL(url)

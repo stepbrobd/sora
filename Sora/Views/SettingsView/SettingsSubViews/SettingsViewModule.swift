@@ -14,6 +14,7 @@ struct SettingsViewModule: View {
     
     @State private var errorMessage: String?
     @State private var isLoading = false
+    @State private var isRefreshing = false
     
     var body: some View {
         VStack {
@@ -109,6 +110,11 @@ struct SettingsViewModule: View {
                     .resizable()
                     .padding(5)
             })
+            .refreshable {
+                isRefreshing = true
+                await moduleManager.refreshModules()
+                isRefreshing = false
+            }
         }
         .alert(isPresented: .constant(errorMessage != nil)) {
             Alert(

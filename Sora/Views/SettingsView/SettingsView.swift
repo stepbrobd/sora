@@ -13,8 +13,8 @@ struct SettingsView: View {
         NavigationView {
             Form {
                 Section(header: Text("Main Settings")) {
-                    NavigationLink(destination: SettingsViewUI()) {
-                        Text("UI Settings")
+                    NavigationLink(destination: SettingsViewGeneral()) {
+                        Text("General Settings")
                     }
                     NavigationLink(destination: SettingsViewModule()) {
                         Text("Media Player")

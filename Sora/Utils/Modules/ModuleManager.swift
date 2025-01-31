@@ -90,4 +90,43 @@ class ModuleManager: ObservableObject {
         let localUrl = getDocumentsDirectory().appendingPathComponent(module.localPath)
         return try String(contentsOf: localUrl, encoding: .utf8)
     }
+
+    func refreshModules() async {
+    for (index, module) in modules.enumerated() {
+        do {
+            let (metadataData, _) = try await URLSession.custom.data(from: URL(string: module.metadataUrl)!)
+            let newMetadata = try JSONDecoder().decode(ModuleMetadata.self, from: metadataData)
+            
+            if newMetadata.version != module.metadata.version {
+                guard let scriptUrl = URL(string: newMetadata.scriptUrl) else {
+                    throw NSError(domain: "Invalid script URL", code: -1)
+                }
+                
+                let (scriptData, _) = try await URLSession.custom.data(from: scriptUrl)
+                guard let jsContent = String(data: scriptData, encoding: .utf8) else {
+                    throw NSError(domain: "Invalid script encoding", code: -1)
+                }
+                
+                let localUrl = getDocumentsDirectory().appendingPathComponent(module.localPath)
+                try jsContent.write(to: localUrl, atomically: true, encoding: .utf8)
+                
+                modules[index] = ScrapingModule(
+                    id: module.id,
+                    metadata: newMetadata,
+                    localPath: module.localPath,
+                    metadataUrl: module.metadataUrl,
+                    isActive: module.isActive
+                )
+                
+                Logger.shared.log("Updated module: \(module.metadata.sourceName) to version \(newMetadata.version)")
+            }
+        } catch {
+            Logger.shared.log("Failed to refresh module: \(module.metadata.sourceName) - \(error.localizedDescription)")
+        }
+    }
+    
+    DispatchQueue.main.async {
+        self.saveModules()
+    }
+}
 }

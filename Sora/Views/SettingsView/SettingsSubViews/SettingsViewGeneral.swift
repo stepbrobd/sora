@@ -1,5 +1,5 @@
 //
-//  SettingsViewUI.swift
+//  SettingsViewGeneral.swift
 //  Sora
 //
 //  Created by Francesco on 27/01/25.
@@ -7,8 +7,9 @@
 
 import SwiftUI
 
-struct SettingsViewUI: View {
+struct SettingsViewGeneral: View {
     @AppStorage("episodeChunkSize") private var episodeChunkSize: Int = 100
+    @AppStorage("refreshModulesOnLaunch") private var refreshModulesOnLaunch: Bool = false
     @EnvironmentObject var settings: Settings
     
     var body: some View {
@@ -48,7 +49,11 @@ struct SettingsViewUI: View {
                     }
                 }
             }
+            
+            Section(header: Text("Modules")) {
+                Toggle("Refresh Modules on Launch", isOn: $refreshModulesOnLaunch)
+            }
         }
-        .navigationTitle("UI Settings")
+        .navigationTitle("General")
     }
 }
