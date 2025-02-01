@@ -9,7 +9,7 @@ import Foundation
 
 struct ModuleMetadata: Codable, Hashable {
     let sourceName: String
-    let author: String
+    let author: Author
     let iconUrl: String
     let version: String
     let language: String
@@ -18,6 +18,11 @@ struct ModuleMetadata: Codable, Hashable {
     let scriptUrl: String
     let asyncJS: Bool?
     let streamAsyncJS: Bool?
+
+    struct Author: Codable, Hashable {
+        let name: String
+        let icon: String
+    }
 }
 
 struct ScrapingModule: Codable, Identifiable, Hashable {

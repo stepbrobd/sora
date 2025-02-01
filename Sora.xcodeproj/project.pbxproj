@@ -31,6 +31,7 @@
 		1399FAD62D3AB3DB00E97C31 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1399FAD52D3AB3DB00E97C31 /* Logger.swift */; };
 		13D842522D4523B800EBBFA6 /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = 13D842512D4523B800EBBFA6 /* Drops */; };
 		13D842552D45267500EBBFA6 /* DropManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D842542D45267500EBBFA6 /* DropManager.swift */; };
+		13D99CF72D4E73C300250A86 /* ModuleAdditionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D99CF62D4E73C300250A86 /* ModuleAdditionSettingsView.swift */; };
 		13DC0C462D302C7500D0F966 /* VideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DC0C452D302C7500D0F966 /* VideoPlayer.swift */; };
 		13EA2BD52D32D97400C1EBD7 /* CustomPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD12D32D97400C1EBD7 /* CustomPlayer.swift */; };
 		13EA2BD62D32D97400C1EBD7 /* Double+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD32D32D97400C1EBD7 /* Double+Extension.swift */; };
@@ -65,6 +66,7 @@
 		1399FAD32D3AB38C00E97C31 /* SettingsViewLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewLogger.swift; sourceTree = "<group>"; };
 		1399FAD52D3AB3DB00E97C31 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		13D842542D45267500EBBFA6 /* DropManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropManager.swift; sourceTree = "<group>"; };
+		13D99CF62D4E73C300250A86 /* ModuleAdditionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModuleAdditionSettingsView.swift; sourceTree = "<group>"; };
 		13DC0C412D2EC9BA00D0F966 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		13DC0C452D302C7500D0F966 /* VideoPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayer.swift; sourceTree = "<group>"; };
 		13EA2BD12D32D97400C1EBD7 /* CustomPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomPlayer.swift; sourceTree = "<group>"; };
@@ -186,6 +188,7 @@
 		133D7C882D2BE2640075467E /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				13D99CF62D4E73C300250A86 /* ModuleAdditionSettingsView.swift */,
 				139935652D468C450065CEFF /* ModuleManager.swift */,
 				133D7C892D2BE2640075467E /* Modules.swift */,
 			);
@@ -373,6 +376,7 @@
 				13EA2BD92D32D98400C1EBD7 /* NormalPlayer.swift in Sources */,
 				133D7C932D2BE2640075467E /* Modules.swift in Sources */,
 				133D7C702D2BE2500075467E /* ContentView.swift in Sources */,
+				13D99CF72D4E73C300250A86 /* ModuleAdditionSettingsView.swift in Sources */,
 				13EA2BD62D32D97400C1EBD7 /* Double+Extension.swift in Sources */,
 				133D7C8F2D2BE2640075467E /* MediaInfoView.swift in Sources */,
 				131845F92D47C62D00CA7A54 /* SettingsViewGeneral.swift in Sources */,

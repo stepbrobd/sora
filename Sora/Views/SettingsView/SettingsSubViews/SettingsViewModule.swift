@@ -15,6 +15,7 @@ struct SettingsViewModule: View {
     @State private var errorMessage: String?
     @State private var isLoading = false
     @State private var isRefreshing = false
+    @State private var moduleUrl: String = ""
     
     var body: some View {
         VStack {
@@ -52,7 +53,7 @@ struct SettingsViewModule: View {
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
                                 }
-                                Text("Author: \(module.metadata.author)")
+                                Text("Author: \(module.metadata.author.name)")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                 Text("Language: \(module.metadata.language)")
@@ -116,6 +117,11 @@ struct SettingsViewModule: View {
                 isRefreshing = false
             }
         }
+        .onAppear {
+            Task {
+                await moduleManager.refreshModules()
+            }
+        }
         .alert(isPresented: .constant(errorMessage != nil)) {
             Alert(
                 title: Text("Error"),
@@ -135,7 +141,7 @@ struct SettingsViewModule: View {
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         alert.addAction(UIAlertAction(title: "Add", style: .default, handler: { _ in
             if let url = alert.textFields?.first?.text {
-                addModule(from: url)
+                displayModuleView(url: url)
             }
         }))
         
@@ -145,28 +151,15 @@ struct SettingsViewModule: View {
         }
     }
     
-    private func addModule(from url: String) {
-        isLoading = true
-        errorMessage = nil
-        
-        Task {
-            do {
-                _ = try await moduleManager.addModule(metadataUrl: url)
-                DispatchQueue.main.async {
-                    isLoading = false
-                    DropManager.shared.showDrop(title: "Module Added", subtitle: "clicking it to select it", duration: 2.0, icon: UIImage(systemName: "app.badge.checkmark"))
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    isLoading = false
-                    if (error as NSError).domain == "Module already exists" {
-                        errorMessage = "Module already exists"
-                    } else {
-                        errorMessage = "Failed to add module: \(error.localizedDescription)"
-                    }
-                    Logger.shared.log("Failed to add module: \(error.localizedDescription)")
-                }
-            }
+    func displayModuleView(url: String) {
+        DispatchQueue.main.async {
+            let addModuleView = ModuleAdditionSettingsView(moduleUrl: url).environmentObject(moduleManager)
+            let hostingController = UIHostingController(rootView: addModuleView)
+             
+             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                let window = windowScene.windows.first {
+                 window.rootViewController?.present(hostingController, animated: true, completion: nil)
+             }
         }
     }
 }
