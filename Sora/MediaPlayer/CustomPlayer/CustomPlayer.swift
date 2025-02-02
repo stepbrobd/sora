@@ -220,7 +220,7 @@ struct CustomMediaPlayer: View {
                                     }
                                 )
                                     .padding(.horizontal, 32)
-                                    .padding(.bottom, 10)
+                                    .padding(.bottom, 6)
                                     .disabled(!isVideoLoaded)
                             }
                         }
