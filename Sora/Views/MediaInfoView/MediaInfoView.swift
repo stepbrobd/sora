@@ -34,6 +34,9 @@ struct MediaInfoView: View {
     @State var isRefetching: Bool = true
     @State var isFetchingEpisode: Bool = false
     
+    @State private var selectedEpisode: String = ""
+    @State private var selectedEpisodeNumber: Int = 0
+    
     @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
     @AppStorage("episodeChunkSize") private var episodeChunkSize: Int = 100
     
@@ -384,6 +387,26 @@ struct MediaInfoView: View {
                 scheme = "outplayer://\(url)"
             case "nPlayer":
                 scheme = "nplayer-\(url)"
+            case "Sora":
+                let customMediaPlayer = CustomMediaPlayer(
+                    module: module,
+                    urlString: url,
+                    fullUrl: fullURL,
+                    title: title,
+                    episodeNumber: selectedEpisodeNumber,
+                    onWatchNext: {
+                        selectNextEpisode()
+                    }
+                )
+                let hostingController = UIHostingController(rootView: customMediaPlayer)
+                hostingController.modalPresentationStyle = .fullScreen
+                Logger.shared.log("Opening custom media player with url: \(url)")
+                
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let rootVC = windowScene.windows.first?.rootViewController {
+                    rootVC.present(hostingController, animated: true, completion: nil)
+                }
+                return
             default:
                 break
             }
@@ -402,6 +425,19 @@ struct MediaInfoView: View {
                     rootVC.present(videoPlayerViewController, animated: true, completion: nil)
                 }
             }
+        }
+    }
+
+    private func selectNextEpisode() {
+        guard let currentEpisodeIndex = episodeLinks.firstIndex(where: { $0.href == selectedEpisode }) else { return }
+        let nextEpisodeIndex = currentEpisodeIndex + 1
+        print(nextEpisodeIndex)
+        if nextEpisodeIndex < episodeLinks.count {
+            selectedEpisode = episodeLinks[nextEpisodeIndex].href
+            selectedEpisodeNumber = episodeLinks[nextEpisodeIndex].number
+            let nextEpisodeURL = episodeLinks[nextEpisodeIndex].href
+            fetchStream(href: nextEpisodeURL)
+            print(nextEpisodeURL)
         }
     }
     

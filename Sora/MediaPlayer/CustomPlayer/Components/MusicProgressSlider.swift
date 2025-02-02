@@ -35,7 +35,7 @@ struct MusicProgressSlider<T: BinaryFloatingPoint>: View {
                             .mask({
                                 HStack {
                                     Rectangle()
-                                        .frame(width: max(bounds.size.width * CGFloat((localRealProgress + localTempProgress)), 0), alignment: .leading)
+                                        .frame(width: max((bounds.size.width * CGFloat(localRealProgress + localTempProgress)).isFinite ? bounds.size.width * CGFloat(localRealProgress + localTempProgress) : 0, 0), alignment: .leading)
                                     Spacer(minLength: 0)
                                 }
                             })
