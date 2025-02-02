@@ -34,7 +34,6 @@ struct MediaInfoView: View {
     @State var isRefetching: Bool = true
     @State var isFetchingEpisode: Bool = false
     
-    @State private var selectedEpisode: String = ""
     @State private var selectedEpisodeNumber: Int = 0
     
     @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
@@ -427,18 +426,17 @@ struct MediaInfoView: View {
             }
         }
     }
-
+    
     private func selectNextEpisode() {
-        guard let currentEpisodeIndex = episodeLinks.firstIndex(where: { $0.href == selectedEpisode }) else { return }
-        let nextEpisodeIndex = currentEpisodeIndex + 1
-        print(nextEpisodeIndex)
-        if nextEpisodeIndex < episodeLinks.count {
-            selectedEpisode = episodeLinks[nextEpisodeIndex].href
-            selectedEpisodeNumber = episodeLinks[nextEpisodeIndex].number
-            let nextEpisodeURL = episodeLinks[nextEpisodeIndex].href
-            fetchStream(href: nextEpisodeURL)
-            print(nextEpisodeURL)
+        guard selectedEpisodeNumber + 1 < episodeLinks.count else {
+            Logger.shared.log("No more episodes to play", type: "Info")
+            return
         }
+        
+        selectedEpisodeNumber += 1
+        let nextEpisode = episodeLinks[selectedEpisodeNumber]
+        fetchStream(href: nextEpisode.href)
+        DropManager.shared.showDrop(title: "Fetching Next Episode", subtitle: "", duration: 0.5, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
     }
     
     private func openSafariViewController(with urlString: String) {
