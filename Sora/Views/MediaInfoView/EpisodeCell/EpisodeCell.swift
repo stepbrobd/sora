@@ -74,12 +74,16 @@ struct EpisodeCell: View {
                 .frame(width: 40, height: 40)
         }
         .contextMenu {
-            Button(action: markAsWatched) {
-                Label("Mark as Watched", systemImage: "checkmark.circle")
+            if currentProgress <= 0.9 {
+                Button(action: markAsWatched) {
+                    Label("Mark as Watched", systemImage: "checkmark.circle")
+                }
             }
             
-            Button(action: resetProgress) {
-                Label("Reset Progress", systemImage: "arrow.counterclockwise")
+            if currentProgress != 0 {
+                Button(action: resetProgress) {
+                    Label("Reset Progress", systemImage: "arrow.counterclockwise")
+                }
             }
         }
         .onAppear {
