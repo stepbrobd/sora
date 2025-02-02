@@ -14,6 +14,8 @@ struct ModuleMetadata: Codable, Hashable {
     let version: String
     let language: String
     let baseUrl: String
+    let streamType: String
+    let quality: String
     let searchBaseUrl: String
     let scriptUrl: String
     let asyncJS: Bool?
