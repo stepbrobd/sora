@@ -31,13 +31,32 @@ struct SearchView: View {
         return moduleManager.modules.first { $0.id.uuidString == id }
     }
     
+    private var loadingMessages: [String] = [
+        "Searching the depths...",
+        "Looking for results...",
+        "Fetching data...",
+        "Please wait...",
+        "Almost there..."
+    ]
+    
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 0) {
-                    SearchBar(text: $searchText, onSearchButtonClicked: performSearch)
-                        .padding()
-                        .disabled(selectedModule == nil)
+                    HStack {
+                        SearchBar(text: $searchText, onSearchButtonClicked: performSearch)
+                            .padding(.leading)
+                            .padding(.trailing, searchText.isEmpty ? 16 : 0)
+                            .disabled(selectedModule == nil)
+                        
+                        if !searchText.isEmpty {
+                            Button("Cancel") {
+                                searchText = ""
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            }
+                            .padding(.trailing)
+                        }
+                    }
                     
                     if selectedModule == nil {
                         VStack(spacing: 8) {
@@ -57,8 +76,13 @@ struct SearchView: View {
                     }
                     
                     if isSearching {
-                        ProgressView()
-                            .padding()
+                        VStack(spacing: 8) {
+                            ProgressView()
+                            Text(loadingMessages.randomElement() ?? "Loading...")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
                     } else if hasNoResults {
                         VStack(spacing: 8) {
                             Image(systemName: "magnifyingglass")
@@ -152,6 +176,7 @@ struct SearchView: View {
         
         isSearching = true
         hasNoResults = false
+        searchItems = []
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             Task {
