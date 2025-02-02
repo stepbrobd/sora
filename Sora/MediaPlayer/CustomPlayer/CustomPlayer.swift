@@ -21,6 +21,7 @@ struct CustomVideoPlayer: UIViewControllerRepresentable {
     
     func updateUIViewController(_ uiViewController: AVPlayerViewController, context: Context) {
         // yes? Like the plural of the famous american rapper ye? -IBHRAD
+        // low taper fade the meme is massive
     }
 }
 

@@ -42,13 +42,14 @@ struct SoraApp: App {
                   return
               }
         
-        Task {
-            do {
-                let module = try await moduleManager.addModule(metadataUrl: moduleURL)
-                DropManager.shared.showDrop(title: "Added \(module.metadata.sourceName)", subtitle: "Check settings to select it", duration: 2.0, icon: UIImage(systemName: "app.badge.checkmark"))
-            } catch {
-                Logger.shared.log("Failed to add module from URL scheme: \(error.localizedDescription)", type: "Error")
-            }
+        let addModuleView = ModuleAdditionSettingsView(moduleUrl: moduleURL).environmentObject(moduleManager)
+        let hostingController = UIHostingController(rootView: addModuleView)
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first {
+            window.rootViewController?.present(hostingController, animated: true)
+        } else {
+            Logger.shared.log("Failed to present module addition view: No window scene found", type: "Error")
         }
     }
 }

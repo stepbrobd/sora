@@ -259,8 +259,8 @@
 		13EA2BD02D32D97400C1EBD7 /* CustomPlayer */ = {
 			isa = PBXGroup;
 			children = (
-				13EA2BD12D32D97400C1EBD7 /* CustomPlayer.swift */,
 				13EA2BD22D32D97400C1EBD7 /* Components */,
+				13EA2BD12D32D97400C1EBD7 /* CustomPlayer.swift */,
 			);
 			path = CustomPlayer;
 			sourceTree = "<group>";
