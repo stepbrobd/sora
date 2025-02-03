@@ -33,7 +33,15 @@ class VideoPlayerViewController: UIViewController {
             return
         }
         
-        player = AVPlayer(url: url)
+        var request = URLRequest(url: url)
+        if streamUrl.contains("ascdn") {
+            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
+        }
+        
+        let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])
+        let playerItem = AVPlayerItem(asset: asset)
+        
+        player = AVPlayer(playerItem: playerItem)
         playerViewController = NormalPlayer()
         playerViewController?.player = player
         addPeriodicTimeObserver(fullURL: fullUrl)
