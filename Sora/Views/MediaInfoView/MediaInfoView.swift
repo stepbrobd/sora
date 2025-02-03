@@ -426,8 +426,6 @@ struct MediaInfoView: View {
                         selectNextEpisode()
                     }
                 )
-                print(Int(selectedEpisodeNumber))
-                print(selectedEpisodeNumber)
                 let hostingController = UIHostingController(rootView: customMediaPlayer)
                 hostingController.modalPresentationStyle = .fullScreen
                 Logger.shared.log("Opening custom media player with url: \(url)")

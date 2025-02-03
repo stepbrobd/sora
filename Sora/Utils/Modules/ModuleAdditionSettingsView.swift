@@ -149,7 +149,6 @@ struct ModuleAdditionSettingsView: View {
             do {
                 guard let url = URL(string: moduleUrl) else {
                     DispatchQueue.main.async {
-                        print(moduleUrl)
                         self.errorMessage = "Invalid URL"
                         self.isLoading = false
                     }
