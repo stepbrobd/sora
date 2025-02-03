@@ -68,7 +68,7 @@ struct LibraryView: View {
                 }
             }
             .navigationTitle("Library")
-            .navigationViewStyle(StackNavigationViewStyle())
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
 }
