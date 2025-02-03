@@ -21,7 +21,7 @@ struct CustomVideoPlayer: UIViewControllerRepresentable {
     
     func updateUIViewController(_ uiViewController: AVPlayerViewController, context: Context) {
         // yes? Like the plural of the famous american rapper ye? -IBHRAD
-        // low taper fade the meme is massive
+        // low taper fade the meme is massive -cranci
     }
 }
 
@@ -156,7 +156,7 @@ struct CustomMediaPlayer: View {
                                     .padding(.horizontal, 32)
                                 }
                                 Spacer()
-                                if duration - currentTime <= duration * 0.10 && currentTime != duration && showWatchNextButton {
+                                if duration - currentTime <= duration * 0.10 && currentTime != duration && showWatchNextButton && duration != 0 {
                                     Button(action: {
                                         player.pause()
                                         presentationMode.wrappedValue.dismiss()

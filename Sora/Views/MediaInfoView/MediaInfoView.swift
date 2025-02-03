@@ -107,7 +107,7 @@ struct MediaInfoView: View {
                                                 .frame(width: 20, height: 20)
                                                 .foregroundColor(.primary)
                                         }
-                                        .padding(5)
+                                        .padding(4)
                                         .background(Capsule().fill(Color.accentColor.opacity(0.4)))
                                     }
                                 }
@@ -139,11 +139,12 @@ struct MediaInfoView: View {
                         
                         HStack {
                             Button(action: {
+                                playFirstUnwatchedEpisode()
                             }) {
                                 HStack {
                                     Image(systemName: "play.fill")
                                         .foregroundColor(.primary)
-                                    Text("Start Watching")
+                                    Text(startWatchingText)
                                         .font(.headline)
                                         .foregroundColor(.primary)
                                 }
@@ -205,7 +206,6 @@ struct MediaInfoView: View {
                                             if !isFetchingEpisode {
                                                 isFetchingEpisode = true
                                                 fetchStream(href: ep.href)
-                                                DropManager.shared.showDrop(title: "Fetching Stream", subtitle: "", duration: 0.5, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
                                             }
                                         }
                                         .disabled(isFetchingEpisode)
@@ -267,6 +267,35 @@ struct MediaInfoView: View {
         }
     }
     
+    private var startWatchingText: String {
+        for ep in episodeLinks {
+            let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+            let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+            let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
+            if progress >= 0.1 && (totalTime - lastPlayedTime) > (totalTime * 0.1) {
+                return "Continue Watching Episode \(ep.number)"
+            }
+        }
+        return "Start Watching"
+    }
+    
+    private func playFirstUnwatchedEpisode() {
+        for ep in episodeLinks {
+            let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+            let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+            let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
+            if progress >= 0.1 && (totalTime - lastPlayedTime) > (totalTime * 0.1) {
+                selectedEpisodeNumber = ep.number
+                fetchStream(href: ep.href)
+                return
+            }
+        }
+        if let firstEpisode = episodeLinks.first {
+            selectedEpisodeNumber = firstEpisode.number
+            fetchStream(href: firstEpisode.href)
+        }
+    }
+    
     private func generateRanges() -> [Range<Int>] {
         let chunkSize = episodeChunkSize
         let totalEpisodes = episodeLinks.count
@@ -297,8 +326,7 @@ struct MediaInfoView: View {
                             self.isLoading = false
                             self.isRefetching = false
                         }
-                    }
-                    else {
+                    } else {
                         jsController.fetchDetails(url: href) { items, episodes in
                             if let item = items.first {
                                 self.synopsis = item.description
@@ -320,6 +348,7 @@ struct MediaInfoView: View {
     }
     
     func fetchStream(href: String) {
+        DropManager.shared.showDrop(title: "Fetching Stream", subtitle: "", duration: 0.5, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             Task {
                 do {
@@ -397,6 +426,8 @@ struct MediaInfoView: View {
                         selectNextEpisode()
                     }
                 )
+                print(Int(selectedEpisodeNumber))
+                print(selectedEpisodeNumber)
                 let hostingController = UIHostingController(rootView: customMediaPlayer)
                 hostingController.modalPresentationStyle = .fullScreen
                 Logger.shared.log("Opening custom media player with url: \(url)")

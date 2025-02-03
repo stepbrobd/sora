@@ -26,8 +26,8 @@ struct EpisodeCell: View {
     @State private var currentProgress: Double = 0.0
     
     private func markAsWatched() {
-        UserDefaults.standard.set(9999999.0, forKey: "lastPlayedTime_\(episode)")
-        UserDefaults.standard.set(9999999.0, forKey: "totalTime_\(episode)")
+        UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(episode)")
+        UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(episode)")
         updateProgress()
     }
     
