@@ -21,13 +21,19 @@ class JSController: ObservableObject {
         }
         context.setObject(logFunction, forKeyedSubscript: "log" as NSString)
         
-        let fetchNativeFunction: @convention(block) (String, JSValue, JSValue) -> Void = { urlString, resolve, reject in
+        let fetchNativeFunction: @convention(block) (String, [String: String]?, JSValue, JSValue) -> Void = { urlString, headers, resolve, reject in
             guard let url = URL(string: urlString) else {
                 Logger.shared.log("Invalid URL",type: "Error")
                 reject.call(withArguments: ["Invalid URL"])
                 return
             }
-            let task = URLSession.custom.dataTask(with: url) { data, _, error in
+            var request = URLRequest(url: url)
+            if let headers = headers {
+                for (key, value) in headers {
+                    request.setValue(value, forHTTPHeaderField: key)
+                }
+            }
+            let task = URLSession.custom.dataTask(with: request) { data, _, error in
                 if let error = error {
                     Logger.shared.log("Network error in fetchNativeFunction: \(error.localizedDescription)",type: "Error")
                     reject.call(withArguments: [error.localizedDescription])
@@ -50,12 +56,12 @@ class JSController: ObservableObject {
         context.setObject(fetchNativeFunction, forKeyedSubscript: "fetchNative" as NSString)
         
         let fetchDefinition = """
-                    function fetch(url) {
-                        return new Promise(function(resolve, reject) {
-                            fetchNative(url, resolve, reject);
-                        });
-                    }
-                    """
+                        function fetch(url, headers) {
+                            return new Promise(function(resolve, reject) {
+                                fetchNative(url, headers, resolve, reject);
+                            });
+                        }
+                        """
         context.evaluateScript(fetchDefinition)
     }
     
