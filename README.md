@@ -4,9 +4,9 @@
 
 <img src="https://raw.githubusercontent.com/cranci1/Sora/refs/heads/main/assets/Sora_banner.png" width="500px">
 
-[![Build and Release IPA](https://github.com/cranci1/Sora/actions/workflows/build.yml/badge.svg)](https://github.com/cranci1/Sora/actions/workflows/build.yml) [![Discord](https://img.shields.io/discord/1293430817841741899.svg?logo=discord&color=blue)](https://discord.gg/XR3SrmUbpd) [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2015.0%2B-orange?logo=apple&logoColor=white)](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2015.0%2B-red?logo=apple&logoColor=white)
+[![Build and Release IPA](https://github.com/cranci1/Sora/actions/workflows/build.yml/badge.svg)](https://github.com/cranci1/Sora/actions/workflows/build.yml) [![Discord](https://img.shields.io/discord/1293430817841741899.svg?logo=discord&color=blue)](https://discord.gg/XR3SrmUbpd) [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2015.0%2B%20%26%20macOS%2012.0%2B-red?logo=apple&logoColor=white)](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2015.0%2B%20%26%20macOS%2012.0%2B-red?logo=apple&logoColor=white)
 
-A modular web scraping app, under the GPLv3.0 License
+An iOS and macOS modular web scraping app, under the GPLv3.0 License.
 
 </div>
 
@@ -20,23 +20,26 @@ A modular web scraping app, under the GPLv3.0 License
 
 ## Features
 
-- [x] iOS/iPadOS 15+ support
+- [x] iOS/iPadOS 15.0+ support
+- [x] macOS support 12.0+
 - [x] JavaScript module support
-- [ ] macOS support
+- [x] Local Library
+- [x] Streams support (Jellyfin/Plex like servers)
+- [x] External Media players (VLC, infuse, Outplayer, nPlayer)
 
 ## Frequently Asked Questions
 
 1. **What is Sora?**
-Sora is a module based web scraping app, made to work with modules only.
+Sora is a modular web scraping application designed to work exclusively with custom modules.
 
 2. **Is Sora safe?**
-Yes, Sora is open-source and does not store user data on external servers.
+Yes, Sora is open-source and prioritizes user privacy. It does not store user data on external servers and does not collect crash logs.
 
 3. **Will Sora ever be paid?**
 No, Sora will always remain free without subscriptions, paid content, or any type of login.
 
 4. **How can i get module?**
-Sora does not include any modules by default. You will need to find and add the necessary modules yourself.
+Sora does not include any modules by default. You will need to find and add the necessary modules yourself, or make them.
 
 ## Acknowledgements
 
