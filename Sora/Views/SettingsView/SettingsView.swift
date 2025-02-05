@@ -23,7 +23,10 @@ struct SettingsView: View {
                     }
                 }
                 
-                Section(header: Text("Debug")) {
+                Section(header: Text("Info")) {
+                    NavigationLink(destination: SettingsViewData()) {
+                        Text("Data")
+                    }
                     NavigationLink(destination: SettingsViewLogger()) {
                         Text("Logs")
                     }
