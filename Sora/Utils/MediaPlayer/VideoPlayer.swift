@@ -97,7 +97,7 @@ class VideoPlayerViewController: UIViewController {
     }
     
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        if UserDefaults.standard.bool(forKey: "AlwaysLandscape") {
+        if UserDefaults.standard.bool(forKey: "alwaysLandscape") {
             return .landscape
         } else {
             return .all

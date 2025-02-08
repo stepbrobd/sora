@@ -9,8 +9,9 @@ import SwiftUI
 
 struct SettingsViewPlayer: View {
     @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
-    @AppStorage("AlwaysLandscape") private var isAlwaysLandscape = false
+    @AppStorage("alwaysLandscape") private var isAlwaysLandscape = false
     @AppStorage("hideNextButton") private var isHideNextButton = false
+    @AppStorage("rememberPlaySpeed") private var isRememberPlaySpeed = false
     @AppStorage("holdSpeedPlayer") private var holdSpeedPlayer: Double = 2.0
     
     private let mediaPlayers = ["Default", "VLC", "OutPlayer", "Infuse", "nPlayer", "Sora"]
@@ -36,6 +37,9 @@ struct SettingsViewPlayer: View {
                     .tint(.accentColor)
                 
                 Toggle("Force Landscape", isOn: $isAlwaysLandscape)
+                    .tint(.accentColor)
+                
+                Toggle("Remember Playback speed", isOn: $isRememberPlaySpeed)
                     .tint(.accentColor)
                 
                 HStack {
