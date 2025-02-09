@@ -104,7 +104,7 @@ struct SearchView: View {
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 16) {
                                 ForEach(searchItems) { item in
                                     NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: selectedModule!)) {
-                                        VStack(alignment: .leading, spacing: 8) {
+                                        VStack {
                                             KFImage(URL(string: item.imageUrl))
                                                 .resizable()
                                                 .aspectRatio(2/3, contentMode: .fill)

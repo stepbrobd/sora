@@ -8,37 +8,6 @@
 import SwiftUI
 import Kingfisher
 
-struct Shimmer: ViewModifier {
-    @State private var phase: CGFloat = -1
-    
-    func body(content: Content) -> some View {
-        content
-            .overlay(
-                Rectangle()
-                    .fill(
-                        LinearGradient(
-                            gradient: Gradient(stops: [
-                                .init(color: Color.white.opacity(0.0), location: 0.3),
-                                .init(color: Color.white.opacity(0.6), location: 0.5),
-                                .init(color: Color.white.opacity(0.0), location: 0.7)
-                            ]),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .rotationEffect(.degrees(20))
-                    .offset(x: self.phase * 300)
-                    .blendMode(.plusLighter)
-            )
-            .mask(content)
-            .onAppear {
-                withAnimation(Animation.linear(duration: 1.5).repeatForever(autoreverses: false)) {
-                    self.phase = 1
-                }
-            }
-    }
-}
-
 struct HomeView: View {
     @State private var aniListItems: [AniListItem] = []
     @State private var trendingItems: [AniListItem] = []
