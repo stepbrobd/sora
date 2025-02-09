@@ -15,7 +15,6 @@ class NormalPlayer: AVPlayerViewController {
         super.viewDidLoad()
         setupHoldGesture()
         setupAudioSession()
-        setInitialPlayerRate()
     }
     
     private func setupHoldGesture() {
@@ -57,13 +56,6 @@ class NormalPlayer: AVPlayerViewController {
             try audioSession.overrideOutputAudioPort(.speaker)
         } catch {
             Logger.shared.log("Failed to set up AVAudioSession: \(error)")
-        }
-    }
-    
-    private func setInitialPlayerRate() {
-        if UserDefaults.standard.bool(forKey: "rememberPlaySpeed") {
-            let lastPlayedSpeed = UserDefaults.standard.float(forKey: "lastPlayedSpeed")
-            player?.rate = lastPlayedSpeed > 0 ? lastPlayedSpeed : 1.0
         }
     }
 }

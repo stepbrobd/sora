@@ -176,7 +176,7 @@ struct ModuleAdditionSettingsView: View {
                 let _ = try await moduleManager.addModule(metadataUrl: moduleUrl)
                 DispatchQueue.main.async {
                     isLoading = false
-                    DropManager.shared.showDrop(title: "Module Added", subtitle: "clicking it to select it", duration: 2.0, icon: UIImage(systemName:"app.badge.checkmark"))
+                    DropManager.shared.showDrop(title: "Module Added", subtitle: "click it to select it", duration: 2.0, icon: UIImage(systemName:"app.badge.checkmark"))
                     self.presentationMode.wrappedValue.dismiss()
                 }
             } catch {
