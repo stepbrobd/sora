@@ -39,30 +39,6 @@ struct Shimmer: ViewModifier {
     }
 }
 
-extension View {
-    func shimmering() -> some View {
-        self.modifier(Shimmer())
-    }
-}
-
-struct SkeletonCell: View {
-    var body: some View {
-        VStack {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color.gray.opacity(0.3))
-                .frame(width: 130, height: 195)
-                .cornerRadius(10)
-                .shimmering()
-            
-            RoundedRectangle(cornerRadius: 5)
-                .fill(Color.gray.opacity(0.3))
-                .frame(width: 130, height: 20)
-                .padding(.top, 4)
-                .shimmering()
-        }
-    }
-}
-
 struct HomeView: View {
     @State private var aniListItems: [AniListItem] = []
     @State private var trendingItems: [AniListItem] = []
@@ -111,7 +87,7 @@ struct HomeView: View {
                         HStack(spacing: 8) {
                             if aniListItems.isEmpty {
                                 ForEach(0..<5, id: \.self) { _ in
-                                    SkeletonCell()
+                                    HomeSkeletonCell()
                                 }
                             } else {
                                 ForEach(aniListItems, id: \.id) { item in
@@ -155,7 +131,7 @@ struct HomeView: View {
                         HStack(spacing: 8) {
                             if trendingItems.isEmpty {
                                 ForEach(0..<5, id: \.self) { _ in
-                                    SkeletonCell()
+                                    HomeSkeletonCell()
                                 }
                             } else {
                                 ForEach(trendingItems, id: \.id) { item in

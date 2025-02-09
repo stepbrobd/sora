@@ -77,51 +77,53 @@ struct SearchView: View {
                         .shadow(color: Color.black.opacity(0.1), radius: 2, y: 1)
                     }
                     
-                    if isSearching {
-                        VStack(spacing: 8) {
-                            ProgressView()
-                            Text(loadingMessages.randomElement() ?? "Loading...")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding()
-                    } else if hasNoResults {
-                        VStack(spacing: 8) {
-                            Image(systemName: "magnifyingglass")
-                                .font(.largeTitle)
-                                .foregroundColor(.secondary)
-                            Text("No Results Found")
-                                .font(.headline)
-                            Text("Try different keywords")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .padding(.top)
-                    }
-                    
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 16) {
-                        ForEach(searchItems) { item in
-                            NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: selectedModule!)) {
-                                VStack {
-                                    KFImage(URL(string: item.imageUrl))
-                                        .resizable()
-                                        .aspectRatio(2/3, contentMode: .fill)
-                                        .cornerRadius(10)
-                                        .frame(width: 150, height: 225)
-                                    
-                                    Text(item.title)
-                                        .font(.subheadline)
-                                        .foregroundColor(Color.primary)
-                                        .padding([.leading, .bottom], 8)
-                                        .lineLimit(1)
+                    if !searchText.isEmpty {
+                        if isSearching {
+                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 16) {
+                                ForEach(0..<6, id: \.self) { _ in
+                                    SearchSkeletonCell()
                                 }
                             }
+                            .padding(.top)
+                            .padding()
+                        } else if hasNoResults {
+                            VStack(spacing: 8) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.largeTitle)
+                                    .foregroundColor(.secondary)
+                                Text("No Results Found")
+                                    .font(.headline)
+                                Text("Try different keywords")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .padding(.top)
+                        } else {
+                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 16) {
+                                ForEach(searchItems) { item in
+                                    NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: selectedModule!)) {
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            KFImage(URL(string: item.imageUrl))
+                                                .resizable()
+                                                .aspectRatio(2/3, contentMode: .fill)
+                                                .cornerRadius(10)
+                                                .frame(width: 150, height: 225)
+                                            
+                                            Text(item.title)
+                                                .font(.subheadline)
+                                                .foregroundColor(Color.primary)
+                                                .padding([.leading, .bottom], 8)
+                                                .lineLimit(1)
+                                        }
+                                    }
+                                }
+                            }
+                            .padding(.top)
+                            .padding()
                         }
                     }
-                    .padding(.top)
-                    .padding()
                 }
             }
             .navigationTitle("Search")
@@ -166,6 +168,13 @@ struct SearchView: View {
         .onChange(of: selectedModuleId) { _ in
             if !searchText.isEmpty {
                 performSearch()
+            }
+        }
+        .onChange(of: searchText) { newValue in
+            if newValue.isEmpty {
+                searchItems = []
+                hasNoResults = false
+                isSearching = false
             }
         }
     }
