@@ -66,15 +66,4 @@ class NormalPlayer: AVPlayerViewController {
             player?.rate = lastPlayedSpeed > 0 ? lastPlayedSpeed : 1.0
         }
     }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        saveCurrentPlayerRate()
-    }
-    
-    private func saveCurrentPlayerRate() {
-        if UserDefaults.standard.bool(forKey: "rememberPlaySpeed"), let player = player {
-            UserDefaults.standard.set(player.rate, forKey: "lastPlayedSpeed")
-        }
-    }
 }

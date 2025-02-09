@@ -76,6 +76,9 @@ class VideoPlayerViewController: UIViewController {
             player?.removeTimeObserver(timeObserverToken)
             self.timeObserverToken = nil
         }
+        if let player = player {
+            UserDefaults.standard.set(player.rate, forKey: "lastPlayedSpeed")
+        }
     }
     
     func addPeriodicTimeObserver(fullURL: String) {
