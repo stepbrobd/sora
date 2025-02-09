@@ -187,7 +187,6 @@ struct HomeView: View {
                     }
                 }
                 .padding(.bottom, 16)
-                .padding(.leading, 7)
             }
             .navigationTitle("Home")
         }
@@ -203,5 +202,6 @@ struct HomeView: View {
                 }
             }
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
 }
