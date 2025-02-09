@@ -38,7 +38,9 @@ struct SettingsViewPlayer: View {
                 
                 Toggle("Force Landscape", isOn: $isAlwaysLandscape)
                     .tint(.accentColor)
-                
+            }
+            
+            Section(header: Text("Speed Settings")) {
                 Toggle("Remember Playback speed", isOn: $isRememberPlaySpeed)
                     .tint(.accentColor)
                 

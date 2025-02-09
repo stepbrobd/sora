@@ -67,14 +67,26 @@ class VideoPlayerViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         player?.play()
+        setInitialPlayerRate()
     }
     
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
+        if let playbackSpeed = player?.rate {
+            UserDefaults.standard.set(playbackSpeed, forKey: "lastPlaybackSpeed")
+        }
+        
         player?.pause()
         if let timeObserverToken = timeObserverToken {
             player?.removeTimeObserver(timeObserverToken)
             self.timeObserverToken = nil
+        }
+    }
+    
+    private func setInitialPlayerRate() {
+        if UserDefaults.standard.bool(forKey: "rememberPlaySpeed") {
+            let lastPlayedSpeed = UserDefaults.standard.float(forKey: "lastPlaybackSpeed")
+            player?.rate = lastPlayedSpeed > 0 ? lastPlayedSpeed : 1.0
         }
     }
     

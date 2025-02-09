@@ -48,6 +48,7 @@ struct SearchView: View {
                             .padding(.leading)
                             .padding(.trailing, searchText.isEmpty ? 16 : 0)
                             .disabled(selectedModule == nil)
+                            .padding(.top)
                         
                         if !searchText.isEmpty {
                             Button("Cancel") {
@@ -55,6 +56,7 @@ struct SearchView: View {
                                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                             }
                             .padding(.trailing)
+                            .padding(.top)
                         }
                     }
                     
@@ -96,6 +98,7 @@ struct SearchView: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity)
+                        .padding(.top)
                     }
                     
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 16) {
@@ -117,6 +120,7 @@ struct SearchView: View {
                             }
                         }
                     }
+                    .padding(.top)
                     .padding()
                 }
             }
