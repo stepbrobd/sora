@@ -80,7 +80,7 @@ struct SearchView: View {
                     if !searchText.isEmpty {
                         if isSearching {
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 16) {
-                                ForEach(0..<6, id: \.self) { _ in
+                                ForEach(0..<2, id: \.self) { _ in
                                     SearchSkeletonCell()
                                 }
                             }
