@@ -75,7 +75,6 @@ class VideoPlayerViewController: UIViewController {
         if let playbackSpeed = player?.rate {
             UserDefaults.standard.set(playbackSpeed, forKey: "lastPlaybackSpeed")
         }
-        
         player?.pause()
         if let timeObserverToken = timeObserverToken {
             player?.removeTimeObserver(timeObserverToken)

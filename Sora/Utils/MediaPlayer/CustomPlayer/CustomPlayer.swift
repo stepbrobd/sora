@@ -83,6 +83,7 @@ struct CustomMediaPlayer: View {
                                 }
                             }
                             startUpdatingCurrentTime()
+                            setInitialPlayerRate()
                             addPeriodicTimeObserver(fullURL: fullUrl)
                         }
                         .edgesIgnoringSafeArea(.all)
@@ -229,6 +230,7 @@ struct CustomMediaPlayer: View {
                         startUpdatingCurrentTime()
                     }
                     .onDisappear {
+                        UserDefaults.standard.set(player.rate, forKey: "lastPlaybackSpeed")
                         player.pause()
                         inactivityTimer?.invalidate()
                         if let timeObserverToken = timeObserverToken {
@@ -262,6 +264,13 @@ struct CustomMediaPlayer: View {
     private func startUpdatingCurrentTime() {
         Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             currentTime = player.currentTime().seconds
+        }
+    }
+    
+    private func setInitialPlayerRate() {
+        if UserDefaults.standard.bool(forKey: "rememberPlaySpeed") {
+            let lastPlayedSpeed = UserDefaults.standard.float(forKey: "lastPlaybackSpeed")
+            player.rate = lastPlayedSpeed > 0 ? lastPlayedSpeed : 1.0
         }
     }
     

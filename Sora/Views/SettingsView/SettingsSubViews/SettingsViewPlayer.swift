@@ -14,11 +14,11 @@ struct SettingsViewPlayer: View {
     @AppStorage("rememberPlaySpeed") private var isRememberPlaySpeed = false
     @AppStorage("holdSpeedPlayer") private var holdSpeedPlayer: Double = 2.0
     
-    private let mediaPlayers = ["Default", "VLC", "OutPlayer", "Infuse", "nPlayer", "Sora"]
+    private let mediaPlayers = ["Default", "Sora", "VLC", "OutPlayer", "Infuse", "nPlayer"]
     
     var body: some View {
         Form {
-            Section(header: Text("Media Player"), footer: Text("The Force Landscape and HoldSpeed only work inside the default iOS player and Sora player.")) {
+            Section(header: Text("Media Player"), footer: Text("Some features are limited to Sora while others are limited to the Default player, such as ForceLandscape and holdSpeed.")) {
                 HStack {
                     Text("Media Player")
                     Spacer()
