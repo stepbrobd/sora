@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		130C6BFA2D53AB1F00DC1432 /* SettingsViewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 130C6BF92D53AB1F00DC1432 /* SettingsViewData.swift */; };
+		13103E842D589D8B000F0673 /* AniList-Seasonal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13103E832D589D8B000F0673 /* AniList-Seasonal.swift */; };
+		13103E862D58A328000F0673 /* AniList-Trending.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13103E852D58A328000F0673 /* AniList-Trending.swift */; };
+		13103E892D58A39A000F0673 /* AniListItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13103E882D58A39A000F0673 /* AniListItem.swift */; };
 		131845F92D47C62D00CA7A54 /* SettingsViewGeneral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 131845F82D47C62D00CA7A54 /* SettingsViewGeneral.swift */; };
 		133D7C6E2D2BE2500075467E /* SoraApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C6D2D2BE2500075467E /* SoraApp.swift */; };
 		133D7C702D2BE2500075467E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C6F2D2BE2500075467E /* ContentView.swift */; };
@@ -45,6 +48,9 @@
 /* Begin PBXFileReference section */
 		130C6BF82D53A4C200DC1432 /* Sora.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Sora.entitlements; sourceTree = "<group>"; };
 		130C6BF92D53AB1F00DC1432 /* SettingsViewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewData.swift; sourceTree = "<group>"; };
+		13103E832D589D8B000F0673 /* AniList-Seasonal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AniList-Seasonal.swift"; sourceTree = "<group>"; };
+		13103E852D58A328000F0673 /* AniList-Trending.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AniList-Trending.swift"; sourceTree = "<group>"; };
+		13103E882D58A39A000F0673 /* AniListItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AniListItem.swift; sourceTree = "<group>"; };
 		131845F82D47C62D00CA7A54 /* SettingsViewGeneral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewGeneral.swift; sourceTree = "<group>"; };
 		133D7C6A2D2BE2500075467E /* Sora.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sora.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		133D7C6D2D2BE2500075467E /* SoraApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoraApp.swift; sourceTree = "<group>"; };
@@ -92,6 +98,40 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		13103E802D589D6C000F0673 /* Tracking Services */ = {
+			isa = PBXGroup;
+			children = (
+				13103E812D589D77000F0673 /* AniList */,
+			);
+			path = "Tracking Services";
+			sourceTree = "<group>";
+		};
+		13103E812D589D77000F0673 /* AniList */ = {
+			isa = PBXGroup;
+			children = (
+				13103E872D58A392000F0673 /* Struct */,
+				13103E822D589D7D000F0673 /* HomePage */,
+			);
+			path = AniList;
+			sourceTree = "<group>";
+		};
+		13103E822D589D7D000F0673 /* HomePage */ = {
+			isa = PBXGroup;
+			children = (
+				13103E832D589D8B000F0673 /* AniList-Seasonal.swift */,
+				13103E852D58A328000F0673 /* AniList-Trending.swift */,
+			);
+			path = HomePage;
+			sourceTree = "<group>";
+		};
+		13103E872D58A392000F0673 /* Struct */ = {
+			isa = PBXGroup;
+			children = (
+				13103E882D58A39A000F0673 /* AniListItem.swift */,
+			);
+			path = Struct;
+			sourceTree = "<group>";
+		};
 		133D7C612D2BE2500075467E = {
 			isa = PBXGroup;
 			children = (
@@ -113,6 +153,7 @@
 			children = (
 				130C6BF82D53A4C200DC1432 /* Sora.entitlements */,
 				13DC0C412D2EC9BA00D0F966 /* Info.plist */,
+				13103E802D589D6C000F0673 /* Tracking Services */,
 				133D7C852D2BE2640075467E /* Utils */,
 				133D7C7B2D2BE2630075467E /* Views */,
 				133D7C6D2D2BE2500075467E /* SoraApp.swift */,
@@ -373,8 +414,10 @@
 				133D7C932D2BE2640075467E /* Modules.swift in Sources */,
 				133D7C702D2BE2500075467E /* ContentView.swift in Sources */,
 				13D99CF72D4E73C300250A86 /* ModuleAdditionSettingsView.swift in Sources */,
+				13103E862D58A328000F0673 /* AniList-Trending.swift in Sources */,
 				13EA2BD62D32D97400C1EBD7 /* Double+Extension.swift in Sources */,
 				133D7C8F2D2BE2640075467E /* MediaInfoView.swift in Sources */,
+				13103E892D58A39A000F0673 /* AniListItem.swift in Sources */,
 				131845F92D47C62D00CA7A54 /* SettingsViewGeneral.swift in Sources */,
 				133D7C8D2D2BE2640075467E /* HomeView.swift in Sources */,
 				13EA2BDC2D32D9FF00C1EBD7 /* MiruDataStruct.swift in Sources */,
@@ -385,6 +428,7 @@
 				133D7C922D2BE2640075467E /* URLSession.swift in Sources */,
 				133D7C912D2BE2640075467E /* SettingsViewModule.swift in Sources */,
 				133F55BB2D33B55100E08EEA /* LibraryManager.swift in Sources */,
+				13103E842D589D8B000F0673 /* AniList-Seasonal.swift in Sources */,
 				133D7C8E2D2BE2640075467E /* LibraryView.swift in Sources */,
 				133D7C6E2D2BE2500075467E /* SoraApp.swift in Sources */,
 				138AA1B92D2D66FD0021F9DF /* CircularProgressBar.swift in Sources */,
