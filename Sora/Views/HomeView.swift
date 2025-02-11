@@ -60,26 +60,29 @@ struct HomeView: View {
                                 }
                             } else {
                                 ForEach(aniListItems, id: \.id) { item in
-                                    VStack {
-                                        KFImage(URL(string: item.coverImage.large))
-                                            .placeholder {
-                                                RoundedRectangle(cornerRadius: 10)
-                                                    .fill(Color.gray.opacity(0.3))
-                                                    .frame(width: 130, height: 195)
-                                                    .shimmering()
-                                            }
-                                            .setProcessor(RoundCornerImageProcessor(cornerRadius: 10))
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(width: 130, height: 195)
-                                            .cornerRadius(10)
-                                            .clipped()
-                                        
-                                        Text(item.title.romaji)
-                                            .font(.caption)
-                                            .frame(width: 130)
-                                            .lineLimit(1)
-                                            .multilineTextAlignment(.center)
+                                    NavigationLink(destination: AniListDetailsView(animeID: item.id)) {
+                                        VStack {
+                                            KFImage(URL(string: item.coverImage.large))
+                                                .placeholder {
+                                                    RoundedRectangle(cornerRadius: 10)
+                                                        .fill(Color.gray.opacity(0.3))
+                                                        .frame(width: 130, height: 195)
+                                                        .shimmering()
+                                                }
+                                                .setProcessor(RoundCornerImageProcessor(cornerRadius: 10))
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: 130, height: 195)
+                                                .cornerRadius(10)
+                                                .clipped()
+                                            
+                                            Text(item.title.romaji)
+                                                .font(.caption)
+                                                .frame(width: 130)
+                                                .lineLimit(1)
+                                                .multilineTextAlignment(.center)
+                                                .foregroundColor(.primary)
+                                        }
                                     }
                                 }
                             }
@@ -104,26 +107,29 @@ struct HomeView: View {
                                 }
                             } else {
                                 ForEach(trendingItems, id: \.id) { item in
-                                    VStack {
-                                        KFImage(URL(string: item.coverImage.large))
-                                            .placeholder {
-                                                RoundedRectangle(cornerRadius: 10)
-                                                    .fill(Color.gray.opacity(0.3))
-                                                    .frame(width: 130, height: 195)
-                                                    .shimmering()
-                                            }
-                                            .setProcessor(RoundCornerImageProcessor(cornerRadius: 10))
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(width: 130, height: 195)
-                                            .cornerRadius(10)
-                                            .clipped()
-                                        
-                                        Text(item.title.romaji)
-                                            .font(.caption)
-                                            .frame(width: 130)
-                                            .lineLimit(1)
-                                            .multilineTextAlignment(.center)
+                                    NavigationLink(destination: AniListDetailsView(animeID: item.id)) {
+                                        VStack {
+                                            KFImage(URL(string: item.coverImage.large))
+                                                .placeholder {
+                                                    RoundedRectangle(cornerRadius: 10)
+                                                        .fill(Color.gray.opacity(0.3))
+                                                        .frame(width: 130, height: 195)
+                                                        .shimmering()
+                                                }
+                                                .setProcessor(RoundCornerImageProcessor(cornerRadius: 10))
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: 130, height: 195)
+                                                .cornerRadius(10)
+                                                .clipped()
+                                            
+                                            Text(item.title.romaji)
+                                                .font(.caption)
+                                                .frame(width: 130)
+                                                .lineLimit(1)
+                                                .multilineTextAlignment(.center)
+                                                .foregroundColor(.primary)
+                                        }
                                     }
                                 }
                             }

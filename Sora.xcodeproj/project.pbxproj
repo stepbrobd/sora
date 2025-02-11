@@ -30,6 +30,8 @@
 		133D7C972D2BE2AF0075467E /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 133D7C962D2BE2AF0075467E /* Kingfisher */; };
 		133F55BB2D33B55100E08EEA /* LibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133F55BA2D33B55100E08EEA /* LibraryManager.swift */; };
 		135CCBE22D4D1138008B9C0E /* SettingsViewPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135CCBE12D4D1138008B9C0E /* SettingsViewPlayer.swift */; };
+		136F21B92D5B8DD8006409AC /* AniList-MediaInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136F21B82D5B8DD8006409AC /* AniList-MediaInfo.swift */; };
+		136F21BC2D5B8F29006409AC /* AniList-DetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136F21BB2D5B8F29006409AC /* AniList-DetailsView.swift */; };
 		138AA1B82D2D66FD0021F9DF /* EpisodeCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138AA1B62D2D66FD0021F9DF /* EpisodeCell.swift */; };
 		138AA1B92D2D66FD0021F9DF /* CircularProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138AA1B72D2D66FD0021F9DF /* CircularProgressBar.swift */; };
 		139935662D468C450065CEFF /* ModuleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 139935652D468C450065CEFF /* ModuleManager.swift */; };
@@ -73,6 +75,8 @@
 		133D7C8B2D2BE2640075467E /* JSController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSController.swift; sourceTree = "<group>"; };
 		133F55BA2D33B55100E08EEA /* LibraryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryManager.swift; sourceTree = "<group>"; };
 		135CCBE12D4D1138008B9C0E /* SettingsViewPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewPlayer.swift; sourceTree = "<group>"; };
+		136F21B82D5B8DD8006409AC /* AniList-MediaInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AniList-MediaInfo.swift"; sourceTree = "<group>"; };
+		136F21BB2D5B8F29006409AC /* AniList-DetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AniList-DetailsView.swift"; sourceTree = "<group>"; };
 		138AA1B62D2D66FD0021F9DF /* EpisodeCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpisodeCell.swift; sourceTree = "<group>"; };
 		138AA1B72D2D66FD0021F9DF /* CircularProgressBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CircularProgressBar.swift; sourceTree = "<group>"; };
 		139935652D468C450065CEFF /* ModuleManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModuleManager.swift; sourceTree = "<group>"; };
@@ -115,6 +119,7 @@
 		13103E812D589D77000F0673 /* AniList */ = {
 			isa = PBXGroup;
 			children = (
+				136F21B72D5B8DAC006409AC /* MediaInfo */,
 				13103E872D58A392000F0673 /* Struct */,
 				13103E822D589D7D000F0673 /* HomePage */,
 			);
@@ -124,6 +129,7 @@
 		13103E822D589D7D000F0673 /* HomePage */ = {
 			isa = PBXGroup;
 			children = (
+				136F21BA2D5B8F17006409AC /* DetailsView */,
 				13103E832D589D8B000F0673 /* AniList-Seasonal.swift */,
 				13103E852D58A328000F0673 /* AniList-Trending.swift */,
 			);
@@ -270,6 +276,22 @@
 				133D7C7E2D2BE2630075467E /* LibraryView.swift */,
 			);
 			path = LibraryView;
+			sourceTree = "<group>";
+		};
+		136F21B72D5B8DAC006409AC /* MediaInfo */ = {
+			isa = PBXGroup;
+			children = (
+				136F21B82D5B8DD8006409AC /* AniList-MediaInfo.swift */,
+			);
+			path = MediaInfo;
+			sourceTree = "<group>";
+		};
+		136F21BA2D5B8F17006409AC /* DetailsView */ = {
+			isa = PBXGroup;
+			children = (
+				136F21BB2D5B8F29006409AC /* AniList-DetailsView.swift */,
+			);
+			path = DetailsView;
 			sourceTree = "<group>";
 		};
 		138AA1B52D2D66EC0021F9DF /* EpisodeCell */ = {
@@ -430,6 +452,7 @@
 				1E9FF1D32D403E49008AC100 /* SettingsViewLoggerFilter.swift in Sources */,
 				13EA2BD92D32D98400C1EBD7 /* NormalPlayer.swift in Sources */,
 				133D7C932D2BE2640075467E /* Modules.swift in Sources */,
+				136F21B92D5B8DD8006409AC /* AniList-MediaInfo.swift in Sources */,
 				133D7C702D2BE2500075467E /* ContentView.swift in Sources */,
 				13D99CF72D4E73C300250A86 /* ModuleAdditionSettingsView.swift in Sources */,
 				13103E862D58A328000F0673 /* AniList-Trending.swift in Sources */,
@@ -447,6 +470,7 @@
 				133D7C942D2BE2640075467E /* JSController.swift in Sources */,
 				133D7C922D2BE2640075467E /* URLSession.swift in Sources */,
 				133D7C912D2BE2640075467E /* SettingsViewModule.swift in Sources */,
+				136F21BC2D5B8F29006409AC /* AniList-DetailsView.swift in Sources */,
 				133F55BB2D33B55100E08EEA /* LibraryManager.swift in Sources */,
 				13103E842D589D8B000F0673 /* AniList-Seasonal.swift in Sources */,
 				133D7C8E2D2BE2640075467E /* LibraryView.swift in Sources */,
