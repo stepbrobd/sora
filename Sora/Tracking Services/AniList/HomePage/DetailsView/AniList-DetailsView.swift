@@ -15,9 +15,9 @@ struct MediaDetailItem: View {
     var body: some View {
         VStack {
             Text(value)
-                .font(.headline)
+                .font(.system(size: 17))
             Text(title)
-                .font(.caption)
+                .font(.system(size: 13))
                 .foregroundColor(.secondary)
         }
         .padding(.horizontal)
@@ -69,27 +69,34 @@ struct AniListDetailsView: View {
                             if let type = media["type"] as? String {
                                 MediaDetailItem(title: "Type", value: type)
                             }
+                            Divider()
                             if let episodes = media["episodes"] as? Int {
                                 MediaDetailItem(title: "Episodes", value: "\(episodes)")
                             }
+                            Divider()
                             if let duration = media["duration"] as? Int {
                                 MediaDetailItem(title: "Length", value: "\(duration) mins")
                             }
+                            Divider()
                             if let format = media["format"] as? String {
                                 MediaDetailItem(title: "Format", value: format)
                             }
+                            Divider()
                             if let status = media["status"] as? String {
                                 MediaDetailItem(title: "Status", value: status)
                             }
+                            Divider()
                             if let season = media["season"] as? String {
                                 MediaDetailItem(title: "Season", value: season)
                             }
+                            Divider()
                             if let startDate = media["startDate"] as? [String: Any],
                                let year = startDate["year"] as? Int,
                                let month = startDate["month"] as? Int,
                                let day = startDate["day"] as? Int {
                                 MediaDetailItem(title: "Start Date", value: "\(year)-\(month)-\(day)")
                             }
+                            Divider()
                             if let endDate = media["endDate"] as? [String: Any],
                                let year = endDate["year"] as? Int,
                                let month = endDate["month"] as? Int,
