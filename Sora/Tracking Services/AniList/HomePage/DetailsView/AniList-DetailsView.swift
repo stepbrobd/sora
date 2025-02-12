@@ -65,43 +65,44 @@ struct AniListDetailsView: View {
                     Divider()
                     
                     ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
+                        HStack(spacing: 4) {
                             if let type = media["type"] as? String {
                                 MediaDetailItem(title: "Type", value: type)
+                                Divider()
                             }
-                            Divider()
                             if let episodes = media["episodes"] as? Int {
                                 MediaDetailItem(title: "Episodes", value: "\(episodes)")
+                                Divider()
                             }
-                            Divider()
                             if let duration = media["duration"] as? Int {
                                 MediaDetailItem(title: "Length", value: "\(duration) mins")
+                                Divider()
                             }
-                            Divider()
                             if let format = media["format"] as? String {
                                 MediaDetailItem(title: "Format", value: format)
+                                Divider()
                             }
-                            Divider()
                             if let status = media["status"] as? String {
                                 MediaDetailItem(title: "Status", value: status)
+                                Divider()
                             }
-                            Divider()
                             if let season = media["season"] as? String {
                                 MediaDetailItem(title: "Season", value: season)
+                                Divider()
                             }
-                            Divider()
                             if let startDate = media["startDate"] as? [String: Any],
                                let year = startDate["year"] as? Int,
                                let month = startDate["month"] as? Int,
                                let day = startDate["day"] as? Int {
                                 MediaDetailItem(title: "Start Date", value: "\(year)-\(month)-\(day)")
+                                Divider()
                             }
-                            Divider()
                             if let endDate = media["endDate"] as? [String: Any],
                                let year = endDate["year"] as? Int,
                                let month = endDate["month"] as? Int,
                                let day = endDate["day"] as? Int {
                                 MediaDetailItem(title: "End Date", value: "\(year)-\(month)-\(day)")
+                                Divider()
                             }
                         }
                     }
@@ -147,14 +148,20 @@ struct AniListDetailsView: View {
                                            let imageUrl = URL(string: imageUrlStr) {
                                             VStack {
                                                 KFImage(imageUrl)
+                                                    .placeholder {
+                                                        Circle()
+                                                            .fill(Color.gray.opacity(0.3))
+                                                            .frame(width: 90, height: 90)
+                                                            .shimmering()
+                                                    }
                                                     .resizable()
                                                     .scaledToFill()
-                                                    .frame(width: 110, height: 110)
+                                                    .frame(width: 90, height: 90)
                                                     .clipShape(Circle())
                                                 Text(fullName)
                                                     .font(.caption)
                                             }
-                                            .frame(width: 115, height: 125)
+                                            .frame(width: 105, height: 105)
                                         }
                                     }
                                 }
@@ -208,6 +215,12 @@ struct AniListDetailsView: View {
                                            let imageUrl = URL(string: imageUrlStr) {
                                             VStack {
                                                 KFImage(imageUrl)
+                                                    .placeholder {
+                                                        RoundedRectangle(cornerRadius: 10)
+                                                            .fill(Color.gray.opacity(0.3))
+                                                            .frame(width: 100, height: 150)
+                                                            .shimmering()
+                                                    }
                                                     .resizable()
                                                     .scaledToFill()
                                                     .frame(width: 100, height: 150)
