@@ -63,11 +63,9 @@ struct AniListDetailsView: View {
                     .padding()
                     
                     Divider()
-                        .frame(height: 2)
-                        .background(.secondary)
                     
                     ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 24) {
+                        HStack(spacing: 8) {
                             if let type = media["type"] as? String {
                                 MediaDetailItem(title: "Type", value: type)
                             }
@@ -99,13 +97,9 @@ struct AniListDetailsView: View {
                                 MediaDetailItem(title: "End Date", value: "\(year)-\(month)-\(day)")
                             }
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical)
                     }
                     
                     Divider()
-                        .frame(height: 2)
-                        .background(.secondary)
                     
                     if let trailer = media["trailer"] as? [String: Any],
                        let trailerID = trailer["id"] as? String,
@@ -128,8 +122,6 @@ struct AniListDetailsView: View {
                     }
                     
                     Divider()
-                        .frame(height: 2)
-                        .background(.secondary)
                     
                     if let charactersDict = media["characters"] as? [String: Any],
                        let edges = charactersDict["edges"] as? [[String: Any]] {
@@ -165,8 +157,6 @@ struct AniListDetailsView: View {
                     }
                     
                     Divider()
-                        .frame(height: 2)
-                        .background(.secondary)
                     
                     if let stats = media["stats"] as? [String: Any],
                        let scoreDistribution = stats["scoreDistribution"] as? [[String: Any]] {
@@ -194,8 +184,6 @@ struct AniListDetailsView: View {
                     }
                     
                     Divider()
-                        .frame(height: 2)
-                        .background(.secondary)
                     
                     if let relations = media["relations"] as? [String: Any],
                        let nodes = relations["nodes"] as? [[String: Any]] {
