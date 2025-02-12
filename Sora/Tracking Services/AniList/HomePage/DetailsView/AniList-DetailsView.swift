@@ -36,30 +36,76 @@ struct AniListDetailsView: View {
                     ProgressView()
                         .padding()
                 } else if let media = mediaInfo {
-                    if let coverDict = media["coverImage"] as? [String: Any],
-                       let posterURLString = coverDict["extraLarge"] as? String,
-                       let posterURL = URL(string: posterURLString) {
-                        KFImage(posterURL)
-                            .placeholder {
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(Color.gray.opacity(0.3))
-                                    .frame(width: 200, height: 300)
-                                    .shimmering()
+                    HStack(alignment: .bottom) {
+                        if let coverDict = media["coverImage"] as? [String: Any],
+                           let posterURLString = coverDict["extraLarge"] as? String,
+                           let posterURL = URL(string: posterURLString) {
+                            KFImage(posterURL)
+                                .placeholder {
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.gray.opacity(0.3))
+                                        .frame(width: 150, height: 225)
+                                        .shimmering()
+                                }
+                                .resizable()
+                                .aspectRatio(2/3, contentMode: .fill)
+                                .cornerRadius(10)
+                                .frame(width: 150, height: 225)
+                        }
+                        
+                        if let titleDict = media["title"] as? [String: Any],
+                           let userPreferred = titleDict["userPreferred"] as? String {
+                            Text(userPreferred)
+                                .font(.title3)
+                                .fontWeight(.bold)
+                        }
+                    }
+                    .padding()
+                    
+                    Divider()
+                        .frame(height: 2)
+                        .background(.secondary)
+                    
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 24) {
+                            if let type = media["type"] as? String {
+                                MediaDetailItem(title: "Type", value: type)
                             }
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 200, height: 300)
-                            .cornerRadius(10)
-                            .shadow(radius: 5)
+                            if let episodes = media["episodes"] as? Int {
+                                MediaDetailItem(title: "Episodes", value: "\(episodes)")
+                            }
+                            if let duration = media["duration"] as? Int {
+                                MediaDetailItem(title: "Length", value: "\(duration) mins")
+                            }
+                            if let format = media["format"] as? String {
+                                MediaDetailItem(title: "Format", value: format)
+                            }
+                            if let status = media["status"] as? String {
+                                MediaDetailItem(title: "Status", value: status)
+                            }
+                            if let season = media["season"] as? String {
+                                MediaDetailItem(title: "Season", value: season)
+                            }
+                            if let startDate = media["startDate"] as? [String: Any],
+                               let year = startDate["year"] as? Int,
+                               let month = startDate["month"] as? Int,
+                               let day = startDate["day"] as? Int {
+                                MediaDetailItem(title: "Start Date", value: "\(year)-\(month)-\(day)")
+                            }
+                            if let endDate = media["endDate"] as? [String: Any],
+                               let year = endDate["year"] as? Int,
+                               let month = endDate["month"] as? Int,
+                               let day = endDate["day"] as? Int {
+                                MediaDetailItem(title: "End Date", value: "\(year)-\(month)-\(day)")
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical)
                     }
                     
-                    if let titleDict = media["title"] as? [String: Any],
-                       let userPreferred = titleDict["userPreferred"] as? String {
-                        Text(userPreferred)
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .padding(.top, 8)
-                    }
+                    Divider()
+                        .frame(height: 2)
+                        .background(.secondary)
                     
                     if let trailer = media["trailer"] as? [String: Any],
                        let trailerID = trailer["id"] as? String,
@@ -81,53 +127,9 @@ struct AniListDetailsView: View {
                             .font(.system(size: 14))
                     }
                     
-                    VStack(alignment: .leading, spacing: 4) {
-                        if let format = media["format"] as? String {
-                            Text("Format: \(format)")
-                        }
-                        if let status = media["status"] as? String {
-                            Text("Status: \(status)")
-                        }
-                        if let season = media["season"] as? String {
-                            Text("Season: \(season)")
-                        }
-                        if let startDate = media["startDate"] as? [String: Any],
-                           let year = startDate["year"] as? Int,
-                           let month = startDate["month"] as? Int,
-                           let day = startDate["day"] as? Int {
-                            Text("Start Date: \(year)-\(month)-\(day)")
-                        }
-                        if let endDate = media["endDate"] as? [String: Any],
-                           let year = endDate["year"] as? Int,
-                           let month = endDate["month"] as? Int,
-                           let day = endDate["day"] as? Int {
-                            Text("End Date: \(year)-\(month)-\(day)")
-                        }
-                        if let country = media["countryOfOrigin"] as? String {
-                            Text("Country: \(country)")
-                        }
-                        if let source = media["source"] as? String {
-                            Text("Source: \(source)")
-                        }
-                    }
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal)
-                    .padding(.top, 4)
-                    
-                    HStack(spacing: 24) {
-                        if let type = media["type"] as? String {
-                            MediaDetailItem(title: "Type", value: type)
-                        }
-                        if let episodes = media["episodes"] as? Int {
-                            MediaDetailItem(title: "Episodes", value: "\(episodes)")
-                        }
-                        if let duration = media["duration"] as? Int {
-                            MediaDetailItem(title: "Length", value: "\(duration) mins")
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical)
+                    Divider()
+                        .frame(height: 2)
+                        .background(.secondary)
                     
                     if let charactersDict = media["characters"] as? [String: Any],
                        let edges = charactersDict["edges"] as? [[String: Any]] {
@@ -136,7 +138,7 @@ struct AniListDetailsView: View {
                                 .font(.headline)
                                 .padding(.horizontal)
                             ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 16) {
+                                HStack(spacing: 8) {
                                     ForEach(Array(edges.enumerated()), id: \.offset) { _, edge in
                                         if let node = edge["node"] as? [String: Any],
                                            let nameDict = node["name"] as? [String: Any],
@@ -148,12 +150,12 @@ struct AniListDetailsView: View {
                                                 KFImage(imageUrl)
                                                     .resizable()
                                                     .scaledToFill()
-                                                    .frame(width: 120, height: 120)
+                                                    .frame(width: 110, height: 110)
                                                     .clipShape(Circle())
                                                 Text(fullName)
                                                     .font(.caption)
                                             }
-                                            .frame(width: 140, height: 140)
+                                            .frame(width: 115, height: 125)
                                         }
                                     }
                                 }
@@ -161,6 +163,10 @@ struct AniListDetailsView: View {
                             }
                         }
                     }
+                    
+                    Divider()
+                        .frame(height: 2)
+                        .background(.secondary)
                     
                     if let stats = media["stats"] as? [String: Any],
                        let scoreDistribution = stats["scoreDistribution"] as? [[String: Any]] {
@@ -186,6 +192,10 @@ struct AniListDetailsView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.horizontal)
                     }
+                    
+                    Divider()
+                        .frame(height: 2)
+                        .background(.secondary)
                     
                     if let relations = media["relations"] as? [String: Any],
                        let nodes = relations["nodes"] as? [[String: Any]] {
