@@ -199,24 +199,24 @@ struct AniListDetailsView: View {
                             return partialResult
                         }
                         let computedAverage = totalCount > 0 ? Double(totalScore) / Double(totalCount) : 0.0
-                        
-                        HStack(alignment: .center) {
-                            Text("Average Score: \(String(format: "%.1f", computedAverage))")
+                        VStack {
+                            Text("Score Distribution")
                                 .font(.headline)
-                                .frame(width: 120, alignment: .leading)
-                            VStack(alignment: .center) {
-                                Text("Score Distribution")
-                                    .font(.headline)
-                                HStack(alignment: .bottom, spacing: 8) {
-                                    ForEach(Array(scoreDistribution.enumerated()), id: \.offset) { _, dataPoint in
-                                        if let score = dataPoint["score"] as? Int,
-                                           let amount = dataPoint["amount"] as? Int {
-                                            VStack {
-                                                Rectangle()
-                                                    .fill(Color.accentColor)
-                                                    .frame(width: 20, height: CGFloat(amount) / CGFloat(maxValue) * 100)
-                                                Text("\(score)")
-                                                    .font(.caption)
+                            HStack(alignment: .center) {
+                                MediaDetailItem(title: "Average Score", value: String(format: "%.1f", computedAverage))
+                                    .frame(width: 120, alignment: .leading)
+                                VStack(alignment: .center) {
+                                    HStack(alignment: .bottom, spacing: 8) {
+                                        ForEach(Array(scoreDistribution.enumerated()), id: \.offset) { _, dataPoint in
+                                            if let score = dataPoint["score"] as? Int,
+                                               let amount = dataPoint["amount"] as? Int {
+                                                VStack {
+                                                    Rectangle()
+                                                        .fill(Color.accentColor)
+                                                        .frame(width: 20, height: CGFloat(amount) / CGFloat(maxValue) * 100)
+                                                    Text("\(score)")
+                                                        .font(.caption)
+                                                }
                                             }
                                         }
                                     }
