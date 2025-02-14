@@ -11,6 +11,7 @@ import Kingfisher
 struct HomeView: View {
     @State private var aniListItems: [AniListItem] = []
     @State private var trendingItems: [AniListItem] = []
+    @State private var continueWatchingItems: [ContinueWatchingItem] = []
     
     private var currentDeviceSeasonAndYear: (season: String, year: Int) {
         let currentDate = Date()
@@ -136,12 +137,88 @@ struct HomeView: View {
                         }
                         .padding(.horizontal, 8)
                     }
+                    if !continueWatchingItems.isEmpty {
+                        VStack(alignment: .leading) {
+                            Text("Continue Watching")
+                                .font(.headline)
+                                .padding(.horizontal, 8)
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) {
+                                    ForEach(continueWatchingItems) { item in
+                                        Button(action: {
+                                            let videoPlayerViewController = VideoPlayerViewController(module: item.module)
+                                            videoPlayerViewController.streamUrl = item.streamUrl
+                                            videoPlayerViewController.fullUrl = item.fullUrl
+                                            videoPlayerViewController.episodeImageUrl = item.imageUrl
+                                            videoPlayerViewController.episodeNumber = item.episodeNumber
+                                            videoPlayerViewController.mediaTitle = item.mediaTitle
+                                            videoPlayerViewController.modalPresentationStyle = .fullScreen
+                                            
+                                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                                               let rootVC = windowScene.windows.first?.rootViewController {
+                                                rootVC.present(videoPlayerViewController, animated: true, completion: nil)
+                                            }
+                                        }) {
+                                            VStack {
+                                                ZStack {
+                                                    KFImage(URL(string: item.imageUrl))
+                                                        .placeholder {
+                                                            RoundedRectangle(cornerRadius: 10)
+                                                                .fill(Color.gray.opacity(0.3))
+                                                                .frame(width: 240, height: 135)
+                                                                .shimmering()
+                                                        }
+                                                        .setProcessor(RoundCornerImageProcessor(cornerRadius: 10))
+                                                        .resizable()
+                                                        .aspectRatio(16/9, contentMode: .fill)
+                                                        .frame(width: 240, height: 135)
+                                                        .cornerRadius(10)
+                                                        .clipped()
+                                                }
+                                                .overlay(
+                                                    ZStack {
+                                                        Rectangle()
+                                                            .fill(Color.black.opacity(0.3))
+                                                            .blur(radius: 3)
+                                                            .frame(height: 30)
+                                                        
+                                                        ProgressView(value: item.progress)
+                                                            .progressViewStyle(LinearProgressViewStyle(tint: .white))
+                                                            .padding(.horizontal, 8)
+                                                            .scaleEffect(x: 1, y: 2, anchor: .center)
+                                                    },
+                                                    alignment: .bottom
+                                                )
+                                                
+                                                VStack(alignment: .leading) {
+                                                    Text("Episode \(item.episodeNumber)")
+                                                        .font(.caption)
+                                                        .lineLimit(1)
+                                                        .foregroundColor(.secondary)
+                                                    
+                                                    Text(item.mediaTitle)
+                                                        .font(.caption)
+                                                        .lineLimit(2)
+                                                        .foregroundColor(.primary)
+                                                        .multilineTextAlignment(.leading)
+                                                }
+                                                .padding(.horizontal, 8)
+                                            }
+                                        }
+                                    }
+                                }
+                                .frame(width: 250, height: 200)
+                                .padding(.horizontal, 8)
+                            }
+                        }
+                    }
                 }
                 .padding(.bottom, 16)
             }
             .navigationTitle("Home")
         }
         .onAppear {
+            continueWatchingItems = ContinueWatchingManager.shared.fetchItems()
             AnilistServiceSeasonalAnime().fetchSeasonalAnime { items in
                 if let items = items {
                     aniListItems = items

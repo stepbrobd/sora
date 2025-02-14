@@ -17,6 +17,10 @@ class VideoPlayerViewController: UIViewController {
     var streamUrl: String?
     var fullUrl: String = ""
     
+    var episodeNumber: Int = 0
+    var episodeImageUrl: String = ""
+    var mediaTitle: String = ""
+    
     init(module: ScrapingModule) {
         self.module = module
         super.init(nibName: nil, bundle: nil)
@@ -79,6 +83,24 @@ class VideoPlayerViewController: UIViewController {
         if let timeObserverToken = timeObserverToken {
             player?.removeTimeObserver(timeObserverToken)
             self.timeObserverToken = nil
+        }
+        
+        if let currentItem = player?.currentItem, currentItem.duration.seconds > 0,
+           let streamUrl = streamUrl {
+            let currentTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(fullUrl)")
+            let duration = currentItem.duration.seconds
+            let progress = currentTime / duration
+            let item = ContinueWatchingItem(
+                id: UUID(),
+                imageUrl: episodeImageUrl,
+                episodeNumber: episodeNumber,
+                mediaTitle: mediaTitle,
+                progress: progress,
+                streamUrl: streamUrl,
+                fullUrl: fullUrl,
+                module: module
+            )
+            ContinueWatchingManager.shared.save(item: item)
         }
     }
     

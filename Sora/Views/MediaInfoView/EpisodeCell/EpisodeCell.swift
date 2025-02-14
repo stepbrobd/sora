@@ -24,6 +24,7 @@ struct EpisodeCell: View {
     @State private var episodeImageUrl: String = ""
     @State private var isLoading: Bool = true
     @State private var currentProgress: Double = 0.0
+    let onTap: (String) -> Void
     
     private func markAsWatched() {
         UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(episode)")
@@ -89,6 +90,9 @@ struct EpisodeCell: View {
         .onAppear {
             fetchEpisodeDetails()
             updateProgress()
+        }
+        .onTapGesture {
+            onTap(episodeImageUrl)
         }
     }
     

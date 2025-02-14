@@ -35,6 +35,7 @@ struct MediaInfoView: View {
     @State var isFetchingEpisode: Bool = false
     
     @State private var selectedEpisodeNumber: Int = 0
+    @State private var selectedEpisodeImage: String = ""
     
     @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
     @AppStorage("episodeChunkSize") private var episodeChunkSize: Int = 100
@@ -207,14 +208,16 @@ struct MediaInfoView: View {
                                     let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
                                     let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
                                     
-                                    EpisodeCell(episode: ep.href, episodeID: ep.number - 1, progress: progress, itemID: itemID ?? 0)
-                                        .onTapGesture {
+                                    EpisodeCell(episode: ep.href, episodeID: ep.number - 1, progress: progress, itemID: itemID ?? 0, onTap: { imageUrl in
                                             if !isFetchingEpisode {
                                                 isFetchingEpisode = true
+                                                selectedEpisodeNumber = ep.number
+                                                selectedEpisodeImage = imageUrl
                                                 fetchStream(href: ep.href)
                                             }
                                         }
-                                        .disabled(isFetchingEpisode)
+                                    )
+                                    .disabled(isFetchingEpisode)
                                 }
                             }
                         } else {
@@ -479,6 +482,9 @@ struct MediaInfoView: View {
                 let videoPlayerViewController = VideoPlayerViewController(module: module)
                 videoPlayerViewController.streamUrl = url
                 videoPlayerViewController.fullUrl = fullURL
+                videoPlayerViewController.episodeNumber = selectedEpisodeNumber
+                videoPlayerViewController.episodeImageUrl = selectedEpisodeImage
+                videoPlayerViewController.mediaTitle = title
                 videoPlayerViewController.modalPresentationStyle = .fullScreen
                 
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
