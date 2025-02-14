@@ -36,7 +36,7 @@ struct AniListDetailsView: View {
                     ProgressView()
                         .padding()
                 } else if let media = mediaInfo {
-                    HStack(alignment: .bottom, spacing: 16) {
+                    HStack(alignment: .top, spacing: 16) {
                         if let coverDict = media["coverImage"] as? [String: Any],
                            let posterURLString = coverDict["extraLarge"] as? String,
                            let posterURL = URL(string: posterURLString) {
@@ -55,9 +55,28 @@ struct AniListDetailsView: View {
                         
                         VStack(alignment: .leading) {
                             if let titleDict = media["title"] as? [String: Any],
-                               let userPreferred = titleDict["userPreferred"] as? String {
+                               let userPreferred = titleDict["english"] as? String {
                                 Text(userPreferred)
-                                    .font(.headline)
+                                    .font(.system(size: 17))
+                                    .fontWeight(.bold)
+                                    .onLongPressGesture {
+                                        UIPasteboard.general.string = userPreferred
+                                        DropManager.shared.showDrop(title: "Copied to Clipboard", subtitle: "", duration: 1.0, icon: UIImage(systemName: "doc.on.clipboard.fill"))
+                                    }
+                            }
+                            
+                            if let titleDict = media["title"] as? [String: Any],
+                               let userPreferred = titleDict["romaji"] as? String {
+                                Text(userPreferred)
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            if let titleDict = media["title"] as? [String: Any],
+                               let userPreferred = titleDict["native"] as? String {
+                                Text(userPreferred)
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.secondary)
                             }
                         }
                         
@@ -166,12 +185,25 @@ struct AniListDetailsView: View {
                         
                         let maxValue: Int = scoreDistribution.compactMap { $0["amount"] as? Int }.max() ?? 1
                         
-                        HStack(alignment: .center) {
-                            if let averageScore = media["averageScore"] as? Double {
-                                Text("Average Score: \(String(format: "%.1f", averageScore))")
-                                    .font(.headline)
-                                    .frame(width: 120, alignment: .leading)
+                        let totalScore = scoreDistribution.reduce(0) { partialResult, dataPoint in
+                            if let score = dataPoint["score"] as? Int, let amount = dataPoint["amount"] as? Int {
+                                return partialResult + score * amount
                             }
+                            return partialResult
+                        }
+                        
+                        let totalCount = scoreDistribution.reduce(0) { partialResult, dataPoint in
+                            if let amount = dataPoint["amount"] as? Int {
+                                return partialResult + amount
+                            }
+                            return partialResult
+                        }
+                        let computedAverage = totalCount > 0 ? Double(totalScore) / Double(totalCount) : 0.0
+                        
+                        HStack(alignment: .center) {
+                            Text("Average Score: \(String(format: "%.1f", computedAverage))")
+                                .font(.headline)
+                                .frame(width: 120, alignment: .leading)
                             VStack(alignment: .center) {
                                 Text("Score Distribution")
                                     .font(.headline)
