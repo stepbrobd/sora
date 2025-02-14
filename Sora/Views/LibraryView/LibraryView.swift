@@ -40,12 +40,24 @@ struct LibraryView: View {
                                     VStack {
                                         ZStack(alignment: .bottomTrailing) {
                                             KFImage(URL(string: item.imageUrl))
+                                                .placeholder {
+                                                    RoundedRectangle(cornerRadius: 10)
+                                                        .fill(Color.gray.opacity(0.3))
+                                                        .frame(width: 150, height: 225)
+                                                        .shimmering()
+                                                }
                                                 .resizable()
                                                 .aspectRatio(2/3, contentMode: .fill)
                                                 .cornerRadius(10)
                                                 .frame(width: 150, height: 225)
                                             
                                             KFImage(URL(string: module.metadata.iconUrl))
+                                                .placeholder {
+                                                    Circle()
+                                                        .fill(Color.gray.opacity(0.3))
+                                                        .frame(width: 35, height: 35)
+                                                        .shimmering()
+                                                }
                                                 .resizable()
                                                 .aspectRatio(contentMode: .fit)
                                                 .frame(width: 35, height: 35)

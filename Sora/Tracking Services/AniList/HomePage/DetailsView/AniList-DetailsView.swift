@@ -8,18 +8,6 @@
 import SwiftUI
 import Kingfisher
 
-extension String {
-    var strippedHTML: String {
-        guard let data = self.data(using: .utf8) else { return self }
-        let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
-            .documentType: NSAttributedString.DocumentType.html,
-            .characterEncoding: String.Encoding.utf8.rawValue
-        ]
-        let attributedString = try? NSAttributedString(data: data, options: options, documentAttributes: nil)
-        return attributedString?.string ?? self
-    }
-}
-
 struct MediaDetailItem: View {
     var title: String
     var value: String
@@ -48,7 +36,7 @@ struct AniListDetailsView: View {
                     ProgressView()
                         .padding()
                 } else if let media = mediaInfo {
-                    HStack(alignment: .bottom) {
+                    HStack(alignment: .bottom, spacing: 16) {
                         if let coverDict = media["coverImage"] as? [String: Any],
                            let posterURLString = coverDict["extraLarge"] as? String,
                            let posterURL = URL(string: posterURLString) {
@@ -65,12 +53,15 @@ struct AniListDetailsView: View {
                                 .frame(width: 150, height: 225)
                         }
                         
-                        if let titleDict = media["title"] as? [String: Any],
-                           let userPreferred = titleDict["userPreferred"] as? String {
-                            Text(userPreferred)
-                                .font(.title3)
-                                .fontWeight(.bold)
+                        VStack(alignment: .leading) {
+                            if let titleDict = media["title"] as? [String: Any],
+                               let userPreferred = titleDict["userPreferred"] as? String {
+                                Text(userPreferred)
+                                    .font(.headline)
+                            }
                         }
+                        
+                        Spacer()
                     }
                     .padding()
                     
@@ -119,19 +110,6 @@ struct AniListDetailsView: View {
                     }
                     
                     Divider()
-                    
-                    if let trailer = media["trailer"] as? [String: Any],
-                       let trailerID = trailer["id"] as? String,
-                       let site = trailer["site"] as? String {
-                        if site.lowercased() == "youtube",
-                           let url = URL(string: "https://www.youtube.com/watch?v=\(trailerID)") {
-                            Link("Watch Trailer on YouTube", destination: url)
-                                .padding(.top, 4)
-                        } else {
-                            Text("Trailer available on \(site)")
-                                .padding(.top, 4)
-                        }
-                    }
                     
                     if let synopsis = media["description"] as? String {
                         Text(synopsis.strippedHTML)

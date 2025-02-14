@@ -55,6 +55,12 @@ struct MediaInfoView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         HStack(alignment: .top, spacing: 10) {
                             KFImage(URL(string: imageUrl))
+                                .placeholder {
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.gray.opacity(0.3))
+                                        .frame(width: 150, height: 225)
+                                        .shimmering()
+                                }
                                 .resizable()
                                 .aspectRatio(2/3, contentMode: .fill)
                                 .cornerRadius(10)
