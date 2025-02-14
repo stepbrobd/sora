@@ -8,6 +8,18 @@
 import SwiftUI
 import Kingfisher
 
+extension String {
+    var strippedHTML: String {
+        guard let data = self.data(using: .utf8) else { return self }
+        let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
+            .documentType: NSAttributedString.DocumentType.html,
+            .characterEncoding: String.Encoding.utf8.rawValue
+        ]
+        let attributedString = try? NSAttributedString(data: data, options: options, documentAttributes: nil)
+        return attributedString?.string ?? self
+    }
+}
+
 struct MediaDetailItem: View {
     var title: String
     var value: String
@@ -102,7 +114,6 @@ struct AniListDetailsView: View {
                                let month = endDate["month"] as? Int,
                                let day = endDate["day"] as? Int {
                                 MediaDetailItem(title: "End Date", value: "\(year)-\(month)-\(day)")
-                                Divider()
                             }
                         }
                     }
@@ -123,7 +134,7 @@ struct AniListDetailsView: View {
                     }
                     
                     if let synopsis = media["description"] as? String {
-                        Text(synopsis)
+                        Text(synopsis.strippedHTML)
                             .padding(.horizontal)
                             .foregroundColor(.secondary)
                             .font(.system(size: 14))
@@ -174,20 +185,29 @@ struct AniListDetailsView: View {
                     
                     if let stats = media["stats"] as? [String: Any],
                        let scoreDistribution = stats["scoreDistribution"] as? [[String: Any]] {
-                        VStack(alignment: .center) {
-                            Text("Score Distribution")
-                                .font(.headline)
-                            HStack(alignment: .bottom, spacing: 8) {
-                                let maxValue = scoreDistribution.compactMap { $0["amount"] as? Int }.max() ?? 1
-                                ForEach(Array(scoreDistribution.enumerated()), id: \.offset) { _, dataPoint in
-                                    if let score = dataPoint["score"] as? Int,
-                                       let amount = dataPoint["amount"] as? Int {
-                                        VStack {
-                                            Rectangle()
-                                                .fill(Color.accentColor)
-                                                .frame(width: 20, height: CGFloat(amount) / CGFloat(maxValue) * 100)
-                                            Text("\(score)")
-                                                .font(.caption)
+                        
+                        let maxValue: Int = scoreDistribution.compactMap { $0["amount"] as? Int }.max() ?? 1
+                        
+                        HStack(alignment: .center) {
+                            if let averageScore = media["averageScore"] as? Double {
+                                Text("Average Score: \(String(format: "%.1f", averageScore))")
+                                    .font(.headline)
+                                    .frame(width: 120, alignment: .leading)
+                            }
+                            VStack(alignment: .center) {
+                                Text("Score Distribution")
+                                    .font(.headline)
+                                HStack(alignment: .bottom, spacing: 8) {
+                                    ForEach(Array(scoreDistribution.enumerated()), id: \.offset) { _, dataPoint in
+                                        if let score = dataPoint["score"] as? Int,
+                                           let amount = dataPoint["amount"] as? Int {
+                                            VStack {
+                                                Rectangle()
+                                                    .fill(Color.accentColor)
+                                                    .frame(width: 20, height: CGFloat(amount) / CGFloat(maxValue) * 100)
+                                                Text("\(score)")
+                                                    .font(.caption)
+                                            }
                                         }
                                     }
                                 }
