@@ -169,7 +169,7 @@ struct CustomMediaPlayer: View {
                     VStack {
                         Spacer()
                         if let currentCue = subtitlesLoader.cues.first(where: { currentTime >= $0.startTime && currentTime <= $0.endTime }) {
-                            Text(currentCue.text)
+                            Text(currentCue.text.strippedHTML)
                                 .font(.system(size: CGFloat(subtitleFontSize)))
                                 .multilineTextAlignment(.center)
                                 .padding(8)
