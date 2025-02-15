@@ -239,39 +239,41 @@ struct CustomMediaPlayer: View {
                                     } label: {
                                         Image(systemName: "ellipsis.circle")
                                             .foregroundColor(.white)
-                                            .font(.system(size: 15))
+                                            .font(.headline)
                                     }
-                                    Menu {
-                                        Menu("Subtitle Foreground Color") {
-                                            Button("White") { subtitleForegroundColor = "white" }
-                                            Button("Yellow") { subtitleForegroundColor = "yellow" }
-                                            Button("Green") { subtitleForegroundColor = "green" }
-                                            Button("Blue") { subtitleForegroundColor = "blue" }
-                                            Button("Red") { subtitleForegroundColor = "red" }
-                                            Button("Purple") { subtitleForegroundColor = "purple" }
+                                    if !subtitlesURL?.isEmpty {
+                                        Menu {
+                                            Menu("Subtitle Foreground Color") {
+                                                Button("White") { subtitleForegroundColor = "white" }
+                                                Button("Yellow") { subtitleForegroundColor = "yellow" }
+                                                Button("Green") { subtitleForegroundColor = "green" }
+                                                Button("Blue") { subtitleForegroundColor = "blue" }
+                                                Button("Red") { subtitleForegroundColor = "red" }
+                                                Button("Purple") { subtitleForegroundColor = "purple" }
+                                            }
+                                            Menu("Subtitle Font Size") {
+                                                Button("16") { subtitleFontSize = 16 }
+                                                Button("18") { subtitleFontSize = 18 }
+                                                Button("20") { subtitleFontSize = 20 }
+                                                Button("22") { subtitleFontSize = 22 }
+                                                Button("24") { subtitleFontSize = 24 }
+                                            }
+                                            Menu("Subtitle Shadow Intensity") {
+                                                Button("None") { subtitleShadowRadius = 0 }
+                                                Button("Low") { subtitleShadowRadius = 1 }
+                                                Button("Medium") { subtitleShadowRadius = 3 }
+                                                Button("High") { subtitleShadowRadius = 6 }
+                                            }
+                                            Button(action: {
+                                                subtitleBackgroundEnabled.toggle()
+                                            }) {
+                                                Text(subtitleBackgroundEnabled ? "Disable Background" : "Enable Background")
+                                            }
+                                        } label: {
+                                            Image(systemName: "text.bubble")
+                                                .foregroundColor(.white)
+                                                .font(.headline)
                                         }
-                                        Menu("Subtitle Font Size") {
-                                            Button("16") { subtitleFontSize = 16 }
-                                            Button("18") { subtitleFontSize = 18 }
-                                            Button("20") { subtitleFontSize = 20 }
-                                            Button("22") { subtitleFontSize = 22 }
-                                            Button("24") { subtitleFontSize = 24 }
-                                        }
-                                        Menu("Subtitle Shadow Intensity") {
-                                            Button("None") { subtitleShadowRadius = 0 }
-                                            Button("Low") { subtitleShadowRadius = 1 }
-                                            Button("Medium") { subtitleShadowRadius = 3 }
-                                            Button("High") { subtitleShadowRadius = 6 }
-                                        }
-                                        Button(action: {
-                                            subtitleBackgroundEnabled.toggle()
-                                        }) {
-                                            Text(subtitleBackgroundEnabled ? "Disable Background" : "Enable Background")
-                                        }
-                                    } label: {
-                                        Image(systemName: "text.bubble")
-                                            .foregroundColor(.white)
-                                            .font(.system(size: 15))
                                     }
                                 }
                             }
