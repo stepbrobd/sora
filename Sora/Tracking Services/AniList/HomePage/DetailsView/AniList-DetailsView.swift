@@ -28,7 +28,7 @@ struct AniListDetailsView: View {
     let animeID: Int
     @State private var mediaInfo: [String: Any]?
     @State private var isLoading: Bool = true
-
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {

@@ -486,7 +486,8 @@ struct MediaInfoView: View {
                     onWatchNext: {
                         selectNextEpisode()
                     },
-                    subtitlesURL: subtitles
+                    subtitlesURL: subtitles,
+                    episodeImageUrl: selectedEpisodeImage
                 )
                 let hostingController = UIHostingController(rootView: customMediaPlayer)
                 hostingController.modalPresentationStyle = .fullScreen

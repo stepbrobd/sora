@@ -15,5 +15,6 @@ struct ContinueWatchingItem: Codable, Identifiable {
     let progress: Double
     let streamUrl: String
     let fullUrl: String
+    let subtitles: String?
     let module: ScrapingModule
 }

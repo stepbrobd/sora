@@ -146,17 +146,37 @@ struct HomeView: View {
                                 HStack(spacing: 8) {
                                     ForEach(continueWatchingItems) { item in
                                         Button(action: {
-                                            let videoPlayerViewController = VideoPlayerViewController(module: item.module)
-                                            videoPlayerViewController.streamUrl = item.streamUrl
-                                            videoPlayerViewController.fullUrl = item.fullUrl
-                                            videoPlayerViewController.episodeImageUrl = item.imageUrl
-                                            videoPlayerViewController.episodeNumber = item.episodeNumber
-                                            videoPlayerViewController.mediaTitle = item.mediaTitle
-                                            videoPlayerViewController.modalPresentationStyle = .fullScreen
-                                            
-                                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                                               let rootVC = windowScene.windows.first?.rootViewController {
-                                                rootVC.present(videoPlayerViewController, animated: true, completion: nil)
+                                            if UserDefaults.standard.string(forKey: "externalPlayer") == "Sora" {
+                                                let customMediaPlayer = CustomMediaPlayer(
+                                                    module: item.module,
+                                                    urlString: item.streamUrl,
+                                                    fullUrl: item.fullUrl,
+                                                    title: item.mediaTitle,
+                                                    episodeNumber: item.episodeNumber,
+                                                    onWatchNext: { },
+                                                    subtitlesURL: item.subtitles,
+                                                    episodeImageUrl: item.imageUrl
+                                                )
+                                                let hostingController = UIHostingController(rootView: customMediaPlayer)
+                                                hostingController.modalPresentationStyle = .fullScreen
+                                                
+                                                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                                                   let rootVC = windowScene.windows.first?.rootViewController {
+                                                    rootVC.present(hostingController, animated: true, completion: nil)
+                                                }
+                                            } else {
+                                                let videoPlayerViewController = VideoPlayerViewController(module: item.module)
+                                                videoPlayerViewController.streamUrl = item.streamUrl
+                                                videoPlayerViewController.fullUrl = item.fullUrl
+                                                videoPlayerViewController.episodeImageUrl = item.imageUrl
+                                                videoPlayerViewController.episodeNumber = item.episodeNumber
+                                                videoPlayerViewController.mediaTitle = item.mediaTitle
+                                                videoPlayerViewController.modalPresentationStyle = .fullScreen
+                                                
+                                                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                                                   let rootVC = windowScene.windows.first?.rootViewController {
+                                                    rootVC.present(videoPlayerViewController, animated: true, completion: nil)
+                                                }
                                             }
                                         }) {
                                             VStack(alignment: .leading) {

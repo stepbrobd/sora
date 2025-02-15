@@ -98,6 +98,7 @@ class VideoPlayerViewController: UIViewController {
                 progress: progress,
                 streamUrl: streamUrl,
                 fullUrl: fullUrl,
+                subtitles: nil,
                 module: module
             )
             ContinueWatchingManager.shared.save(item: item)

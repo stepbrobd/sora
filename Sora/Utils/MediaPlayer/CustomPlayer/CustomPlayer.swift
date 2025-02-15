@@ -57,13 +57,15 @@ struct CustomMediaPlayer: View {
     @Environment(\.presentationMode) var presentationMode
     
     let module: ScrapingModule
+    let streamURL: String
     let fullUrl: String
     let title: String
     let episodeNumber: Int
+    let episodeImageUrl: String
     let subtitlesURL: String?
     let onWatchNext: () -> Void
     
-    init(module: ScrapingModule, urlString: String, fullUrl: String, title: String, episodeNumber: Int, onWatchNext: @escaping () -> Void, subtitlesURL: String?) {
+    init(module: ScrapingModule, urlString: String, fullUrl: String, title: String, episodeNumber: Int, onWatchNext: @escaping () -> Void, subtitlesURL: String?, episodeImageUrl: String) {
         guard let url = URL(string: urlString) else {
             fatalError("Invalid URL string")
         }
@@ -77,9 +79,11 @@ struct CustomMediaPlayer: View {
         _player = State(initialValue: AVPlayer(playerItem: AVPlayerItem(asset: asset)))
         
         self.module = module
+        self.streamURL = urlString
         self.fullUrl = fullUrl
         self.title = title
         self.episodeNumber = episodeNumber
+        self.episodeImageUrl = episodeImageUrl
         self.onWatchNext = onWatchNext
         self.subtitlesURL = subtitlesURL ?? ""
         
@@ -310,6 +314,24 @@ struct CustomMediaPlayer: View {
                             player.removeTimeObserver(timeObserverToken)
                             self.timeObserverToken = nil
                         }
+                        
+                        if let currentItem = player.currentItem, currentItem.duration.seconds > 0 {
+                            let currentTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(fullUrl)")
+                            let duration = currentItem.duration.seconds
+                            let progress = currentTime / duration
+                            let item = ContinueWatchingItem(
+                                id: UUID(),
+                                imageUrl: episodeImageUrl,
+                                episodeNumber: episodeNumber,
+                                mediaTitle: title,
+                                progress: progress,
+                                streamUrl: streamURL,
+                                fullUrl: fullUrl,
+                                subtitles: subtitlesURL,
+                                module: module
+                            )
+                            ContinueWatchingManager.shared.save(item: item)
+                        }
                     }
                 }
             }
@@ -336,7 +358,10 @@ struct CustomMediaPlayer: View {
     
     private func startUpdatingCurrentTime() {
         Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            currentTime = player.currentTime().seconds
+            let newTime = player.currentTime().seconds
+            DispatchQueue.main.async {
+                self.currentTime = newTime
+            }
         }
     }
     
@@ -351,15 +376,14 @@ struct CustomMediaPlayer: View {
         let interval = CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
         timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { time in
             guard let currentItem = player.currentItem,
-                  currentItem.duration.seconds.isFinite else {
-                      return
-                  }
-            
-            let currentTime = time.seconds
-            let duration = currentItem.duration.seconds
-            
-            UserDefaults.standard.set(currentTime, forKey: "lastPlayedTime_\(fullURL)")
-            UserDefaults.standard.set(duration, forKey: "totalTime_\(fullURL)")
+                  currentItem.duration.seconds.isFinite else { return }
+            DispatchQueue.main.async {
+                let currentTimeValue = time.seconds
+                self.currentTime = currentTimeValue
+                let duration = currentItem.duration.seconds
+                UserDefaults.standard.set(currentTimeValue, forKey: "lastPlayedTime_\(fullURL)")
+                UserDefaults.standard.set(duration, forKey: "totalTime_\(fullURL)")
+            }
         }
     }
 }
