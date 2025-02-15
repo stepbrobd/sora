@@ -391,36 +391,61 @@ struct MediaInfoView: View {
                     let jsContent = try moduleManager.getModuleContent(module)
                     jsController.loadScript(jsContent)
                     
-                    if module.metadata.asyncJS == true {
-                        jsController.fetchStreamUrlJS(episodeUrl: href) { streamUrl in
-                            guard let url = streamUrl, url != "null" else {
-                                handleStreamFailure()
-                                return
+                    if module.metadata.softsub == true {
+                        if module.metadata.asyncJS == true {
+                            jsController.fetchStreamUrlJS(episodeUrl: href, softsub: true) { result in
+                                if let streamUrl = result.stream {
+                                    self.playStream(url: streamUrl, fullURL: streamUrl, subtitles: result.subtitles)
+                                } else {
+                                    self.handleStreamFailure(error: nil)
+                                }
                             }
-                            isFetchingEpisode = false
-                            playStream(url: url, fullURL: href)
-                        }
-                    } else if module.metadata.streamAsyncJS == true {
-                        jsController.fetchStreamUrlJSSecond(episodeUrl: href) { streamUrl in
-                            guard let url = streamUrl, url != "null" else {
-                                handleStreamFailure()
-                                return
+                        } else if module.metadata.streamAsyncJS == true {
+                            jsController.fetchStreamUrlJSSecond(episodeUrl: href, softsub: true) { result in
+                                if let streamUrl = result.stream {
+                                    self.playStream(url: streamUrl, fullURL: streamUrl, subtitles: result.subtitles)
+                                } else {
+                                    self.handleStreamFailure(error: nil)
+                                }
                             }
-                            isFetchingEpisode = false
-                            playStream(url: url, fullURL: href)
+                        } else {
+                            jsController.fetchStreamUrl(episodeUrl: href, softsub: true) { result in
+                                if let streamUrl = result.stream {
+                                    self.playStream(url: streamUrl, fullURL: streamUrl, subtitles: result.subtitles)
+                                } else {
+                                    self.handleStreamFailure(error: nil)
+                                }
+                            }
                         }
                     } else {
-                        jsController.fetchStreamUrl(episodeUrl: href) { streamUrl in
-                            guard let url = streamUrl, url != "null" else {
-                                handleStreamFailure()
-                                return
+                        if module.metadata.asyncJS == true {
+                            jsController.fetchStreamUrlJS(episodeUrl: href) { result in
+                                if let streamUrl = result.stream {
+                                    self.playStream(url: streamUrl, fullURL: streamUrl)
+                                } else {
+                                    self.handleStreamFailure(error: nil)
+                                }
                             }
-                            isFetchingEpisode = false
-                            playStream(url: url, fullURL: href)
+                        } else if module.metadata.streamAsyncJS == true {
+                            jsController.fetchStreamUrlJSSecond(episodeUrl: href) { result in
+                                if let streamUrl = result.stream {
+                                    self.playStream(url: streamUrl, fullURL: streamUrl)
+                                } else {
+                                    self.handleStreamFailure(error: nil)
+                                }
+                            }
+                        } else {
+                            jsController.fetchStreamUrl(episodeUrl: href) { result in
+                                if let streamUrl = result.stream {
+                                    self.playStream(url: streamUrl, fullURL: streamUrl)
+                                } else {
+                                    self.handleStreamFailure(error: nil)
+                                }
+                            }
                         }
                     }
                 } catch {
-                    handleStreamFailure(error: error)
+                    self.handleStreamFailure(error: error)
                 }
             }
         }
@@ -437,7 +462,7 @@ struct MediaInfoView: View {
         self.isLoading = false
     }
     
-    func playStream(url: String, fullURL: String) {
+    func playStream(url: String, fullURL: String, subtitles: String? = nil) {
         DispatchQueue.main.async {
             let externalPlayer = UserDefaults.standard.string(forKey: "externalPlayer") ?? "Default"
             var scheme: String?
@@ -460,7 +485,8 @@ struct MediaInfoView: View {
                     episodeNumber: selectedEpisodeNumber,
                     onWatchNext: {
                         selectNextEpisode()
-                    }
+                    },
+                    subtitlesURL: subtitles
                 )
                 let hostingController = UIHostingController(rootView: customMediaPlayer)
                 hostingController.modalPresentationStyle = .fullScreen

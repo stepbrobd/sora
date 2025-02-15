@@ -174,9 +174,9 @@ class JSController: ObservableObject {
         }.resume()
     }
     
-    func fetchStreamUrl(episodeUrl: String, completion: @escaping (String?) -> Void) {
+    func fetchStreamUrl(episodeUrl: String, softsub: Bool = false, completion: @escaping ((stream: String?, subtitles: String?)) -> Void) {
         guard let url = URL(string: episodeUrl) else {
-            completion(nil)
+            completion((nil, nil))
             return
         }
         
@@ -184,27 +184,40 @@ class JSController: ObservableObject {
             guard let self = self else { return }
             
             if let error = error {
-                Logger.shared.log("Network error: \(error)",type: "Error")
-                DispatchQueue.main.async { completion(nil) }
+                Logger.shared.log("Network error: \(error)", type: "Error")
+                DispatchQueue.main.async { completion((nil, nil)) }
                 return
             }
             
             guard let data = data, let html = String(data: data, encoding: .utf8) else {
-                Logger.shared.log("Failed to decode HTML",type: "Error")
-                DispatchQueue.main.async { completion(nil) }
+                Logger.shared.log("Failed to decode HTML", type: "Error")
+                DispatchQueue.main.async { completion((nil, nil)) }
                 return
             }
             
-            Logger.shared.log(html,type: "HTMLStrings")
+            Logger.shared.log(html, type: "HTMLStrings")
             if let parseFunction = self.context.objectForKeyedSubscript("extractStreamUrl"),
-               let streamUrl = parseFunction.call(withArguments: [html]).toString() {
-                Logger.shared.log("Staring stream from: \(streamUrl)", type: "Stream")
-                DispatchQueue.main.async {
-                    completion(streamUrl)
+               let resultString = parseFunction.call(withArguments: [html]).toString() {
+                if softsub {
+                    if let data = resultString.data(using: .utf8),
+                       let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                        let streamUrl = json["stream"] as? String
+                        let subtitlesUrl = json["subtitles"] as? String
+                        Logger.shared.log("Starting stream from: \(streamUrl ?? "nil") with subtitles: \(subtitlesUrl ?? "nil")", type: "Stream")
+                        DispatchQueue.main.async {
+                            completion((streamUrl, subtitlesUrl))
+                        }
+                    } else {
+                        Logger.shared.log("Failed to parse softsub JSON", type: "Error")
+                        DispatchQueue.main.async { completion((nil, nil)) }
+                    }
+                } else {
+                    Logger.shared.log("Starting stream from: \(resultString)", type: "Stream")
+                    DispatchQueue.main.async { completion((resultString, nil)) }
                 }
             } else {
-                Logger.shared.log("Failed to extract stream URL",type: "Error")
-                DispatchQueue.main.async { completion(nil) }
+                Logger.shared.log("Failed to extract stream URL", type: "Error")
+                DispatchQueue.main.async { completion((nil, nil)) }
             }
         }.resume()
     }
@@ -402,38 +415,56 @@ class JSController: ObservableObject {
         }
     }
     
-    func fetchStreamUrlJS(episodeUrl: String, completion: @escaping (String?) -> Void) {
+    func fetchStreamUrlJS(episodeUrl: String, softsub: Bool = false, completion: @escaping ((stream: String?, subtitles: String?)) -> Void) {
         if let exception = context.exception {
             Logger.shared.log("JavaScript exception: \(exception)", type: "Error")
-            completion(nil)
+            completion((nil, nil))
             return
         }
         
         guard let extractStreamUrlFunction = context.objectForKeyedSubscript("extractStreamUrl") else {
             Logger.shared.log("No JavaScript function extractStreamUrl found", type: "Error")
-            completion(nil)
+            completion((nil, nil))
             return
         }
         
         let promiseValue = extractStreamUrlFunction.call(withArguments: [episodeUrl])
         guard let promise = promiseValue else {
             Logger.shared.log("extractStreamUrl did not return a Promise", type: "Error")
-            completion(nil)
+            completion((nil, nil))
             return
         }
         
         let thenBlock: @convention(block) (JSValue) -> Void = { result in
-            let streamUrl = result.toString()
-            Logger.shared.log("Starting stream from: \(streamUrl ?? "nil")", type: "Stream")
-            DispatchQueue.main.async {
-                completion(streamUrl)
+            if softsub {
+                if let jsonString = result.toString(),
+                   let data = jsonString.data(using: .utf8),
+                   let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                    let streamUrl = json["stream"] as? String
+                    let subtitlesUrl = json["subtitles"] as? String
+                    Logger.shared.log("Starting stream from: \(streamUrl ?? "nil") with subtitles: \(subtitlesUrl ?? "nil")", type: "Stream")
+                    DispatchQueue.main.async {
+                        completion((streamUrl, subtitlesUrl))
+                    }
+                } else {
+                    Logger.shared.log("Failed to parse softsub JSON in JS", type: "Error")
+                    DispatchQueue.main.async {
+                        completion((nil, nil))
+                    }
+                }
+            } else {
+                let streamUrl = result.toString()
+                Logger.shared.log("Starting stream from: \(streamUrl ?? "nil")", type: "Stream")
+                DispatchQueue.main.async {
+                    completion((streamUrl, nil))
+                }
             }
         }
         
         let catchBlock: @convention(block) (JSValue) -> Void = { error in
             Logger.shared.log("Promise rejected: \(String(describing: error.toString()))", type: "Error")
             DispatchQueue.main.async {
-                completion(nil)
+                completion((nil, nil))
             }
         }
         
@@ -444,57 +475,71 @@ class JSController: ObservableObject {
         promise.invokeMethod("catch", withArguments: [catchFunction as Any])
     }
     
-    func fetchStreamUrlJSSecond(episodeUrl: String, completion: @escaping (String?) -> Void) {
+    func fetchStreamUrlJSSecond(episodeUrl: String, softsub: Bool = false, completion: @escaping ((stream: String?, subtitles: String?)) -> Void) {
         let url = URL(string: episodeUrl)!
         let task = URLSession.custom.dataTask(with: url) { data, response, error in
             if let error = error {
                 Logger.shared.log("URLSession error: \(error.localizedDescription)", type: "Error")
-                DispatchQueue.main.async {
-                    completion(nil)
-                }
+                DispatchQueue.main.async { completion((nil, nil)) }
                 return
             }
             
             guard let data = data, let htmlString = String(data: data, encoding: .utf8) else {
                 Logger.shared.log("Failed to fetch HTML data", type: "Error")
-                DispatchQueue.main.async {
-                    completion(nil)
-                }
+                DispatchQueue.main.async { completion((nil, nil)) }
                 return
             }
             
             DispatchQueue.main.async {
                 if let exception = self.context.exception {
                     Logger.shared.log("JavaScript exception: \(exception)", type: "Error")
-                    completion(nil)
+                    completion((nil, nil))
                     return
                 }
                 
                 guard let extractStreamUrlFunction = self.context.objectForKeyedSubscript("extractStreamUrl") else {
                     Logger.shared.log("No JavaScript function extractStreamUrl found", type: "Error")
-                    completion(nil)
+                    completion((nil, nil))
                     return
                 }
                 
                 let promiseValue = extractStreamUrlFunction.call(withArguments: [htmlString])
                 guard let promise = promiseValue else {
                     Logger.shared.log("extractStreamUrl did not return a Promise", type: "Error")
-                    completion(nil)
+                    completion((nil, nil))
                     return
                 }
                 
                 let thenBlock: @convention(block) (JSValue) -> Void = { result in
-                    let streamUrl = result.toString()
-                    Logger.shared.log("Starting stream from: \(streamUrl ?? "nil")", type: "Stream")
-                    DispatchQueue.main.async {
-                        completion(streamUrl)
+                    if softsub {
+                        if let jsonString = result.toString(),
+                           let data = jsonString.data(using: .utf8),
+                           let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                            let streamUrl = json["stream"] as? String
+                            let subtitlesUrl = json["subtitles"] as? String
+                            Logger.shared.log("Starting stream from: \(streamUrl ?? "nil") with subtitles: \(subtitlesUrl ?? "nil")", type: "Stream")
+                            DispatchQueue.main.async {
+                                completion((streamUrl, subtitlesUrl))
+                            }
+                        } else {
+                            Logger.shared.log("Failed to parse softsub JSON in JSSecond", type: "Error")
+                            DispatchQueue.main.async {
+                                completion((nil, nil))
+                            }
+                        }
+                    } else {
+                        let streamUrl = result.toString()
+                        Logger.shared.log("Starting stream from: \(streamUrl ?? "nil")", type: "Stream")
+                        DispatchQueue.main.async {
+                            completion((streamUrl, nil))
+                        }
                     }
                 }
                 
                 let catchBlock: @convention(block) (JSValue) -> Void = { error in
                     Logger.shared.log("Promise rejected: \(String(describing: error.toString()))", type: "Error")
                     DispatchQueue.main.async {
-                        completion(nil)
+                        completion((nil, nil))
                     }
                 }
                 

@@ -20,7 +20,7 @@ struct ModuleMetadata: Codable, Hashable {
     let scriptUrl: String
     let asyncJS: Bool?
     let streamAsyncJS: Bool?
-    let softSub: Bool?
+    let softsub: Bool?
 
     struct Author: Codable, Hashable {
         let name: String
