@@ -5,8 +5,8 @@
 //  Created by Francesco on 20/12/24.
 //
 
-import SwiftUI
 import AVKit
+import SwiftUI
 
 struct CustomVideoPlayer: UIViewControllerRepresentable {
     let player: AVPlayer
@@ -35,15 +35,35 @@ struct CustomMediaPlayer: View {
     @State private var timeObserverToken: Any?
     @State private var isVideoLoaded = false
     @State private var showWatchNextButton = true
+    @ObservedObject private var subtitlesLoader = VTTSubtitlesLoader()
+    
+    @AppStorage("subtitleForegroundColor") private var subtitleForegroundColor: String = "white"
+    @AppStorage("subtitleBackgroundEnabled") private var subtitleBackgroundEnabled: Bool = true
+    @AppStorage("subtitleFontSize") private var subtitleFontSize: Double = 20.0
+    @AppStorage("subtitleShadowRadius") private var subtitleShadowRadius: Double = 1.0
+    
+    private var subtitleFGColor: Color {
+        switch subtitleForegroundColor {
+        case "white": return Color.white
+        case "yellow": return Color.yellow
+        case "green": return Color.green
+        case "purple": return Color.purple
+        case "blue": return Color.blue
+        case "red": return Color.red
+        default: return Color.white
+        }
+    }
+    
     @Environment(\.presentationMode) var presentationMode
     
     let module: ScrapingModule
     let fullUrl: String
     let title: String
     let episodeNumber: Int
+    let subtitlesURL: String?
     let onWatchNext: () -> Void
     
-    init(module: ScrapingModule, urlString: String, fullUrl: String, title: String, episodeNumber: Int, onWatchNext: @escaping () -> Void) {
+    init(module: ScrapingModule, urlString: String, fullUrl: String, title: String, episodeNumber: Int, onWatchNext: @escaping () -> Void, subtitlesURL: String?) {
         guard let url = URL(string: urlString) else {
             fatalError("Invalid URL string")
         }
@@ -61,6 +81,7 @@ struct CustomMediaPlayer: View {
         self.title = title
         self.episodeNumber = episodeNumber
         self.onWatchNext = onWatchNext
+        self.subtitlesURL = subtitlesURL ?? ""
         
         let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(fullUrl)")
         if lastPlayedTime > 0 {
@@ -85,6 +106,10 @@ struct CustomMediaPlayer: View {
                             startUpdatingCurrentTime()
                             setInitialPlayerRate()
                             addPeriodicTimeObserver(fullURL: fullUrl)
+                            
+                            if let url = subtitlesURL, !url.isEmpty {
+                                subtitlesLoader.load(from: url)
+                            }
                         }
                         .edgesIgnoringSafeArea(.all)
                         .overlay(
@@ -140,6 +165,20 @@ struct CustomMediaPlayer: View {
                                 showControls.toggle()
                             }
                         }
+                    
+                    VStack {
+                        Spacer()
+                        if let currentCue = subtitlesLoader.cues.first(where: { currentTime >= $0.startTime && currentTime <= $0.endTime }) {
+                            Text(currentCue.text)
+                                .font(.system(size: CGFloat(subtitleFontSize)))
+                                .multilineTextAlignment(.center)
+                                .padding(8)
+                                .background(subtitleBackgroundEnabled ? Color.black.opacity(0.6) : Color.clear)
+                                .foregroundColor(subtitleFGColor)
+                                .cornerRadius(5)
+                                .shadow(color: Color.black, radius: CGFloat(subtitleShadowRadius))
+                        }
+                    }
                     
                     VStack {
                         Spacer()
@@ -199,6 +238,38 @@ struct CustomMediaPlayer: View {
                                         }
                                     } label: {
                                         Image(systemName: "ellipsis.circle")
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 15))
+                                    }
+                                    Menu {
+                                        Menu("Subtitle Foreground Color") {
+                                            Button("White") { subtitleForegroundColor = "white" }
+                                            Button("Yellow") { subtitleForegroundColor = "yellow" }
+                                            Button("Green") { subtitleForegroundColor = "green" }
+                                            Button("Blue") { subtitleForegroundColor = "blue" }
+                                            Button("Red") { subtitleForegroundColor = "red" }
+                                            Button("Purple") { subtitleForegroundColor = "purple" }
+                                        }
+                                        Menu("Subtitle Font Size") {
+                                            Button("16") { subtitleFontSize = 16 }
+                                            Button("18") { subtitleFontSize = 18 }
+                                            Button("20") { subtitleFontSize = 20 }
+                                            Button("22") { subtitleFontSize = 22 }
+                                            Button("24") { subtitleFontSize = 24 }
+                                        }
+                                        Menu("Subtitle Shadow Intensity") {
+                                            Button("None") { subtitleShadowRadius = 0 }
+                                            Button("Low") { subtitleShadowRadius = 1 }
+                                            Button("Medium") { subtitleShadowRadius = 3 }
+                                            Button("High") { subtitleShadowRadius = 6 }
+                                        }
+                                        Button(action: {
+                                            subtitleBackgroundEnabled.toggle()
+                                        }) {
+                                            Text(subtitleBackgroundEnabled ? "Disable Background" : "Enable Background")
+                                        }
+                                    } label: {
+                                        Image(systemName: "text.bubble")
                                             .foregroundColor(.white)
                                             .font(.system(size: 15))
                                     }
