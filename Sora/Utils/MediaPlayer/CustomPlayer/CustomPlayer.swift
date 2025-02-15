@@ -241,7 +241,7 @@ struct CustomMediaPlayer: View {
                                             .foregroundColor(.white)
                                             .font(.headline)
                                     }
-                                    if !subtitlesURL?.isEmpty {
+                                    if let url = subtitlesURL, !url.isEmpty {
                                         Menu {
                                             Menu("Subtitle Foreground Color") {
                                                 Button("White") { subtitleForegroundColor = "white" }
