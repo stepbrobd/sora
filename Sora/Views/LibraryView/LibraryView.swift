@@ -69,7 +69,7 @@ struct LibraryView: View {
                                             .font(.subheadline)
                                             .foregroundColor(.primary)
                                             .lineLimit(2)
-                                            .multilineTextAlignment(.center)
+                                            .multilineTextAlignment(.leading)
                                             .padding(.horizontal, 8)
                                     }
                                 }

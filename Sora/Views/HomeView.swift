@@ -159,9 +159,9 @@ struct HomeView: View {
                                                 rootVC.present(videoPlayerViewController, animated: true, completion: nil)
                                             }
                                         }) {
-                                            VStack {
+                                            VStack(alignment: .leading) {
                                                 ZStack {
-                                                    KFImage(URL(string: item.imageUrl))
+                                                    KFImage(URL(string: item.imageUrl.isEmpty ? "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/main/assets/banner2.png" : item.imageUrl))
                                                         .placeholder {
                                                             RoundedRectangle(cornerRadius: 10)
                                                                 .fill(Color.gray.opacity(0.3))
@@ -174,6 +174,14 @@ struct HomeView: View {
                                                         .frame(width: 240, height: 135)
                                                         .cornerRadius(10)
                                                         .clipped()
+                                                        .overlay(
+                                                            KFImage(URL(string: item.module.metadata.iconUrl))
+                                                                .resizable()
+                                                                .frame(width: 24, height: 24)
+                                                                .cornerRadius(4)
+                                                                .padding(4),
+                                                            alignment: .topLeading
+                                                        )
                                                 }
                                                 .overlay(
                                                     ZStack {
@@ -185,7 +193,7 @@ struct HomeView: View {
                                                         ProgressView(value: item.progress)
                                                             .progressViewStyle(LinearProgressViewStyle(tint: .white))
                                                             .padding(.horizontal, 8)
-                                                            .scaleEffect(x: 1, y: 2, anchor: .center)
+                                                            .scaleEffect(x: 1, y: 1.5, anchor: .center)
                                                     },
                                                     alignment: .bottom
                                                 )
@@ -204,12 +212,21 @@ struct HomeView: View {
                                                 }
                                                 .padding(.horizontal, 8)
                                             }
+                                            .frame(width: 250, height: 190)
+                                        }
+                                        .contextMenu {
+                                            Button(action: { markContinueWatchingItemAsWatched(item: item) }) {
+                                                Label("Mark as Watched", systemImage: "checkmark.circle")
+                                            }
+                                            Button(role: .destructive, action: { removeContinueWatchingItem(item: item) }) {
+                                                Label("Remove Item", systemImage: "trash")
+                                            }
                                         }
                                     }
                                 }
-                                .frame(width: 250, height: 200)
                                 .padding(.horizontal, 8)
                             }
+                            .frame(height: 190)
                         }
                     }
                 }
@@ -231,5 +248,25 @@ struct HomeView: View {
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
+    }
+    
+    private func markContinueWatchingItemAsWatched(item: ContinueWatchingItem) {
+        let key = "lastPlayedTime_\(item.fullUrl)"
+        let totalKey = "totalTime_\(item.fullUrl)"
+        UserDefaults.standard.set(99999999.0, forKey: key)
+        UserDefaults.standard.set(99999999.0, forKey: totalKey)
+        ContinueWatchingManager.shared.remove(item: item)
+        
+        if let index = continueWatchingItems.firstIndex(where: { $0.id == item.id }) {
+            continueWatchingItems.remove(at: index)
+        }
+    }
+    
+    private func removeContinueWatchingItem(item: ContinueWatchingItem) {
+        ContinueWatchingManager.shared.remove(item: item)
+        
+        if let index = continueWatchingItems.firstIndex(where: { $0.id == item.id }) {
+            continueWatchingItems.remove(at: index)
+        }
     }
 }

@@ -32,4 +32,12 @@ class ContinueWatchingManager {
         }
         return []
     }
+    
+    func remove(item: ContinueWatchingItem) {
+        var items = fetchItems()
+        items.removeAll { $0.id == item.id }
+        if let data = try? JSONEncoder().encode(items) {
+            UserDefaults.standard.set(data, forKey: storageKey)
+        }
+    }
 }
