@@ -50,7 +50,7 @@ struct SettingsViewGeneral: View {
                 }
             }
             
-            Section(header: Text("Modules")) {
+            Section(header: Text("Modules"), footer: Text("Note that the modules will be replaced only if there is a different version string inside the JSON file.")) {
                 Toggle("Refresh Modules on Launch", isOn: $refreshModulesOnLaunch)
             }
         }

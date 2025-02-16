@@ -51,8 +51,8 @@ struct SettingsViewData: View {
                     )
                 }
             }
-            .navigationTitle("App Data")
         }
+        .navigationTitle("App Data")
         .navigationViewStyle(StackNavigationViewStyle())
     }
     
