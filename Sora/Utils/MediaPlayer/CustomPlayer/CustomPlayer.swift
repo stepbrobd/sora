@@ -181,6 +181,7 @@ struct CustomMediaPlayer: View {
                                 .foregroundColor(subtitleFGColor)
                                 .cornerRadius(5)
                                 .shadow(color: Color.black, radius: CGFloat(subtitleShadowRadius))
+                                .padding(.bottom, showControls ? 80 : 0)
                         }
                     }
                     

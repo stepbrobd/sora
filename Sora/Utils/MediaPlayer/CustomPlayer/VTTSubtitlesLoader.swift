@@ -55,14 +55,16 @@ class VTTSubtitlesLoader: ObservableObject {
             }
             
             let startTime = parseTimecode(times[0].trimmingCharacters(in: .whitespaces))
+            let adjustedStartTime = max(startTime - 0.5, 0)
             let endTime = parseTimecode(times[1].trimmingCharacters(in: .whitespaces))
+            let adjusteEndTime = max(endTime - 0.5, 0)
             index += 1
             var cueText = ""
             while index < lines.count && !lines[index].trimmingCharacters(in: .whitespaces).isEmpty {
                 cueText += lines[index] + "\n"
                 index += 1
             }
-            cues.append(SubtitleCue(startTime: startTime, endTime: endTime, text: cueText.trimmingCharacters(in: .whitespacesAndNewlines)))
+            cues.append(SubtitleCue(startTime: adjustedStartTime, endTime: adjusteEndTime, text: cueText.trimmingCharacters(in: .whitespacesAndNewlines)))
         }
         return cues
     }
