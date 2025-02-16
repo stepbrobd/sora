@@ -144,7 +144,7 @@ struct HomeView: View {
                                 .padding(.horizontal, 8)
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 8) {
-                                    ForEach(continueWatchingItems) { item in
+                                    ForEach(Array(continueWatchingItems.reversed())) { item in
                                         Button(action: {
                                             if UserDefaults.standard.string(forKey: "externalPlayer") == "Sora" {
                                                 let customMediaPlayer = CustomMediaPlayer(
