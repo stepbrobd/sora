@@ -18,7 +18,7 @@ struct SettingsViewPlayer: View {
     
     var body: some View {
         Form {
-            Section(header: Text("Media Player"), footer: Text("Some features are limited to Sora while others are limited to the Default player, such as ForceLandscape and holdSpeed. Unfortunately the ForceLandscape doesn't yet working on the Sora Player.")) {
+            Section(header: Text("Media Player"), footer: Text("Some features are limited to Sora while others are limited to the Default player, such as ForceLandscape and holdSpeed. Unfortunately the ForceLandscape doesn't yet work on the Sora Player.")) {
                 HStack {
                     Text("Media Player")
                     Spacer()
