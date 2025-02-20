@@ -78,6 +78,7 @@ struct SettingsViewLoggerFilter: View {
             ForEach($viewModel.filters) { $filter in
                 VStack(alignment: .leading, spacing: 0) {
                     Toggle(filter.type, isOn: $filter.isEnabled)
+                        .tint(.accentColor)
                 }
             }
         }

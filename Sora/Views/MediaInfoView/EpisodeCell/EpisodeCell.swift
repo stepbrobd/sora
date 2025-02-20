@@ -74,6 +74,7 @@ struct EpisodeCell: View {
             CircularProgressBar(progress: currentProgress)
                 .frame(width: 40, height: 40)
         }
+        .contentShape(Rectangle())
         .contextMenu {
             if currentProgress <= 0.9 {
                 Button(action: markAsWatched) {
@@ -88,7 +89,10 @@ struct EpisodeCell: View {
             }
         }
         .onAppear {
-            fetchEpisodeDetails()
+            if UserDefaults.standard.object(forKey: "fetchEpisodeMetadata") == nil ||
+                UserDefaults.standard.bool(forKey: "fetchEpisodeMetadata") {
+                fetchEpisodeDetails()
+            }
             updateProgress()
         }
         .onTapGesture {
