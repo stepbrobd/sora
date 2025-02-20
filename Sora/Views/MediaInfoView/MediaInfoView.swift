@@ -523,13 +523,14 @@ struct MediaInfoView: View {
     }
     
     private func selectNextEpisode() {
-        guard selectedEpisodeNumber + 1 < episodeLinks.count else {
-            Logger.shared.log("No more episodes to play", type: "Info")
-            return
-        }
+        guard let currentIndex = episodeLinks.firstIndex(where: { $0.number == selectedEpisodeNumber }),
+              currentIndex + 1 < episodeLinks.count else {
+                  Logger.shared.log("No more episodes to play", type: "Info")
+                  return
+              }
         
-        selectedEpisodeNumber += 1
-        let nextEpisode = episodeLinks[selectedEpisodeNumber]
+        let nextEpisode = episodeLinks[currentIndex + 1]
+        selectedEpisodeNumber = nextEpisode.number
         fetchStream(href: nextEpisode.href)
         DropManager.shared.showDrop(title: "Fetching Next Episode", subtitle: "", duration: 0.5, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
     }
