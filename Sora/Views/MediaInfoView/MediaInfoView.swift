@@ -63,7 +63,7 @@ struct MediaInfoView: View {
                                         .shimmering()
                                 }
                                 .resizable()
-                                .aspectRatio(2/3, contentMode: .fill)
+                                .aspectRatio(2/3, contentMode: .fit)
                                 .cornerRadius(10)
                                 .frame(width: 150, height: 225)
                             
