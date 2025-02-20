@@ -449,6 +449,7 @@ struct MediaInfoView: View {
                 }
             }
         }
+        isFetchingEpisode = false
     }
     
     func handleStreamFailure(error: Error? = nil) {
@@ -458,7 +459,6 @@ struct MediaInfoView: View {
         DropManager.shared.showDrop(title: "Stream not Found", subtitle: "", duration: 1.0, icon: UIImage(systemName: "xmark"))
         
         UINotificationFeedbackGenerator().notificationOccurred(.error)
-        self.isFetchingEpisode = false
         self.isLoading = false
     }
     
