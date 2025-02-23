@@ -1,390 +1,572 @@
 //
-//  ContentView.swift
+//  CustomPlayer.swift
 //  test2
 //
-//  Created by Francesco on 20/12/24.
+//  Created by Francesco on 23/02/25.
 //
 
+import UIKit
 import AVKit
 import SwiftUI
+import AVFoundation
 
-struct CustomVideoPlayer: UIViewControllerRepresentable {
-    let player: AVPlayer
-    
-    func makeUIViewController(context: Context) -> AVPlayerViewController {
-        let controller = NormalPlayer()
-        controller.player = player
-        controller.showsPlaybackControls = false
-        player.play()
-        return controller
-    }
-    
-    func updateUIViewController(_ uiViewController: AVPlayerViewController, context: Context) {
-        // yes? Like the plural of the famous american rapper ye? -IBHRAD
-        // low taper fade the meme is massive -cranci
-    }
+class SliderViewModel: ObservableObject {
+    @Published var sliderValue: Double = 0.0
 }
 
-struct CustomMediaPlayer: View {
-    @State private var player: AVPlayer
-    @State private var isPlaying = true
-    @State private var currentTime: Double = 0.0
-    @State private var duration: Double = 0.0
-    @State private var showControls = false
-    @State private var inactivityTimer: Timer?
-    @State private var timeObserverToken: Any?
-    @State private var isVideoLoaded = false
-    @State private var showWatchNextButton = true
-    @ObservedObject private var subtitlesLoader = VTTSubtitlesLoader()
-    
-    @AppStorage("subtitleForegroundColor") private var subtitleForegroundColor: String = "white"
-    @AppStorage("subtitleBackgroundEnabled") private var subtitleBackgroundEnabled: Bool = true
-    @AppStorage("subtitleFontSize") private var subtitleFontSize: Double = 20.0
-    @AppStorage("subtitleShadowRadius") private var subtitleShadowRadius: Double = 1.0
-    
-    private var subtitleFGColor: Color {
-        switch subtitleForegroundColor {
-        case "white": return Color.white
-        case "yellow": return Color.yellow
-        case "green": return Color.green
-        case "purple": return Color.purple
-        case "blue": return Color.blue
-        case "red": return Color.red
-        default: return Color.white
-        }
-    }
-    
-    @Environment(\.presentationMode) var presentationMode
-    
+class CustomMediaPlayerViewController: UIViewController {
     let module: ScrapingModule
     let streamURL: String
     let fullUrl: String
-    let title: String
+    let titleText: String
     let episodeNumber: Int
     let episodeImageUrl: String
     let subtitlesURL: String?
     let onWatchNext: () -> Void
     
-    init(module: ScrapingModule, urlString: String, fullUrl: String, title: String, episodeNumber: Int, onWatchNext: @escaping () -> Void, subtitlesURL: String?, episodeImageUrl: String) {
-        guard let url = URL(string: urlString) else {
-            fatalError("Invalid URL string")
-        }
-        
-        var request = URLRequest(url: url)
-        if urlString.contains("ascdn") {
-            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
-        }
-        
-        let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])
-        _player = State(initialValue: AVPlayer(playerItem: AVPlayerItem(asset: asset)))
+    var player: AVPlayer!
+    var timeObserverToken: Any?
+    var inactivityTimer: Timer?
+    var updateTimer: Timer?
+    
+    var isPlaying = true
+    var currentTimeVal: Double = 0.0
+    var duration: Double = 0.0
+    var isVideoLoaded = false
+    var showWatchNextButton = true
+    
+    var subtitleForegroundColor: String = "white"
+    var subtitleBackgroundEnabled: Bool = true
+    var subtitleFontSize: Double = 20.0
+    var subtitleShadowRadius: Double = 1.0
+    var subtitlesLoader = VTTSubtitlesLoader()
+    
+    var playerViewController: AVPlayerViewController!
+    var controlsContainerView: UIView!
+    var playPauseButton: UIImageView!
+    var backwardButton: UIImageView!
+    var forwardButton: UIImageView!
+    var subtitleLabel: UILabel!
+    var dismissButton: UIButton!
+    var menuButton: UIButton!
+    var watchNextButton: UIButton!
+    var blackCoverView: UIView!
+    var speedButton: UIButton!
+    
+    var sliderHostingController: UIHostingController<MusicProgressSlider<Double>>?
+    var sliderViewModel = SliderViewModel()
+    var isSliderEditing = false
+    
+    init(module: ScrapingModule,
+         urlString: String,
+         fullUrl: String,
+         title: String,
+         episodeNumber: Int,
+         onWatchNext: @escaping () -> Void,
+         subtitlesURL: String?,
+         episodeImageUrl: String) {
         
         self.module = module
         self.streamURL = urlString
         self.fullUrl = fullUrl
-        self.title = title
+        self.titleText = title
         self.episodeNumber = episodeNumber
         self.episodeImageUrl = episodeImageUrl
         self.onWatchNext = onWatchNext
-        self.subtitlesURL = subtitlesURL ?? ""
+        self.subtitlesURL = subtitlesURL
+        
+        super.init(nibName: nil, bundle: nil)
+        
+        guard let url = URL(string: urlString) else {
+            fatalError("Invalid URL string")
+        }
+        var request = URLRequest(url: url)
+        if urlString.contains("ascdn") {
+            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
+        }
+        let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])
+        let playerItem = AVPlayerItem(asset: asset)
+        self.player = AVPlayer(playerItem: playerItem)
         
         let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(fullUrl)")
         if lastPlayedTime > 0 {
             let seekTime = CMTime(seconds: lastPlayedTime, preferredTimescale: 1)
-            self._player.wrappedValue.seek(to: seekTime)
+            self.player.seek(to: seekTime)
         }
     }
     
-    var body: some View {
-        ZStack {
-            VStack {
-                ZStack {
-                    CustomVideoPlayer(player: player)
-                        .onAppear {
-                            player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 1, preferredTimescale: 600), queue: .main) { time in
-                                currentTime = time.seconds
-                                if let itemDuration = player.currentItem?.duration.seconds, itemDuration.isFinite && !itemDuration.isNaN {
-                                    duration = itemDuration
-                                    isVideoLoaded = true
-                                }
-                            }
-                            startUpdatingCurrentTime()
-                            setInitialPlayerRate()
-                            addPeriodicTimeObserver(fullURL: fullUrl)
-                            
-                            if let url = subtitlesURL, !url.isEmpty {
-                                subtitlesLoader.load(from: url)
-                            }
-                        }
-                        .edgesIgnoringSafeArea(.all)
-                        .overlay(
-                            Group {
-                                if showControls {
-                                    Color.black.opacity(0.5)
-                                        .edgesIgnoringSafeArea(.all)
-                                    HStack(spacing: 20) {
-                                        Button(action: {
-                                            currentTime = max(currentTime - 10, 0)
-                                            player.seek(to: CMTime(seconds: currentTime, preferredTimescale: 600))
-                                        }) {
-                                            Image(systemName: "gobackward.10")
-                                        }
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 25))
-                                        .contentShape(Rectangle())
-                                        .frame(width: 60, height: 60)
-                                        
-                                        Button(action: {
-                                            if isPlaying {
-                                                player.pause()
-                                            } else {
-                                                player.play()
-                                            }
-                                            isPlaying.toggle()
-                                        }) {
-                                            Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                                        }
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 45))
-                                        .contentShape(Rectangle())
-                                        .frame(width: 80, height: 80)
-                                        
-                                        Button(action: {
-                                            currentTime = min(currentTime + 10, duration)
-                                            player.seek(to: CMTime(seconds: currentTime, preferredTimescale: 600))
-                                        }) {
-                                            Image(systemName: "goforward.10")
-                                        }
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 25))
-                                        .contentShape(Rectangle())
-                                        .frame(width: 60, height: 60)
-                                    }
-                                }
-                            }
-                            .animation(.easeInOut(duration: 0.2), value: showControls),
-                            alignment: .center
-                        )
-                        .onTapGesture {
-                            withAnimation {
-                                showControls.toggle()
-                            }
-                        }
-                    
-                    VStack {
-                        Spacer()
-                        if let currentCue = subtitlesLoader.cues.first(where: { currentTime >= $0.startTime && currentTime <= $0.endTime }) {
-                            Text(currentCue.text.strippedHTML)
-                                .font(.system(size: CGFloat(subtitleFontSize)))
-                                .multilineTextAlignment(.center)
-                                .padding(8)
-                                .background(subtitleBackgroundEnabled ? Color.black.opacity(0.6) : Color.clear)
-                                .foregroundColor(subtitleFGColor)
-                                .cornerRadius(5)
-                                .shadow(color: Color.black, radius: CGFloat(subtitleShadowRadius))
-                                .padding(.bottom, showControls ? 80 : 0)
-                        }
-                    }
-                    
-                    VStack {
-                        Spacer()
-                        VStack {
-                            HStack(alignment: .bottom) {
-                                if showControls {
-                                    VStack(alignment: .leading) {
-                                        Text("Episode \(episodeNumber)")
-                                            .font(.subheadline)
-                                            .foregroundColor(.gray)
-                                        Text(title)
-                                            .font(.headline)
-                                            .foregroundColor(.white)
-                                    }
-                                    .padding(.horizontal, 32)
-                                }
-                                Spacer()
-                                if duration - currentTime <= duration * 0.10 && currentTime != duration && showWatchNextButton && duration != 0 {
-                                    Button(action: {
-                                        player.pause()
-                                        presentationMode.wrappedValue.dismiss()
-                                        onWatchNext()
-                                    }) {
-                                        HStack {
-                                            Image(systemName: "forward.fill")
-                                                .foregroundColor(Color.black)
-                                            Text("Watch Next")
-                                                .font(.headline)
-                                                .foregroundColor(Color.black)
-                                        }
-                                        .padding()
-                                        .background(Color.white)
-                                        .cornerRadius(32)
-                                    }
-                                    .padding(.trailing, 10)
-                                    .onAppear {
-                                        if UserDefaults.standard.bool(forKey: "hideNextButton") {
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                                                showWatchNextButton = false
-                                            }
-                                        }
-                                    }
-                                }
-                                if showControls {
-                                    Menu {
-                                        Menu("Playback Speed") {
-                                            ForEach([0.5, 1.0, 1.25, 1.5, 1.75, 2.0], id: \.self) { speed in
-                                                Button(action: {
-                                                    player.rate = Float(speed)
-                                                    if player.timeControlStatus != .playing {
-                                                        player.pause()
-                                                    }
-                                                }) {
-                                                    Text("\(speed, specifier: "%.2f")")
-                                                }
-                                            }
-                                        }
-                                    } label: {
-                                        Image(systemName: "ellipsis.circle")
-                                            .foregroundColor(.white)
-                                            .font(.headline)
-                                    }
-                                    if let url = subtitlesURL, !url.isEmpty {
-                                        Menu {
-                                            Menu("Subtitle Foreground Color") {
-                                                Button("White") { subtitleForegroundColor = "white" }
-                                                Button("Yellow") { subtitleForegroundColor = "yellow" }
-                                                Button("Green") { subtitleForegroundColor = "green" }
-                                                Button("Blue") { subtitleForegroundColor = "blue" }
-                                                Button("Red") { subtitleForegroundColor = "red" }
-                                                Button("Purple") { subtitleForegroundColor = "purple" }
-                                            }
-                                            Menu("Subtitle Font Size") {
-                                                Button("16") { subtitleFontSize = 16 }
-                                                Button("18") { subtitleFontSize = 18 }
-                                                Button("20") { subtitleFontSize = 20 }
-                                                Button("22") { subtitleFontSize = 22 }
-                                                Button("24") { subtitleFontSize = 24 }
-                                            }
-                                            Menu("Subtitle Shadow Intensity") {
-                                                Button("None") { subtitleShadowRadius = 0 }
-                                                Button("Low") { subtitleShadowRadius = 1 }
-                                                Button("Medium") { subtitleShadowRadius = 3 }
-                                                Button("High") { subtitleShadowRadius = 6 }
-                                            }
-                                            Button(action: {
-                                                subtitleBackgroundEnabled.toggle()
-                                            }) {
-                                                Text(subtitleBackgroundEnabled ? "Disable Background" : "Enable Background")
-                                            }
-                                        } label: {
-                                            Image(systemName: "text.bubble")
-                                                .foregroundColor(.white)
-                                                .font(.headline)
-                                        }
-                                    }
-                                }
-                            }
-                            .padding(.trailing, 32)
-                            
-                            if showControls {
-                                MusicProgressSlider(
-                                    value: $currentTime,
-                                    inRange: 0...duration,
-                                    activeFillColor: .white,
-                                    fillColor: .white.opacity(0.5),
-                                    emptyColor: .white.opacity(0.3),
-                                    height: 28,
-                                    onEditingChanged: { editing in
-                                        if !editing && isVideoLoaded {
-                                            player.seek(to: CMTime(seconds: currentTime, preferredTimescale: 600))
-                                        }
-                                    }
-                                )
-                                    .padding(.horizontal, 32)
-                                    .padding(.bottom, 6)
-                                    .disabled(!isVideoLoaded)
-                            }
-                        }
-                    }
-                    .onAppear {
-                        startUpdatingCurrentTime()
-                    }
-                    .onDisappear {
-                        UserDefaults.standard.set(player.rate, forKey: "lastPlaybackSpeed")
-                        player.pause()
-                        inactivityTimer?.invalidate()
-                        if let timeObserverToken = timeObserverToken {
-                            player.removeTimeObserver(timeObserverToken)
-                            self.timeObserverToken = nil
-                        }
-                        
-                        if let currentItem = player.currentItem, currentItem.duration.seconds > 0 {
-                            let currentTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(fullUrl)")
-                            let duration = currentItem.duration.seconds
-                            let progress = currentTime / duration
-                            let item = ContinueWatchingItem(
-                                id: UUID(),
-                                imageUrl: episodeImageUrl,
-                                episodeNumber: episodeNumber,
-                                mediaTitle: title,
-                                progress: progress,
-                                streamUrl: streamURL,
-                                fullUrl: fullUrl,
-                                subtitles: subtitlesURL,
-                                module: module
-                            )
-                            ContinueWatchingManager.shared.save(item: item)
-                        }
-                    }
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .black
+        setupPlayerViewController()
+        setupControls()
+        setupSubtitleLabel()
+        setupDismissButton()
+        setupSpeedButton()
+        setupMenuButton()
+        addTimeObserver()
+        startUpdateTimer()
+        
+        player.play()
+        
+        if let url = subtitlesURL, !url.isEmpty {
+            subtitlesLoader.load(from: url)
+        }
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        player.pause()
+        updateTimer?.invalidate()
+        inactivityTimer?.invalidate()
+        if let token = timeObserverToken {
+            player.removeTimeObserver(token)
+            timeObserverToken = nil
+        }
+        UserDefaults.standard.set(player.rate, forKey: "lastPlaybackSpeed")
+        if let currentItem = player.currentItem, currentItem.duration.seconds > 0 {
+            let progress = currentTimeVal / currentItem.duration.seconds
+            let item = ContinueWatchingItem(
+                id: UUID(),
+                imageUrl: episodeImageUrl,
+                episodeNumber: episodeNumber,
+                mediaTitle: titleText,
+                progress: progress,
+                streamUrl: streamURL,
+                fullUrl: fullUrl,
+                subtitles: subtitlesURL,
+                module: module
+            )
+            ContinueWatchingManager.shared.save(item: item)
+        }
+    }
+    
+    func setupPlayerViewController() {
+        playerViewController = AVPlayerViewController()
+        playerViewController.player = player
+        playerViewController.showsPlaybackControls = false
+        addChild(playerViewController)
+        view.addSubview(playerViewController.view)
+        playerViewController.view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            playerViewController.view.topAnchor.constraint(equalTo: view.topAnchor),
+            playerViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            playerViewController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            playerViewController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+        playerViewController.didMove(toParent: self)
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(toggleControls))
+        view.addGestureRecognizer(tapGesture)
+    }
+    
+    func setupControls() {
+        controlsContainerView = UIView()
+        controlsContainerView.backgroundColor = UIColor.black.withAlphaComponent(0.0)
+        view.addSubview(controlsContainerView)
+        controlsContainerView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            controlsContainerView.topAnchor.constraint(equalTo: view.topAnchor),
+            controlsContainerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            controlsContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            controlsContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+        
+        blackCoverView = UIView()
+        blackCoverView.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+        blackCoverView.translatesAutoresizingMaskIntoConstraints = false
+        controlsContainerView.insertSubview(blackCoverView, at: 0)
+        NSLayoutConstraint.activate([
+            blackCoverView.topAnchor.constraint(equalTo: controlsContainerView.topAnchor),
+            blackCoverView.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor),
+            blackCoverView.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor),
+            blackCoverView.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor)
+        ])
+        
+        backwardButton = UIImageView(image: UIImage(systemName: "gobackward.10"))
+        backwardButton.tintColor = .white
+        backwardButton.contentMode = .scaleAspectFit
+        backwardButton.isUserInteractionEnabled = true
+        let backwardTap = UITapGestureRecognizer(target: self, action: #selector(seekBackward))
+        backwardButton.addGestureRecognizer(backwardTap)
+        controlsContainerView.addSubview(backwardButton)
+        backwardButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        playPauseButton = UIImageView(image: UIImage(systemName: "pause.fill"))
+        playPauseButton.tintColor = .white
+        playPauseButton.contentMode = .scaleAspectFit
+        playPauseButton.isUserInteractionEnabled = true
+        let playPauseTap = UITapGestureRecognizer(target: self, action: #selector(togglePlayPause))
+        playPauseButton.addGestureRecognizer(playPauseTap)
+        controlsContainerView.addSubview(playPauseButton)
+        playPauseButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        forwardButton = UIImageView(image: UIImage(systemName: "goforward.10"))
+        forwardButton.tintColor = .white
+        forwardButton.contentMode = .scaleAspectFit
+        forwardButton.isUserInteractionEnabled = true
+        let forwardTap = UITapGestureRecognizer(target: self, action: #selector(seekForward))
+        forwardButton.addGestureRecognizer(forwardTap)
+        controlsContainerView.addSubview(forwardButton)
+        forwardButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        let sliderView = MusicProgressSlider(
+            value: Binding(get: { self.sliderViewModel.sliderValue },
+                           set: { self.sliderViewModel.sliderValue = $0 }),
+            inRange: 0...(duration > 0 ? duration : 1.0),
+            activeFillColor: .white,
+            fillColor: .white.opacity(0.5),
+            emptyColor: .white.opacity(0.3),
+            height: 30,
+            onEditingChanged: { editing in
+                self.isSliderEditing = editing
+                if !editing {
+                    self.player.seek(to: CMTime(seconds: self.sliderViewModel.sliderValue, preferredTimescale: 600))
                 }
             }
-            VStack {
-                if showControls {
-                    HStack {
-                        Button(action: {
-                            presentationMode.wrappedValue.dismiss()
-                        }) {
-                            Image(systemName: "xmark")
-                                .foregroundColor(.white)
-                                .font(.system(size: 20))
-                        }
-                        .frame(width: 60, height: 60)
-                        .contentShape(Rectangle())
-                        .padding()
-                        Spacer()
-                    }
-                    Spacer()
-                }
-            }
+        )
+        
+        sliderHostingController = UIHostingController(rootView: sliderView)
+        guard let sliderHostView = sliderHostingController?.view else { return }
+        sliderHostView.backgroundColor = .clear
+        sliderHostView.translatesAutoresizingMaskIntoConstraints = false
+        controlsContainerView.addSubview(sliderHostView)
+        
+        NSLayoutConstraint.activate([
+            sliderHostView.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: 32),
+            sliderHostView.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -32),
+            sliderHostView.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor, constant: -20),
+            sliderHostView.heightAnchor.constraint(equalToConstant: 30)
+        ])
+        
+        watchNextButton = UIButton(type: .system)
+        watchNextButton.setTitle("Watch Next", for: .normal)
+        watchNextButton.backgroundColor = .white
+        watchNextButton.layer.cornerRadius = 32
+        watchNextButton.setTitleColor(.black, for: .normal)
+        watchNextButton.addTarget(self, action: #selector(watchNextTapped), for: .touchUpInside)
+        watchNextButton.isHidden = true
+        controlsContainerView.addSubview(watchNextButton)
+        watchNextButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            playPauseButton.centerXAnchor.constraint(equalTo: controlsContainerView.centerXAnchor),
+            playPauseButton.centerYAnchor.constraint(equalTo: controlsContainerView.centerYAnchor),
+            playPauseButton.widthAnchor.constraint(equalToConstant: 50),
+            playPauseButton.heightAnchor.constraint(equalToConstant: 50),
+            
+            backwardButton.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
+            backwardButton.trailingAnchor.constraint(equalTo: playPauseButton.leadingAnchor, constant: -30),
+            backwardButton.widthAnchor.constraint(equalToConstant: 40),
+            backwardButton.heightAnchor.constraint(equalToConstant: 40),
+            
+            forwardButton.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
+            forwardButton.leadingAnchor.constraint(equalTo: playPauseButton.trailingAnchor, constant: 30),
+            forwardButton.widthAnchor.constraint(equalToConstant: 40),
+            forwardButton.heightAnchor.constraint(equalToConstant: 40),
+            
+            watchNextButton.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -10),
+            watchNextButton.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor, constant: -80),
+            watchNextButton.heightAnchor.constraint(equalToConstant: 50),
+            watchNextButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
+        ])
+    }
+    
+    func setupSubtitleLabel() {
+        subtitleLabel = UILabel()
+        subtitleLabel.textAlignment = .center
+        subtitleLabel.numberOfLines = 0
+        subtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
+        updateSubtitleLabelAppearance()
+        view.addSubview(subtitleLabel)
+        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            subtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            subtitleLabel.bottomAnchor.constraint(equalTo: sliderHostingController?.view.topAnchor ?? view.bottomAnchor, constant: -10),
+            subtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 20),
+            subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -20)
+        ])
+    }
+    
+    func setupDismissButton() {
+        dismissButton = UIButton(type: .system)
+        dismissButton.setImage(UIImage(systemName: "xmark"), for: .normal)
+        dismissButton.tintColor = .white
+        dismissButton.addTarget(self, action: #selector(dismissTapped), for: .touchUpInside)
+        controlsContainerView.addSubview(dismissButton)
+        dismissButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            dismissButton.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: 32),
+            dismissButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            dismissButton.widthAnchor.constraint(equalToConstant: 40),
+            dismissButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+    }
+    
+    func setupMenuButton() {
+        menuButton = UIButton(type: .system)
+        menuButton.setImage(UIImage(systemName: "text.bubble"), for: .normal)
+        menuButton.tintColor = .white
+        
+        if let subtitlesURL = subtitlesURL, !subtitlesURL.isEmpty {
+            menuButton.showsMenuAsPrimaryAction = true
+            menuButton.menu = buildOptionsMenu()
+        } else {
+            menuButton.isHidden = true
+        }
+        
+        controlsContainerView.addSubview(menuButton)
+        menuButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            menuButton.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor, constant: -50),
+            menuButton.trailingAnchor.constraint(equalTo: speedButton.leadingAnchor),
+            menuButton.widthAnchor.constraint(equalToConstant: 40),
+            menuButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+    }
+    
+    func setupSpeedButton() {
+        speedButton = UIButton(type: .system)
+        speedButton.setImage(UIImage(systemName: "speedometer"), for: .normal)
+        speedButton.tintColor = .white
+        
+        speedButton.showsMenuAsPrimaryAction = true
+        speedButton.menu = speedChangerMenu()
+        
+        controlsContainerView.addSubview(speedButton)
+        speedButton.translatesAutoresizingMaskIntoConstraints = false
+        guard let sliderView = sliderHostingController?.view else { return }
+        NSLayoutConstraint.activate([
+            speedButton.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor, constant: -50),
+            speedButton.trailingAnchor.constraint(equalTo: sliderView.trailingAnchor, constant: -10),
+            speedButton.widthAnchor.constraint(equalToConstant: 40),
+            speedButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+    }
+    
+    func updateSubtitleLabelAppearance() {
+        subtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
+        subtitleLabel.textColor = subtitleUIColor()
+        if subtitleBackgroundEnabled {
+            subtitleLabel.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        } else {
+            subtitleLabel.backgroundColor = .clear
+        }
+        subtitleLabel.layer.cornerRadius = 5
+        subtitleLabel.clipsToBounds = true
+        subtitleLabel.layer.shadowColor = UIColor.black.cgColor
+        subtitleLabel.layer.shadowRadius = CGFloat(subtitleShadowRadius)
+        subtitleLabel.layer.shadowOpacity = 1.0
+        subtitleLabel.layer.shadowOffset = CGSize.zero
+    }
+    
+    func subtitleUIColor() -> UIColor {
+        switch subtitleForegroundColor {
+        case "white": return .white
+        case "yellow": return .yellow
+        case "green": return .green
+        case "purple": return .purple
+        case "blue": return .blue
+        case "red": return .red
+        default: return .white
         }
     }
     
-    private func startUpdatingCurrentTime() {
-        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            let newTime = player.currentTime().seconds
-            DispatchQueue.main.async {
-                self.currentTime = newTime
-            }
-        }
-    }
-    
-    private func setInitialPlayerRate() {
-        if UserDefaults.standard.bool(forKey: "rememberPlaySpeed") {
-            let lastPlayedSpeed = UserDefaults.standard.float(forKey: "lastPlaybackSpeed")
-            player.rate = lastPlayedSpeed > 0 ? lastPlayedSpeed : 1.0
-        }
-    }
-    
-    private func addPeriodicTimeObserver(fullURL: String) {
+    func addTimeObserver() {
         let interval = CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { time in
-            guard let currentItem = player.currentItem,
+        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            guard let self = self, let currentItem = self.player.currentItem,
                   currentItem.duration.seconds.isFinite else { return }
+            self.currentTimeVal = time.seconds
+            self.duration = currentItem.duration.seconds
+            
+            if !self.isSliderEditing {
+                self.sliderViewModel.sliderValue = self.currentTimeVal
+            }
+            
+            UserDefaults.standard.set(self.currentTimeVal, forKey: "lastPlayedTime_\(self.fullUrl)")
+            UserDefaults.standard.set(self.duration, forKey: "totalTime_\(self.fullUrl)")
+            
+            if let currentCue = self.subtitlesLoader.cues.first(where: { self.currentTimeVal >= $0.startTime && self.currentTimeVal <= $0.endTime }) {
+                self.subtitleLabel.text = currentCue.text.strippedHTML
+            } else {
+                self.subtitleLabel.text = ""
+            }
+            
+            if (self.duration - self.currentTimeVal) <= (self.duration * 0.10)
+                && self.currentTimeVal != self.duration
+                && self.showWatchNextButton
+                && self.duration != 0 {
+                self.watchNextButton.isHidden = false
+            } else {
+                self.watchNextButton.isHidden = true
+            }
+            
             DispatchQueue.main.async {
-                let currentTimeValue = time.seconds
-                self.currentTime = currentTimeValue
-                let duration = currentItem.duration.seconds
-                UserDefaults.standard.set(currentTimeValue, forKey: "lastPlayedTime_\(fullURL)")
-                UserDefaults.standard.set(duration, forKey: "totalTime_\(fullURL)")
+                self.sliderHostingController?.rootView = MusicProgressSlider(
+                    value: Binding(get: { self.sliderViewModel.sliderValue },
+                                   set: { self.sliderViewModel.sliderValue = $0 }),
+                    inRange: 0...(self.duration > 0 ? self.duration : 1.0),
+                    activeFillColor: .white,
+                    fillColor: .white.opacity(0.5),
+                    emptyColor: .white.opacity(0.3),
+                    height: 30,
+                    onEditingChanged: { editing in
+                        self.isSliderEditing = editing
+                        if !editing {
+                            self.player.seek(to: CMTime(seconds: self.sliderViewModel.sliderValue, preferredTimescale: 600))
+                        }
+                    }
+                )
             }
         }
+    }
+    
+    func startUpdateTimer() {
+        updateTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            self.currentTimeVal = self.player.currentTime().seconds
+        }
+    }
+    
+    @objc func toggleControls() {
+        UIView.animate(withDuration: 0.2) {
+            self.controlsContainerView.alpha = self.controlsContainerView.alpha == 0 ? 1 : 0
+        }
+    }
+    
+    @objc func seekBackward() {
+        currentTimeVal = max(currentTimeVal - 10, 0)
+        player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
+    }
+    
+    @objc func seekForward() {
+        currentTimeVal = min(currentTimeVal + 10, duration)
+        player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
+    }
+    
+    @objc func togglePlayPause() {
+        if isPlaying {
+            player.pause()
+            playPauseButton.image = UIImage(systemName: "play.fill")
+        } else {
+            player.play()
+            playPauseButton.image = UIImage(systemName: "pause.fill")
+        }
+        isPlaying.toggle()
+    }
+    
+    @objc func sliderEditingEnded() {
+        let newTime = sliderViewModel.sliderValue
+        player.seek(to: CMTime(seconds: newTime, preferredTimescale: 600))
+    }
+    
+    @objc func dismissTapped() {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    @objc func watchNextTapped() {
+        player.pause()
+        dismiss(animated: true) { [weak self] in
+            self?.onWatchNext()
+        }
+    }
+    
+    func speedChangerMenu() -> UIMenu {
+        let speeds: [Double] = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+        let playbackSpeedActions = speeds.map { speed in
+            UIAction(title: String(format: "%.2f", speed)) { _ in
+                self.player.rate = Float(speed)
+                if self.player.timeControlStatus != .playing {
+                    self.player.pause()
+                }
+            }
+        }
+        return UIMenu(title: "Playback Speed", children: playbackSpeedActions)
+    }
+    
+    func buildOptionsMenu() -> UIMenu {
+        var menuElements: [UIMenuElement] = []
+        
+        if let subURL = subtitlesURL, !subURL.isEmpty {
+            let foregroundActions = [
+                UIAction(title: "White") { _ in self.subtitleForegroundColor = "white"; self.updateSubtitleLabelAppearance() },
+                UIAction(title: "Yellow") { _ in self.subtitleForegroundColor = "yellow"; self.updateSubtitleLabelAppearance() },
+                UIAction(title: "Green") { _ in self.subtitleForegroundColor = "green"; self.updateSubtitleLabelAppearance() },
+                UIAction(title: "Blue") { _ in self.subtitleForegroundColor = "blue"; self.updateSubtitleLabelAppearance() },
+                UIAction(title: "Red") { _ in self.subtitleForegroundColor = "red"; self.updateSubtitleLabelAppearance() },
+                UIAction(title: "Purple") { _ in self.subtitleForegroundColor = "purple"; self.updateSubtitleLabelAppearance() }
+            ]
+            let colorMenu = UIMenu(title: "Subtitle Colors", options: .displayInline, children: foregroundActions)
+            
+            let fontSizeActions = [
+                UIAction(title: "16") { _ in self.subtitleFontSize = 16; self.updateSubtitleLabelAppearance() },
+                UIAction(title: "18") { _ in self.subtitleFontSize = 18; self.updateSubtitleLabelAppearance() },
+                UIAction(title: "20") { _ in self.subtitleFontSize = 20; self.updateSubtitleLabelAppearance() },
+                UIAction(title: "22") { _ in self.subtitleFontSize = 22; self.updateSubtitleLabelAppearance() },
+                UIAction(title: "24") { _ in self.subtitleFontSize = 24; self.updateSubtitleLabelAppearance() },
+                UIAction(title: "Custom") { _ in self.presentCustomFontAlert() }
+            ]
+            let fontSizeMenu = UIMenu(title: "Subtitle Font Size", options: .displayInline, children: fontSizeActions)
+            
+            let shadowActions = [
+                UIAction(title: "None") { _ in self.subtitleShadowRadius = 0; self.updateSubtitleLabelAppearance() },
+                UIAction(title: "Low") { _ in self.subtitleShadowRadius = 1; self.updateSubtitleLabelAppearance() },
+                UIAction(title: "Medium") { _ in self.subtitleShadowRadius = 3; self.updateSubtitleLabelAppearance() },
+                UIAction(title: "High") { _ in self.subtitleShadowRadius = 6; self.updateSubtitleLabelAppearance() }
+            ]
+            let shadowMenu = UIMenu(title: "Shadow Intensity", options: .displayInline, children: shadowActions)
+            
+            let toggleBackgroundAction = UIAction(title: self.subtitleBackgroundEnabled ? "Disable Background" : "Enable Background") { _ in
+                self.subtitleBackgroundEnabled.toggle()
+                self.updateSubtitleLabelAppearance()
+            }
+            
+            menuElements = [colorMenu, fontSizeMenu, shadowMenu, toggleBackgroundAction]
+        }
+        
+        return UIMenu(title: "", children: menuElements)
+    }
+    
+    func presentCustomFontAlert() {
+        let alert = UIAlertController(title: "Enter Custom Font Size", message: nil, preferredStyle: .alert)
+        alert.addTextField { textField in
+            textField.placeholder = "Font Size"
+            textField.keyboardType = .numberPad
+            textField.text = String(Int(self.subtitleFontSize))
+        }
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: "Done", style: .default, handler: { _ in
+            if let text = alert.textFields?.first?.text, let newSize = Double(text) {
+                self.subtitleFontSize = newSize
+                self.updateSubtitleLabelAppearance()
+            }
+        }))
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            self.present(alert, animated: true, completion: nil)
+        }
+    }
+    
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        if UserDefaults.standard.bool(forKey: "alwaysLandscape") {
+            return .landscape
+        } else {
+            return .all
+        }
+    }
+    
+    override var prefersHomeIndicatorAutoHidden: Bool {
+        return true
+    }
+    
+    override var prefersStatusBarHidden: Bool {
+        return true
     }
 }
+
+// yes? Like the plural of the famous american rapper ye? -IBHRAD
+// low taper fade the meme is massive -cranci

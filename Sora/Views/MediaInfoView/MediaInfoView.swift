@@ -160,6 +160,7 @@ struct MediaInfoView: View {
                                 .background(Color.accentColor)
                                 .cornerRadius(10)
                             }
+                            .disabled(isFetchingEpisode)
                             
                             Button(action: {
                                 libraryManager.toggleBookmark(
@@ -210,7 +211,6 @@ struct MediaInfoView: View {
                                     
                                     EpisodeCell(episode: ep.href, episodeID: ep.number - 1, progress: progress, itemID: itemID ?? 0, onTap: { imageUrl in
                                             if !isFetchingEpisode {
-                                                isFetchingEpisode = true
                                                 selectedEpisodeNumber = ep.number
                                                 selectedEpisodeImage = imageUrl
                                                 fetchStream(href: ep.href)
@@ -385,6 +385,7 @@ struct MediaInfoView: View {
     
     func fetchStream(href: String) {
         DropManager.shared.showDrop(title: "Fetching Stream", subtitle: "", duration: 0.5, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
+        isFetchingEpisode = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             Task {
                 do {
@@ -399,6 +400,9 @@ struct MediaInfoView: View {
                                 } else {
                                     self.handleStreamFailure(error: nil)
                                 }
+                                DispatchQueue.main.async {
+                                    self.isFetchingEpisode = false
+                                }
                             }
                         } else if module.metadata.streamAsyncJS == true {
                             jsController.fetchStreamUrlJSSecond(episodeUrl: href, softsub: true) { result in
@@ -407,6 +411,9 @@ struct MediaInfoView: View {
                                 } else {
                                     self.handleStreamFailure(error: nil)
                                 }
+                                DispatchQueue.main.async {
+                                    self.isFetchingEpisode = false
+                                }
                             }
                         } else {
                             jsController.fetchStreamUrl(episodeUrl: href, softsub: true) { result in
@@ -414,6 +421,9 @@ struct MediaInfoView: View {
                                     self.playStream(url: streamUrl, fullURL: href, subtitles: result.subtitles)
                                 } else {
                                     self.handleStreamFailure(error: nil)
+                                }
+                                DispatchQueue.main.async {
+                                    self.isFetchingEpisode = false
                                 }
                             }
                         }
@@ -425,6 +435,9 @@ struct MediaInfoView: View {
                                 } else {
                                     self.handleStreamFailure(error: nil)
                                 }
+                                DispatchQueue.main.async {
+                                    self.isFetchingEpisode = false
+                                }
                             }
                         } else if module.metadata.streamAsyncJS == true {
                             jsController.fetchStreamUrlJSSecond(episodeUrl: href) { result in
@@ -432,6 +445,9 @@ struct MediaInfoView: View {
                                     self.playStream(url: streamUrl, fullURL: href)
                                 } else {
                                     self.handleStreamFailure(error: nil)
+                                }
+                                DispatchQueue.main.async {
+                                    self.isFetchingEpisode = false
                                 }
                             }
                         } else {
@@ -441,15 +457,20 @@ struct MediaInfoView: View {
                                 } else {
                                     self.handleStreamFailure(error: nil)
                                 }
+                                DispatchQueue.main.async {
+                                    self.isFetchingEpisode = false
+                                }
                             }
                         }
                     }
                 } catch {
                     self.handleStreamFailure(error: error)
+                    DispatchQueue.main.async {
+                        self.isFetchingEpisode = false
+                    }
                 }
             }
         }
-        isFetchingEpisode = false
     }
     
     func handleStreamFailure(error: Error? = nil) {
@@ -477,7 +498,7 @@ struct MediaInfoView: View {
             case "nPlayer":
                 scheme = "nplayer-\(url)"
             case "Sora":
-                let customMediaPlayer = CustomMediaPlayer(
+                let customMediaPlayer = CustomMediaPlayerViewController(
                     module: module,
                     urlString: url,
                     fullUrl: fullURL,
@@ -489,13 +510,12 @@ struct MediaInfoView: View {
                     subtitlesURL: subtitles,
                     episodeImageUrl: selectedEpisodeImage
                 )
-                let hostingController = UIHostingController(rootView: customMediaPlayer)
-                hostingController.modalPresentationStyle = .fullScreen
+                customMediaPlayer.modalPresentationStyle = .fullScreen
                 Logger.shared.log("Opening custom media player with url: \(url)")
                 
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                    let rootVC = windowScene.windows.first?.rootViewController {
-                    rootVC.present(hostingController, animated: true, completion: nil)
+                    rootVC.present(customMediaPlayer, animated: true, completion: nil)
                 }
                 return
             default:
@@ -512,6 +532,7 @@ struct MediaInfoView: View {
                 videoPlayerViewController.episodeNumber = selectedEpisodeNumber
                 videoPlayerViewController.episodeImageUrl = selectedEpisodeImage
                 videoPlayerViewController.mediaTitle = title
+                videoPlayerViewController.subtitles = subtitles ?? ""
                 videoPlayerViewController.modalPresentationStyle = .fullScreen
                 
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,

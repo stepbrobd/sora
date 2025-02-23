@@ -16,6 +16,7 @@ class VideoPlayerViewController: UIViewController {
     var timeObserverToken: Any?
     var streamUrl: String?
     var fullUrl: String = ""
+    var subtitles: String = ""
     
     var episodeNumber: Int = 0
     var episodeImageUrl: String = ""
@@ -98,7 +99,7 @@ class VideoPlayerViewController: UIViewController {
                 progress: progress,
                 streamUrl: streamUrl,
                 fullUrl: fullUrl,
-                subtitles: nil,
+                subtitles: subtitles,
                 module: module
             )
             ContinueWatchingManager.shared.save(item: item)

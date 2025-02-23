@@ -52,7 +52,7 @@ struct HomeView: View {
                                 ForEach(Array(continueWatchingItems.reversed())) { item in
                                     Button(action: {
                                         if UserDefaults.standard.string(forKey: "externalPlayer") == "Sora" {
-                                            let customMediaPlayer = CustomMediaPlayer(
+                                            let customMediaPlayer = CustomMediaPlayerViewController(
                                                 module: item.module,
                                                 urlString: item.streamUrl,
                                                 fullUrl: item.fullUrl,
@@ -62,12 +62,11 @@ struct HomeView: View {
                                                 subtitlesURL: item.subtitles,
                                                 episodeImageUrl: item.imageUrl
                                             )
-                                            let hostingController = UIHostingController(rootView: customMediaPlayer)
-                                            hostingController.modalPresentationStyle = .fullScreen
+                                            customMediaPlayer.modalPresentationStyle = .fullScreen
                                             
                                             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                                                let rootVC = windowScene.windows.first?.rootViewController {
-                                                rootVC.present(hostingController, animated: true, completion: nil)
+                                                rootVC.present(customMediaPlayer, animated: true, completion: nil)
                                             }
                                         } else {
                                             let videoPlayerViewController = VideoPlayerViewController(module: item.module)
@@ -76,6 +75,7 @@ struct HomeView: View {
                                             videoPlayerViewController.episodeImageUrl = item.imageUrl
                                             videoPlayerViewController.episodeNumber = item.episodeNumber
                                             videoPlayerViewController.mediaTitle = item.mediaTitle
+                                            videoPlayerViewController.subtitles = item.subtitles ?? ""
                                             videoPlayerViewController.modalPresentationStyle = .fullScreen
                                             
                                             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
