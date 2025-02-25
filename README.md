@@ -46,6 +46,8 @@ Sora does not include any modules by default. You will need to find and add the 
 - [KingFisher](https://github.com/onevcat/Kingfisher) - MIT License
 - [Drops](https://github.com/omaralbeik/Drops) - MIT License
 
+- [50/50](https://github.com/50n50) for the app icon
+
 ## License
 
 This project is licensed under the [GNU General Public License v3.0](LICENSE) (GPLv3.0).
