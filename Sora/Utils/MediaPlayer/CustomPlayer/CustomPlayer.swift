@@ -170,10 +170,10 @@ class CustomMediaPlayerViewController: UIViewController {
         view.addSubview(controlsContainerView)
         controlsContainerView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            controlsContainerView.topAnchor.constraint(equalTo: view.topAnchor),
-            controlsContainerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            controlsContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            controlsContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+            controlsContainerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            controlsContainerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            controlsContainerView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            controlsContainerView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
         ])
         
         blackCoverView = UIView()
@@ -181,10 +181,10 @@ class CustomMediaPlayerViewController: UIViewController {
         blackCoverView.translatesAutoresizingMaskIntoConstraints = false
         controlsContainerView.insertSubview(blackCoverView, at: 0)
         NSLayoutConstraint.activate([
-            blackCoverView.topAnchor.constraint(equalTo: controlsContainerView.topAnchor),
-            blackCoverView.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor),
-            blackCoverView.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor),
-            blackCoverView.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor)
+            blackCoverView.topAnchor.constraint(equalTo: view.topAnchor),
+            blackCoverView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            blackCoverView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            blackCoverView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
         
         backwardButton = UIImageView(image: UIImage(systemName: "gobackward.10"))
@@ -237,8 +237,8 @@ class CustomMediaPlayerViewController: UIViewController {
         controlsContainerView.addSubview(sliderHostView)
         
         NSLayoutConstraint.activate([
-            sliderHostView.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: 32),
-            sliderHostView.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -32),
+            sliderHostView.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: 26),
+            sliderHostView.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -26),
             sliderHostView.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor, constant: -20),
             sliderHostView.heightAnchor.constraint(equalToConstant: 30)
         ])
@@ -286,7 +286,7 @@ class CustomMediaPlayerViewController: UIViewController {
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             subtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            subtitleLabel.bottomAnchor.constraint(equalTo: sliderHostingController?.view.topAnchor ?? view.bottomAnchor, constant: -10),
+            subtitleLabel.bottomAnchor.constraint(equalTo: sliderHostingController?.view.topAnchor ?? view.safeAreaLayoutGuide.bottomAnchor),
             subtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 20),
             subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -20)
         ])
@@ -300,8 +300,8 @@ class CustomMediaPlayerViewController: UIViewController {
         controlsContainerView.addSubview(dismissButton)
         dismissButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            dismissButton.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: 32),
-            dismissButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            dismissButton.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: 16),
+            dismissButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             dismissButton.widthAnchor.constraint(equalToConstant: 40),
             dismissButton.heightAnchor.constraint(equalToConstant: 40)
         ])
@@ -341,8 +341,8 @@ class CustomMediaPlayerViewController: UIViewController {
         speedButton.translatesAutoresizingMaskIntoConstraints = false
         guard let sliderView = sliderHostingController?.view else { return }
         NSLayoutConstraint.activate([
-            speedButton.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor, constant: -50),
-            speedButton.trailingAnchor.constraint(equalTo: sliderView.trailingAnchor, constant: -10),
+            speedButton.bottomAnchor.constraint(equalTo: sliderView.topAnchor),
+            speedButton.trailingAnchor.constraint(equalTo: sliderView.trailingAnchor),
             speedButton.widthAnchor.constraint(equalToConstant: 40),
             speedButton.heightAnchor.constraint(equalToConstant: 40)
         ])
@@ -501,7 +501,7 @@ class CustomMediaPlayerViewController: UIViewController {
                 UIAction(title: "Red") { _ in self.subtitleForegroundColor = "red"; self.updateSubtitleLabelAppearance() },
                 UIAction(title: "Purple") { _ in self.subtitleForegroundColor = "purple"; self.updateSubtitleLabelAppearance() }
             ]
-            let colorMenu = UIMenu(title: "Subtitle Colors", options: .displayInline, children: foregroundActions)
+            let colorMenu = UIMenu(title: "Subtitle Color", children: foregroundActions)
             
             let fontSizeActions = [
                 UIAction(title: "16") { _ in self.subtitleFontSize = 16; self.updateSubtitleLabelAppearance() },
@@ -511,7 +511,7 @@ class CustomMediaPlayerViewController: UIViewController {
                 UIAction(title: "24") { _ in self.subtitleFontSize = 24; self.updateSubtitleLabelAppearance() },
                 UIAction(title: "Custom") { _ in self.presentCustomFontAlert() }
             ]
-            let fontSizeMenu = UIMenu(title: "Subtitle Font Size", options: .displayInline, children: fontSizeActions)
+            let fontSizeMenu = UIMenu(title: "Font Size", children: fontSizeActions)
             
             let shadowActions = [
                 UIAction(title: "None") { _ in self.subtitleShadowRadius = 0; self.updateSubtitleLabelAppearance() },
@@ -519,14 +519,19 @@ class CustomMediaPlayerViewController: UIViewController {
                 UIAction(title: "Medium") { _ in self.subtitleShadowRadius = 3; self.updateSubtitleLabelAppearance() },
                 UIAction(title: "High") { _ in self.subtitleShadowRadius = 6; self.updateSubtitleLabelAppearance() }
             ]
-            let shadowMenu = UIMenu(title: "Shadow Intensity", options: .displayInline, children: shadowActions)
+            let shadowMenu = UIMenu(title: "Shadow Intensity", children: shadowActions)
             
-            let toggleBackgroundAction = UIAction(title: self.subtitleBackgroundEnabled ? "Disable Background" : "Enable Background") { _ in
-                self.subtitleBackgroundEnabled.toggle()
-                self.updateSubtitleLabelAppearance()
-            }
+            let backgroundActions = [
+                UIAction(title: "Toggle") { _ in
+                    self.subtitleBackgroundEnabled.toggle()
+                    self.updateSubtitleLabelAppearance()
+                }
+            ]
+            let backgroundMenu = UIMenu(title: "Background", children: backgroundActions)
             
-            menuElements = [colorMenu, fontSizeMenu, shadowMenu, toggleBackgroundAction]
+            let subtitleOptionsMenu = UIMenu(title: "Subtitle Options", children: [colorMenu, fontSizeMenu, shadowMenu, backgroundMenu])
+            
+            menuElements = [subtitleOptionsMenu]
         }
         
         return UIMenu(title: "", children: menuElements)
