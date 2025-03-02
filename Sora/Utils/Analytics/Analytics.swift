@@ -82,7 +82,7 @@ class AnalyticsManager {
             return
         }
         
-        URLSession.shared.dataTask(with: request) { (data, response, error) in
+        URLSession.shared.dataTask(with: request) { (data, _, error) in
             if let error = error {
                 Logger.shared.log("Request failed: \(error.localizedDescription)", type: "Debug")
                 return
