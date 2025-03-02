@@ -257,6 +257,7 @@
 			isa = PBXGroup;
 			children = (
 				133D7C872D2BE2640075467E /* URLSession.swift */,
+				7374EF372D74AEEA00319CEC /* UIDevice+Model.swift */,
 				13CBEFD92D5F7D1200D011EE /* String.swift */,
 				13103E8A2D58E028000F0673 /* View.swift */,
 			);
@@ -381,7 +382,6 @@
 		730C73542D726D83001EC57C /* Analytics */ = {
 			isa = PBXGroup;
 			children = (
-				7374EF372D74AEEA00319CEC /* UIDevice+Model.swift */,
 				730C73552D726DA5001EC57C /* Analytics.swift */,
 			);
 			path = Analytics;
