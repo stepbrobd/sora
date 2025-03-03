@@ -5,7 +5,7 @@ set -e
 cd "$(dirname "$0")"
 
 WORKING_LOCATION="$(pwd)"
-APPLICATION_NAME=Sora
+APPLICATION_NAME=Sulfur
 
 if [ ! -d "build" ]; then
     mkdir build
@@ -35,8 +35,8 @@ fi
 
 
 mkdir Payload
-cp -r Sora.app Payload/Sora.app
-strip Payload/Sora.app/Sora
-zip -vr Sora.ipa Payload
-rm -rf Sora.app
+cp -r Sulfur.app Payload/Sulfur.app
+strip Payload/Sulfur.app/Sora
+zip -vr Sulfur.ipa Payload
+rm -rf Sulfur.app
 rm -rf Payload
