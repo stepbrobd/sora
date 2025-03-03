@@ -66,7 +66,7 @@
 		131845F82D47C62D00CA7A54 /* SettingsViewGeneral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewGeneral.swift; sourceTree = "<group>"; };
 		1327FBA62D758CEA00FC6689 /* Analytics.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Analytics.swift; sourceTree = "<group>"; };
 		1327FBA82D758DEA00FC6689 /* UIDevice+Model.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIDevice+Model.swift"; sourceTree = "<group>"; };
-		133D7C6A2D2BE2500075467E /* Sora.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sora.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		133D7C6A2D2BE2500075467E /* Sulfur.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sulfur.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		133D7C6D2D2BE2500075467E /* SoraApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoraApp.swift; sourceTree = "<group>"; };
 		133D7C6F2D2BE2500075467E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		133D7C712D2BE2520075467E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -182,7 +182,7 @@
 		133D7C6B2D2BE2500075467E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				133D7C6A2D2BE2500075467E /* Sora.app */,
+				133D7C6A2D2BE2500075467E /* Sulfur.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -390,9 +390,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		133D7C692D2BE2500075467E /* Sora */ = {
+		133D7C692D2BE2500075467E /* Sulfur */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 133D7C782D2BE2520075467E /* Build configuration list for PBXNativeTarget "Sora" */;
+			buildConfigurationList = 133D7C782D2BE2520075467E /* Build configuration list for PBXNativeTarget "Sulfur" */;
 			buildPhases = (
 				133D7C662D2BE2500075467E /* Sources */,
 				133D7C672D2BE2500075467E /* Frameworks */,
@@ -402,13 +402,13 @@
 			);
 			dependencies = (
 			);
-			name = Sora;
+			name = Sulfur;
 			packageProductDependencies = (
 				133D7C962D2BE2AF0075467E /* Kingfisher */,
 				13D842512D4523B800EBBFA6 /* Drops */,
 			);
 			productName = Sora;
-			productReference = 133D7C6A2D2BE2500075467E /* Sora.app */;
+			productReference = 133D7C6A2D2BE2500075467E /* Sulfur.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -426,7 +426,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 133D7C652D2BE2500075467E /* Build configuration list for PBXProject "Sora" */;
+			buildConfigurationList = 133D7C652D2BE2500075467E /* Build configuration list for PBXProject "Sulfur" */;
 			compatibilityVersion = "Xcode 13.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -442,7 +442,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				133D7C692D2BE2500075467E /* Sora */,
+				133D7C692D2BE2500075467E /* Sulfur */,
 			);
 		};
 /* End PBXProject section */
@@ -659,7 +659,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = me.cranci.sora;
+				PRODUCT_BUNDLE_IDENTIFIER = ltf.cranci.sora;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -699,7 +699,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = me.cranci.sora;
+				PRODUCT_BUNDLE_IDENTIFIER = ltf.cranci.sora;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -713,7 +713,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		133D7C652D2BE2500075467E /* Build configuration list for PBXProject "Sora" */ = {
+		133D7C652D2BE2500075467E /* Build configuration list for PBXProject "Sulfur" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				133D7C762D2BE2520075467E /* Debug */,
@@ -722,7 +722,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		133D7C782D2BE2520075467E /* Build configuration list for PBXNativeTarget "Sora" */ = {
+		133D7C782D2BE2520075467E /* Build configuration list for PBXNativeTarget "Sulfur" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				133D7C792D2BE2520075467E /* Debug */,
