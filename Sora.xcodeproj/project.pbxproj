@@ -15,6 +15,7 @@
 		13103E8E2D58E04A000F0673 /* SkeletonCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13103E8D2D58E04A000F0673 /* SkeletonCell.swift */; };
 		131845F92D47C62D00CA7A54 /* SettingsViewGeneral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 131845F82D47C62D00CA7A54 /* SettingsViewGeneral.swift */; };
 		1327FBA72D758CEA00FC6689 /* Analytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1327FBA62D758CEA00FC6689 /* Analytics.swift */; };
+		1327FBA92D758DEA00FC6689 /* UIDevice+Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1327FBA82D758DEA00FC6689 /* UIDevice+Model.swift */; };
 		133D7C6E2D2BE2500075467E /* SoraApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C6D2D2BE2500075467E /* SoraApp.swift */; };
 		133D7C702D2BE2500075467E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C6F2D2BE2500075467E /* ContentView.swift */; };
 		133D7C722D2BE2520075467E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 133D7C712D2BE2520075467E /* Assets.xcassets */; };
@@ -64,6 +65,7 @@
 		13103E8D2D58E04A000F0673 /* SkeletonCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonCell.swift; sourceTree = "<group>"; };
 		131845F82D47C62D00CA7A54 /* SettingsViewGeneral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewGeneral.swift; sourceTree = "<group>"; };
 		1327FBA62D758CEA00FC6689 /* Analytics.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Analytics.swift; sourceTree = "<group>"; };
+		1327FBA82D758DEA00FC6689 /* UIDevice+Model.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIDevice+Model.swift"; sourceTree = "<group>"; };
 		133D7C6A2D2BE2500075467E /* Sora.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sora.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		133D7C6D2D2BE2500075467E /* SoraApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoraApp.swift; sourceTree = "<group>"; };
 		133D7C6F2D2BE2500075467E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -262,6 +264,7 @@
 		133D7C862D2BE2640075467E /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				1327FBA82D758DEA00FC6689 /* UIDevice+Model.swift */,
 				133D7C872D2BE2640075467E /* URLSession.swift */,
 				13CBEFD92D5F7D1200D011EE /* String.swift */,
 				13103E8A2D58E028000F0673 /* View.swift */,
@@ -488,6 +491,7 @@
 				133D7C8D2D2BE2640075467E /* HomeView.swift in Sources */,
 				13D842552D45267500EBBFA6 /* DropManager.swift in Sources */,
 				13103E8B2D58E028000F0673 /* View.swift in Sources */,
+				1327FBA92D758DEA00FC6689 /* UIDevice+Model.swift in Sources */,
 				138AA1B82D2D66FD0021F9DF /* EpisodeCell.swift in Sources */,
 				133D7C8C2D2BE2640075467E /* SearchView.swift in Sources */,
 				133D7C942D2BE2640075467E /* JSController.swift in Sources */,

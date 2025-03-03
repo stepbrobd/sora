@@ -8,7 +8,7 @@
 import UIKit
 
 public extension UIDevice {
-
+    
     static let modelName: String = {
         var systemInfo = utsname()
         uname(&systemInfo)
@@ -17,9 +17,9 @@ public extension UIDevice {
             guard let value = element.value as? Int8, value != 0 else { return identifier }
             return identifier + String(UnicodeScalar(UInt8(value)))
         }
-
+        
         func mapToDevice(identifier: String) -> String { // swiftlint:disable:this cyclomatic_complexity
-            #if os(iOS)
+#if os(iOS)
             switch identifier {
             case "iPod5,1":                                       return "iPod touch (5th generation)"
             case "iPod7,1":                                       return "iPod touch (6th generation)"
@@ -111,22 +111,22 @@ public extension UIDevice {
             case "i386", "x86_64", "arm64":                       return "Simulator \(mapToDevice(identifier: ProcessInfo().environment["SIMULATOR_MODEL_IDENTIFIER"] ?? "iOS"))"
             default:                                              return identifier
             }
-            #elseif os(tvOS)
+#elseif os(tvOS)
             switch identifier {
             case "AppleTV5,3": return "Apple TV 4"
             case "AppleTV6,2", "AppleTV11,1", "AppleTV14,1": return "Apple TV 4K"
             case "i386", "x86_64": return "Simulator \(mapToDevice(identifier: ProcessInfo().environment["SIMULATOR_MODEL_IDENTIFIER"] ?? "tvOS"))"
             default: return identifier
             }
-            #elseif os(visionOS)
+#elseif os(visionOS)
             switch identifier {
             case "RealityDevice14,1": return "Apple Vision Pro"
             default: return identifier
             }
-            #endif
+#endif
         }
-
+        
         return mapToDevice(identifier: identifier)
     }()
-
+    
 }
