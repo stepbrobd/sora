@@ -110,6 +110,7 @@ class CustomMediaPlayerViewController: UIViewController {
         setupMenuButton()
         addTimeObserver()
         startUpdateTimer()
+        setupAudioSession()
         
         player.play()
         
@@ -402,7 +403,15 @@ class CustomMediaPlayerViewController: UIViewController {
                 && self.currentTimeVal != self.duration
                 && self.showWatchNextButton
                 && self.duration != 0 {
-                self.watchNextButton.isHidden = false
+                
+                if UserDefaults.standard.bool(forKey: "hideNextButton") {
+                    self.watchNextButton.isHidden = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                        self.watchNextButton.isHidden = true
+                    }
+                } else {
+                    self.watchNextButton.isHidden = false
+                }
             } else {
                 self.watchNextButton.isHidden = true
             }
@@ -571,6 +580,18 @@ class CustomMediaPlayerViewController: UIViewController {
     
     override var prefersStatusBarHidden: Bool {
         return true
+    }
+    
+    func setupAudioSession() {
+        do {
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setCategory(.playback, mode: .moviePlayback, options: .mixWithOthers)
+            try audioSession.setActive(true)
+            
+            try audioSession.overrideOutputAudioPort(.speaker)
+        } catch {
+            Logger.shared.log("Failed to set up AVAudioSession: \(error)")
+        }
     }
 }
 
