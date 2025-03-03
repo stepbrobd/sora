@@ -36,7 +36,7 @@ fi
 
 mkdir Payload
 cp -r Sulfur.app Payload/Sulfur.app
-strip Payload/Sulfur.app/Sora
+strip Payload/Sulfur.app/Sulfur
 zip -vr Sulfur.ipa Payload
 rm -rf Sulfur.app
 rm -rf Payload
