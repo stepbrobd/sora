@@ -11,7 +11,7 @@ struct SettingsViewGeneral: View {
     @AppStorage("episodeChunkSize") private var episodeChunkSize: Int = 100
     @AppStorage("refreshModulesOnLaunch") private var refreshModulesOnLaunch: Bool = false
     @AppStorage("fetchEpisodeMetadata") private var fetchEpisodeMetadata: Bool = true
-    @AppStorage("analyticsEnabled") private var analyticsEnabled: Bool = true
+    @AppStorage("analyticsEnabled") private var analyticsEnabled: Bool = false
     @EnvironmentObject var settings: Settings
     
     var body: some View {

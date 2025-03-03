@@ -32,8 +32,7 @@ class AnalyticsManager {
         
         // Ensure the key is set with a default value if missing
         if defaults.object(forKey: "analyticsEnabled") == nil {
-            print("Setting default value for analyticsEnabled")
-            defaults.setValue(true, forKey: "analyticsEnabled")
+            defaults.setValue(false, forKey: "analyticsEnabled")
         }
         
         

@@ -245,8 +245,9 @@ class CustomMediaPlayerViewController: UIViewController {
         
         watchNextButton = UIButton(type: .system)
         watchNextButton.setTitle("Watch Next", for: .normal)
+        watchNextButton.setImage(UIImage(systemName: "forward.fill"), for: .normal)
         watchNextButton.backgroundColor = .white
-        watchNextButton.layer.cornerRadius = 32
+        watchNextButton.layer.cornerRadius = 16
         watchNextButton.setTitleColor(.black, for: .normal)
         watchNextButton.addTarget(self, action: #selector(watchNextTapped), for: .touchUpInside)
         watchNextButton.isHidden = true
