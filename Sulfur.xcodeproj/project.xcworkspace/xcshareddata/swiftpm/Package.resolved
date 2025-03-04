@@ -5,9 +5,27 @@
         "package": "Drops",
         "repositoryURL": "https://github.com/omaralbeik/Drops.git",
         "state": {
+          "branch": "main",
+          "revision": "5824681795286c36bdc4a493081a63e64e2a064e",
+          "version": null
+        }
+      },
+      {
+        "package": "FFmpeg-iOS-Lame",
+        "repositoryURL": "https://github.com/kewlbear/FFmpeg-iOS-Lame",
+        "state": {
+          "branch": "main",
+          "revision": "1808fa5a1263c5e216646cd8421fc7dcb70520cc",
+          "version": null
+        }
+      },
+      {
+        "package": "FFmpeg-iOS-Support",
+        "repositoryURL": "https://github.com/kewlbear/FFmpeg-iOS-Support",
+        "state": {
           "branch": null,
-          "revision": "a183ee6f79f21c940092a19c2cba756555422371",
-          "version": "1.7.0"
+          "revision": "be3bd9149ac53760e8725652eee99c405b2be47a",
+          "version": "0.0.2"
         }
       },
       {
