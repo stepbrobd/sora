@@ -41,229 +41,231 @@ struct HomeView: View {
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                if !continueWatchingItems.isEmpty {
-                    VStack(alignment: .leading) {
-                        Text("Continue Watching")
-                            .font(.headline)
-                            .padding(.horizontal, 8)
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
-                                ForEach(Array(continueWatchingItems.reversed())) { item in
-                                    Button(action: {
-                                        if UserDefaults.standard.string(forKey: "externalPlayer") == "Sora" {
-                                            let customMediaPlayer = CustomMediaPlayerViewController(
-                                                module: item.module,
-                                                urlString: item.streamUrl,
-                                                fullUrl: item.fullUrl,
-                                                title: item.mediaTitle,
-                                                episodeNumber: item.episodeNumber,
-                                                onWatchNext: { },
-                                                subtitlesURL: item.subtitles,
-                                                episodeImageUrl: item.imageUrl
-                                            )
-                                            customMediaPlayer.modalPresentationStyle = .fullScreen
-                                            
-                                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                                               let rootVC = windowScene.windows.first?.rootViewController {
-                                                rootVC.present(customMediaPlayer, animated: true, completion: nil)
+            VStack {
+                ScrollView {
+                    if !continueWatchingItems.isEmpty {
+                        LazyVStack(alignment: .leading) {
+                            Text("Continue Watching")
+                                .font(.headline)
+                                .padding(.horizontal, 8)
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) {
+                                    ForEach(Array(continueWatchingItems.reversed())) { item in
+                                        Button(action: {
+                                            if UserDefaults.standard.string(forKey: "externalPlayer") == "Sora" {
+                                                let customMediaPlayer = CustomMediaPlayerViewController(
+                                                    module: item.module,
+                                                    urlString: item.streamUrl,
+                                                    fullUrl: item.fullUrl,
+                                                    title: item.mediaTitle,
+                                                    episodeNumber: item.episodeNumber,
+                                                    onWatchNext: { },
+                                                    subtitlesURL: item.subtitles,
+                                                    episodeImageUrl: item.imageUrl
+                                                )
+                                                customMediaPlayer.modalPresentationStyle = .fullScreen
+                                                
+                                                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                                                   let rootVC = windowScene.windows.first?.rootViewController {
+                                                    findTopViewController.findViewController(rootVC).present(customMediaPlayer, animated: true, completion: nil)
+                                                }
+                                            } else {
+                                                let videoPlayerViewController = VideoPlayerViewController(module: item.module)
+                                                videoPlayerViewController.streamUrl = item.streamUrl
+                                                videoPlayerViewController.fullUrl = item.fullUrl
+                                                videoPlayerViewController.episodeImageUrl = item.imageUrl
+                                                videoPlayerViewController.episodeNumber = item.episodeNumber
+                                                videoPlayerViewController.mediaTitle = item.mediaTitle
+                                                videoPlayerViewController.subtitles = item.subtitles ?? ""
+                                                videoPlayerViewController.modalPresentationStyle = .fullScreen
+                                                
+                                                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                                                   let rootVC = windowScene.windows.first?.rootViewController {
+                                                    findTopViewController.findViewController(rootVC).present(videoPlayerViewController, animated: true, completion: nil)
+                                                }
                                             }
-                                        } else {
-                                            let videoPlayerViewController = VideoPlayerViewController(module: item.module)
-                                            videoPlayerViewController.streamUrl = item.streamUrl
-                                            videoPlayerViewController.fullUrl = item.fullUrl
-                                            videoPlayerViewController.episodeImageUrl = item.imageUrl
-                                            videoPlayerViewController.episodeNumber = item.episodeNumber
-                                            videoPlayerViewController.mediaTitle = item.mediaTitle
-                                            videoPlayerViewController.subtitles = item.subtitles ?? ""
-                                            videoPlayerViewController.modalPresentationStyle = .fullScreen
-                                            
-                                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                                               let rootVC = windowScene.windows.first?.rootViewController {
-                                                rootVC.present(videoPlayerViewController, animated: true, completion: nil)
+                                        }) {
+                                            VStack(alignment: .leading) {
+                                                ZStack {
+                                                    KFImage(URL(string: item.imageUrl.isEmpty ? "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/main/assets/banner2.png" : item.imageUrl))
+                                                        .placeholder {
+                                                            RoundedRectangle(cornerRadius: 10)
+                                                                .fill(Color.gray.opacity(0.3))
+                                                                .frame(width: 240, height: 135)
+                                                                .shimmering()
+                                                        }
+                                                        .setProcessor(RoundCornerImageProcessor(cornerRadius: 10))
+                                                        .resizable()
+                                                        .aspectRatio(16/9, contentMode: .fill)
+                                                        .frame(width: 240, height: 135)
+                                                        .cornerRadius(10)
+                                                        .clipped()
+                                                        .overlay(
+                                                            KFImage(URL(string: item.module.metadata.iconUrl))
+                                                                .resizable()
+                                                                .frame(width: 24, height: 24)
+                                                                .cornerRadius(4)
+                                                                .padding(4),
+                                                            alignment: .topLeading
+                                                        )
+                                                }
+                                                .overlay(
+                                                    ZStack {
+                                                        Rectangle()
+                                                            .fill(Color.black.opacity(0.3))
+                                                            .blur(radius: 3)
+                                                            .frame(height: 30)
+                                                        
+                                                        ProgressView(value: item.progress)
+                                                            .progressViewStyle(LinearProgressViewStyle(tint: .white))
+                                                            .padding(.horizontal, 8)
+                                                            .scaleEffect(x: 1, y: 1.5, anchor: .center)
+                                                    },
+                                                    alignment: .bottom
+                                                )
+                                                
+                                                VStack(alignment: .leading) {
+                                                    Text("Episode \(item.episodeNumber)")
+                                                        .font(.caption)
+                                                        .lineLimit(1)
+                                                        .foregroundColor(.secondary)
+                                                    
+                                                    Text(item.mediaTitle)
+                                                        .font(.caption)
+                                                        .lineLimit(2)
+                                                        .foregroundColor(.primary)
+                                                        .multilineTextAlignment(.leading)
+                                                }
+                                                .padding(.horizontal, 8)
+                                            }
+                                            .frame(width: 250, height: 190)
+                                        }
+                                        .contextMenu {
+                                            Button(action: { markContinueWatchingItemAsWatched(item: item) }) {
+                                                Label("Mark as Watched", systemImage: "checkmark.circle")
+                                            }
+                                            Button(role: .destructive, action: { removeContinueWatchingItem(item: item) }) {
+                                                Label("Remove Item", systemImage: "trash")
                                             }
                                         }
-                                    }) {
-                                        VStack(alignment: .leading) {
-                                            ZStack {
-                                                KFImage(URL(string: item.imageUrl.isEmpty ? "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/main/assets/banner2.png" : item.imageUrl))
+                                    }
+                                }
+                                .padding(.horizontal, 8)
+                            }
+                            .frame(height: 190)
+                        }
+                    }
+                    VStack(alignment: .leading, spacing: 16) {
+                        HStack(alignment: .bottom, spacing: 5) {
+                            Text("Seasonal")
+                                .font(.headline)
+                            Text("of \(currentDeviceSeasonAndYear.season) \(String(format: "%d", currentDeviceSeasonAndYear.year))")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.top, 8)
+                        
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                if aniListItems.isEmpty {
+                                    ForEach(0..<5, id: \.self) { _ in
+                                        HomeSkeletonCell()
+                                    }
+                                } else {
+                                    ForEach(aniListItems, id: \.id) { item in
+                                        NavigationLink(destination: AniListDetailsView(animeID: item.id)) {
+                                            VStack {
+                                                KFImage(URL(string: item.coverImage.large))
                                                     .placeholder {
                                                         RoundedRectangle(cornerRadius: 10)
                                                             .fill(Color.gray.opacity(0.3))
-                                                            .frame(width: 240, height: 135)
+                                                            .frame(width: 130, height: 195)
                                                             .shimmering()
                                                     }
                                                     .setProcessor(RoundCornerImageProcessor(cornerRadius: 10))
                                                     .resizable()
-                                                    .aspectRatio(16/9, contentMode: .fill)
-                                                    .frame(width: 240, height: 135)
+                                                    .scaledToFill()
+                                                    .frame(width: 130, height: 195)
                                                     .cornerRadius(10)
                                                     .clipped()
-                                                    .overlay(
-                                                        KFImage(URL(string: item.module.metadata.iconUrl))
-                                                            .resizable()
-                                                            .frame(width: 24, height: 24)
-                                                            .cornerRadius(4)
-                                                            .padding(4),
-                                                        alignment: .topLeading
-                                                    )
-                                            }
-                                            .overlay(
-                                                ZStack {
-                                                    Rectangle()
-                                                        .fill(Color.black.opacity(0.3))
-                                                        .blur(radius: 3)
-                                                        .frame(height: 30)
-                                                    
-                                                    ProgressView(value: item.progress)
-                                                        .progressViewStyle(LinearProgressViewStyle(tint: .white))
-                                                        .padding(.horizontal, 8)
-                                                        .scaleEffect(x: 1, y: 1.5, anchor: .center)
-                                                },
-                                                alignment: .bottom
-                                            )
-                                            
-                                            VStack(alignment: .leading) {
-                                                Text("Episode \(item.episodeNumber)")
-                                                    .font(.caption)
-                                                    .lineLimit(1)
-                                                    .foregroundColor(.secondary)
                                                 
-                                                Text(item.mediaTitle)
+                                                Text(item.title.romaji)
                                                     .font(.caption)
-                                                    .lineLimit(2)
+                                                    .frame(width: 130)
+                                                    .lineLimit(1)
+                                                    .multilineTextAlignment(.center)
                                                     .foregroundColor(.primary)
-                                                    .multilineTextAlignment(.leading)
                                             }
-                                            .padding(.horizontal, 8)
-                                        }
-                                        .frame(width: 250, height: 190)
-                                    }
-                                    .contextMenu {
-                                        Button(action: { markContinueWatchingItemAsWatched(item: item) }) {
-                                            Label("Mark as Watched", systemImage: "checkmark.circle")
-                                        }
-                                        Button(role: .destructive, action: { removeContinueWatchingItem(item: item) }) {
-                                            Label("Remove Item", systemImage: "trash")
                                         }
                                     }
                                 }
                             }
                             .padding(.horizontal, 8)
                         }
-                        .frame(height: 190)
-                    }
-                }
-                VStack(alignment: .leading, spacing: 16) {
-                    HStack(alignment: .bottom, spacing: 5) {
-                        Text("Seasonal")
-                            .font(.headline)
-                        Text("of \(currentDeviceSeasonAndYear.season) \(String(format: "%d", currentDeviceSeasonAndYear.year))")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.top, 8)
-                    
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            if aniListItems.isEmpty {
-                                ForEach(0..<5, id: \.self) { _ in
-                                    HomeSkeletonCell()
-                                }
-                            } else {
-                                ForEach(aniListItems, id: \.id) { item in
-                                    NavigationLink(destination: AniListDetailsView(animeID: item.id)) {
-                                        VStack {
-                                            KFImage(URL(string: item.coverImage.large))
-                                                .placeholder {
-                                                    RoundedRectangle(cornerRadius: 10)
-                                                        .fill(Color.gray.opacity(0.3))
-                                                        .frame(width: 130, height: 195)
-                                                        .shimmering()
-                                                }
-                                                .setProcessor(RoundCornerImageProcessor(cornerRadius: 10))
-                                                .resizable()
-                                                .scaledToFill()
-                                                .frame(width: 130, height: 195)
-                                                .cornerRadius(10)
-                                                .clipped()
-                                            
-                                            Text(item.title.romaji)
-                                                .font(.caption)
-                                                .frame(width: 130)
-                                                .lineLimit(1)
-                                                .multilineTextAlignment(.center)
-                                                .foregroundColor(.primary)
+                        
+                        HStack(alignment: .bottom, spacing: 5) {
+                            Text("Trending")
+                                .font(.headline)
+                            Text("on \(trendingDateString)")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        }
+                        .padding(.horizontal, 8)
+                        
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                if trendingItems.isEmpty {
+                                    ForEach(0..<5, id: \.self) { _ in
+                                        HomeSkeletonCell()
+                                    }
+                                } else {
+                                    ForEach(trendingItems, id: \.id) { item in
+                                        NavigationLink(destination: AniListDetailsView(animeID: item.id)) {
+                                            VStack {
+                                                KFImage(URL(string: item.coverImage.large))
+                                                    .placeholder {
+                                                        RoundedRectangle(cornerRadius: 10)
+                                                            .fill(Color.gray.opacity(0.3))
+                                                            .frame(width: 130, height: 195)
+                                                            .shimmering()
+                                                    }
+                                                    .setProcessor(RoundCornerImageProcessor(cornerRadius: 10))
+                                                    .resizable()
+                                                    .scaledToFill()
+                                                    .frame(width: 130, height: 195)
+                                                    .cornerRadius(10)
+                                                    .clipped()
+                                                
+                                                Text(item.title.romaji)
+                                                    .font(.caption)
+                                                    .frame(width: 130)
+                                                    .lineLimit(1)
+                                                    .multilineTextAlignment(.center)
+                                                    .foregroundColor(.primary)
+                                            }
                                         }
                                     }
                                 }
                             }
+                            .padding(.horizontal, 8)
                         }
-                        .padding(.horizontal, 8)
                     }
-                    
-                    HStack(alignment: .bottom, spacing: 5) {
-                        Text("Trending")
-                            .font(.headline)
-                        Text("on \(trendingDateString)")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                    }
-                    .padding(.horizontal, 8)
-                    
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            if trendingItems.isEmpty {
-                                ForEach(0..<5, id: \.self) { _ in
-                                    HomeSkeletonCell()
-                                }
-                            } else {
-                                ForEach(trendingItems, id: \.id) { item in
-                                    NavigationLink(destination: AniListDetailsView(animeID: item.id)) {
-                                        VStack {
-                                            KFImage(URL(string: item.coverImage.large))
-                                                .placeholder {
-                                                    RoundedRectangle(cornerRadius: 10)
-                                                        .fill(Color.gray.opacity(0.3))
-                                                        .frame(width: 130, height: 195)
-                                                        .shimmering()
-                                                }
-                                                .setProcessor(RoundCornerImageProcessor(cornerRadius: 10))
-                                                .resizable()
-                                                .scaledToFill()
-                                                .frame(width: 130, height: 195)
-                                                .cornerRadius(10)
-                                                .clipped()
-                                            
-                                            Text(item.title.romaji)
-                                                .font(.caption)
-                                                .frame(width: 130)
-                                                .lineLimit(1)
-                                                .multilineTextAlignment(.center)
-                                                .foregroundColor(.primary)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 8)
+                    .padding(.bottom, 16)
+                }
+                .navigationTitle("Home")
+            }
+            .onAppear {
+                continueWatchingItems = ContinueWatchingManager.shared.fetchItems()
+                AnilistServiceSeasonalAnime().fetchSeasonalAnime { items in
+                    if let items = items {
+                        aniListItems = items
                     }
                 }
-                .padding(.bottom, 16)
-            }
-            .navigationTitle("Home")
-        }
-        .onAppear {
-            continueWatchingItems = ContinueWatchingManager.shared.fetchItems()
-            AnilistServiceSeasonalAnime().fetchSeasonalAnime { items in
-                if let items = items {
-                    aniListItems = items
-                }
-            }
-            AnilistServiceTrendingAnime().fetchTrendingAnime { items in
-                if let items = items {
-                    trendingItems = items
+                AnilistServiceTrendingAnime().fetchTrendingAnime { items in
+                    if let items = items {
+                        trendingItems = items
+                    }
                 }
             }
         }

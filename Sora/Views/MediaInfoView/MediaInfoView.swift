@@ -519,7 +519,7 @@ struct MediaInfoView: View {
                 
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                    let rootVC = windowScene.windows.first?.rootViewController {
-                    rootVC.present(customMediaPlayer, animated: true, completion: nil)
+                    findTopViewController.findViewController(rootVC).present(customMediaPlayer, animated: true, completion: nil)
                 }
                 return
             default:
@@ -541,7 +541,7 @@ struct MediaInfoView: View {
                 
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                    let rootVC = windowScene.windows.first?.rootViewController {
-                    rootVC.present(videoPlayerViewController, animated: true, completion: nil)
+                    findTopViewController.findViewController(rootVC).present(videoPlayerViewController, animated: true, completion: nil)
                 }
             }
         }

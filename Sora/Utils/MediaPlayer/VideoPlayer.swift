@@ -148,4 +148,11 @@ class VideoPlayerViewController: UIViewController {
     override var prefersStatusBarHidden: Bool {
         return true
     }
+    
+    deinit {
+        player?.pause()
+        if let timeObserverToken = timeObserverToken {
+            player?.removeTimeObserver(timeObserverToken)
+        }
+    }
 }

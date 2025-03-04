@@ -31,6 +31,8 @@
 		133D7C942D2BE2640075467E /* JSController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C8B2D2BE2640075467E /* JSController.swift */; };
 		133D7C972D2BE2AF0075467E /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 133D7C962D2BE2AF0075467E /* Kingfisher */; };
 		133F55BB2D33B55100E08EEA /* LibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133F55BA2D33B55100E08EEA /* LibraryManager.swift */; };
+		1359ED142D76F49900C13034 /* finTopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1359ED132D76F49900C13034 /* finTopView.swift */; };
+		1359ED1A2D76FA7D00C13034 /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = 1359ED192D76FA7D00C13034 /* Drops */; };
 		135CCBE22D4D1138008B9C0E /* SettingsViewPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135CCBE12D4D1138008B9C0E /* SettingsViewPlayer.swift */; };
 		136F21B92D5B8DD8006409AC /* AniList-MediaInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136F21B82D5B8DD8006409AC /* AniList-MediaInfo.swift */; };
 		136F21BC2D5B8F29006409AC /* AniList-DetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136F21BB2D5B8F29006409AC /* AniList-DetailsView.swift */; };
@@ -44,7 +46,6 @@
 		13C0E5EC2D5F85F800E7F619 /* ContinueWatchingItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C0E5EB2D5F85F800E7F619 /* ContinueWatchingItem.swift */; };
 		13CBA0882D60F19C00EFE70A /* VTTSubtitlesLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13CBA0872D60F19C00EFE70A /* VTTSubtitlesLoader.swift */; };
 		13CBEFDA2D5F7D1200D011EE /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13CBEFD92D5F7D1200D011EE /* String.swift */; };
-		13D842522D4523B800EBBFA6 /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = 13D842512D4523B800EBBFA6 /* Drops */; };
 		13D842552D45267500EBBFA6 /* DropManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D842542D45267500EBBFA6 /* DropManager.swift */; };
 		13D99CF72D4E73C300250A86 /* ModuleAdditionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D99CF62D4E73C300250A86 /* ModuleAdditionSettingsView.swift */; };
 		13DC0C462D302C7500D0F966 /* VideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DC0C452D302C7500D0F966 /* VideoPlayer.swift */; };
@@ -81,6 +82,7 @@
 		133D7C892D2BE2640075467E /* Modules.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Modules.swift; sourceTree = "<group>"; };
 		133D7C8B2D2BE2640075467E /* JSController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSController.swift; sourceTree = "<group>"; };
 		133F55BA2D33B55100E08EEA /* LibraryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryManager.swift; sourceTree = "<group>"; };
+		1359ED132D76F49900C13034 /* finTopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = finTopView.swift; sourceTree = "<group>"; };
 		135CCBE12D4D1138008B9C0E /* SettingsViewPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewPlayer.swift; sourceTree = "<group>"; };
 		136F21B82D5B8DD8006409AC /* AniList-MediaInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AniList-MediaInfo.swift"; sourceTree = "<group>"; };
 		136F21BB2D5B8F29006409AC /* AniList-DetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AniList-DetailsView.swift"; sourceTree = "<group>"; };
@@ -110,7 +112,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				13D842522D4523B800EBBFA6 /* Drops in Frameworks */,
+				1359ED1A2D76FA7D00C13034 /* Drops in Frameworks */,
 				133D7C972D2BE2AF0075467E /* Kingfisher in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -266,6 +268,7 @@
 			children = (
 				1327FBA82D758DEA00FC6689 /* UIDevice+Model.swift */,
 				133D7C872D2BE2640075467E /* URLSession.swift */,
+				1359ED132D76F49900C13034 /* finTopView.swift */,
 				13CBEFD92D5F7D1200D011EE /* String.swift */,
 				13103E8A2D58E028000F0673 /* View.swift */,
 			);
@@ -405,7 +408,7 @@
 			name = Sulfur;
 			packageProductDependencies = (
 				133D7C962D2BE2AF0075467E /* Kingfisher */,
-				13D842512D4523B800EBBFA6 /* Drops */,
+				1359ED192D76FA7D00C13034 /* Drops */,
 			);
 			productName = Sora;
 			productReference = 133D7C6A2D2BE2500075467E /* Sulfur.app */;
@@ -436,7 +439,7 @@
 			mainGroup = 133D7C612D2BE2500075467E;
 			packageReferences = (
 				133D7C952D2BE2AF0075467E /* XCRemoteSwiftPackageReference "Kingfisher" */,
-				13D842502D4523B800EBBFA6 /* XCRemoteSwiftPackageReference "Drops" */,
+				1359ED182D76FA7D00C13034 /* XCRemoteSwiftPackageReference "Drops" */,
 			);
 			productRefGroup = 133D7C6B2D2BE2500075467E /* Products */;
 			projectDirPath = "";
@@ -467,6 +470,7 @@
 				135CCBE22D4D1138008B9C0E /* SettingsViewPlayer.swift in Sources */,
 				1327FBA72D758CEA00FC6689 /* Analytics.swift in Sources */,
 				13DC0C462D302C7500D0F966 /* VideoPlayer.swift in Sources */,
+				1359ED142D76F49900C13034 /* finTopView.swift in Sources */,
 				1399FAD62D3AB3DB00E97C31 /* Logger.swift in Sources */,
 				13B7F4C12D58FFDD0045714A /* Shimmer.swift in Sources */,
 				139935662D468C450065CEFF /* ModuleManager.swift in Sources */,
@@ -646,6 +650,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Sora/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Sora;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -686,6 +691,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Sora/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Sora;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -742,12 +748,12 @@
 				version = 7.9.1;
 			};
 		};
-		13D842502D4523B800EBBFA6 /* XCRemoteSwiftPackageReference "Drops" */ = {
+		1359ED182D76FA7D00C13034 /* XCRemoteSwiftPackageReference "Drops" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/omaralbeik/Drops.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
+				branch = main;
+				kind = branch;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -758,9 +764,9 @@
 			package = 133D7C952D2BE2AF0075467E /* XCRemoteSwiftPackageReference "Kingfisher" */;
 			productName = Kingfisher;
 		};
-		13D842512D4523B800EBBFA6 /* Drops */ = {
+		1359ED192D76FA7D00C13034 /* Drops */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 13D842502D4523B800EBBFA6 /* XCRemoteSwiftPackageReference "Drops" */;
+			package = 1359ED182D76FA7D00C13034 /* XCRemoteSwiftPackageReference "Drops" */;
 			productName = Drops;
 		};
 /* End XCSwiftPackageProductDependency section */

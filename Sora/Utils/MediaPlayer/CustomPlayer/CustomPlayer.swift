@@ -57,6 +57,10 @@ class CustomMediaPlayerViewController: UIViewController {
     var sliderViewModel = SliderViewModel()
     var isSliderEditing = false
     
+    var watchNextButtonNormalConstraints: [NSLayoutConstraint] = []
+    var watchNextButtonControlsConstraints: [NSLayoutConstraint] = []
+    var isControlsVisible = false
+    
     init(module: ScrapingModule,
          urlString: String,
          fullUrl: String,
@@ -106,8 +110,9 @@ class CustomMediaPlayerViewController: UIViewController {
         setupControls()
         setupSubtitleLabel()
         setupDismissButton()
-        setupSpeedButton()
         setupMenuButton()
+        setupSpeedButton()
+        setupWatchNextButton()
         addTimeObserver()
         startUpdateTimer()
         setupAudioSession()
@@ -244,17 +249,6 @@ class CustomMediaPlayerViewController: UIViewController {
             sliderHostView.heightAnchor.constraint(equalToConstant: 30)
         ])
         
-        watchNextButton = UIButton(type: .system)
-        watchNextButton.setTitle("Watch Next", for: .normal)
-        watchNextButton.setImage(UIImage(systemName: "forward.fill"), for: .normal)
-        watchNextButton.backgroundColor = .white
-        watchNextButton.layer.cornerRadius = 16
-        watchNextButton.setTitleColor(.black, for: .normal)
-        watchNextButton.addTarget(self, action: #selector(watchNextTapped), for: .touchUpInside)
-        watchNextButton.isHidden = true
-        controlsContainerView.addSubview(watchNextButton)
-        watchNextButton.translatesAutoresizingMaskIntoConstraints = false
-        
         NSLayoutConstraint.activate([
             playPauseButton.centerXAnchor.constraint(equalTo: controlsContainerView.centerXAnchor),
             playPauseButton.centerYAnchor.constraint(equalTo: controlsContainerView.centerYAnchor),
@@ -269,12 +263,7 @@ class CustomMediaPlayerViewController: UIViewController {
             forwardButton.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
             forwardButton.leadingAnchor.constraint(equalTo: playPauseButton.trailingAnchor, constant: 30),
             forwardButton.widthAnchor.constraint(equalToConstant: 40),
-            forwardButton.heightAnchor.constraint(equalToConstant: 40),
-            
-            watchNextButton.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -10),
-            watchNextButton.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor, constant: -80),
-            watchNextButton.heightAnchor.constraint(equalToConstant: 50),
-            watchNextButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
+            forwardButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
     
@@ -288,9 +277,9 @@ class CustomMediaPlayerViewController: UIViewController {
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             subtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            subtitleLabel.bottomAnchor.constraint(equalTo: sliderHostingController?.view.topAnchor ?? view.safeAreaLayoutGuide.bottomAnchor),
-            subtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 20),
-            subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -20)
+            subtitleLabel.bottomAnchor.constraint(equalTo: sliderHostingController?.view.bottomAnchor ?? view.safeAreaLayoutGuide.bottomAnchor),
+            subtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 36),
+            subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -36)
         ])
     }
     
@@ -323,9 +312,10 @@ class CustomMediaPlayerViewController: UIViewController {
         
         controlsContainerView.addSubview(menuButton)
         menuButton.translatesAutoresizingMaskIntoConstraints = false
+        guard let sliderView = sliderHostingController?.view else { return }
         NSLayoutConstraint.activate([
-            menuButton.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor, constant: -50),
-            menuButton.trailingAnchor.constraint(equalTo: speedButton.leadingAnchor),
+            menuButton.bottomAnchor.constraint(equalTo: sliderView.topAnchor),
+            menuButton.trailingAnchor.constraint(equalTo: sliderView.trailingAnchor),
             menuButton.widthAnchor.constraint(equalToConstant: 40),
             menuButton.heightAnchor.constraint(equalToConstant: 40)
         ])
@@ -341,13 +331,44 @@ class CustomMediaPlayerViewController: UIViewController {
         
         controlsContainerView.addSubview(speedButton)
         speedButton.translatesAutoresizingMaskIntoConstraints = false
-        guard let sliderView = sliderHostingController?.view else { return }
         NSLayoutConstraint.activate([
-            speedButton.bottomAnchor.constraint(equalTo: sliderView.topAnchor),
-            speedButton.trailingAnchor.constraint(equalTo: sliderView.trailingAnchor),
+            speedButton.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor, constant: -50),
+            speedButton.trailingAnchor.constraint(equalTo: menuButton.leadingAnchor),
             speedButton.widthAnchor.constraint(equalToConstant: 40),
             speedButton.heightAnchor.constraint(equalToConstant: 40)
         ])
+    }
+    
+    func setupWatchNextButton() {
+        watchNextButton = UIButton(type: .system)
+        watchNextButton.setTitle("Watch Next", for: .normal)
+        watchNextButton.setImage(UIImage(systemName: "forward.fill"), for: .normal)
+        watchNextButton.tintColor = .black
+        watchNextButton.backgroundColor = .white
+        watchNextButton.layer.cornerRadius = 25
+        watchNextButton.setTitleColor(.black, for: .normal)
+        watchNextButton.addTarget(self, action: #selector(watchNextTapped), for: .touchUpInside)
+        watchNextButton.isHidden = true
+        watchNextButton.alpha = 0.8
+        
+        view.addSubview(watchNextButton)
+        watchNextButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        watchNextButtonNormalConstraints = [
+            watchNextButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            watchNextButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -40),
+            watchNextButton.heightAnchor.constraint(equalToConstant: 50),
+            watchNextButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
+        ]
+        
+        watchNextButtonControlsConstraints = [
+            watchNextButton.trailingAnchor.constraint(equalTo: speedButton.leadingAnchor),
+            watchNextButton.bottomAnchor.constraint(equalTo: speedButton.bottomAnchor, constant: -5),
+            watchNextButton.heightAnchor.constraint(equalToConstant: 50),
+            watchNextButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
+        ]
+        
+        NSLayoutConstraint.activate(watchNextButtonControlsConstraints)
     }
     
     func updateSubtitleLabelAppearance() {
@@ -405,7 +426,6 @@ class CustomMediaPlayerViewController: UIViewController {
                 && self.duration != 0 {
                 
                 if UserDefaults.standard.bool(forKey: "hideNextButton") {
-                    self.watchNextButton.isHidden = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
                         self.watchNextButton.isHidden = true
                     }
@@ -444,8 +464,22 @@ class CustomMediaPlayerViewController: UIViewController {
     }
     
     @objc func toggleControls() {
+        isControlsVisible.toggle()
+        
         UIView.animate(withDuration: 0.2) {
-            self.controlsContainerView.alpha = self.controlsContainerView.alpha == 0 ? 1 : 0
+            self.controlsContainerView.alpha = self.isControlsVisible ? 1 : 0
+            
+            if self.isControlsVisible {
+                NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
+                NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
+                self.watchNextButton.alpha = 1.0
+            } else {
+                NSLayoutConstraint.deactivate(self.watchNextButtonControlsConstraints)
+                NSLayoutConstraint.activate(self.watchNextButtonNormalConstraints)
+                self.watchNextButton.alpha = 0.8
+            }
+            
+            self.view.layoutIfNeeded()
         }
     }
     
