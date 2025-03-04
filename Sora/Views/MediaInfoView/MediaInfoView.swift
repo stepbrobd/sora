@@ -561,7 +561,7 @@ struct MediaInfoView: View {
     }
     
     private func openSafariViewController(with urlString: String) {
-        guard let url = URL(string: urlString) else {
+        guard let url = URL(string: urlString), UIApplication.shared.canOpenURL(url) else {
             Logger.shared.log("Unable to open the webpage", type: "Error")
             return
         }
