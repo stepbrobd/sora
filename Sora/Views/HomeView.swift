@@ -40,10 +40,10 @@ struct HomeView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 if !continueWatchingItems.isEmpty {
-                    VStack(alignment: .leading) {
+                    LazyVStack(alignment: .leading) {
                         Text("Continue Watching")
                             .font(.headline)
                             .padding(.horizontal, 8)
@@ -267,7 +267,6 @@ struct HomeView: View {
                 }
             }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     private func markContinueWatchingItemAsWatched(item: ContinueWatchingItem) {
