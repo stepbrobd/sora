@@ -47,17 +47,19 @@ class VideoPlayerViewController: UIViewController {
         let playerItem = AVPlayerItem(asset: asset)
         
         player = AVPlayer(playerItem: playerItem)
+        
         playerViewController = NormalPlayer()
         playerViewController?.player = player
-        addPeriodicTimeObserver(fullURL: fullUrl)
         
         if let playerViewController = playerViewController {
-            playerViewController.view.frame = self.view.frame
-            self.view.addSubview(playerViewController.view)
-            self.addChild(playerViewController)
+            addChild(playerViewController)
+            playerViewController.view.frame = view.bounds
+            playerViewController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            view.addSubview(playerViewController.view)
             playerViewController.didMove(toParent: self)
         }
         
+        addPeriodicTimeObserver(fullURL: fullUrl)
         let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(fullUrl)")
         if lastPlayedTime > 0 {
             let seekTime = CMTime(seconds: lastPlayedTime, preferredTimescale: 1)
