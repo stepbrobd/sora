@@ -32,7 +32,6 @@
 		133D7C972D2BE2AF0075467E /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 133D7C962D2BE2AF0075467E /* Kingfisher */; };
 		133F55BB2D33B55100E08EEA /* LibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133F55BA2D33B55100E08EEA /* LibraryManager.swift */; };
 		1359ED142D76F49900C13034 /* finTopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1359ED132D76F49900C13034 /* finTopView.swift */; };
-		1359ED172D76FA6500C13034 /* FFmpeg-iOS-Lame in Frameworks */ = {isa = PBXBuildFile; productRef = 1359ED162D76FA6500C13034 /* FFmpeg-iOS-Lame */; };
 		1359ED1A2D76FA7D00C13034 /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = 1359ED192D76FA7D00C13034 /* Drops */; };
 		135CCBE22D4D1138008B9C0E /* SettingsViewPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135CCBE12D4D1138008B9C0E /* SettingsViewPlayer.swift */; };
 		136F21B92D5B8DD8006409AC /* AniList-MediaInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136F21B82D5B8DD8006409AC /* AniList-MediaInfo.swift */; };
@@ -114,7 +113,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				1359ED1A2D76FA7D00C13034 /* Drops in Frameworks */,
-				1359ED172D76FA6500C13034 /* FFmpeg-iOS-Lame in Frameworks */,
 				133D7C972D2BE2AF0075467E /* Kingfisher in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -410,7 +408,6 @@
 			name = Sulfur;
 			packageProductDependencies = (
 				133D7C962D2BE2AF0075467E /* Kingfisher */,
-				1359ED162D76FA6500C13034 /* FFmpeg-iOS-Lame */,
 				1359ED192D76FA7D00C13034 /* Drops */,
 			);
 			productName = Sora;
@@ -442,7 +439,6 @@
 			mainGroup = 133D7C612D2BE2500075467E;
 			packageReferences = (
 				133D7C952D2BE2AF0075467E /* XCRemoteSwiftPackageReference "Kingfisher" */,
-				1359ED152D76FA6500C13034 /* XCRemoteSwiftPackageReference "FFmpeg-iOS-Lame" */,
 				1359ED182D76FA7D00C13034 /* XCRemoteSwiftPackageReference "Drops" */,
 			);
 			productRefGroup = 133D7C6B2D2BE2500075467E /* Products */;
@@ -752,14 +748,6 @@
 				version = 7.9.1;
 			};
 		};
-		1359ED152D76FA6500C13034 /* XCRemoteSwiftPackageReference "FFmpeg-iOS-Lame" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/kewlbear/FFmpeg-iOS-Lame";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
 		1359ED182D76FA7D00C13034 /* XCRemoteSwiftPackageReference "Drops" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/omaralbeik/Drops.git";
@@ -775,11 +763,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 133D7C952D2BE2AF0075467E /* XCRemoteSwiftPackageReference "Kingfisher" */;
 			productName = Kingfisher;
-		};
-		1359ED162D76FA6500C13034 /* FFmpeg-iOS-Lame */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 1359ED152D76FA6500C13034 /* XCRemoteSwiftPackageReference "FFmpeg-iOS-Lame" */;
-			productName = "FFmpeg-iOS-Lame";
 		};
 		1359ED192D76FA7D00C13034 /* Drops */ = {
 			isa = XCSwiftPackageProductDependency;
