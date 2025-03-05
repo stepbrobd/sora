@@ -23,10 +23,11 @@ class TMDBSeasonal {
                 request.timeoutInterval = 10
                 request.allHTTPHeaderFields = [
                     "accept": "application/json",
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
                     "Authorization": "Bearer \(TMBDRequest.decryptToken())"
                 ]
                 
-                let (data, _) = try await URLSession.custom.data(for: request)
+                let (data, _) = try await URLSession.shared.data(for: request)
                 let response = try JSONDecoder().decode(TMDBResponse.self, from: data)
                 
                 let anilistItems = response.results.map { item in
