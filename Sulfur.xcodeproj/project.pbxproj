@@ -16,6 +16,11 @@
 		131845F92D47C62D00CA7A54 /* SettingsViewGeneral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 131845F82D47C62D00CA7A54 /* SettingsViewGeneral.swift */; };
 		1327FBA72D758CEA00FC6689 /* Analytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1327FBA62D758CEA00FC6689 /* Analytics.swift */; };
 		1327FBA92D758DEA00FC6689 /* UIDevice+Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1327FBA82D758DEA00FC6689 /* UIDevice+Model.swift */; };
+		1334FF4D2D786C93007E289F /* TMDB-Seasonal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1334FF4C2D786C93007E289F /* TMDB-Seasonal.swift */; };
+		1334FF4F2D786C9E007E289F /* TMDB-Trending.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1334FF4E2D786C9E007E289F /* TMDB-Trending.swift */; };
+		1334FF522D7871B7007E289F /* TMDBItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1334FF512D7871B7007E289F /* TMDBItem.swift */; };
+		1334FF542D787217007E289F /* TMDBRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1334FF532D787217007E289F /* TMDBRequest.swift */; };
+		1334FF562D7872E9007E289F /* SettingsViewTrackingServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1334FF552D7872E9007E289F /* SettingsViewTrackingServices.swift */; };
 		133D7C6E2D2BE2500075467E /* SoraApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C6D2D2BE2500075467E /* SoraApp.swift */; };
 		133D7C702D2BE2500075467E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C6F2D2BE2500075467E /* ContentView.swift */; };
 		133D7C722D2BE2520075467E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 133D7C712D2BE2520075467E /* Assets.xcassets */; };
@@ -67,6 +72,11 @@
 		131845F82D47C62D00CA7A54 /* SettingsViewGeneral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewGeneral.swift; sourceTree = "<group>"; };
 		1327FBA62D758CEA00FC6689 /* Analytics.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Analytics.swift; sourceTree = "<group>"; };
 		1327FBA82D758DEA00FC6689 /* UIDevice+Model.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIDevice+Model.swift"; sourceTree = "<group>"; };
+		1334FF4C2D786C93007E289F /* TMDB-Seasonal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TMDB-Seasonal.swift"; sourceTree = "<group>"; };
+		1334FF4E2D786C9E007E289F /* TMDB-Trending.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TMDB-Trending.swift"; sourceTree = "<group>"; };
+		1334FF512D7871B7007E289F /* TMDBItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TMDBItem.swift; sourceTree = "<group>"; };
+		1334FF532D787217007E289F /* TMDBRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TMDBRequest.swift; sourceTree = "<group>"; };
+		1334FF552D7872E9007E289F /* SettingsViewTrackingServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewTrackingServices.swift; sourceTree = "<group>"; };
 		133D7C6A2D2BE2500075467E /* Sulfur.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sulfur.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		133D7C6D2D2BE2500075467E /* SoraApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoraApp.swift; sourceTree = "<group>"; };
 		133D7C6F2D2BE2500075467E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -123,6 +133,7 @@
 		13103E802D589D6C000F0673 /* Tracking Services */ = {
 			isa = PBXGroup;
 			children = (
+				1334FF4A2D786C6D007E289F /* TMDB */,
 				13103E812D589D77000F0673 /* AniList */,
 			);
 			path = "Tracking Services";
@@ -171,6 +182,33 @@
 				1327FBA62D758CEA00FC6689 /* Analytics.swift */,
 			);
 			path = Analytics;
+			sourceTree = "<group>";
+		};
+		1334FF4A2D786C6D007E289F /* TMDB */ = {
+			isa = PBXGroup;
+			children = (
+				1334FF502D7871A4007E289F /* Struct */,
+				1334FF4B2D786C81007E289F /* HomePage */,
+			);
+			path = TMDB;
+			sourceTree = "<group>";
+		};
+		1334FF4B2D786C81007E289F /* HomePage */ = {
+			isa = PBXGroup;
+			children = (
+				1334FF4C2D786C93007E289F /* TMDB-Seasonal.swift */,
+				1334FF4E2D786C9E007E289F /* TMDB-Trending.swift */,
+			);
+			path = HomePage;
+			sourceTree = "<group>";
+		};
+		1334FF502D7871A4007E289F /* Struct */ = {
+			isa = PBXGroup;
+			children = (
+				1334FF512D7871B7007E289F /* TMDBItem.swift */,
+				1334FF532D787217007E289F /* TMDBRequest.swift */,
+			);
+			path = Struct;
 			sourceTree = "<group>";
 		};
 		133D7C612D2BE2500075467E = {
@@ -243,6 +281,7 @@
 				131845F82D47C62D00CA7A54 /* SettingsViewGeneral.swift */,
 				135CCBE12D4D1138008B9C0E /* SettingsViewPlayer.swift */,
 				130C6BF92D53AB1F00DC1432 /* SettingsViewData.swift */,
+				1334FF552D7872E9007E289F /* SettingsViewTrackingServices.swift */,
 			);
 			path = SettingsSubViews;
 			sourceTree = "<group>";
@@ -475,14 +514,18 @@
 				13B7F4C12D58FFDD0045714A /* Shimmer.swift in Sources */,
 				139935662D468C450065CEFF /* ModuleManager.swift in Sources */,
 				133D7C902D2BE2640075467E /* SettingsView.swift in Sources */,
+				1334FF4F2D786C9E007E289F /* TMDB-Trending.swift in Sources */,
 				13CBEFDA2D5F7D1200D011EE /* String.swift in Sources */,
 				130C6BFA2D53AB1F00DC1432 /* SettingsViewData.swift in Sources */,
 				13EA2BD72D32D97400C1EBD7 /* MusicProgressSlider.swift in Sources */,
+				1334FF542D787217007E289F /* TMDBRequest.swift in Sources */,
 				1E9FF1D32D403E49008AC100 /* SettingsViewLoggerFilter.swift in Sources */,
 				13EA2BD92D32D98400C1EBD7 /* NormalPlayer.swift in Sources */,
 				133D7C932D2BE2640075467E /* Modules.swift in Sources */,
+				1334FF562D7872E9007E289F /* SettingsViewTrackingServices.swift in Sources */,
 				136F21B92D5B8DD8006409AC /* AniList-MediaInfo.swift in Sources */,
 				133D7C702D2BE2500075467E /* ContentView.swift in Sources */,
+				1334FF522D7871B7007E289F /* TMDBItem.swift in Sources */,
 				13D99CF72D4E73C300250A86 /* ModuleAdditionSettingsView.swift in Sources */,
 				13C0E5EC2D5F85F800E7F619 /* ContinueWatchingItem.swift in Sources */,
 				13CBA0882D60F19C00EFE70A /* VTTSubtitlesLoader.swift in Sources */,
@@ -507,6 +550,7 @@
 				133D7C8E2D2BE2640075467E /* LibraryView.swift in Sources */,
 				133D7C6E2D2BE2500075467E /* SoraApp.swift in Sources */,
 				138AA1B92D2D66FD0021F9DF /* CircularProgressBar.swift in Sources */,
+				1334FF4D2D786C93007E289F /* TMDB-Seasonal.swift in Sources */,
 				13EA2BD52D32D97400C1EBD7 /* CustomPlayer.swift in Sources */,
 				1399FAD42D3AB38C00E97C31 /* SettingsViewLogger.swift in Sources */,
 				13C0E5EA2D5F85EA00E7F619 /* ContinueWatchingManager.swift in Sources */,

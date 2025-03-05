@@ -21,6 +21,9 @@ struct SettingsView: View {
                     NavigationLink(destination: SettingsViewModule()) {
                         Text("Modules")
                     }
+                    NavigationLink(destination: SettingsViewTrackingServices()) {
+                        Text("Tracking Services")
+                    }
                 }
                 
                 Section(header: Text("Info")) {
@@ -73,6 +76,7 @@ struct SettingsView: View {
                         }
                     }
                 }
+                Section(footer: Text("Running Sora 0.2.1")) {}
             }
             .navigationTitle("Settings")
         }

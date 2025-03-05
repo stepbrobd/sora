@@ -9,6 +9,7 @@ import SwiftUI
 import Kingfisher
 
 struct HomeView: View {
+    @AppStorage("trackingService") private var tracingService: String = "AniList"
     @State private var aniListItems: [AniListItem] = []
     @State private var trendingItems: [AniListItem] = []
     @State private var continueWatchingItems: [ContinueWatchingItem] = []
@@ -257,14 +258,28 @@ struct HomeView: View {
             }
             .onAppear {
                 continueWatchingItems = ContinueWatchingManager.shared.fetchItems()
-                AnilistServiceSeasonalAnime().fetchSeasonalAnime { items in
-                    if let items = items {
-                        aniListItems = items
+                if tracingService == "TMDB" {
+                    TMDBSeasonal.fetchTMDBSeasonal { items in
+                        if let items = items {
+                            aniListItems = items
+                        }
                     }
-                }
-                AnilistServiceTrendingAnime().fetchTrendingAnime { items in
-                    if let items = items {
-                        trendingItems = items
+                    
+                    TMBDTrending.fetchTMDBTrending { items in
+                        if let items = items {
+                            trendingItems = items
+                        }
+                    }
+                } else {
+                    AnilistServiceSeasonalAnime().fetchSeasonalAnime { items in
+                        if let items = items {
+                            aniListItems = items
+                        }
+                    }
+                    AnilistServiceTrendingAnime().fetchTrendingAnime { items in
+                        if let items = items {
+                            trendingItems = items
+                        }
                     }
                 }
             }
