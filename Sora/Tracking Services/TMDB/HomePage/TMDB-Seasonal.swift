@@ -14,17 +14,17 @@ class TMDBSeasonal {
                 let url = URL(string: "https://api.themoviedb.org/3/movie/upcoming")!
                 var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
                 components.queryItems = [
-                    URLQueryItem(name: "language", value: "en-US"),
-                    URLQueryItem(name: "page", value: "1"),
+                    URLQueryItem(name: "language", value: "en-US")
                 ]
                 
                 var request = URLRequest(url: components.url!)
-                request.httpMethod = "GET"
-                request.timeoutInterval = 10
+                let token = TMBDRequest.getToken()
+                print(token)
+                
                 request.allHTTPHeaderFields = [
                     "accept": "application/json",
                     "User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-                    "Authorization": "Bearer \(TMBDRequest.decryptToken())"
+                    "Authorization": "Bearer \(token)"
                 ]
                 
                 let (data, _) = try await URLSession.shared.data(for: request)

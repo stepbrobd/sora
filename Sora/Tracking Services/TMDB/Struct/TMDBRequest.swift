@@ -21,21 +21,13 @@ struct TMDBResponse: Codable {
 }
 
 class TMBDRequest {
-    static let encodedTokenParts = [
-        "XZXlKaGJHY2lPaUpJVXpJMU5pSjk=",
-        "XZXlKaGRXUWlPaUkzTXpoaU5HVmtaREJoTVRVMlkyTXhNalprWXpSaE5HSTRZV1ZoTkdGallTSXNJbTVpWmlJNk1UYzBNVEUzTXpjd01pNDNPRGN3TURJc0luTjFZaUk2SWpZM1l6Z3pNMk0yWkRjME1UbGpaR1prT0RabE1tUmtaaUlzSW5OamIzQmxjeUk2V3lKaGNHbGZjbVZoWkNKZExDSjJaWEp6YVc5dUlqb3hmUT09",
-        "XR2ZlN0YtOENXSlhnT052MzRtZzNqSFhmTDZCeGJqLWhBWWY5ZllpOUNrRQ=="
-    ]
+    private static let Token = "ZXlKaGJHY2lPaUpJVXpJMU5pSjkuZXlKaGRXUWlPaUkzTXpoaU5HVmtaREJoTVRVMlkyTXhNalprWXpSaE5HSTRZV1ZoTkdGallTSXNJbTVpWmlJNk1UYzBNVEUzTXpjd01pNDNPRGN3TURBeUxDSnpkV0lpT2lJMk4yTTRNek5qTm1RM05ERTVZMlJtWkRnMlpUSmtaR1lpTENKelkyOXdaWE1pT2xzaVlYQnBYM0psWVdRaVhTd2lkbVZ5YzJsdmJpSTZNWDAuR2ZlN0YtOENXSlhnT052MzRtZzNqSFhmTDZCeGJqLWhBWWY5ZllpOUNrRQ=="
     
-    static func decryptToken() -> String {
-        let decodedParts = encodedTokenParts.map { part -> String in
-            let cleanPart = String(part.dropFirst(1))
-            guard let data = Data(base64Encoded: cleanPart) else {
-                return ""
-            }
-            return String(data: data, encoding: .utf8) ?? ""
+    static func getToken() -> String {
+        guard let tokenData = Data(base64Encoded: Token),
+              let token = String(data: tokenData, encoding: .utf8) else {
+            fatalError("Failed to decode token.")
         }
-        
-        return decodedParts.joined()
+        return token
     }
 }

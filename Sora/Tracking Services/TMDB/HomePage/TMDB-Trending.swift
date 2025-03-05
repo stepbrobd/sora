@@ -46,14 +46,12 @@ class TMBDTrending {
             URLQueryItem(name: "language", value: "en-US")
         ]
         components.queryItems = queryItems
+        let token = TMBDRequest.getToken()
         
         var request = URLRequest(url: components.url!)
-        request.httpMethod = "GET"
-        request.timeoutInterval = 10
         request.allHTTPHeaderFields = [
             "accept": "application/json",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-            "Authorization": "Bearer \(TMBDRequest.decryptToken())"
+            "Authorization": "Bearer \(token)"
         ]
         
         let (data, _) = try await URLSession.shared.data(for: request)
