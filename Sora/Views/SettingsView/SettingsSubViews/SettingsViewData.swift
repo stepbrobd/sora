@@ -27,7 +27,7 @@ struct SettingsViewData: View {
                 .alert(isPresented: $showEraseAppDataAlert) {
                     Alert(
                         title: Text("Confirm Erase App Data"),
-                        message: Text("Are you sure you want to erase all app data? This action cannot be undone. (The app will then restart)"),
+                        message: Text("Are you sure you want to erase all app data? This action cannot be undone. (The app will then close)"),
                         primaryButton: .destructive(Text("Erase")) {
                             eraseAppData()
                         },
@@ -43,7 +43,7 @@ struct SettingsViewData: View {
                 .alert(isPresented: $showRemoveDocumentsAlert) {
                     Alert(
                         title: Text("Confirm Remove All Files"),
-                        message: Text("Are you sure you want to remove all files in the documents folder? This will also remove all modules and you will lose the favorite items. This action cannot be undone. (The app will then restart)"),
+                        message: Text("Are you sure you want to remove all files in the documents folder? This will also remove all modules and you will lose the favorite items. This action cannot be undone. (The app will then close)"),
                         primaryButton: .destructive(Text("Remove")) {
                             removeAllFilesInDocuments()
                         },
