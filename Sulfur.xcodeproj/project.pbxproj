@@ -20,13 +20,11 @@
 		1334FF4F2D786C9E007E289F /* TMDB-Trending.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1334FF4E2D786C9E007E289F /* TMDB-Trending.swift */; };
 		1334FF522D7871B7007E289F /* TMDBItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1334FF512D7871B7007E289F /* TMDBItem.swift */; };
 		1334FF542D787217007E289F /* TMDBRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1334FF532D787217007E289F /* TMDBRequest.swift */; };
-		1334FF562D7872E9007E289F /* SettingsViewTrackingServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1334FF552D7872E9007E289F /* SettingsViewTrackingServices.swift */; };
 		133D7C6E2D2BE2500075467E /* SoraApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C6D2D2BE2500075467E /* SoraApp.swift */; };
 		133D7C702D2BE2500075467E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C6F2D2BE2500075467E /* ContentView.swift */; };
 		133D7C722D2BE2520075467E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 133D7C712D2BE2520075467E /* Assets.xcassets */; };
 		133D7C752D2BE2520075467E /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 133D7C742D2BE2520075467E /* Preview Assets.xcassets */; };
 		133D7C8C2D2BE2640075467E /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C7C2D2BE2630075467E /* SearchView.swift */; };
-		133D7C8D2D2BE2640075467E /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C7D2D2BE2630075467E /* HomeView.swift */; };
 		133D7C8E2D2BE2640075467E /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C7E2D2BE2630075467E /* LibraryView.swift */; };
 		133D7C8F2D2BE2640075467E /* MediaInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C802D2BE2630075467E /* MediaInfoView.swift */; };
 		133D7C902D2BE2640075467E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C822D2BE2630075467E /* SettingsView.swift */; };
@@ -77,14 +75,12 @@
 		1334FF4E2D786C9E007E289F /* TMDB-Trending.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TMDB-Trending.swift"; sourceTree = "<group>"; };
 		1334FF512D7871B7007E289F /* TMDBItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TMDBItem.swift; sourceTree = "<group>"; };
 		1334FF532D787217007E289F /* TMDBRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TMDBRequest.swift; sourceTree = "<group>"; };
-		1334FF552D7872E9007E289F /* SettingsViewTrackingServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewTrackingServices.swift; sourceTree = "<group>"; };
 		133D7C6A2D2BE2500075467E /* Sulfur.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sulfur.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		133D7C6D2D2BE2500075467E /* SoraApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoraApp.swift; sourceTree = "<group>"; };
 		133D7C6F2D2BE2500075467E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		133D7C712D2BE2520075467E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		133D7C742D2BE2520075467E /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		133D7C7C2D2BE2630075467E /* SearchView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
-		133D7C7D2D2BE2630075467E /* HomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		133D7C7E2D2BE2630075467E /* LibraryView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
 		133D7C802D2BE2630075467E /* MediaInfoView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaInfoView.swift; sourceTree = "<group>"; };
 		133D7C822D2BE2630075467E /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -260,7 +256,6 @@
 				1399FAD22D3AB34F00E97C31 /* SettingsView */,
 				133F55B92D33B53E00E08EEA /* LibraryView */,
 				133D7C7C2D2BE2630075467E /* SearchView.swift */,
-				133D7C7D2D2BE2630075467E /* HomeView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -283,7 +278,6 @@
 				131845F82D47C62D00CA7A54 /* SettingsViewGeneral.swift */,
 				135CCBE12D4D1138008B9C0E /* SettingsViewPlayer.swift */,
 				130C6BF92D53AB1F00DC1432 /* SettingsViewData.swift */,
-				1334FF552D7872E9007E289F /* SettingsViewTrackingServices.swift */,
 			);
 			path = SettingsSubViews;
 			sourceTree = "<group>";
@@ -525,7 +519,6 @@
 				1E9FF1D32D403E49008AC100 /* SettingsViewLoggerFilter.swift in Sources */,
 				13EA2BD92D32D98400C1EBD7 /* NormalPlayer.swift in Sources */,
 				133D7C932D2BE2640075467E /* Modules.swift in Sources */,
-				1334FF562D7872E9007E289F /* SettingsViewTrackingServices.swift in Sources */,
 				136F21B92D5B8DD8006409AC /* AniList-MediaInfo.swift in Sources */,
 				13DB7CC32D7D99C0004371D3 /* SubtitleSettingsManager.swift in Sources */,
 				133D7C702D2BE2500075467E /* ContentView.swift in Sources */,
@@ -539,7 +532,6 @@
 				13103E892D58A39A000F0673 /* AniListItem.swift in Sources */,
 				131845F92D47C62D00CA7A54 /* SettingsViewGeneral.swift in Sources */,
 				13103E8E2D58E04A000F0673 /* SkeletonCell.swift in Sources */,
-				133D7C8D2D2BE2640075467E /* HomeView.swift in Sources */,
 				13D842552D45267500EBBFA6 /* DropManager.swift in Sources */,
 				13103E8B2D58E028000F0673 /* View.swift in Sources */,
 				1327FBA92D758DEA00FC6689 /* UIDevice+Model.swift in Sources */,

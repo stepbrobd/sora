@@ -167,10 +167,11 @@ struct MediaInfoView: View {
                                     title: title,
                                     imageUrl: imageUrl,
                                     href: href,
-                                    moduleId: module.id.uuidString
+                                    moduleId: module.id.uuidString,
+                                    moduleName: module.metadata.sourceName
                                 )
                             }) {
-                                Image(systemName: libraryManager.isBookmarked(href: href) ? "bookmark.fill" : "bookmark")
+                                Image(systemName: libraryManager.isBookmarked(href: href, moduleName: module.metadata.sourceName) ? "bookmark.fill" : "bookmark")
                                     .resizable()
                                     .frame(width: 20, height: 27)
                                     .foregroundColor(Color.accentColor)

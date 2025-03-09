@@ -12,6 +12,8 @@ struct SettingsViewGeneral: View {
     @AppStorage("refreshModulesOnLaunch") private var refreshModulesOnLaunch: Bool = false
     @AppStorage("fetchEpisodeMetadata") private var fetchEpisodeMetadata: Bool = true
     @AppStorage("analyticsEnabled") private var analyticsEnabled: Bool = false
+    @AppStorage("metadataProviders") private var metadataProviders: String = "AniList"
+    private let metadataProvidersList = ["AniList", "TMDB"]
     @EnvironmentObject var settings: Settings
     
     var body: some View {
@@ -52,6 +54,20 @@ struct SettingsViewGeneral: View {
                 }
                 Toggle("Fetch Episode metadata", isOn: $fetchEpisodeMetadata)
                     .tint(.accentColor)
+                HStack {
+                    Text("Metadata Provider")
+                    Spacer()
+                    Menu(metadataProviders) {
+                        ForEach(metadataProvidersList, id: \.self) { provider in
+                            Button(action: {
+                                metadataProviders = provider
+                            }) {
+                                Text(provider)
+                            }
+                        }
+                    }
+                    
+                }
             }
             
             Section(header: Text("Modules"), footer: Text("Note that the modules will be replaced only if there is a different version string inside the JSON file.")) {
