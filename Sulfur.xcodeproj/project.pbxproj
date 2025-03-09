@@ -52,6 +52,7 @@
 		13D842552D45267500EBBFA6 /* DropManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D842542D45267500EBBFA6 /* DropManager.swift */; };
 		13D99CF72D4E73C300250A86 /* ModuleAdditionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D99CF62D4E73C300250A86 /* ModuleAdditionSettingsView.swift */; };
 		13DB7CC32D7D99C0004371D3 /* SubtitleSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DB7CC22D7D99C0004371D3 /* SubtitleSettingsManager.swift */; };
+		13DB7CC62D7DC7D2004371D3 /* FFmpeg-iOS-Lame in Frameworks */ = {isa = PBXBuildFile; productRef = 13DB7CC52D7DC7D2004371D3 /* FFmpeg-iOS-Lame */; };
 		13DC0C462D302C7500D0F966 /* VideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DC0C452D302C7500D0F966 /* VideoPlayer.swift */; };
 		13EA2BD52D32D97400C1EBD7 /* CustomPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD12D32D97400C1EBD7 /* CustomPlayer.swift */; };
 		13EA2BD62D32D97400C1EBD7 /* Double+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD32D32D97400C1EBD7 /* Double+Extension.swift */; };
@@ -120,6 +121,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				13DB7CC62D7DC7D2004371D3 /* FFmpeg-iOS-Lame in Frameworks */,
 				1359ED1A2D76FA7D00C13034 /* Drops in Frameworks */,
 				133D7C972D2BE2AF0075467E /* Kingfisher in Frameworks */,
 			);
@@ -445,6 +447,7 @@
 			packageProductDependencies = (
 				133D7C962D2BE2AF0075467E /* Kingfisher */,
 				1359ED192D76FA7D00C13034 /* Drops */,
+				13DB7CC52D7DC7D2004371D3 /* FFmpeg-iOS-Lame */,
 			);
 			productName = Sora;
 			productReference = 133D7C6A2D2BE2500075467E /* Sulfur.app */;
@@ -476,6 +479,7 @@
 			packageReferences = (
 				133D7C952D2BE2AF0075467E /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				1359ED182D76FA7D00C13034 /* XCRemoteSwiftPackageReference "Drops" */,
+				13DB7CC42D7DC7D2004371D3 /* XCRemoteSwiftPackageReference "FFmpeg-iOS-Lame" */,
 			);
 			productRefGroup = 133D7C6B2D2BE2500075467E /* Products */;
 			projectDirPath = "";
@@ -798,6 +802,14 @@
 				kind = branch;
 			};
 		};
+		13DB7CC42D7DC7D2004371D3 /* XCRemoteSwiftPackageReference "FFmpeg-iOS-Lame" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kewlbear/FFmpeg-iOS-Lame";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -810,6 +822,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 1359ED182D76FA7D00C13034 /* XCRemoteSwiftPackageReference "Drops" */;
 			productName = Drops;
+		};
+		13DB7CC52D7DC7D2004371D3 /* FFmpeg-iOS-Lame */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 13DB7CC42D7DC7D2004371D3 /* XCRemoteSwiftPackageReference "FFmpeg-iOS-Lame" */;
+			productName = "FFmpeg-iOS-Lame";
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
