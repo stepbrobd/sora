@@ -53,6 +53,7 @@
 		13CBEFDA2D5F7D1200D011EE /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13CBEFD92D5F7D1200D011EE /* String.swift */; };
 		13D842552D45267500EBBFA6 /* DropManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D842542D45267500EBBFA6 /* DropManager.swift */; };
 		13D99CF72D4E73C300250A86 /* ModuleAdditionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D99CF62D4E73C300250A86 /* ModuleAdditionSettingsView.swift */; };
+		13DB7CC32D7D99C0004371D3 /* SubtitleSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DB7CC22D7D99C0004371D3 /* SubtitleSettingsManager.swift */; };
 		13DC0C462D302C7500D0F966 /* VideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DC0C452D302C7500D0F966 /* VideoPlayer.swift */; };
 		13EA2BD52D32D97400C1EBD7 /* CustomPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD12D32D97400C1EBD7 /* CustomPlayer.swift */; };
 		13EA2BD62D32D97400C1EBD7 /* Double+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD32D32D97400C1EBD7 /* Double+Extension.swift */; };
@@ -108,6 +109,7 @@
 		13CBEFD92D5F7D1200D011EE /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
 		13D842542D45267500EBBFA6 /* DropManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropManager.swift; sourceTree = "<group>"; };
 		13D99CF62D4E73C300250A86 /* ModuleAdditionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModuleAdditionSettingsView.swift; sourceTree = "<group>"; };
+		13DB7CC22D7D99C0004371D3 /* SubtitleSettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleSettingsManager.swift; sourceTree = "<group>"; };
 		13DC0C412D2EC9BA00D0F966 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		13DC0C452D302C7500D0F966 /* VideoPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayer.swift; sourceTree = "<group>"; };
 		13EA2BD12D32D97400C1EBD7 /* CustomPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomPlayer.swift; sourceTree = "<group>"; };
@@ -416,6 +418,7 @@
 				13EA2BD22D32D97400C1EBD7 /* Components */,
 				13EA2BD12D32D97400C1EBD7 /* CustomPlayer.swift */,
 				13CBA0872D60F19C00EFE70A /* VTTSubtitlesLoader.swift */,
+				13DB7CC22D7D99C0004371D3 /* SubtitleSettingsManager.swift */,
 			);
 			path = CustomPlayer;
 			sourceTree = "<group>";
@@ -524,6 +527,7 @@
 				133D7C932D2BE2640075467E /* Modules.swift in Sources */,
 				1334FF562D7872E9007E289F /* SettingsViewTrackingServices.swift in Sources */,
 				136F21B92D5B8DD8006409AC /* AniList-MediaInfo.swift in Sources */,
+				13DB7CC32D7D99C0004371D3 /* SubtitleSettingsManager.swift in Sources */,
 				133D7C702D2BE2500075467E /* ContentView.swift in Sources */,
 				1334FF522D7871B7007E289F /* TMDBItem.swift in Sources */,
 				13D99CF72D4E73C300250A86 /* ModuleAdditionSettingsView.swift in Sources */,

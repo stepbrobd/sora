@@ -61,6 +61,14 @@ class CustomMediaPlayerViewController: UIViewController {
     var watchNextButtonControlsConstraints: [NSLayoutConstraint] = []
     var isControlsVisible = false
     
+    var subtitleBottomConstraint: NSLayoutConstraint?
+    
+    var subtitleBottomPadding: CGFloat = 10.0 {
+        didSet {
+            updateSubtitleLabelConstraints()
+        }
+    }
+    
     init(module: ScrapingModule,
          urlString: String,
          fullUrl: String,
@@ -106,6 +114,10 @@ class CustomMediaPlayerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
+        
+        // Load persistent subtitle settings on launch
+        loadSubtitleSettings()
+        
         setupPlayerViewController()
         setupControls()
         setupSubtitleLabel()
@@ -256,12 +268,12 @@ class CustomMediaPlayerViewController: UIViewController {
             playPauseButton.heightAnchor.constraint(equalToConstant: 50),
             
             backwardButton.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
-            backwardButton.trailingAnchor.constraint(equalTo: playPauseButton.leadingAnchor, constant: -30),
+            backwardButton.trailingAnchor.constraint(equalTo: playPauseButton.leadingAnchor, constant: -50),
             backwardButton.widthAnchor.constraint(equalToConstant: 40),
             backwardButton.heightAnchor.constraint(equalToConstant: 40),
             
             forwardButton.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
-            forwardButton.leadingAnchor.constraint(equalTo: playPauseButton.trailingAnchor, constant: 30),
+            forwardButton.leadingAnchor.constraint(equalTo: playPauseButton.trailingAnchor, constant: 50),
             forwardButton.widthAnchor.constraint(equalToConstant: 40),
             forwardButton.heightAnchor.constraint(equalToConstant: 40)
         ])
@@ -275,12 +287,23 @@ class CustomMediaPlayerViewController: UIViewController {
         updateSubtitleLabelAppearance()
         view.addSubview(subtitleLabel)
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        subtitleBottomConstraint = subtitleLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -subtitleBottomPadding)
+        
         NSLayoutConstraint.activate([
             subtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            subtitleLabel.bottomAnchor.constraint(equalTo: sliderHostingController?.view.bottomAnchor ?? view.safeAreaLayoutGuide.bottomAnchor),
+            subtitleBottomConstraint!,
             subtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 36),
             subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -36)
         ])
+    }
+    
+    func updateSubtitleLabelConstraints() {
+        subtitleBottomConstraint?.constant = -subtitleBottomPadding
+        view.setNeedsLayout()
+        UIView.animate(withDuration: 0.2) {
+            self.view.layoutIfNeeded()
+        }
     }
     
     func setupDismissButton() {
@@ -374,11 +397,7 @@ class CustomMediaPlayerViewController: UIViewController {
     func updateSubtitleLabelAppearance() {
         subtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
         subtitleLabel.textColor = subtitleUIColor()
-        if subtitleBackgroundEnabled {
-            subtitleLabel.backgroundColor = UIColor.black.withAlphaComponent(0.6)
-        } else {
-            subtitleLabel.backgroundColor = .clear
-        }
+        subtitleLabel.backgroundColor = subtitleBackgroundEnabled ? UIColor.black.withAlphaComponent(0.6) : .clear
         subtitleLabel.layer.cornerRadius = 5
         subtitleLabel.clipsToBounds = true
         subtitleLabel.layer.shadowColor = UIColor.black.cgColor
@@ -538,47 +557,145 @@ class CustomMediaPlayerViewController: UIViewController {
         
         if let subURL = subtitlesURL, !subURL.isEmpty {
             let foregroundActions = [
-                UIAction(title: "White") { _ in self.subtitleForegroundColor = "white"; self.updateSubtitleLabelAppearance() },
-                UIAction(title: "Yellow") { _ in self.subtitleForegroundColor = "yellow"; self.updateSubtitleLabelAppearance() },
-                UIAction(title: "Green") { _ in self.subtitleForegroundColor = "green"; self.updateSubtitleLabelAppearance() },
-                UIAction(title: "Blue") { _ in self.subtitleForegroundColor = "blue"; self.updateSubtitleLabelAppearance() },
-                UIAction(title: "Red") { _ in self.subtitleForegroundColor = "red"; self.updateSubtitleLabelAppearance() },
-                UIAction(title: "Purple") { _ in self.subtitleForegroundColor = "purple"; self.updateSubtitleLabelAppearance() }
+                UIAction(title: "White") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.foregroundColor = "white" }
+                    self.loadSubtitleSettings()
+                    self.updateSubtitleLabelAppearance()
+                },
+                UIAction(title: "Yellow") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.foregroundColor = "yellow" }
+                    self.loadSubtitleSettings()
+                    self.updateSubtitleLabelAppearance()
+                },
+                UIAction(title: "Green") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.foregroundColor = "green" }
+                    self.loadSubtitleSettings()
+                    self.updateSubtitleLabelAppearance()
+                },
+                UIAction(title: "Blue") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.foregroundColor = "blue" }
+                    self.loadSubtitleSettings()
+                    self.updateSubtitleLabelAppearance()
+                },
+                UIAction(title: "Red") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.foregroundColor = "red" }
+                    self.loadSubtitleSettings()
+                    self.updateSubtitleLabelAppearance()
+                },
+                UIAction(title: "Purple") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.foregroundColor = "purple" }
+                    self.loadSubtitleSettings()
+                    self.updateSubtitleLabelAppearance()
+                }
             ]
             let colorMenu = UIMenu(title: "Subtitle Color", children: foregroundActions)
             
             let fontSizeActions = [
-                UIAction(title: "16") { _ in self.subtitleFontSize = 16; self.updateSubtitleLabelAppearance() },
-                UIAction(title: "18") { _ in self.subtitleFontSize = 18; self.updateSubtitleLabelAppearance() },
-                UIAction(title: "20") { _ in self.subtitleFontSize = 20; self.updateSubtitleLabelAppearance() },
-                UIAction(title: "22") { _ in self.subtitleFontSize = 22; self.updateSubtitleLabelAppearance() },
-                UIAction(title: "24") { _ in self.subtitleFontSize = 24; self.updateSubtitleLabelAppearance() },
+                UIAction(title: "16") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.fontSize = 16 }
+                    self.loadSubtitleSettings()
+                    self.updateSubtitleLabelAppearance()
+                },
+                UIAction(title: "18") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.fontSize = 18 }
+                    self.loadSubtitleSettings()
+                    self.updateSubtitleLabelAppearance()
+                },
+                UIAction(title: "20") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.fontSize = 20 }
+                    self.loadSubtitleSettings()
+                    self.updateSubtitleLabelAppearance()
+                },
+                UIAction(title: "22") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.fontSize = 22 }
+                    self.loadSubtitleSettings()
+                    self.updateSubtitleLabelAppearance()
+                },
+                UIAction(title: "24") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.fontSize = 24 }
+                    self.loadSubtitleSettings()
+                    self.updateSubtitleLabelAppearance()
+                },
                 UIAction(title: "Custom") { _ in self.presentCustomFontAlert() }
             ]
             let fontSizeMenu = UIMenu(title: "Font Size", children: fontSizeActions)
             
             let shadowActions = [
-                UIAction(title: "None") { _ in self.subtitleShadowRadius = 0; self.updateSubtitleLabelAppearance() },
-                UIAction(title: "Low") { _ in self.subtitleShadowRadius = 1; self.updateSubtitleLabelAppearance() },
-                UIAction(title: "Medium") { _ in self.subtitleShadowRadius = 3; self.updateSubtitleLabelAppearance() },
-                UIAction(title: "High") { _ in self.subtitleShadowRadius = 6; self.updateSubtitleLabelAppearance() }
+                UIAction(title: "None") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.shadowRadius = 0 }
+                    self.loadSubtitleSettings()
+                    self.updateSubtitleLabelAppearance()
+                },
+                UIAction(title: "Low") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.shadowRadius = 1 }
+                    self.loadSubtitleSettings()
+                    self.updateSubtitleLabelAppearance()
+                },
+                UIAction(title: "Medium") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.shadowRadius = 3 }
+                    self.loadSubtitleSettings()
+                    self.updateSubtitleLabelAppearance()
+                },
+                UIAction(title: "High") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.shadowRadius = 6 }
+                    self.loadSubtitleSettings()
+                    self.updateSubtitleLabelAppearance()
+                }
             ]
             let shadowMenu = UIMenu(title: "Shadow Intensity", children: shadowActions)
             
             let backgroundActions = [
                 UIAction(title: "Toggle") { _ in
-                    self.subtitleBackgroundEnabled.toggle()
+                    SubtitleSettingsManager.shared.update { settings in settings.backgroundEnabled.toggle() }
+                    self.loadSubtitleSettings()
                     self.updateSubtitleLabelAppearance()
                 }
             ]
             let backgroundMenu = UIMenu(title: "Background", children: backgroundActions)
             
-            let subtitleOptionsMenu = UIMenu(title: "Subtitle Options", children: [colorMenu, fontSizeMenu, shadowMenu, backgroundMenu])
+            let paddingActions = [
+                UIAction(title: "10p") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.bottomPadding = 10 }
+                    self.loadSubtitleSettings()
+                },
+                UIAction(title: "20p") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.bottomPadding = 20 }
+                    self.loadSubtitleSettings()
+                },
+                UIAction(title: "30p") { _ in
+                    SubtitleSettingsManager.shared.update { settings in settings.bottomPadding = 30 }
+                    self.loadSubtitleSettings()
+                },
+                UIAction(title: "Custom") { _ in self.presentCustomPaddingAlert() }
+            ]
+            let paddingMenu = UIMenu(title: "Bottom Padding", children: paddingActions)
+            
+            let subtitleOptionsMenu = UIMenu(title: "Subtitle Options", children: [colorMenu, fontSizeMenu, shadowMenu, backgroundMenu, paddingMenu])
             
             menuElements = [subtitleOptionsMenu]
         }
         
         return UIMenu(title: "", children: menuElements)
+    }
+    
+    func presentCustomPaddingAlert() {
+        let alert = UIAlertController(title: "Enter Custom Padding", message: nil, preferredStyle: .alert)
+        alert.addTextField { textField in
+            textField.placeholder = "Padding Value"
+            textField.keyboardType = .numberPad
+            textField.text = String(Int(self.subtitleBottomPadding))
+        }
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: "Done", style: .default, handler: { _ in
+            if let text = alert.textFields?.first?.text, let intValue = Int(text) {
+                let newSize = CGFloat(intValue)
+                SubtitleSettingsManager.shared.update { settings in settings.bottomPadding = newSize }
+                self.loadSubtitleSettings()
+            }
+        }))
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            self.present(alert, animated: true, completion: nil)
+        }
     }
     
     func presentCustomFontAlert() {
@@ -591,13 +708,23 @@ class CustomMediaPlayerViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         alert.addAction(UIAlertAction(title: "Done", style: .default, handler: { _ in
             if let text = alert.textFields?.first?.text, let newSize = Double(text) {
-                self.subtitleFontSize = newSize
+                SubtitleSettingsManager.shared.update { settings in settings.fontSize = newSize }
+                self.loadSubtitleSettings()
                 self.updateSubtitleLabelAppearance()
             }
         }))
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             self.present(alert, animated: true, completion: nil)
         }
+    }
+    
+    func loadSubtitleSettings() {
+        let settings = SubtitleSettingsManager.shared.settings
+        self.subtitleForegroundColor = settings.foregroundColor
+        self.subtitleFontSize = settings.fontSize
+        self.subtitleShadowRadius = settings.shadowRadius
+        self.subtitleBackgroundEnabled = settings.backgroundEnabled
+        self.subtitleBottomPadding = settings.bottomPadding
     }
     
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
