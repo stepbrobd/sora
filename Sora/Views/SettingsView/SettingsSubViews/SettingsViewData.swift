@@ -14,7 +14,7 @@ struct SettingsViewData: View {
     
     var body: some View {
         Form {
-            Section(header: Text("App storage")) {
+            Section(header: Text("App storage"), footer: Text("The caches used by Sora are stored images that help load content faster\n\nThe App Data should never be erased if you dont know what that will cause.\n\nClearing the documents folder will remove all the modules and downloads")) {
                 Button(action: clearCache) {
                     Text("Clear Cache")
                 }
