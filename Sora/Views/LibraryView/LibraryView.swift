@@ -21,7 +21,7 @@ struct LibraryView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(alignment: .leading, spacing: 32) {
+                VStack(alignment: .leading, spacing: 16) {
                     Group {
                         Text("Continue Watching")
                             .font(.title2)
@@ -92,7 +92,6 @@ struct LibraryView: View {
                                                         .aspectRatio(contentMode: .fit)
                                                         .frame(width: 35, height: 35)
                                                         .clipShape(Circle())
-                                                        .padding(5)
                                                 }
                                                 
                                                 Text(item.title)
@@ -100,7 +99,6 @@ struct LibraryView: View {
                                                     .foregroundColor(.primary)
                                                     .lineLimit(2)
                                                     .multilineTextAlignment(.leading)
-                                                    .padding(.horizontal, 8)
                                             }
                                         }
                                     }
@@ -139,7 +137,6 @@ struct LibraryView: View {
     }
 }
 
-// ContinueWatchingSection and ContinueWatchingCell remain unchanged
 struct ContinueWatchingSection: View {
     @Binding var items: [ContinueWatchingItem]
     var markAsWatched: (ContinueWatchingItem) -> Void
