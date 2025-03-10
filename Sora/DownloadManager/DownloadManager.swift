@@ -38,31 +38,15 @@ class DownloadManager {
         
         let outputFileName = "\(title)_Episode\(episode).mp4"
         let outputFileURL = folderURL.appendingPathComponent(outputFileName)
+        let downloadID = UUID()
+        NotificationCenter.default.post(name: .downloadStarted, object: nil, userInfo: ["fileName": outputFileName, "id": downloadID])
         
         let fileExtension = url.pathExtension.lowercased()
         
         if fileExtension == "mp4" {
-            let task = URLSession.shared.downloadTask(with: url) { tempLocalURL, response, error in
-                if let tempLocalURL = tempLocalURL {
-                    do {
-                        try FileManager.default.moveItem(at: tempLocalURL, to: outputFileURL)
-                        DispatchQueue.main.async {
-                            Logger.shared.log("✅ Download successful: \(outputFileURL)")
-                            completion(true, outputFileURL)
-                        }
-                    } catch {
-                        DispatchQueue.main.async {
-                            Logger.shared.log("❌ Download failed: \(error)")
-                            completion(false, nil)
-                        }
-                    }
-                } else {
-                    DispatchQueue.main.async {
-                        Logger.shared.log("❌ Download failed: \(error?.localizedDescription ?? "Unknown error")")
-                        completion(false, nil)
-                    }
-                }
-            }
+            let delegate = DownloadTaskDelegate(downloadID: downloadID, fileName: outputFileName, outputFileURL: outputFileURL, completion: completion)
+            let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+            let task = session.downloadTask(with: url)
             task.resume()
         } else if fileExtension == "m3u8" {
             DispatchQueue.global(qos: .background).async {
@@ -92,9 +76,11 @@ class DownloadManager {
                 DispatchQueue.main.async {
                     if success == 0 {
                         Logger.shared.log("✅ Conversion successful: \(outputFileURL)")
+                        NotificationCenter.default.post(name: .downloadCompleted, object: nil, userInfo: ["id": downloadID, "success": true])
                         completion(true, outputFileURL)
                     } else {
                         Logger.shared.log("❌ Conversion failed")
+                        NotificationCenter.default.post(name: .downloadCompleted, object: nil, userInfo: ["id": downloadID, "success": false])
                         completion(false, nil)
                     }
                 }
@@ -102,6 +88,74 @@ class DownloadManager {
         } else {
             Logger.shared.log("❌ Unsupported file type: \(fileExtension)")
             completion(false, nil)
+        }
+    }
+}
+
+class DownloadTaskDelegate: NSObject, URLSessionDownloadDelegate {
+    let downloadID: UUID
+    let outputFileURL: URL
+    let completion: (Bool, URL?) -> Void
+    let fileName: String
+    let startTime: Date
+    var lastTime: Date
+    
+    init(downloadID: UUID, fileName: String, outputFileURL: URL, completion: @escaping (Bool, URL?) -> Void) {
+        self.downloadID = downloadID
+        self.fileName = fileName
+        self.outputFileURL = outputFileURL
+        self.completion = completion
+        self.startTime = Date()
+        self.lastTime = Date()
+    }
+    
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+        let progress = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
+        let now = Date()
+        let timeInterval = now.timeIntervalSince(lastTime)
+        var speed: Double = 0.0
+        if timeInterval > 0 {
+            speed = Double(bytesWritten) / timeInterval
+        }
+        lastTime = now
+        
+        let downloadedMB = Double(totalBytesWritten) / 1024.0 / 1024.0
+        let speedMB = speed / 1024.0 / 1024.0
+        
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .downloadProgressUpdate, object: nil, userInfo: [
+                "id": self.downloadID,
+                "progress": progress,
+                "downloadedSize": String(format: "%.2f MB", downloadedMB),
+                "downloadSpeed": String(format: "%.2f MB/s", speedMB)
+            ])
+        }
+    }
+    
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        do {
+            try FileManager.default.moveItem(at: location, to: outputFileURL)
+            DispatchQueue.main.async {
+                Logger.shared.log("✅ Download successful: \(self.outputFileURL)")
+                NotificationCenter.default.post(name: .downloadCompleted, object: nil, userInfo: ["id": self.downloadID, "success": true])
+                self.completion(true, self.outputFileURL)
+            }
+        } catch {
+            DispatchQueue.main.async {
+                Logger.shared.log("❌ Download failed: \(error)")
+                NotificationCenter.default.post(name: .downloadCompleted, object: nil, userInfo: ["id": self.downloadID, "success": false])
+                self.completion(false, nil)
+            }
+        }
+    }
+    
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        if let error = error {
+            DispatchQueue.main.async {
+                Logger.shared.log("❌ Download failed: \(error.localizedDescription)")
+                NotificationCenter.default.post(name: .downloadCompleted, object: nil, userInfo: ["id": self.downloadID, "success": false])
+                self.completion(false, nil)
+            }
         }
     }
 }
