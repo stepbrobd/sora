@@ -15,7 +15,7 @@ struct LibraryView: View {
     @State private var continueWatchingItems: [ContinueWatchingItem] = []
     
     private let columns = [
-        GridItem(.adaptive(minimum: 150), spacing: 16)
+        GridItem(.adaptive(minimum: 150), spacing: 12)
     ]
     
     var body: some View {
@@ -61,7 +61,7 @@ struct LibraryView: View {
                             .padding()
                             .frame(maxWidth: .infinity)
                         } else {
-                            LazyVGrid(columns: columns, spacing: 16) {
+                            LazyVGrid(columns: columns, spacing: 12) {
                                 ForEach(libraryManager.bookmarks) { item in
                                     if let module = moduleManager.modules.first(where: { $0.id.uuidString == item.moduleId }) {
                                         NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: module)) {
