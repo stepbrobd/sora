@@ -33,11 +33,9 @@ struct LibraryView: View {
                                 .foregroundColor(.secondary)
                                 .padding(.horizontal, 20)
                         } else {
-                            ContinueWatchingSection(items: $continueWatchingItems,
-                                                    markAsWatched: { item in
+                            ContinueWatchingSection(items: $continueWatchingItems, markAsWatched: { item in
                                 markContinueWatchingItemAsWatched(item: item)
-                            },
-                                                    removeItem: { item in
+                            }, removeItem: { item in
                                 removeContinueWatchingItem(item: item)
                             })
                         }
@@ -170,7 +168,21 @@ struct ContinueWatchingCell: View {
     
     var body: some View {
         Button(action: {
-            if UserDefaults.standard.string(forKey: "externalPlayer") == "Sora" {
+            if UserDefaults.standard.string(forKey: "externalPlayer") == "Default" {
+                let videoPlayerViewController = VideoPlayerViewController(module: item.module)
+                videoPlayerViewController.streamUrl = item.streamUrl
+                videoPlayerViewController.fullUrl = item.fullUrl
+                videoPlayerViewController.episodeImageUrl = item.imageUrl
+                videoPlayerViewController.episodeNumber = item.episodeNumber
+                videoPlayerViewController.mediaTitle = item.mediaTitle
+                videoPlayerViewController.subtitles = item.subtitles ?? ""
+                videoPlayerViewController.modalPresentationStyle = .fullScreen
+                
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let rootVC = windowScene.windows.first?.rootViewController {
+                    findTopViewController.findViewController(rootVC).present(videoPlayerViewController, animated: true, completion: nil)
+                }
+            } else {
                 let customMediaPlayer = CustomMediaPlayerViewController(
                     module: item.module,
                     urlString: item.streamUrl,
@@ -186,20 +198,6 @@ struct ContinueWatchingCell: View {
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                    let rootVC = windowScene.windows.first?.rootViewController {
                     findTopViewController.findViewController(rootVC).present(customMediaPlayer, animated: true, completion: nil)
-                }
-            } else {
-                let videoPlayerViewController = VideoPlayerViewController(module: item.module)
-                videoPlayerViewController.streamUrl = item.streamUrl
-                videoPlayerViewController.fullUrl = item.fullUrl
-                videoPlayerViewController.episodeImageUrl = item.imageUrl
-                videoPlayerViewController.episodeNumber = item.episodeNumber
-                videoPlayerViewController.mediaTitle = item.mediaTitle
-                videoPlayerViewController.subtitles = item.subtitles ?? ""
-                videoPlayerViewController.modalPresentationStyle = .fullScreen
-                
-                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                   let rootVC = windowScene.windows.first?.rootViewController {
-                    findTopViewController.findViewController(rootVC).present(videoPlayerViewController, animated: true, completion: nil)
                 }
             }
         }) {

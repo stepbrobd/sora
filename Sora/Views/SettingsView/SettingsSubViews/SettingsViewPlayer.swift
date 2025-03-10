@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SettingsViewPlayer: View {
-    @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
+    @AppStorage("externalPlayer") private var externalPlayer: String = "Sora"
     @AppStorage("alwaysLandscape") private var isAlwaysLandscape = false
     @AppStorage("hideNextButton") private var isHideNextButton = false
     @AppStorage("rememberPlaySpeed") private var isRememberPlaySpeed = false
@@ -109,6 +109,14 @@ struct SubtitleSettingsSection: View {
                 }
             }
             
+            Toggle("Background Enabled", isOn: $backgroundEnabled)
+                .tint(.accentColor)
+                .onChange(of: backgroundEnabled) { newValue in
+                    SubtitleSettingsManager.shared.update { settings in
+                        settings.backgroundEnabled = newValue
+                    }
+                }
+            
             HStack {
                 Text("Font Size:")
                 Spacer()
@@ -130,14 +138,6 @@ struct SubtitleSettingsSection: View {
                         }
                     }
             }
-            
-            Toggle("Background Enabled", isOn: $backgroundEnabled)
-                .tint(.accentColor)
-                .onChange(of: backgroundEnabled) { newValue in
-                    SubtitleSettingsManager.shared.update { settings in
-                        settings.backgroundEnabled = newValue
-                    }
-                }
         }
     }
 }

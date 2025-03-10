@@ -502,7 +502,29 @@ struct MediaInfoView: View {
                 scheme = "outplayer://\(url)"
             case "nPlayer":
                 scheme = "nplayer-\(url)"
-            case "Sora":
+            case "Default":
+                let videoPlayerViewController = VideoPlayerViewController(module: module)
+                videoPlayerViewController.streamUrl = url
+                videoPlayerViewController.fullUrl = fullURL
+                videoPlayerViewController.episodeNumber = selectedEpisodeNumber
+                videoPlayerViewController.episodeImageUrl = selectedEpisodeImage
+                videoPlayerViewController.mediaTitle = title
+                videoPlayerViewController.subtitles = subtitles ?? ""
+                videoPlayerViewController.modalPresentationStyle = .fullScreen
+                
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let rootVC = windowScene.windows.first?.rootViewController {
+                    findTopViewController.findViewController(rootVC).present(videoPlayerViewController, animated: true, completion: nil)
+                }
+                return
+            default:
+                break
+            }
+            
+            if let scheme = scheme, let url = URL(string: scheme), UIApplication.shared.canOpenURL(url) {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                Logger.shared.log("Opening external app with scheme: \(url)", type: "General")
+            } else {
                 let customMediaPlayer = CustomMediaPlayerViewController(
                     module: module,
                     urlString: url,
@@ -521,28 +543,6 @@ struct MediaInfoView: View {
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                    let rootVC = windowScene.windows.first?.rootViewController {
                     findTopViewController.findViewController(rootVC).present(customMediaPlayer, animated: true, completion: nil)
-                }
-                return
-            default:
-                break
-            }
-            
-            if let scheme = scheme, let url = URL(string: scheme), UIApplication.shared.canOpenURL(url) {
-                UIApplication.shared.open(url, options: [:], completionHandler: nil)
-                Logger.shared.log("Opening external app with scheme: \(url)", type: "General")
-            } else {
-                let videoPlayerViewController = VideoPlayerViewController(module: module)
-                videoPlayerViewController.streamUrl = url
-                videoPlayerViewController.fullUrl = fullURL
-                videoPlayerViewController.episodeNumber = selectedEpisodeNumber
-                videoPlayerViewController.episodeImageUrl = selectedEpisodeImage
-                videoPlayerViewController.mediaTitle = title
-                videoPlayerViewController.subtitles = subtitles ?? ""
-                videoPlayerViewController.modalPresentationStyle = .fullScreen
-                
-                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                   let rootVC = windowScene.windows.first?.rootViewController {
-                    findTopViewController.findViewController(rootVC).present(videoPlayerViewController, animated: true, completion: nil)
                 }
             }
         }
