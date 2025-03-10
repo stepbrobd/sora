@@ -13,13 +13,13 @@ class DownloadManager {
     
     private init() {}
     
-    /// Downloads and converts an HLS stream to MP4, or downloads an MP4 stream normally.
     /// - Parameters:
     ///   - url: The stream URL (either .m3u8 or .mp4).
     ///   - title: The title used for creating the folder.
     ///   - episode: The episode number used for naming the output file.
+    ///   - subtitleURL: An optional URL for the subtitle file (expects a .srt or .vtt file). (should work but not sure tbh).
     ///   - completion: Completion handler with a Bool indicating success and the URL of the output file.
-    func downloadAndConvertHLS(from url: URL, title: String, episode: Int, completion: @escaping (Bool, URL?) -> Void) {
+    func downloadAndConvertHLS(from url: URL, title: String, episode: Int, subtitleURL: URL? = nil, completion: @escaping (Bool, URL?) -> Void) {
         guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
             completion(false, nil)
             return
@@ -65,18 +65,32 @@ class DownloadManager {
             }
             task.resume()
         } else if fileExtension == "m3u8" {
-            let ffmpegCommand = [
-                "ffmpeg",
-                "-threads", "0",
-                "-i", url.absoluteString,
-                "-c", "copy",
-                outputFileURL.path
-            ]
-            
             DispatchQueue.global(qos: .background).async {
+                var ffmpegCommand = ["ffmpeg", "-threads", "0", "-i", url.absoluteString]
+                
+                if let subtitleURL = subtitleURL {
+                    do {
+                        let subtitleData = try Data(contentsOf: subtitleURL)
+                        let subtitleFileExtension = subtitleURL.pathExtension.lowercased()
+                        if subtitleFileExtension != "srt" && subtitleFileExtension != "vtt" {
+                            Logger.shared.log("❌ Unsupported subtitle format: \(subtitleFileExtension)")
+                        }
+                        let subtitleFileName = "\(title)_Episode\(episode).\(subtitleFileExtension)"
+                        let subtitleLocalURL = folderURL.appendingPathComponent(subtitleFileName)
+                        try subtitleData.write(to: subtitleLocalURL)
+                        ffmpegCommand.append(contentsOf: ["-i", subtitleLocalURL.path])
+                        ffmpegCommand.append(contentsOf: ["-c", "copy", "-c:s", "mov_text", outputFileURL.path])
+                    } catch {
+                        Logger.shared.log("❌ Subtitle download failed: \(error)")
+                        ffmpegCommand.append(contentsOf: ["-c", "copy", outputFileURL.path])
+                    }
+                } else {
+                    ffmpegCommand.append(contentsOf: ["-c", "copy", outputFileURL.path])
+                }
+                
                 let success = ffmpeg(ffmpegCommand)
                 DispatchQueue.main.async {
-                    if (success == 0) {
+                    if success == 0 {
                         Logger.shared.log("✅ Conversion successful: \(outputFileURL)")
                         completion(true, outputFileURL)
                     } else {
