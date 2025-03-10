@@ -13,7 +13,7 @@ struct SettingsViewGeneral: View {
     @AppStorage("fetchEpisodeMetadata") private var fetchEpisodeMetadata: Bool = true
     @AppStorage("analyticsEnabled") private var analyticsEnabled: Bool = false
     @AppStorage("metadataProviders") private var metadataProviders: String = "AniList"
-    private let metadataProvidersList = ["AniList", "TMDB"]
+    private let metadataProvidersList = ["AniList"]
     @EnvironmentObject var settings: Settings
     
     var body: some View {
