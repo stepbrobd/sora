@@ -50,7 +50,6 @@
 		13CBA0882D60F19C00EFE70A /* VTTSubtitlesLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13CBA0872D60F19C00EFE70A /* VTTSubtitlesLoader.swift */; };
 		13CBEFDA2D5F7D1200D011EE /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13CBEFD92D5F7D1200D011EE /* String.swift */; };
 		13D842552D45267500EBBFA6 /* DropManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D842542D45267500EBBFA6 /* DropManager.swift */; };
-		13D949EB2D7F412B00C92959 /* DownloadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D949EA2D7F412B00C92959 /* DownloadsView.swift */; };
 		13D99CF72D4E73C300250A86 /* ModuleAdditionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D99CF62D4E73C300250A86 /* ModuleAdditionSettingsView.swift */; };
 		13DB7CC32D7D99C0004371D3 /* SubtitleSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DB7CC22D7D99C0004371D3 /* SubtitleSettingsManager.swift */; };
 		13DB7CC62D7DC7D2004371D3 /* FFmpeg-iOS-Lame in Frameworks */ = {isa = PBXBuildFile; productRef = 13DB7CC52D7DC7D2004371D3 /* FFmpeg-iOS-Lame */; };
@@ -107,7 +106,6 @@
 		13CBA0872D60F19C00EFE70A /* VTTSubtitlesLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VTTSubtitlesLoader.swift; sourceTree = "<group>"; };
 		13CBEFD92D5F7D1200D011EE /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
 		13D842542D45267500EBBFA6 /* DropManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropManager.swift; sourceTree = "<group>"; };
-		13D949EA2D7F412B00C92959 /* DownloadsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsView.swift; sourceTree = "<group>"; };
 		13D99CF62D4E73C300250A86 /* ModuleAdditionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModuleAdditionSettingsView.swift; sourceTree = "<group>"; };
 		13DB7CC22D7D99C0004371D3 /* SubtitleSettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleSettingsManager.swift; sourceTree = "<group>"; };
 		13DB7CEB2D7DED5D004371D3 /* DownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadManager.swift; sourceTree = "<group>"; };
@@ -263,7 +261,6 @@
 				1399FAD22D3AB34F00E97C31 /* SettingsView */,
 				133F55B92D33B53E00E08EEA /* LibraryView */,
 				133D7C7C2D2BE2630075467E /* SearchView.swift */,
-				13D949EA2D7F412B00C92959 /* DownloadsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -560,7 +557,6 @@
 				133D7C922D2BE2640075467E /* URLSession.swift in Sources */,
 				133D7C912D2BE2640075467E /* SettingsViewModule.swift in Sources */,
 				136F21BC2D5B8F29006409AC /* AniList-DetailsView.swift in Sources */,
-				13D949EB2D7F412B00C92959 /* DownloadsView.swift in Sources */,
 				133F55BB2D33B55100E08EEA /* LibraryManager.swift in Sources */,
 				13103E842D589D8B000F0673 /* AniList-Seasonal.swift in Sources */,
 				133D7C8E2D2BE2640075467E /* LibraryView.swift in Sources */,
@@ -611,7 +607,6 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				ENABLE_BITCODE = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -674,7 +669,6 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_BITCODE = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
