@@ -21,89 +21,91 @@ struct LibraryView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    Group {
-                        Text("Continue Watching")
-                            .font(.title2)
-                            .bold()
-                            .padding(.horizontal, 20)
-                        
-                        if continueWatchingItems.isEmpty {
-                            Text("No items to continue watching")
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Continue Watching")
+                        .font(.title2)
+                        .bold()
+                        .padding(.horizontal, 20)
+                    
+                    if continueWatchingItems.isEmpty {
+                        VStack(spacing: 8) {
+                            Image(systemName: "play.circle")
+                                .font(.largeTitle)
                                 .foregroundColor(.secondary)
-                                .padding(.horizontal, 20)
-                        } else {
-                            ContinueWatchingSection(items: $continueWatchingItems, markAsWatched: { item in
-                                markContinueWatchingItemAsWatched(item: item)
-                            }, removeItem: { item in
-                                removeContinueWatchingItem(item: item)
-                            })
+                            Text("No items to continue watching")
+                                .font(.headline)
+                            Text("Recently watched content will appear here")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                    } else {
+                        ContinueWatchingSection(items: $continueWatchingItems, markAsWatched: { item in
+                            markContinueWatchingItemAsWatched(item: item)
+                        }, removeItem: { item in
+                            removeContinueWatchingItem(item: item)
+                        })
                     }
                     
-                    Group {
-                        Text("Bookmarks")
-                            .font(.title2)
-                            .bold()
-                            .padding(.horizontal, 20)
-                        
-                        if libraryManager.bookmarks.isEmpty {
-                            VStack(spacing: 8) {
-                                Image(systemName: "magazine")
-                                    .font(.largeTitle)
-                                    .foregroundColor(.secondary)
-                                Text("No Items saved")
-                                    .font(.headline)
-                                Text("Bookmark items for easy access later")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                        } else {
-                            LazyVGrid(columns: columns, spacing: 12) {
-                                ForEach(libraryManager.bookmarks) { item in
-                                    if let module = moduleManager.modules.first(where: { $0.id.uuidString == item.moduleId }) {
-                                        NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: module)) {
-                                            VStack {
-                                                ZStack(alignment: .bottomTrailing) {
-                                                    KFImage(URL(string: item.imageUrl))
-                                                        .placeholder {
-                                                            RoundedRectangle(cornerRadius: 10)
-                                                                .fill(Color.gray.opacity(0.3))
-                                                                .frame(width: 150, height: 225)
-                                                                .shimmering()
-                                                        }
-                                                        .resizable()
-                                                        .aspectRatio(2/3, contentMode: .fill)
-                                                        .cornerRadius(10)
-                                                        .frame(width: 150, height: 225)
-                                                    
-                                                    KFImage(URL(string: module.metadata.iconUrl))
-                                                        .placeholder {
-                                                            Circle()
-                                                                .fill(Color.gray.opacity(0.3))
-                                                                .frame(width: 35, height: 35)
-                                                                .shimmering()
-                                                        }
-                                                        .resizable()
-                                                        .aspectRatio(contentMode: .fit)
-                                                        .frame(width: 35, height: 35)
-                                                        .clipShape(Circle())
-                                                }
-                                                
-                                                Text(item.title)
-                                                    .font(.subheadline)
-                                                    .foregroundColor(.primary)
-                                                    .lineLimit(2)
-                                                    .multilineTextAlignment(.leading)
+                    Text("Bookmarks")
+                        .font(.title2)
+                        .bold()
+                        .padding(.horizontal, 20)
+                    
+                    if libraryManager.bookmarks.isEmpty {
+                        VStack(spacing: 8) {
+                            Image(systemName: "magazine")
+                                .font(.largeTitle)
+                                .foregroundColor(.secondary)
+                            Text("No Items saved")
+                                .font(.headline)
+                            Text("Bookmark items for easy access later")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                    } else {
+                        LazyVGrid(columns: columns, spacing: 12) {
+                            ForEach(libraryManager.bookmarks) { item in
+                                if let module = moduleManager.modules.first(where: { $0.id.uuidString == item.moduleId }) {
+                                    NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: module)) {
+                                        VStack {
+                                            ZStack {
+                                                KFImage(URL(string: item.imageUrl))
+                                                    .placeholder {
+                                                        RoundedRectangle(cornerRadius: 10)
+                                                            .fill(Color.gray.opacity(0.3))
+                                                            .frame(width: 150, height: 225)
+                                                            .shimmering()
+                                                    }
+                                                    .resizable()
+                                                    .aspectRatio(2/3, contentMode: .fill)
+                                                    .frame(width: 150, height: 225)
+                                                    .cornerRadius(10)
+                                                    .clipped()
+                                                    .overlay(
+                                                        KFImage(URL(string: module.metadata.iconUrl))
+                                                            .resizable()
+                                                            .frame(width: 24, height: 24)
+                                                            .cornerRadius(4)
+                                                            .padding(4),
+                                                        alignment: .topLeading
+                                                    )
                                             }
+                                            
+                                            Text(item.title)
+                                                .font(.subheadline)
+                                                .foregroundColor(.primary)
+                                                .lineLimit(2)
+                                                .multilineTextAlignment(.leading)
                                         }
                                     }
                                 }
                             }
-                            .padding(.horizontal, 20)
                         }
+                        .padding(.horizontal, 20)
                     }
                 }
                 .padding(.vertical, 20)
@@ -145,11 +147,9 @@ struct ContinueWatchingSection: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(Array(items.reversed())) { item in
-                        ContinueWatchingCell(item: item,
-                                             markAsWatched: {
+                        ContinueWatchingCell(item: item,markAsWatched: {
                             markAsWatched(item)
-                        },
-                                             removeItem: {
+                        }, removeItem: {
                             removeItem(item)
                         })
                     }
