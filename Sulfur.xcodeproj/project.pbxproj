@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		130217CC2D81C55E0011EFF5 /* DownloadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 130217CB2D81C55E0011EFF5 /* DownloadView.swift */; };
 		130C6BFA2D53AB1F00DC1432 /* SettingsViewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 130C6BF92D53AB1F00DC1432 /* SettingsViewData.swift */; };
 		13103E842D589D8B000F0673 /* AniList-Seasonal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13103E832D589D8B000F0673 /* AniList-Seasonal.swift */; };
 		13103E862D58A328000F0673 /* AniList-Trending.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13103E852D58A328000F0673 /* AniList-Trending.swift */; };
@@ -63,6 +64,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		130217CB2D81C55E0011EFF5 /* DownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadView.swift; sourceTree = "<group>"; };
 		130C6BF82D53A4C200DC1432 /* Sora.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Sora.entitlements; sourceTree = "<group>"; };
 		130C6BF92D53AB1F00DC1432 /* SettingsViewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewData.swift; sourceTree = "<group>"; };
 		13103E832D589D8B000F0673 /* AniList-Seasonal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AniList-Seasonal.swift"; sourceTree = "<group>"; };
@@ -261,6 +263,7 @@
 				1399FAD22D3AB34F00E97C31 /* SettingsView */,
 				133F55B92D33B53E00E08EEA /* LibraryView */,
 				133D7C7C2D2BE2630075467E /* SearchView.swift */,
+				130217CB2D81C55E0011EFF5 /* DownloadView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -557,6 +560,7 @@
 				133D7C922D2BE2640075467E /* URLSession.swift in Sources */,
 				133D7C912D2BE2640075467E /* SettingsViewModule.swift in Sources */,
 				136F21BC2D5B8F29006409AC /* AniList-DetailsView.swift in Sources */,
+				130217CC2D81C55E0011EFF5 /* DownloadView.swift in Sources */,
 				133F55BB2D33B55100E08EEA /* LibraryManager.swift in Sources */,
 				13103E842D589D8B000F0673 /* AniList-Seasonal.swift in Sources */,
 				133D7C8E2D2BE2640075467E /* LibraryView.swift in Sources */,

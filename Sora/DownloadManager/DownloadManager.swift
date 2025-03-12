@@ -8,18 +8,22 @@
 import Foundation
 import FFmpegSupport
 
+extension Notification.Name {
+    static let DownloadManagerStatusUpdate = Notification.Name("DownloadManagerStatusUpdate")
+}
+
 class DownloadManager {
     static let shared = DownloadManager()
     
     private init() {}
     
-    func downloadAndConvertHLS(from url: URL, title: String, episode: Int, subtitleURL: URL? = nil, completion: @escaping (Bool, URL?) -> Void) {
+    func downloadAndConvertHLS(from url: URL, title: String, episode: Int, subtitleURL: URL? = nil, sourceName: String, completion: @escaping (Bool, URL?) -> Void) {
         guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
             completion(false, nil)
             return
         }
         
-        let folderURL = documentsDirectory.appendingPathComponent(title)
+        let folderURL = documentsDirectory.appendingPathComponent(title + "-" + sourceName)
         if !FileManager.default.fileExists(atPath: folderURL.path) {
             do {
                 try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: true, attributes: nil)
@@ -30,16 +34,31 @@ class DownloadManager {
             }
         }
         
-        let outputFileName = "\(title)_Episode\(episode).mp4"
+        let outputFileName = "\(title)_Episode\(episode)_\(sourceName).mp4"
         let outputFileURL = folderURL.appendingPathComponent(outputFileName)
         
         let fileExtension = url.pathExtension.lowercased()
         
         if fileExtension == "mp4" {
+            NotificationCenter.default.post(name: .DownloadManagerStatusUpdate, object: nil, userInfo: [
+                "title": title,
+                "episode": episode,
+                "type": "mp4",
+                "status": "Downloading",
+                "progress": 0.0
+            ])
+            
             let task = URLSession.custom.downloadTask(with: url) { tempLocalURL, response, error in
                 if let tempLocalURL = tempLocalURL {
                     do {
                         try FileManager.default.moveItem(at: tempLocalURL, to: outputFileURL)
+                        NotificationCenter.default.post(name: .DownloadManagerStatusUpdate, object: nil, userInfo: [
+                            "title": title,
+                            "episode": episode,
+                            "type": "mp4",
+                            "status": "Completed",
+                            "progress": 1.0
+                        ])
                         DispatchQueue.main.async {
                             Logger.shared.log("Download successful: \(outputFileURL)")
                             completion(true, outputFileURL)
@@ -60,12 +79,20 @@ class DownloadManager {
             task.resume()
         } else if fileExtension == "m3u8" {
             DispatchQueue.global(qos: .background).async {
+                NotificationCenter.default.post(name: .DownloadManagerStatusUpdate, object: nil, userInfo: [
+                    "title": title,
+                    "episode": episode,
+                    "type": "hls",
+                    "status": "Converting",
+                    "progress": 0.0
+                ])
+                
                 let multiThreads = UserDefaults.standard.bool(forKey: "multiThreads")
                 var ffmpegCommand: [String]
                 if multiThreads {
-                    ffmpegCommand = ["ffmpeg", "-threads", "0", "-i", url.absoluteString]
+                    ffmpegCommand = ["ffmpeg", "-y", "-threads", "0", "-i", url.absoluteString]
                 } else {
-                    ffmpegCommand = ["ffmpeg", "-i", url.absoluteString]
+                    ffmpegCommand = ["ffmpeg", "-y", "-i", url.absoluteString]
                 }
                 
                 if let subtitleURL = subtitleURL {
@@ -79,18 +106,33 @@ class DownloadManager {
                         let subtitleLocalURL = folderURL.appendingPathComponent(subtitleFileName)
                         try subtitleData.write(to: subtitleLocalURL)
                         ffmpegCommand.append(contentsOf: ["-i", subtitleLocalURL.path])
-                        ffmpegCommand.append(contentsOf: ["-c", "copy", "-c:s", "mov_text", outputFileURL.path])
+                        ffmpegCommand.append(contentsOf: ["-c:v", "copy", "-c:a", "copy", "-c:s", "mov_text", outputFileURL.path])
                     } catch {
                         Logger.shared.log("Subtitle download failed: \(error)")
-                        ffmpegCommand.append(contentsOf: ["-c", "copy", outputFileURL.path])
+                        ffmpegCommand.append(contentsOf: ["-c:v", "copy", "-c:a", "copy", outputFileURL.path])
                     }
                 } else {
-                    ffmpegCommand.append(contentsOf: ["-c", "copy", outputFileURL.path])
+                    ffmpegCommand.append(contentsOf: ["-c:v", "copy", "-c:a", "copy", outputFileURL.path])
                 }
+                
+                NotificationCenter.default.post(name: .DownloadManagerStatusUpdate, object: nil, userInfo: [
+                    "title": title,
+                    "episode": episode,
+                    "type": "hls",
+                    "status": "Converting",
+                    "progress": 0.5
+                ])
                 
                 let success = ffmpeg(ffmpegCommand)
                 DispatchQueue.main.async {
                     if success == 0 {
+                        NotificationCenter.default.post(name: .DownloadManagerStatusUpdate, object: nil, userInfo: [
+                            "title": title,
+                            "episode": episode,
+                            "type": "hls",
+                            "status": "Completed",
+                            "progress": 1.0
+                        ])
                         Logger.shared.log("Conversion successful: \(outputFileURL)")
                         completion(true, outputFileURL)
                     } else {
