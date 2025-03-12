@@ -36,7 +36,7 @@ class DownloadManager {
         let fileExtension = url.pathExtension.lowercased()
         
         if fileExtension == "mp4" {
-            let task = URLSession.shared.downloadTask(with: url) { tempLocalURL, response, error in
+            let task = URLSession.custom.downloadTask(with: url) { tempLocalURL, response, error in
                 if let tempLocalURL = tempLocalURL {
                     do {
                         try FileManager.default.moveItem(at: tempLocalURL, to: outputFileURL)
