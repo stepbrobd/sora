@@ -66,7 +66,13 @@ class DownloadManager {
             task.resume()
         } else if fileExtension == "m3u8" {
             DispatchQueue.global(qos: .background).async {
-                var ffmpegCommand = ["ffmpeg", "-threads", "0", "-i", url.absoluteString]
+                let multiThreads = UserDefaults.standard.bool(forKey: "multiThreads")
+                var ffmpegCommand: [String]
+                if multiThreads {
+                    ffmpegCommand = ["ffmpeg", "-threads", "0", "-i", url.absoluteString]
+                } else {
+                    ffmpegCommand = ["ffmpeg", "-i", url.absoluteString]
+                }
                 
                 if let subtitleURL = subtitleURL {
                     do {
