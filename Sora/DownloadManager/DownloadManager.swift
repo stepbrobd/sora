@@ -7,6 +7,7 @@
 
 import Foundation
 import FFmpegSupport
+import UIKit
 
 extension Notification.Name {
     static let DownloadManagerStatusUpdate = Notification.Name("DownloadManagerStatusUpdate")
@@ -15,7 +16,27 @@ extension Notification.Name {
 class DownloadManager {
     static let shared = DownloadManager()
     
-    private init() {}
+    private var backgroundTaskIdentifier: UIBackgroundTaskIdentifier = .invalid
+    private var activeConversions = [String: Bool]()
+    
+    private init() {
+        NotificationCenter.default.addObserver(self, selector: #selector(applicationWillResignActive), name: UIApplication.willResignActiveNotification, object: nil)
+    }
+    
+    @objc private func applicationWillResignActive() {
+        if !activeConversions.isEmpty {
+            backgroundTaskIdentifier = UIApplication.shared.beginBackgroundTask { [weak self] in
+                self?.endBackgroundTask()
+            }
+        }
+    }
+    
+    private func endBackgroundTask() {
+        if backgroundTaskIdentifier != .invalid {
+            UIApplication.shared.endBackgroundTask(backgroundTaskIdentifier)
+            backgroundTaskIdentifier = .invalid
+        }
+    }
     
     func downloadAndConvertHLS(from url: URL, title: String, episode: Int, subtitleURL: URL? = nil, sourceName: String, completion: @escaping (Bool, URL?) -> Void) {
         guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
@@ -78,6 +99,15 @@ class DownloadManager {
             }
             task.resume()
         } else if fileExtension == "m3u8" {
+            let conversionKey = "\(title)_\(episode)_\(sourceName)"
+            activeConversions[conversionKey] = true
+            
+            if UIApplication.shared.applicationState != .active && backgroundTaskIdentifier == .invalid {
+                backgroundTaskIdentifier = UIApplication.shared.beginBackgroundTask { [weak self] in
+                    self?.endBackgroundTask()
+                }
+            }
+            
             DispatchQueue.global(qos: .background).async {
                 NotificationCenter.default.post(name: .DownloadManagerStatusUpdate, object: nil, userInfo: [
                     "title": title,
@@ -124,7 +154,7 @@ class DownloadManager {
                 ])
                 
                 let success = ffmpeg(ffmpegCommand)
-                DispatchQueue.main.async {
+                DispatchQueue.main.async { [weak self] in
                     if success == 0 {
                         NotificationCenter.default.post(name: .DownloadManagerStatusUpdate, object: nil, userInfo: [
                             "title": title,
@@ -138,6 +168,12 @@ class DownloadManager {
                     } else {
                         Logger.shared.log("Conversion failed")
                         completion(false, nil)
+                    }
+                    
+                    self?.activeConversions[conversionKey] = nil
+                    
+                    if self?.activeConversions.isEmpty ?? true {
+                        self?.endBackgroundTask()
                     }
                 }
             }

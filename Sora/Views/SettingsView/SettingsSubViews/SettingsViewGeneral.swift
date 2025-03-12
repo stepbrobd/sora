@@ -12,6 +12,7 @@ struct SettingsViewGeneral: View {
     @AppStorage("refreshModulesOnLaunch") private var refreshModulesOnLaunch: Bool = false
     @AppStorage("fetchEpisodeMetadata") private var fetchEpisodeMetadata: Bool = true
     @AppStorage("analyticsEnabled") private var analyticsEnabled: Bool = false
+    @AppStorage("multiThreads") private var multiThreadsEnabled: Bool = false
     @AppStorage("metadataProviders") private var metadataProviders: String = "AniList"
     private let metadataProvidersList = ["AniList"]
     @EnvironmentObject var settings: Settings
@@ -70,10 +71,16 @@ struct SettingsViewGeneral: View {
                 }
             }
             
+            Section(header: Text("Downloads"), footer: Text("Note that the modules will be replaced only if there is a different version string inside the JSON file.")) {
+                Toggle("Multi Threads conversion", isOn: $multiThreadsEnabled)
+                    .tint(.accentColor)
+            }
+            
             Section(header: Text("Modules"), footer: Text("Note that the modules will be replaced only if there is a different version string inside the JSON file.")) {
                 Toggle("Refresh Modules on Launch", isOn: $refreshModulesOnLaunch)
                     .tint(.accentColor)
             }
+            
             Section(header: Text("Analytics"), footer: Text("Allow Sora to collect anonymous data to improve the app. No personal information is collected. This can be disabled at any time.\n\n Information collected: \n- App version\n- Device model\n- Module Name/Version\n- Error Messages\n- Title of Watched Content")) {
                 Toggle("Enable Analytics", isOn: $analyticsEnabled)
                     .tint(.accentColor)
