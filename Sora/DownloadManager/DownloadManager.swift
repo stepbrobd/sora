@@ -13,12 +13,6 @@ class DownloadManager {
     
     private init() {}
     
-    /// - Parameters:
-    ///   - url: The stream URL (either .m3u8 or .mp4).
-    ///   - title: The title used for creating the folder.
-    ///   - episode: The episode number used for naming the output file.
-    ///   - subtitleURL: An optional URL for the subtitle file (expects a .srt or .vtt file). (should work but not sure tbh).
-    ///   - completion: Completion handler with a Bool indicating success and the URL of the output file.
     func downloadAndConvertHLS(from url: URL, title: String, episode: Int, subtitleURL: URL? = nil, completion: @escaping (Bool, URL?) -> Void) {
         guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
             completion(false, nil)
@@ -30,7 +24,7 @@ class DownloadManager {
             do {
                 try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: true, attributes: nil)
             } catch {
-                print("Error creating folder: \(error)")
+                Logger.shared.log("Error creating folder: \(error)")
                 completion(false, nil)
                 return
             }
@@ -47,18 +41,18 @@ class DownloadManager {
                     do {
                         try FileManager.default.moveItem(at: tempLocalURL, to: outputFileURL)
                         DispatchQueue.main.async {
-                            Logger.shared.log("✅ Download successful: \(outputFileURL)")
+                            Logger.shared.log("Download successful: \(outputFileURL)")
                             completion(true, outputFileURL)
                         }
                     } catch {
                         DispatchQueue.main.async {
-                            Logger.shared.log("❌ Download failed: \(error)")
+                            Logger.shared.log("Download failed: \(error)")
                             completion(false, nil)
                         }
                     }
                 } else {
                     DispatchQueue.main.async {
-                        Logger.shared.log("❌ Download failed: \(error?.localizedDescription ?? "Unknown error")")
+                        Logger.shared.log("Download failed: \(error?.localizedDescription ?? "Unknown error")")
                         completion(false, nil)
                     }
                 }
@@ -79,7 +73,7 @@ class DownloadManager {
                         let subtitleData = try Data(contentsOf: subtitleURL)
                         let subtitleFileExtension = subtitleURL.pathExtension.lowercased()
                         if subtitleFileExtension != "srt" && subtitleFileExtension != "vtt" {
-                            Logger.shared.log("❌ Unsupported subtitle format: \(subtitleFileExtension)")
+                            Logger.shared.log("Unsupported subtitle format: \(subtitleFileExtension)")
                         }
                         let subtitleFileName = "\(title)_Episode\(episode).\(subtitleFileExtension)"
                         let subtitleLocalURL = folderURL.appendingPathComponent(subtitleFileName)
@@ -87,7 +81,7 @@ class DownloadManager {
                         ffmpegCommand.append(contentsOf: ["-i", subtitleLocalURL.path])
                         ffmpegCommand.append(contentsOf: ["-c", "copy", "-c:s", "mov_text", outputFileURL.path])
                     } catch {
-                        Logger.shared.log("❌ Subtitle download failed: \(error)")
+                        Logger.shared.log("Subtitle download failed: \(error)")
                         ffmpegCommand.append(contentsOf: ["-c", "copy", outputFileURL.path])
                     }
                 } else {
@@ -97,16 +91,16 @@ class DownloadManager {
                 let success = ffmpeg(ffmpegCommand)
                 DispatchQueue.main.async {
                     if success == 0 {
-                        Logger.shared.log("✅ Conversion successful: \(outputFileURL)")
+                        Logger.shared.log("Conversion successful: \(outputFileURL)")
                         completion(true, outputFileURL)
                     } else {
-                        Logger.shared.log("❌ Conversion failed")
+                        Logger.shared.log("Conversion failed")
                         completion(false, nil)
                     }
                 }
             }
         } else {
-            Logger.shared.log("❌ Unsupported file type: \(fileExtension)")
+            Logger.shared.log("Unsupported file type: \(fileExtension)")
             completion(false, nil)
         }
     }
