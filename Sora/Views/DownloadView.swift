@@ -70,6 +70,7 @@ struct DownloadView: View {
             }
             .navigationTitle("Downloads")
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     func iconName(for download: DownloadItem) -> String {
