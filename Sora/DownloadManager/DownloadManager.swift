@@ -45,7 +45,7 @@ class DownloadManager {
         }
         
         let folderURL = documentsDirectory.appendingPathComponent(title + "-" + sourceName)
-        if !FileManager.default.fileExists(atPath: folderURL.path) {
+        if (!FileManager.default.fileExists(atPath: folderURL.path)) {
             do {
                 try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: true, attributes: nil)
             } catch {
@@ -117,13 +117,27 @@ class DownloadManager {
                     "progress": 0.0
                 ])
                 
+                let processorCount = ProcessInfo.processInfo.processorCount
+                let physicalMemory = ProcessInfo.processInfo.physicalMemory / (1024 * 1024)
+                
+                var ffmpegCommand = ["ffmpeg", "-y"]
+                
+                ffmpegCommand.append(contentsOf: ["-protocol_whitelist", "file,http,https,tcp,tls"])
+                
+                ffmpegCommand.append(contentsOf: ["-fflags", "+genpts"])
+                ffmpegCommand.append(contentsOf: ["-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "5"])
+                
                 let multiThreads = UserDefaults.standard.bool(forKey: "multiThreads")
-                var ffmpegCommand: [String]
                 if multiThreads {
-                    ffmpegCommand = ["ffmpeg", "-y", "-threads", "0", "-i", url.absoluteString]
+                    let threadCount = max(2, processorCount - 1)
+                    ffmpegCommand.append(contentsOf: ["-threads", "\(threadCount)"])
                 } else {
-                    ffmpegCommand = ["ffmpeg", "-y", "-i", url.absoluteString]
+                    ffmpegCommand.append(contentsOf: ["-threads", "2"])
                 }
+                
+                let bufferSize = min(32, max(8, Int(physicalMemory) / 256))
+                ffmpegCommand.append(contentsOf: ["-bufsize", "\(bufferSize)M"])
+                ffmpegCommand.append(contentsOf: ["-i", url.absoluteString])
                 
                 if let subtitleURL = subtitleURL {
                     do {
@@ -136,14 +150,29 @@ class DownloadManager {
                         let subtitleLocalURL = folderURL.appendingPathComponent(subtitleFileName)
                         try subtitleData.write(to: subtitleLocalURL)
                         ffmpegCommand.append(contentsOf: ["-i", subtitleLocalURL.path])
-                        ffmpegCommand.append(contentsOf: ["-c:v", "copy", "-c:a", "copy", "-c:s", "mov_text", outputFileURL.path])
+                        
+                        ffmpegCommand.append(contentsOf: [
+                            "-c:v", "copy",
+                            "-c:a", "copy",
+                            "-c:s", "mov_text",
+                            "-disposition:s:0", "default+forced",
+                            "-metadata:s:s:0", "handler_name=English",
+                            "-metadata:s:s:0", "language=eng"
+                        ])
+                        
+                        ffmpegCommand.append(outputFileURL.path)
                     } catch {
                         Logger.shared.log("Subtitle download failed: \(error)")
-                        ffmpegCommand.append(contentsOf: ["-c:v", "copy", "-c:a", "copy", outputFileURL.path])
+                        ffmpegCommand.append(contentsOf: ["-c:v", "copy", "-c:a", "copy"])
+                        ffmpegCommand.append(contentsOf: ["-movflags", "+faststart"])
+                        ffmpegCommand.append(outputFileURL.path)
                     }
                 } else {
-                    ffmpegCommand.append(contentsOf: ["-c:v", "copy", "-c:a", "copy", outputFileURL.path])
+                    ffmpegCommand.append(contentsOf: ["-c:v", "copy", "-c:a", "copy"])
+                    ffmpegCommand.append(contentsOf: ["-movflags", "+faststart"])
+                    ffmpegCommand.append(outputFileURL.path)
                 }
+                Logger.shared.log("FFmpeg command: \(ffmpegCommand.joined(separator: " "))", type: "Debug")
                 
                 NotificationCenter.default.post(name: .DownloadManagerStatusUpdate, object: nil, userInfo: [
                     "title": title,
