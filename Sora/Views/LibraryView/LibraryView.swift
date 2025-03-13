@@ -32,9 +32,9 @@ struct LibraryView: View {
                             Image(systemName: "play.circle")
                                 .font(.largeTitle)
                                 .foregroundColor(.secondary)
-                            Text("No items to continue watching")
+                            Text("No items to continue watching.")
                                 .font(.headline)
-                            Text("Recently watched content will appear here")
+                            Text("Recently watched content will appear here.")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -58,9 +58,9 @@ struct LibraryView: View {
                             Image(systemName: "magazine")
                                 .font(.largeTitle)
                                 .foregroundColor(.secondary)
-                            Text("No Items saved")
+                            Text("You have no items saved.")
                                 .font(.headline)
-                            Text("Bookmark items for easy access later")
+                            Text("Bookmark items for an easier access later.")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }

@@ -34,6 +34,8 @@ struct MediaInfoView: View {
     @State var isRefetching: Bool = true
     @State var isFetchingEpisode: Bool = false
     
+    @State private var refreshTrigger: Bool = false
+    
     @State private var selectedEpisodeNumber: Int = 0
     @State private var selectedEpisodeImage: String = ""
     
@@ -54,6 +56,8 @@ struct MediaInfoView: View {
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
+                        
+                        // MARK: - Top media info
                         HStack(alignment: .top, spacing: 10) {
                             KFImage(URL(string: imageUrl))
                                 .placeholder {
@@ -121,6 +125,7 @@ struct MediaInfoView: View {
                             }
                         }
                         
+                        // MARK: - Synopsis section
                         if !synopsis.isEmpty {
                             VStack(alignment: .leading, spacing: 2) {
                                 HStack(alignment: .center) {
@@ -144,6 +149,7 @@ struct MediaInfoView: View {
                             }
                         }
                         
+                        // MARK: - Action buttons
                         HStack {
                             Button(action: {
                                 playFirstUnwatchedEpisode()
@@ -204,21 +210,41 @@ struct MediaInfoView: View {
                                     }
                                 }
                                 
+                                //MARK: - Mark all prevoius logic
                                 ForEach(episodeLinks.indices.filter { selectedRange.contains($0) }, id: \.self) { i in
                                     let ep = episodeLinks[i]
                                     let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
                                     let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
                                     let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
                                     
-                                    EpisodeCell(episode: ep.href, episodeID: ep.number - 1, progress: progress, itemID: itemID ?? 0, onTap: { imageUrl in
+                                    EpisodeCell(
+                                        episodeIndex: i,
+                                        episode: ep.href,
+                                        episodeID: ep.number - 1,
+                                        progress: progress,
+                                        itemID: itemID ?? 0,
+                                        onTap: { imageUrl in
                                             if !isFetchingEpisode {
                                                 selectedEpisodeNumber = ep.number
                                                 selectedEpisodeImage = imageUrl
                                                 fetchStream(href: ep.href)
-                                                AnalyticsManager.shared.sendEvent(event: "watch", additionalData: ["title": title, "episode": ep.number])
+                                                AnalyticsManager.shared.sendEvent(
+                                                    event: "watch",
+                                                    additionalData: ["title": title, "episode": ep.number]
+                                                )
                                             }
+                                        },
+                                        onMarkAllPrevious: {
+                                            for idx in 0..<i {
+                                                let href = episodeLinks[idx].href
+                                                UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(href)")
+                                                UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(href)")
+                                            }
+                                            refreshTrigger.toggle() // Force the UI to refresh
+                                            Logger.shared.log("Marked \(ep.number) episodes watched within anime \"\(title)\".", type: "General")
                                         }
                                     )
+                                    .id(refreshTrigger) // Attaches the refresh trigger so that changes re-create the cell
                                     .disabled(isFetchingEpisode)
                                 }
                             }
@@ -262,7 +288,7 @@ struct MediaInfoView: View {
         }
         .onAppear {
             if !hasFetched {
-                DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching", duration: 1.0, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
+                DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching.", duration: 1.0, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
                 fetchDetails()
                 fetchItemID(byTitle: title) { result in
                     switch result {
