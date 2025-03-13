@@ -93,9 +93,9 @@ class CustomMediaPlayerViewController: UIViewController {
             fatalError("Invalid URL string")
         }
         var request = URLRequest(url: url)
-        if urlString.contains("ascdn") {
-            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
-        }
+        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
+        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
+        
         let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])
         let playerItem = AVPlayerItem(asset: asset)
         self.player = AVPlayer(playerItem: playerItem)
