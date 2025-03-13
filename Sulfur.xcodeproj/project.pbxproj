@@ -234,7 +234,6 @@
 		133D7C6C2D2BE2500075467E /* Sora */ = {
 			isa = PBXGroup;
 			children = (
-				13DB7CEA2D7DED50004371D3 /* DownloadManager */,
 				130C6BF82D53A4C200DC1432 /* Sora.entitlements */,
 				13DC0C412D2EC9BA00D0F966 /* Info.plist */,
 				13103E802D589D6C000F0673 /* Tracking Services */,
@@ -293,6 +292,7 @@
 		133D7C852D2BE2640075467E /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				13DB7CEA2D7DED50004371D3 /* DownloadManager */,
 				13C0E5E82D5F85DD00E7F619 /* ContinueWatching */,
 				13103E8C2D58E037000F0673 /* SkeletonCells */,
 				13DC0C442D302C6A00D0F966 /* MediaPlayer */,

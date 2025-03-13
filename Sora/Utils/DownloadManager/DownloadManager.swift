@@ -38,13 +38,13 @@ class DownloadManager {
         }
     }
     
-    func downloadAndConvertHLS(from url: URL, title: String, episode: Int, subtitleURL: URL? = nil, sourceName: String, completion: @escaping (Bool, URL?) -> Void) {
+    func downloadAndConvertHLS(from url: URL, title: String, episode: Int, subtitleURL: URL? = nil, module: ScrapingModule, completion: @escaping (Bool, URL?) -> Void) {
         guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
             completion(false, nil)
             return
         }
         
-        let folderURL = documentsDirectory.appendingPathComponent(title + "-" + sourceName)
+        let folderURL = documentsDirectory.appendingPathComponent(title + "-" + module.metadata.sourceName)
         if (!FileManager.default.fileExists(atPath: folderURL.path)) {
             do {
                 try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: true, attributes: nil)
@@ -55,7 +55,7 @@ class DownloadManager {
             }
         }
         
-        let outputFileName = "\(title)_Episode\(episode)_\(sourceName).mp4"
+        let outputFileName = "\(title)_Episode\(episode)_\(module.metadata.sourceName).mp4"
         let outputFileURL = folderURL.appendingPathComponent(outputFileName)
         
         let fileExtension = url.pathExtension.lowercased()
@@ -99,7 +99,7 @@ class DownloadManager {
             }
             task.resume()
         } else if fileExtension == "m3u8" {
-            let conversionKey = "\(title)_\(episode)_\(sourceName)"
+            let conversionKey = "\(title)_\(episode)_\(module.metadata.sourceName)"
             activeConversions[conversionKey] = true
             
             if UIApplication.shared.applicationState != .active && backgroundTaskIdentifier == .invalid {
@@ -126,6 +126,7 @@ class DownloadManager {
                 
                 ffmpegCommand.append(contentsOf: ["-fflags", "+genpts"])
                 ffmpegCommand.append(contentsOf: ["-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "5"])
+                ffmpegCommand.append(contentsOf: ["-headers", "Referer: \(module.metadata.baseUrl)"])
                 
                 let multiThreads = UserDefaults.standard.bool(forKey: "multiThreads")
                 if multiThreads {

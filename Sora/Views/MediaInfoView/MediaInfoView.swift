@@ -497,7 +497,7 @@ struct MediaInfoView: View {
             }
             let subtitleFileURL = subtitles != nil ? URL(string: subtitles!) : nil
             
-            DownloadManager.shared.downloadAndConvertHLS(from: streamURL, title: title, episode: selectedEpisodeNumber, subtitleURL: subtitleFileURL, sourceName: module.metadata.sourceName) { success, fileURL in
+            DownloadManager.shared.downloadAndConvertHLS(from: streamURL, title: title, episode: selectedEpisodeNumber, subtitleURL: subtitleFileURL, module: module) { success, fileURL in
                 return
             }
             
