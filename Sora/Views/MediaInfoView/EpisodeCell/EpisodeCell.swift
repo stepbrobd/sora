@@ -15,44 +15,31 @@ struct EpisodeLink: Identifiable {
 }
 
 struct EpisodeCell: View {
+    let episodeIndex: Int
     let episode: String
     let episodeID: Int
     let progress: Double
     let itemID: Int
+
+    let onTap: (String) -> Void
+    let onMarkAllPrevious: () -> Void
     
     @State private var episodeTitle: String = ""
     @State private var episodeImageUrl: String = ""
     @State private var isLoading: Bool = true
     @State private var currentProgress: Double = 0.0
-    let onTap: (String) -> Void
-    
-    private func markAsWatched() {
-        UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(episode)")
-        UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(episode)")
-        updateProgress()
-    }
-    
-    private func resetProgress() {
-        UserDefaults.standard.set(0.0, forKey: "lastPlayedTime_\(episode)")
-        UserDefaults.standard.set(0.0, forKey: "totalTime_\(episode)")
-        updateProgress()
-    }
-    
-    private func updateProgress() {
-        let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(episode)")
-        let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(episode)")
-        currentProgress = totalTime > 0 ? lastPlayedTime / totalTime : 0
-    }
-    
+
     var body: some View {
         HStack {
             ZStack {
-                KFImage(URL(string: episodeImageUrl.isEmpty ? "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/main/assets/banner2.png" : episodeImageUrl))
-                    .resizable()
-                    .aspectRatio(16/9, contentMode: .fill)
-                    .frame(width: 100, height: 56)
-                    .cornerRadius(8)
-                
+                KFImage(URL(string: episodeImageUrl.isEmpty
+                            ? "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/main/assets/banner2.png"
+                            : episodeImageUrl))
+                .resizable()
+                .aspectRatio(16/9, contentMode: .fill)
+                .frame(width: 100, height: 56)
+                .cornerRadius(8)
+
                 if isLoading {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle())
@@ -76,31 +63,56 @@ struct EpisodeCell: View {
         }
         .contentShape(Rectangle())
         .contextMenu {
-            if currentProgress <= 0.9 {
+            if progress <= 0.9 {
                 Button(action: markAsWatched) {
                     Label("Mark as Watched", systemImage: "checkmark.circle")
                 }
             }
             
-            if currentProgress != 0 {
+            // Only show reset if progress is nonzero
+            if progress != 0 {
                 Button(action: resetProgress) {
                     Label("Reset Progress", systemImage: "arrow.counterclockwise")
                 }
             }
+            
+            if episodeIndex > 0 {
+                Button(action: onMarkAllPrevious) {
+                    Label("Mark All Previous Watched", systemImage: "checkmark.circle.fill")
+                }
+            }
         }
         .onAppear {
-            if UserDefaults.standard.object(forKey: "fetchEpisodeMetadata") == nil ||
-                UserDefaults.standard.bool(forKey: "fetchEpisodeMetadata") {
+            if UserDefaults.standard.object(forKey: "fetchEpisodeMetadata") == nil
+                || UserDefaults.standard.bool(forKey: "fetchEpisodeMetadata") {
                 fetchEpisodeDetails()
             }
-            updateProgress()
+            currentProgress = progress
         }
         .onTapGesture {
             onTap(episodeImageUrl)
         }
     }
     
-    func fetchEpisodeDetails() {
+    private func markAsWatched() {
+        UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(episode)")
+        UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(episode)")
+        updateProgress()
+    }
+    
+    private func resetProgress() {
+        UserDefaults.standard.set(0.0, forKey: "lastPlayedTime_\(episode)")
+        UserDefaults.standard.set(0.0, forKey: "totalTime_\(episode)")
+        updateProgress()
+    }
+    
+    private func updateProgress() {
+        let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(episode)")
+        let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(episode)")
+        currentProgress = totalTime > 0 ? lastPlayedTime / totalTime : 0
+    }
+
+    private func fetchEpisodeDetails() {
         guard let url = URL(string: "https://api.ani.zip/mappings?anilist_id=\(itemID)") else {
             isLoading = false
             return
