@@ -21,9 +21,6 @@ struct SettingsView: View {
                     NavigationLink(destination: SettingsViewModule()) {
                         Text("Modules")
                     }
-                    NavigationLink(destination: SettingsViewTrackingServices()) {
-                        Text("Tracking Services")
-                    }
                 }
                 
                 Section(header: Text("Info")) {
@@ -50,6 +47,19 @@ struct SettingsView: View {
                         }
                     }
                     Button(action: {
+                        if let url = URL(string: "https://discord.gg/x7hppDWFDZ") {
+                            UIApplication.shared.open(url)
+                        }
+                    }) {
+                        HStack {
+                            Text("Join the Discord")
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Image(systemName: "safari")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    Button(action: {
                         if let url = URL(string: "https://github.com/cranci1/Sora/issues") {
                             UIApplication.shared.open(url)
                         }
@@ -63,12 +73,12 @@ struct SettingsView: View {
                         }
                     }
                     Button(action: {
-                        if let url = URL(string: "https://discord.gg/x7hppDWFDZ") {
+                        if let url = URL(string: "https://github.com/cranci1/Sora/blob/dev/LICENSE") {
                             UIApplication.shared.open(url)
                         }
                     }) {
                         HStack {
-                            Text("Join the Discord")
+                            Text("License (GPLv3.0)")
                                 .foregroundColor(.primary)
                             Spacer()
                             Image(systemName: "safari")
@@ -76,7 +86,7 @@ struct SettingsView: View {
                         }
                     }
                 }
-                Section(footer: Text("Running Sora 0.2.1")) {}
+                Section(footer: Text("Running Sora 0.2.0 - cranci1")) {}
             }
             .navigationTitle("Settings")
         }

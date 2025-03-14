@@ -14,7 +14,7 @@ struct SettingsViewData: View {
     
     var body: some View {
         Form {
-            Section(header: Text("App storage")) {
+            Section(header: Text("App storage"), footer: Text("The caches used by Sora are stored images that help load content faster\n\nThe App Data should never be erased if you dont know what that will cause.\n\nClearing the documents folder will remove all the modules and downloads")) {
                 Button(action: clearCache) {
                     Text("Clear Cache")
                 }
@@ -27,7 +27,7 @@ struct SettingsViewData: View {
                 .alert(isPresented: $showEraseAppDataAlert) {
                     Alert(
                         title: Text("Confirm Erase App Data"),
-                        message: Text("Are you sure you want to erase all app data? This action cannot be undone. (The app will then restart)"),
+                        message: Text("Are you sure you want to erase all app data? This action cannot be undone. (The app will then close)"),
                         primaryButton: .destructive(Text("Erase")) {
                             eraseAppData()
                         },
@@ -43,7 +43,7 @@ struct SettingsViewData: View {
                 .alert(isPresented: $showRemoveDocumentsAlert) {
                     Alert(
                         title: Text("Confirm Remove All Files"),
-                        message: Text("Are you sure you want to remove all files in the documents folder? This will also remove all modules and you will lose the favorite items. This action cannot be undone. (The app will then restart)"),
+                        message: Text("Are you sure you want to remove all files in the documents folder? This will also remove all modules and you will lose the favorite items. This action cannot be undone. (The app will then close)"),
                         primaryButton: .destructive(Text("Remove")) {
                             removeAllFilesInDocuments()
                         },

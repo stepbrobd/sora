@@ -130,7 +130,7 @@ struct SearchView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack {
+                    HStack(spacing: 4) {
                         if let selectedModule = selectedModule {
                             Text(selectedModule.metadata.sourceName)
                                 .font(.headline)
@@ -161,6 +161,8 @@ struct SearchView: View {
                                 .foregroundColor(.secondary)
                         }
                     }
+                    .id("moduleMenuHStack")
+                    .fixedSize()
                 }
             }
         }

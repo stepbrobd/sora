@@ -11,10 +11,6 @@ import Kingfisher
 struct ContentView: View {
     var body: some View {
         TabView {
-            HomeView()
-                .tabItem {
-                    Label("Home", systemImage: "house")
-                }
             LibraryView()
                 .tabItem {
                     Label("Library", systemImage: "books.vertical")

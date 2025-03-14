@@ -19,7 +19,6 @@ class TMDBSeasonal {
                 
                 var request = URLRequest(url: components.url!)
                 let token = TMBDRequest.getToken()
-                print(token)
                 
                 request.allHTTPHeaderFields = [
                     "accept": "application/json",

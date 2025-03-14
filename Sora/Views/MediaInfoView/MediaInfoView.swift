@@ -34,6 +34,8 @@ struct MediaInfoView: View {
     @State var isRefetching: Bool = true
     @State var isFetchingEpisode: Bool = false
     
+    @State private var refreshTrigger: Bool = false
+    
     @State private var selectedEpisodeNumber: Int = 0
     @State private var selectedEpisodeImage: String = ""
     
@@ -167,10 +169,11 @@ struct MediaInfoView: View {
                                     title: title,
                                     imageUrl: imageUrl,
                                     href: href,
-                                    moduleId: module.id.uuidString
+                                    moduleId: module.id.uuidString,
+                                    moduleName: module.metadata.sourceName
                                 )
                             }) {
-                                Image(systemName: libraryManager.isBookmarked(href: href) ? "bookmark.fill" : "bookmark")
+                                Image(systemName: libraryManager.isBookmarked(href: href, moduleName: module.metadata.sourceName) ? "bookmark.fill" : "bookmark")
                                     .resizable()
                                     .frame(width: 20, height: 27)
                                     .foregroundColor(Color.accentColor)
@@ -209,15 +212,34 @@ struct MediaInfoView: View {
                                     let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
                                     let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
                                     
-                                    EpisodeCell(episode: ep.href, episodeID: ep.number - 1, progress: progress, itemID: itemID ?? 0, onTap: { imageUrl in
+                                    EpisodeCell(
+                                        episodeIndex: i,
+                                        episode: ep.href,
+                                        episodeID: ep.number - 1,
+                                        progress: progress,
+                                        itemID: itemID ?? 0,
+                                        onTap: { imageUrl in
                                             if !isFetchingEpisode {
                                                 selectedEpisodeNumber = ep.number
                                                 selectedEpisodeImage = imageUrl
                                                 fetchStream(href: ep.href)
-                                                AnalyticsManager.shared.sendEvent(event: "watch", additionalData: ["title": title, "episode": ep.number])
+                                                AnalyticsManager.shared.sendEvent(
+                                                    event: "watch",
+                                                    additionalData: ["title": title, "episode": ep.number]
+                                                )
                                             }
+                                        },
+                                        onMarkAllPrevious: {
+                                            for idx in 0..<i {
+                                                let href = episodeLinks[idx].href
+                                                UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(href)")
+                                                UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(href)")
+                                            }
+                                            refreshTrigger.toggle()
+                                            Logger.shared.log("Marked \(ep.number) episodes watched within anime \"\(title)\".", type: "General")
                                         }
                                     )
+                                    .id(refreshTrigger)
                                     .disabled(isFetchingEpisode)
                                 }
                             }
@@ -261,7 +283,7 @@ struct MediaInfoView: View {
         }
         .onAppear {
             if !hasFetched {
-                DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching", duration: 1.0, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
+                DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching.", duration: 1.0, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
                 fetchDetails()
                 fetchItemID(byTitle: title) { result in
                     switch result {
@@ -489,7 +511,14 @@ struct MediaInfoView: View {
     
     func playStream(url: String, fullURL: String, subtitles: String? = nil) {
         DispatchQueue.main.async {
-            let externalPlayer = UserDefaults.standard.string(forKey: "externalPlayer") ?? "Default"
+            guard let streamURL = URL(string: url) else {
+                Logger.shared.log("Invalid stream URL: \(url)", type: "Error")
+                handleStreamFailure()
+                return
+            }
+            let subtitleFileURL = subtitles != nil ? URL(string: subtitles!) : nil
+            
+            let externalPlayer = UserDefaults.standard.string(forKey: "externalPlayer") ?? "Sora"
             var scheme: String?
             
             switch externalPlayer {
@@ -501,7 +530,29 @@ struct MediaInfoView: View {
                 scheme = "outplayer://\(url)"
             case "nPlayer":
                 scheme = "nplayer-\(url)"
-            case "Sora":
+            case "Default":
+                let videoPlayerViewController = VideoPlayerViewController(module: module)
+                videoPlayerViewController.streamUrl = url
+                videoPlayerViewController.fullUrl = fullURL
+                videoPlayerViewController.episodeNumber = selectedEpisodeNumber
+                videoPlayerViewController.episodeImageUrl = selectedEpisodeImage
+                videoPlayerViewController.mediaTitle = title
+                videoPlayerViewController.subtitles = subtitles ?? ""
+                videoPlayerViewController.modalPresentationStyle = .fullScreen
+                
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let rootVC = windowScene.windows.first?.rootViewController {
+                    findTopViewController.findViewController(rootVC).present(videoPlayerViewController, animated: true, completion: nil)
+                }
+                return
+            default:
+                break
+            }
+            
+            if let scheme = scheme, let url = URL(string: scheme), UIApplication.shared.canOpenURL(url) {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                Logger.shared.log("Opening external app with scheme: \(url)", type: "General")
+            } else {
                 let customMediaPlayer = CustomMediaPlayerViewController(
                     module: module,
                     urlString: url,
@@ -520,28 +571,6 @@ struct MediaInfoView: View {
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                    let rootVC = windowScene.windows.first?.rootViewController {
                     findTopViewController.findViewController(rootVC).present(customMediaPlayer, animated: true, completion: nil)
-                }
-                return
-            default:
-                break
-            }
-            
-            if let scheme = scheme, let url = URL(string: scheme), UIApplication.shared.canOpenURL(url) {
-                UIApplication.shared.open(url, options: [:], completionHandler: nil)
-                Logger.shared.log("Opening external app with scheme: \(url)", type: "General")
-            } else {
-                let videoPlayerViewController = VideoPlayerViewController(module: module)
-                videoPlayerViewController.streamUrl = url
-                videoPlayerViewController.fullUrl = fullURL
-                videoPlayerViewController.episodeNumber = selectedEpisodeNumber
-                videoPlayerViewController.episodeImageUrl = selectedEpisodeImage
-                videoPlayerViewController.mediaTitle = title
-                videoPlayerViewController.subtitles = subtitles ?? ""
-                videoPlayerViewController.modalPresentationStyle = .fullScreen
-                
-                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                   let rootVC = windowScene.windows.first?.rootViewController {
-                    findTopViewController.findViewController(rootVC).present(videoPlayerViewController, animated: true, completion: nil)
                 }
             }
         }

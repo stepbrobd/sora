@@ -13,14 +13,16 @@ struct LibraryItem: Codable, Identifiable {
     let imageUrl: String
     let href: String
     let moduleId: String
+    let moduleName: String
     let dateAdded: Date
     
-    init(title: String, imageUrl: String, href: String, moduleId: String) {
+    init(title: String, imageUrl: String, href: String, moduleId: String, moduleName: String) {
         self.id = UUID()
         self.title = title
         self.imageUrl = imageUrl
         self.href = href
         self.moduleId = moduleId
+        self.moduleName = moduleName
         self.dateAdded = Date()
     }
 }
@@ -55,15 +57,15 @@ class LibraryManager: ObservableObject {
         }
     }
     
-    func isBookmarked(href: String) -> Bool {
+    func isBookmarked(href: String, moduleName: String) -> Bool {
         bookmarks.contains { $0.href == href }
     }
     
-    func toggleBookmark(title: String, imageUrl: String, href: String, moduleId: String) {
+    func toggleBookmark(title: String, imageUrl: String, href: String, moduleId: String, moduleName: String) {
         if let index = bookmarks.firstIndex(where: { $0.href == href }) {
             bookmarks.remove(at: index)
         } else {
-            let bookmark = LibraryItem(title: title, imageUrl: imageUrl, href: href, moduleId: moduleId)
+            let bookmark = LibraryItem(title: title, imageUrl: imageUrl, href: href, moduleId: moduleId, moduleName: moduleName)
             bookmarks.insert(bookmark, at: 0)
         }
         saveBookmarks()
