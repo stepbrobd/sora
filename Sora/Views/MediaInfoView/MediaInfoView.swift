@@ -56,8 +56,6 @@ struct MediaInfoView: View {
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        
-                        // MARK: - Top media info
                         HStack(alignment: .top, spacing: 10) {
                             KFImage(URL(string: imageUrl))
                                 .placeholder {
@@ -125,7 +123,6 @@ struct MediaInfoView: View {
                             }
                         }
                         
-                        // MARK: - Synopsis section
                         if !synopsis.isEmpty {
                             VStack(alignment: .leading, spacing: 2) {
                                 HStack(alignment: .center) {
@@ -149,7 +146,6 @@ struct MediaInfoView: View {
                             }
                         }
                         
-                        // MARK: - Action buttons
                         HStack {
                             Button(action: {
                                 playFirstUnwatchedEpisode()
@@ -210,7 +206,6 @@ struct MediaInfoView: View {
                                     }
                                 }
                                 
-                                //MARK: - Mark all prevoius logic
                                 ForEach(episodeLinks.indices.filter { selectedRange.contains($0) }, id: \.self) { i in
                                     let ep = episodeLinks[i]
                                     let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
@@ -240,11 +235,11 @@ struct MediaInfoView: View {
                                                 UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(href)")
                                                 UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(href)")
                                             }
-                                            refreshTrigger.toggle() // Force the UI to refresh
+                                            refreshTrigger.toggle()
                                             Logger.shared.log("Marked \(ep.number) episodes watched within anime \"\(title)\".", type: "General")
                                         }
                                     )
-                                    .id(refreshTrigger) // Attaches the refresh trigger so that changes re-create the cell
+                                    .id(refreshTrigger)
                                     .disabled(isFetchingEpisode)
                                 }
                             }
@@ -523,11 +518,7 @@ struct MediaInfoView: View {
             }
             let subtitleFileURL = subtitles != nil ? URL(string: subtitles!) : nil
             
-            DownloadManager.shared.downloadAndConvertHLS(from: streamURL, title: title, episode: selectedEpisodeNumber, subtitleURL: subtitleFileURL, module: module) { success, fileURL in
-                return
-            }
-            
-            let externalPlayer = UserDefaults.standard.string(forKey: "externalPlayer") ?? "Default"
+            let externalPlayer = UserDefaults.standard.string(forKey: "externalPlayer") ?? "Sora"
             var scheme: String?
             
             switch externalPlayer {

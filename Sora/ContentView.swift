@@ -15,10 +15,6 @@ struct ContentView: View {
                 .tabItem {
                     Label("Library", systemImage: "books.vertical")
                 }
-            DownloadView()
-                .tabItem {
-                    Label("Downloads", systemImage: "arrow.down.circle.fill")
-                }
             SearchView()
                 .tabItem {
                     Label("Search", systemImage: "magnifyingglass")

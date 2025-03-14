@@ -20,7 +20,7 @@ struct EpisodeCell: View {
     let episodeID: Int
     let progress: Double
     let itemID: Int
-
+    
     let onTap: (String) -> Void
     let onMarkAllPrevious: () -> Void
     
@@ -28,18 +28,16 @@ struct EpisodeCell: View {
     @State private var episodeImageUrl: String = ""
     @State private var isLoading: Bool = true
     @State private var currentProgress: Double = 0.0
-
+    
     var body: some View {
         HStack {
             ZStack {
-                KFImage(URL(string: episodeImageUrl.isEmpty
-                            ? "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/main/assets/banner2.png"
-                            : episodeImageUrl))
-                .resizable()
-                .aspectRatio(16/9, contentMode: .fill)
-                .frame(width: 100, height: 56)
-                .cornerRadius(8)
-
+                KFImage(URL(string: episodeImageUrl.isEmpty ? "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/main/assets/banner2.png" : episodeImageUrl))
+                    .resizable()
+                    .aspectRatio(16/9, contentMode: .fill)
+                    .frame(width: 100, height: 56)
+                    .cornerRadius(8)
+                
                 if isLoading {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle())
@@ -69,7 +67,6 @@ struct EpisodeCell: View {
                 }
             }
             
-            // Only show reset if progress is nonzero
             if progress != 0 {
                 Button(action: resetProgress) {
                     Label("Reset Progress", systemImage: "arrow.counterclockwise")
@@ -111,7 +108,7 @@ struct EpisodeCell: View {
         let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(episode)")
         currentProgress = totalTime > 0 ? lastPlayedTime / totalTime : 0
     }
-
+    
     private func fetchEpisodeDetails() {
         guard let url = URL(string: "https://api.ani.zip/mappings?anilist_id=\(itemID)") else {
             isLoading = false

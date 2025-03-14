@@ -71,10 +71,10 @@ struct SettingsViewGeneral: View {
                 }
             }
             
-            Section(header: Text("Downloads"), footer: Text("Note that the modules will be replaced only if there is a different version string inside the JSON file.")) {
-                Toggle("Multi Threads conversion", isOn: $multiThreadsEnabled)
-                    .tint(.accentColor)
-            }
+            //Section(header: Text("Downloads"), footer: Text("Note that the modules will be replaced only if there is a different version string inside the JSON file.")) {
+            //    Toggle("Multi Threads conversion", isOn: $multiThreadsEnabled)
+            //        .tint(.accentColor)
+            //}
             
             Section(header: Text("Modules"), footer: Text("Note that the modules will be replaced only if there is a different version string inside the JSON file.")) {
                 Toggle("Refresh Modules on Launch", isOn: $refreshModulesOnLaunch)
