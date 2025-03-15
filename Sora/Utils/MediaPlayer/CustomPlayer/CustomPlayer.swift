@@ -52,6 +52,7 @@ class CustomMediaPlayerViewController: UIViewController {
     var watchNextButton: UIButton!
     var blackCoverView: UIView!
     var speedButton: UIButton!
+    var skip85Button: UIButton!
     
     var sliderHostingController: UIHostingController<MusicProgressSlider<Double>>?
     var sliderViewModel = SliderViewModel()
@@ -125,6 +126,7 @@ class CustomMediaPlayerViewController: UIViewController {
         setupMenuButton()
         setupSpeedButton()
         setupWatchNextButton()
+        setupSkip85Button()
         addTimeObserver()
         startUpdateTimer()
         setupAudioSession()
@@ -394,6 +396,28 @@ class CustomMediaPlayerViewController: UIViewController {
         NSLayoutConstraint.activate(watchNextButtonControlsConstraints)
     }
     
+    func setupSkip85Button() {
+        skip85Button = UIButton(type: .system)
+        skip85Button.setTitle("Skip 85s", for: .normal)
+        skip85Button.setImage(UIImage(systemName: "goforward"), for: .normal)
+        skip85Button.tintColor = .black
+        skip85Button.backgroundColor = .white
+        skip85Button.layer.cornerRadius = 25
+        skip85Button.setTitleColor(.black, for: .normal)
+        skip85Button.alpha = 0.8
+        skip85Button.addTarget(self, action: #selector(skip85Tapped), for: .touchUpInside)
+
+        controlsContainerView.addSubview(skip85Button)
+        skip85Button.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            skip85Button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 85),
+            skip85Button.bottomAnchor.constraint(equalTo: watchNextButton.bottomAnchor),
+            skip85Button.heightAnchor.constraint(equalTo: watchNextButton.heightAnchor),
+            skip85Button.widthAnchor.constraint(equalTo: watchNextButton.widthAnchor)
+        ])
+    }
+    
     func updateSubtitleLabelAppearance() {
         subtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
         subtitleLabel.textColor = subtitleUIColor()
@@ -488,6 +512,8 @@ class CustomMediaPlayerViewController: UIViewController {
         UIView.animate(withDuration: 0.2) {
             self.controlsContainerView.alpha = self.isControlsVisible ? 1 : 0
             
+            self.skip85Button.alpha = self.isControlsVisible ? 0.8 : 0
+            
             if self.isControlsVisible {
                 NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
                 NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
@@ -537,6 +563,11 @@ class CustomMediaPlayerViewController: UIViewController {
         dismiss(animated: true) { [weak self] in
             self?.onWatchNext()
         }
+    }
+    
+    @objc func skip85Tapped() {
+        currentTimeVal = min(currentTimeVal + 85, duration)
+        player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
     }
     
     func speedChangerMenu() -> UIMenu {
