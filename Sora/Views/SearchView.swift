@@ -17,14 +17,19 @@ struct SearchItem: Identifiable {
 
 struct SearchView: View {
     @AppStorage("selectedModuleId") private var selectedModuleId: String?
+    @AppStorage("mediaColumnsPortrait") private var mediaColumnsPortrait: Int = 2
+    @AppStorage("mediaColumnsLandscape") private var mediaColumnsLandscape: Int = 4
+
     @StateObject private var jsController = JSController()
     @EnvironmentObject var moduleManager: ModuleManager
+    @Environment(\.verticalSizeClass) var verticalSizeClass
     
     @State private var searchItems: [SearchItem] = []
     @State private var selectedSearchItem: SearchItem?
     @State private var isSearching = false
     @State private var searchText = ""
     @State private var hasNoResults = false
+    @State private var isLandscape: Bool = UIDevice.current.orientation.isLandscape
     
     private var selectedModule: ScrapingModule? {
         guard let id = selectedModuleId else { return nil }
@@ -38,10 +43,12 @@ struct SearchView: View {
         "Please wait...",
         "Almost there..."
     ]
-    
+
     var body: some View {
         NavigationView {
             ScrollView {
+                let columnsCount = determineColumns()
+                
                 VStack(spacing: 0) {
                     HStack {
                         SearchBar(text: $searchText, onSearchButtonClicked: performSearch)
@@ -79,9 +86,13 @@ struct SearchView: View {
                     
                     if !searchText.isEmpty {
                         if isSearching {
-                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 16) {
-                                ForEach(0..<2, id: \.self) { _ in
-                                    SearchSkeletonCell()
+                            let totalSpacing: CGFloat = 16 * CGFloat(columnsCount + 1) // Spacing between items
+                            let availableWidth = UIScreen.main.bounds.width - totalSpacing
+                            let cellWidth = availableWidth / CGFloat(columnsCount)
+                            
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: columnsCount), spacing: 16) {
+                                ForEach(0..<columnsCount*4, id: \.self) { _ in
+                                    SearchSkeletonCell(cellWidth: cellWidth)
                                 }
                             }
                             .padding(.top)
@@ -101,7 +112,7 @@ struct SearchView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.top)
                         } else {
-                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 16) {
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: columnsCount), spacing: 16) {
                                 ForEach(searchItems) { item in
                                     NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: selectedModule!)) {
                                         VStack {
@@ -109,8 +120,7 @@ struct SearchView: View {
                                                 .resizable()
                                                 .aspectRatio(2/3, contentMode: .fit)
                                                 .cornerRadius(10)
-                                                .frame(width: 150, height: 225)
-                                            
+                                                .frame(maxWidth: .infinity)
                                             Text(item.title)
                                                 .font(.subheadline)
                                                 .foregroundColor(Color.primary)
@@ -118,6 +128,12 @@ struct SearchView: View {
                                                 .lineLimit(1)
                                         }
                                     }
+                                }
+                                .onAppear {
+                                    updateOrientation()
+                                }
+                                .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+                                    updateOrientation()
                                 }
                             }
                             .padding(.top)
@@ -217,6 +233,20 @@ struct SearchView: View {
                     hasNoResults = true
                 }
             }
+        }
+    }
+    
+    private func updateOrientation() {
+        DispatchQueue.main.async {
+            isLandscape = UIDevice.current.orientation.isLandscape
+        }
+    }
+    
+    private func determineColumns() -> Int {
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            return isLandscape ? mediaColumnsLandscape : mediaColumnsPortrait
+        } else {
+            return verticalSizeClass == .compact ? mediaColumnsLandscape : mediaColumnsPortrait
         }
     }
 }
