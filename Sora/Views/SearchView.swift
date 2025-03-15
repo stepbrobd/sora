@@ -112,15 +112,21 @@ struct SearchView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.top)
                         } else {
+                            let totalSpacing: CGFloat = 16 * CGFloat(columnsCount + 1) // Spacing between items
+                            let availableWidth = UIScreen.main.bounds.width - totalSpacing
+                            let cellWidth = availableWidth / CGFloat(columnsCount)
+                            
                             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: columnsCount), spacing: 16) {
                                 ForEach(searchItems) { item in
                                     NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: selectedModule!)) {
                                         VStack {
                                             KFImage(URL(string: item.imageUrl))
                                                 .resizable()
-                                                .aspectRatio(2/3, contentMode: .fit)
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(height: cellWidth * 3 / 2)
+                                                .frame(maxWidth: cellWidth)
                                                 .cornerRadius(10)
-                                                .frame(maxWidth: .infinity)
+                                                .clipped()
                                             Text(item.title)
                                                 .font(.subheadline)
                                                 .foregroundColor(Color.primary)

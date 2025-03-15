@@ -76,6 +76,10 @@ struct LibraryView: View {
                         .frame(maxWidth: .infinity)
                     } else {
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: columnsCount), spacing: 12) {
+                            let totalSpacing: CGFloat = 16 * CGFloat(columnsCount + 1) // Spacing between items
+                            let availableWidth = UIScreen.main.bounds.width - totalSpacing
+                            let cellWidth = availableWidth / CGFloat(columnsCount)
+                            
                             ForEach(libraryManager.bookmarks) { item in
                                 if let module = moduleManager.modules.first(where: { $0.id.uuidString == item.moduleId }) {
                                     NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: module)) {
@@ -89,9 +93,9 @@ struct LibraryView: View {
                                                             .shimmering()
                                                     }
                                                     .resizable()
-                                                    .aspectRatio(2/3, contentMode: .fill)
-                                                    // Allow the image to expand to fill the available width of its grid cell.
-                                                    .frame(maxWidth: .infinity)
+                                                    .aspectRatio(contentMode: .fill)
+                                                    .frame(height: cellWidth * 3 / 2)
+                                                    .frame(maxWidth: cellWidth)
                                                     .cornerRadius(10)
                                                     .clipped()
                                                     .overlay(
