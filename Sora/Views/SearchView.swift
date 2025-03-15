@@ -43,6 +43,26 @@ struct SearchView: View {
         "Please wait...",
         "Almost there..."
     ]
+    
+    private var columnsCount: Int {
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            let isLandscape = UIScreen.main.bounds.width > UIScreen.main.bounds.height
+            return isLandscape ? mediaColumnsLandscape : mediaColumnsPortrait
+        } else {
+            return verticalSizeClass == .compact ? mediaColumnsLandscape : mediaColumnsPortrait
+        }
+    }
+    
+    private var cellWidth: CGFloat {
+        let keyWindow = UIApplication.shared.connectedScenes
+            .compactMap { ($0 as? UIWindowScene)?.windows.first(where: { $0.isKeyWindow }) }
+            .first
+        let safeAreaInsets = keyWindow?.safeAreaInsets ?? .zero
+        let safeWidth = UIScreen.main.bounds.width - safeAreaInsets.left - safeAreaInsets.right
+        let totalSpacing: CGFloat = 16 * CGFloat(columnsCount + 1)
+        let availableWidth = safeWidth - totalSpacing
+        return availableWidth / CGFloat(columnsCount)
+    }
 
     var body: some View {
         NavigationView {
@@ -86,10 +106,6 @@ struct SearchView: View {
                     
                     if !searchText.isEmpty {
                         if isSearching {
-                            let totalSpacing: CGFloat = 16 * CGFloat(columnsCount + 1) // Spacing between items
-                            let availableWidth = UIScreen.main.bounds.width - totalSpacing
-                            let cellWidth = availableWidth / CGFloat(columnsCount)
-                            
                             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: columnsCount), spacing: 16) {
                                 ForEach(0..<columnsCount*4, id: \.self) { _ in
                                     SearchSkeletonCell(cellWidth: cellWidth)
@@ -112,10 +128,6 @@ struct SearchView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.top)
                         } else {
-                            let totalSpacing: CGFloat = 16 * CGFloat(columnsCount + 1) // Spacing between items
-                            let availableWidth = UIScreen.main.bounds.width - totalSpacing
-                            let cellWidth = availableWidth / CGFloat(columnsCount)
-                            
                             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: columnsCount), spacing: 16) {
                                 ForEach(searchItems) { item in
                                     NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: selectedModule!)) {
