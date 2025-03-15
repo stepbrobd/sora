@@ -76,7 +76,7 @@ struct LibraryView: View {
                         .frame(maxWidth: .infinity)
                     } else {
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: columnsCount), spacing: 12) {
-                            let totalSpacing: CGFloat = 16 * CGFloat(columnsCount + 1) // Spacing between items
+                            let totalSpacing: CGFloat = 16 * CGFloat(columnsCount + 1)
                             let availableWidth = UIScreen.main.bounds.width - totalSpacing
                             let cellWidth = availableWidth / CGFloat(columnsCount)
                             

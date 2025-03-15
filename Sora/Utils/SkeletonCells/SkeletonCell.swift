@@ -14,7 +14,7 @@ struct HomeSkeletonCell: View {
         VStack {
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.gray.opacity(0.3))
-                .frame(width: cellWidth, height: cellWidth * 1.5) // Maintains 2:3 aspect ratio
+                .frame(width: cellWidth, height: cellWidth * 1.5)
                 .cornerRadius(10)
                 .shimmering()
             
@@ -34,7 +34,7 @@ struct SearchSkeletonCell: View {
         VStack(alignment: .leading, spacing: 8) {
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.gray.opacity(0.3))
-                .frame(width: cellWidth, height: cellWidth * 1.5) // Maintains 2:3 aspect ratio
+                .frame(width: cellWidth, height: cellWidth * 1.5)
                 .shimmering()
             RoundedRectangle(cornerRadius: 5)
                 .fill(Color.gray.opacity(0.3))
