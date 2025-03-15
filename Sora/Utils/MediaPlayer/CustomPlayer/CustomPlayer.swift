@@ -410,13 +410,23 @@ class CustomMediaPlayerViewController: UIViewController {
         controlsContainerView.addSubview(skip85Button)
         skip85Button.translatesAutoresizingMaskIntoConstraints = false
 
-        NSLayoutConstraint.activate([
-            skip85Button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 85),
-            skip85Button.bottomAnchor.constraint(equalTo: watchNextButton.bottomAnchor),
-            skip85Button.heightAnchor.constraint(equalTo: watchNextButton.heightAnchor),
-            skip85Button.widthAnchor.constraint(equalTo: watchNextButton.widthAnchor)
-        ])
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            NSLayoutConstraint.activate([
+                skip85Button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
+                skip85Button.bottomAnchor.constraint(equalTo: watchNextButton.bottomAnchor),
+                skip85Button.heightAnchor.constraint(equalTo: watchNextButton.heightAnchor),
+                skip85Button.widthAnchor.constraint(equalTo: watchNextButton.widthAnchor)
+            ])
+        } else {
+            NSLayoutConstraint.activate([
+                skip85Button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25),
+                skip85Button.bottomAnchor.constraint(equalTo: watchNextButton.bottomAnchor),
+                skip85Button.heightAnchor.constraint(equalTo: watchNextButton.heightAnchor),
+                skip85Button.widthAnchor.constraint(equalTo: watchNextButton.widthAnchor)
+            ])
+        }
     }
+
     
     func updateSubtitleLabelAppearance() {
         subtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
