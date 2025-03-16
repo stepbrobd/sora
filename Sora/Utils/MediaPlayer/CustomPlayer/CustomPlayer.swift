@@ -207,12 +207,24 @@ class CustomMediaPlayerViewController: UIViewController {
             blackCoverView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
         
-        backwardButton = UIImageView(image: UIImage(systemName: "gobackward.10"))
+        backwardButton = UIImageView(image: UIImage(systemName: "gobackward"))
         backwardButton.tintColor = .white
         backwardButton.contentMode = .scaleAspectFit
         backwardButton.isUserInteractionEnabled = true
+
+        // 1) Tap gesture → normal skip
         let backwardTap = UITapGestureRecognizer(target: self, action: #selector(seekBackward))
+        backwardTap.numberOfTapsRequired = 1
         backwardButton.addGestureRecognizer(backwardTap)
+
+        // 2) Long-press gesture → hold skip
+        let backwardLongPress = UILongPressGestureRecognizer(target: self, action: #selector(seekBackwardLongPress(_:)))
+        backwardLongPress.minimumPressDuration = 0.5  // Adjust as needed
+        backwardButton.addGestureRecognizer(backwardLongPress)
+
+        // Make sure the tap doesn’t fire if the long-press is recognized
+        backwardTap.require(toFail: backwardLongPress)
+
         controlsContainerView.addSubview(backwardButton)
         backwardButton.translatesAutoresizingMaskIntoConstraints = false
         
@@ -225,14 +237,23 @@ class CustomMediaPlayerViewController: UIViewController {
         controlsContainerView.addSubview(playPauseButton)
         playPauseButton.translatesAutoresizingMaskIntoConstraints = false
         
-        forwardButton = UIImageView(image: UIImage(systemName: "goforward.10"))
-        forwardButton.tintColor = .white
-        forwardButton.contentMode = .scaleAspectFit
-        forwardButton.isUserInteractionEnabled = true
-        let forwardTap = UITapGestureRecognizer(target: self, action: #selector(seekForward))
-        forwardButton.addGestureRecognizer(forwardTap)
-        controlsContainerView.addSubview(forwardButton)
-        forwardButton.translatesAutoresizingMaskIntoConstraints = false
+        forwardButton = UIImageView(image: UIImage(systemName: "goforward"))
+            forwardButton.tintColor = .white
+            forwardButton.contentMode = .scaleAspectFit
+            forwardButton.isUserInteractionEnabled = true
+
+            let forwardTap = UITapGestureRecognizer(target: self, action: #selector(seekForward))
+            forwardTap.numberOfTapsRequired = 1
+            forwardButton.addGestureRecognizer(forwardTap)
+
+            let forwardLongPress = UILongPressGestureRecognizer(target: self, action: #selector(seekForwardLongPress(_:)))
+            forwardLongPress.minimumPressDuration = 0.5
+            forwardButton.addGestureRecognizer(forwardLongPress)
+
+            forwardTap.require(toFail: forwardLongPress)
+
+            controlsContainerView.addSubview(forwardButton)
+            forwardButton.translatesAutoresizingMaskIntoConstraints = false
         
         let sliderView = MusicProgressSlider(
             value: Binding(get: { self.sliderViewModel.sliderValue },
@@ -538,13 +559,36 @@ class CustomMediaPlayerViewController: UIViewController {
         }
     }
     
-    @objc func seekBackward() {
-        currentTimeVal = max(currentTimeVal - 10, 0)
-        player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
+    @objc func seekBackwardLongPress(_ gesture: UILongPressGestureRecognizer) {
+        // Only do the skip when the gesture first begins
+        if gesture.state == .began {
+            let holdValue = UserDefaults.standard.double(forKey: "skipIncrementHold")
+            let finalSkip = holdValue > 0 ? holdValue : 30  // fallback to 30 if not set
+            currentTimeVal = max(currentTimeVal - finalSkip, 0)
+            player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
+        }
+    }
+
+    @objc func seekForwardLongPress(_ gesture: UILongPressGestureRecognizer) {
+        if gesture.state == .began {
+            let holdValue = UserDefaults.standard.double(forKey: "skipIncrementHold")
+            let finalSkip = holdValue > 0 ? holdValue : 30
+            currentTimeVal = min(currentTimeVal + finalSkip, duration)
+            player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
+        }
     }
     
+    @objc func seekBackward() {
+        let skipValue = UserDefaults.standard.double(forKey: "skipIncrement")
+        let finalSkip = skipValue > 0 ? skipValue : 10
+        currentTimeVal = max(currentTimeVal - finalSkip, 0)
+        player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
+    }
+
     @objc func seekForward() {
-        currentTimeVal = min(currentTimeVal + 10, duration)
+        let skipValue = UserDefaults.standard.double(forKey: "skipIncrement")
+        let finalSkip = skipValue > 0 ? skipValue : 10
+        currentTimeVal = min(currentTimeVal + finalSkip, duration)
         player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
     }
     
