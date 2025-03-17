@@ -20,10 +20,6 @@ struct LibraryView: View {
     @State private var continueWatchingItems: [ContinueWatchingItem] = []
     @State private var isLandscape: Bool = UIDevice.current.orientation.isLandscape
     
-    // New state variables to handle bookmark navigation explicitly
-    @State private var selectedBookmark: LibraryItem? = nil
-    @State private var isDetailActive: Bool = false
-
     private let columns = [
         GridItem(.adaptive(minimum: 150), spacing: 12)
     ]
@@ -86,10 +82,7 @@ struct LibraryView: View {
                             
                             ForEach(libraryManager.bookmarks) { item in
                                 if let module = moduleManager.modules.first(where: { $0.id.uuidString == item.moduleId }) {
-                                    Button(action: {
-                                        selectedBookmark = item
-                                        isDetailActive = true
-                                    }) {
+                                    NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: module)) {
                                         VStack(alignment: .leading) {
                                             ZStack {
                                                 KFImage(URL(string: item.imageUrl))
@@ -141,22 +134,6 @@ struct LibraryView: View {
                     }
                 }
                 .padding(.vertical, 20)
-                NavigationLink(
-                    destination: Group {
-                        if let bookmark = selectedBookmark,
-                           let module = moduleManager.modules.first(where: { $0.id.uuidString == bookmark.moduleId }) {
-                            MediaInfoView(title: bookmark.title,
-                                          imageUrl: bookmark.imageUrl,
-                                          href: bookmark.href,
-                                          module: module)
-                        } else {
-                            Text("No Data Available")
-                        }
-                    },
-                    isActive: $isDetailActive
-                ) {
-                    EmptyView()
-                }
             }
             .navigationTitle("Library")
             .onAppear {
