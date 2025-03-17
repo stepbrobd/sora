@@ -35,6 +35,14 @@ class LibraryManager: ObservableObject {
         loadBookmarks()
     }
     
+    func removeBookmark(item: LibraryItem) {
+        if let index = bookmarks.firstIndex(where: { $0.id == item.id }) {
+            bookmarks.remove(at: index)
+            Logger.shared.log("Removed series \(item.id) from bookmarks.",type: "Debug")
+            saveBookmarks()
+        }
+    }
+    
     private func loadBookmarks() {
         guard let data = UserDefaults.standard.data(forKey: bookmarksKey) else {
             Logger.shared.log("No bookmarks data found in UserDefaults.", type: "Error")

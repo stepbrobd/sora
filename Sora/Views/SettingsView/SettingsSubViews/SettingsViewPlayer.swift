@@ -13,12 +13,14 @@ struct SettingsViewPlayer: View {
     @AppStorage("hideNextButton") private var isHideNextButton = false
     @AppStorage("rememberPlaySpeed") private var isRememberPlaySpeed = false
     @AppStorage("holdSpeedPlayer") private var holdSpeedPlayer: Double = 2.0
+    @AppStorage("skipIncrement") private var skipIncrement: Double = 10.0
+    @AppStorage("skipIncrementHold") private var skipIncrementHold: Double = 30.0
     
     private let mediaPlayers = ["Default", "VLC", "OutPlayer", "Infuse", "nPlayer", "Sora"]
     
     var body: some View {
         Form {
-            Section(header: Text("Media Player"), footer: Text("Some features are limited to the Sora and Default player, such as ForceLandscape and holdSpeed")) {
+            Section(header: Text("Media Player"), footer: Text("Some features are limited to the Sora and Default player, such as ForceLandscape, holdSpeed and custom time skip increments.")) {
                 HStack {
                     Text("Media Player")
                     Spacer()
@@ -56,7 +58,21 @@ struct SettingsViewPlayer: View {
                     }
                 }
             }
-            
+            Section(header: Text("Skip Settings")) {
+                // Normal skip
+                HStack {
+                    Text("Tap Skip:")
+                    Spacer()
+                    Stepper("\(Int(skipIncrement))s", value: $skipIncrement, in: 5...300, step: 5)
+                }
+                
+                // Long-press skip
+                HStack {
+                    Text("Long press Skip:")
+                    Spacer()
+                    Stepper("\(Int(skipIncrementHold))s", value: $skipIncrementHold, in: 5...300, step: 5)
+                }
+            }
             SubtitleSettingsSection()
         }
         .navigationTitle("Player")

@@ -114,6 +114,13 @@ struct LibraryView: View {
                                                 .multilineTextAlignment(.leading)
                                         }
                                     }
+                                    .contextMenu {
+                                        Button(role: .destructive, action: {
+                                            libraryManager.removeBookmark(item: item)
+                                        }) {
+                                            Label("Remove from Bookmarks", systemImage: "trash")
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -179,7 +186,7 @@ struct ContinueWatchingSection: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(Array(items.reversed())) { item in
-                        ContinueWatchingCell(item: item,markAsWatched: {
+                        ContinueWatchingCell(item: item, markAsWatched: {
                             markAsWatched(item)
                         }, removeItem: {
                             removeItem(item)
