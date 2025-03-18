@@ -34,6 +34,7 @@ class CustomMediaPlayerViewController: UIViewController {
     var duration: Double = 0.0
     var isVideoLoaded = false
     var showWatchNextButton = true
+    var isWatchNextVisible: Bool = false
     
     var subtitleForegroundColor: String = "white"
     var subtitleBackgroundEnabled: Bool = true
@@ -116,17 +117,15 @@ class CustomMediaPlayerViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .black
         
-        // Load persistent subtitle settings on launch
         loadSubtitleSettings()
-        
         setupPlayerViewController()
         setupControls()
         setupSubtitleLabel()
         setupDismissButton()
         setupMenuButton()
         setupSpeedButton()
-        setupWatchNextButton()
         setupSkip85Button()
+        setupWatchNextButton()
         addTimeObserver()
         startUpdateTimer()
         setupAudioSession()
@@ -135,6 +134,14 @@ class CustomMediaPlayerViewController: UIViewController {
         
         if let url = subtitlesURL, !url.isEmpty {
             subtitlesLoader.load(from: url)
+        }
+
+        DispatchQueue.main.async {
+            self.isControlsVisible = true
+            NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
+            NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
+            self.watchNextButton.alpha = 1.0
+            self.view.layoutIfNeeded()
         }
     }
     
@@ -387,34 +394,36 @@ class CustomMediaPlayerViewController: UIViewController {
     
     func setupWatchNextButton() {
         watchNextButton = UIButton(type: .system)
-        watchNextButton.setTitle("Watch Next", for: .normal)
+        watchNextButton.setTitle("Play Next", for: .normal)
         watchNextButton.setImage(UIImage(systemName: "forward.fill"), for: .normal)
         watchNextButton.tintColor = .black
         watchNextButton.backgroundColor = .white
         watchNextButton.layer.cornerRadius = 25
         watchNextButton.setTitleColor(.black, for: .normal)
         watchNextButton.addTarget(self, action: #selector(watchNextTapped), for: .touchUpInside)
+        watchNextButton.alpha = 0.0  // Initially invisible but not hidden
         watchNextButton.isHidden = true
-        watchNextButton.alpha = 0.8
-        
+
         view.addSubview(watchNextButton)
         watchNextButton.translatesAutoresizingMaskIntoConstraints = false
-        
+
+        // Normal position (when controls are hidden) - above progress bar
         watchNextButtonNormalConstraints = [
             watchNextButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            watchNextButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -40),
+            watchNextButton.bottomAnchor.constraint(equalTo: sliderHostingController!.view.topAnchor, constant: -10),
             watchNextButton.heightAnchor.constraint(equalToConstant: 50),
             watchNextButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
         ]
-        
+
+        // Controls visible position (same height as Skip 85s)
         watchNextButtonControlsConstraints = [
-            watchNextButton.trailingAnchor.constraint(equalTo: speedButton.leadingAnchor),
-            watchNextButton.bottomAnchor.constraint(equalTo: speedButton.bottomAnchor, constant: -5),
+            watchNextButton.trailingAnchor.constraint(equalTo: speedButton.leadingAnchor), // Move left of speed
+            watchNextButton.bottomAnchor.constraint(equalTo: skip85Button.bottomAnchor),  // Tie to Skip 85s button
             watchNextButton.heightAnchor.constraint(equalToConstant: 50),
             watchNextButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
         ]
-        
-        NSLayoutConstraint.activate(watchNextButtonControlsConstraints)
+
+        NSLayoutConstraint.activate(watchNextButtonNormalConstraints) // Default position
     }
     
     func setupSkip85Button() {
@@ -427,25 +436,16 @@ class CustomMediaPlayerViewController: UIViewController {
         skip85Button.setTitleColor(.black, for: .normal)
         skip85Button.alpha = 0.8
         skip85Button.addTarget(self, action: #selector(skip85Tapped), for: .touchUpInside)
-
-        controlsContainerView.addSubview(skip85Button)
+        
+        view.addSubview(skip85Button)
         skip85Button.translatesAutoresizingMaskIntoConstraints = false
-
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            NSLayoutConstraint.activate([
-                skip85Button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
-                skip85Button.bottomAnchor.constraint(equalTo: watchNextButton.bottomAnchor),
-                skip85Button.heightAnchor.constraint(equalTo: watchNextButton.heightAnchor),
-                skip85Button.widthAnchor.constraint(equalTo: watchNextButton.widthAnchor)
-            ])
-        } else {
-            NSLayoutConstraint.activate([
-                skip85Button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25),
-                skip85Button.bottomAnchor.constraint(equalTo: watchNextButton.bottomAnchor),
-                skip85Button.heightAnchor.constraint(equalTo: watchNextButton.heightAnchor),
-                skip85Button.widthAnchor.constraint(equalTo: watchNextButton.widthAnchor)
-            ])
-        }
+        
+        NSLayoutConstraint.activate([
+            skip85Button.leadingAnchor.constraint(equalTo: sliderHostingController!.view.leadingAnchor), // Align with progress bar start
+            skip85Button.bottomAnchor.constraint(equalTo: sliderHostingController!.view.topAnchor, constant: -3),
+            skip85Button.heightAnchor.constraint(equalToConstant: 50),
+            skip85Button.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
+        ])
     }
 
     
@@ -478,42 +478,75 @@ class CustomMediaPlayerViewController: UIViewController {
         timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             guard let self = self, let currentItem = self.player.currentItem,
                   currentItem.duration.seconds.isFinite else { return }
+
+            let currentDuration = currentItem.duration.seconds
+            if currentDuration.isNaN || currentDuration <= 0 { return }  // Prevent invalid durations
+
             self.currentTimeVal = time.seconds
-            self.duration = currentItem.duration.seconds
-            
+            self.duration = currentDuration
+
+            // Ensure progress bar values remain within range
             if !self.isSliderEditing {
-                self.sliderViewModel.sliderValue = self.currentTimeVal
+                self.sliderViewModel.sliderValue = max(0, min(self.currentTimeVal, self.duration))
             }
-            
+
             UserDefaults.standard.set(self.currentTimeVal, forKey: "lastPlayedTime_\(self.fullUrl)")
             UserDefaults.standard.set(self.duration, forKey: "totalTime_\(self.fullUrl)")
-            
+
+            // Subtitle Handling
             if let currentCue = self.subtitlesLoader.cues.first(where: { self.currentTimeVal >= $0.startTime && self.currentTimeVal <= $0.endTime }) {
                 self.subtitleLabel.text = currentCue.text.strippedHTML
             } else {
                 self.subtitleLabel.text = ""
             }
-            
-            if (self.duration - self.currentTimeVal) <= (self.duration * 0.10)
-                && self.currentTimeVal != self.duration
-                && self.showWatchNextButton
-                && self.duration != 0 {
-                
-                if UserDefaults.standard.bool(forKey: "hideNextButton") {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                        self.watchNextButton.isHidden = true
-                    }
-                } else {
+
+            // --- WATCH NEXT BUTTON LOGIC ---
+            let isNearEnd = (self.duration - self.currentTimeVal) <= (self.duration * 0.10)
+                            && self.currentTimeVal != self.duration
+                            && self.showWatchNextButton
+                            && self.duration != 0
+
+            if isNearEnd {
+                if !self.isWatchNextVisible {
+                    self.isWatchNextVisible = true
                     self.watchNextButton.isHidden = false
+
+                    if self.isControlsVisible {
+                        self.watchNextButton.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+                        self.watchNextButton.alpha = 0.0
+                        
+                        UIView.animate(withDuration: 0.7, delay: 0, options: .curveEaseInOut, animations: {
+                            NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
+                            NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
+                            self.view.layoutIfNeeded()
+                            self.watchNextButton.alpha = 0.8
+                            self.watchNextButton.transform = .identity
+                        })
+                    } else {
+                        self.watchNextButton.alpha = 0.0
+                        UIView.animate(withDuration: 0.7, delay: 0, options: .curveEaseInOut, animations: {
+                            NSLayoutConstraint.deactivate(self.watchNextButtonControlsConstraints)
+                            NSLayoutConstraint.activate(self.watchNextButtonNormalConstraints)
+                            self.view.layoutIfNeeded()
+                            self.watchNextButton.alpha = 0.8
+                        })
+                    }
                 }
             } else {
-                self.watchNextButton.isHidden = true
+                // Hide the button if playback goes below 90%
+                self.isWatchNextVisible = false
+                UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
+                    self.watchNextButton.alpha = 0.0
+                }, completion: { _ in
+                    self.watchNextButton.isHidden = true
+                })
             }
-            
+
+            // --- Update Slider in UI ---
             DispatchQueue.main.async {
                 self.sliderHostingController?.rootView = MusicProgressSlider(
-                    value: Binding(get: { self.sliderViewModel.sliderValue },
-                                   set: { self.sliderViewModel.sliderValue = $0 }),
+                    value: Binding(get: { max(0, min(self.sliderViewModel.sliderValue, self.duration)) },
+                                   set: { self.sliderViewModel.sliderValue = max(0, min($0, self.duration)) }),
                     inRange: 0...(self.duration > 0 ? self.duration : 1.0),
                     activeFillColor: .white,
                     fillColor: .white.opacity(0.5),
@@ -522,7 +555,8 @@ class CustomMediaPlayerViewController: UIViewController {
                     onEditingChanged: { editing in
                         self.isSliderEditing = editing
                         if !editing {
-                            self.player.seek(to: CMTime(seconds: self.sliderViewModel.sliderValue, preferredTimescale: 600))
+                            let seekTime = CMTime(seconds: self.sliderViewModel.sliderValue, preferredTimescale: 600)
+                            self.player.seek(to: seekTime)
                         }
                     }
                 )
@@ -539,24 +573,25 @@ class CustomMediaPlayerViewController: UIViewController {
     
     @objc func toggleControls() {
         isControlsVisible.toggle()
-        
-        UIView.animate(withDuration: 0.2) {
+
+        UIView.animate(withDuration: 0.2, animations: {
             self.controlsContainerView.alpha = self.isControlsVisible ? 1 : 0
-            
             self.skip85Button.alpha = self.isControlsVisible ? 0.8 : 0
-            
+
             if self.isControlsVisible {
+                // Move Play Next beside playback controls AND align it with Skip 85s button
                 NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
                 NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
                 self.watchNextButton.alpha = 1.0
             } else {
+                // Move Play Next back above the progress bar
                 NSLayoutConstraint.deactivate(self.watchNextButtonControlsConstraints)
                 NSLayoutConstraint.activate(self.watchNextButtonNormalConstraints)
                 self.watchNextButton.alpha = 0.8
             }
-            
+
             self.view.layoutIfNeeded()
-        }
+        })
     }
     
     @objc func seekBackwardLongPress(_ gesture: UILongPressGestureRecognizer) {
