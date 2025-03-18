@@ -56,6 +56,12 @@ class CustomMediaPlayerViewController: UIViewController {
     var blackCoverView: UIView!
     var speedButton: UIButton!
     var skip85Button: UIButton!
+    var qualityButton: UIButton!
+    
+    var isHLSStream: Bool = false
+    var qualities: [(String, String)] = []
+    var currentQualityURL: URL?
+    var baseM3U8URL: URL?
     
     var sliderHostingController: UIHostingController<MusicProgressSlider<Double>>?
     var sliderViewModel = SliderViewModel()
@@ -128,11 +134,16 @@ class CustomMediaPlayerViewController: UIViewController {
         setupDismissButton()
         setupMenuButton()
         setupSpeedButton()
+        setupQualityButton()
         setupSkip85Button()
         setupWatchNextButton()
         addTimeObserver()
         startUpdateTimer()
         setupAudioSession()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.checkForHLSStream()
+        }
         
         player.play()
         
@@ -149,8 +160,16 @@ class CustomMediaPlayerViewController: UIViewController {
         }
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        NotificationCenter.default.addObserver(self, selector: #selector(playerItemDidChange), name: .AVPlayerItemNewAccessLogEntry, object: nil)
+    }
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        
+        NotificationCenter.default.removeObserver(self, name: .AVPlayerItemNewAccessLogEntry, object: nil)
+        
         if let playbackSpeed = player?.rate {
             UserDefaults.standard.set(playbackSpeed, forKey: "lastPlaybackSpeed")
         }
@@ -176,6 +195,15 @@ class CustomMediaPlayerViewController: UIViewController {
                 module: module
             )
             ContinueWatchingManager.shared.save(item: item)
+        }
+    }
+    
+    @objc private func playerItemDidChange() {
+        DispatchQueue.main.async { [weak self] in
+            if let self = self, self.qualityButton.isHidden && self.isHLSStream {
+                self.qualityButton.isHidden = false
+                self.qualityButton.menu = self.qualitySelectionMenu()
+            }
         }
     }
     
@@ -387,12 +415,24 @@ class CustomMediaPlayerViewController: UIViewController {
         
         controlsContainerView.addSubview(speedButton)
         speedButton.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            speedButton.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor, constant: -50),
-            speedButton.trailingAnchor.constraint(equalTo: menuButton.leadingAnchor),
-            speedButton.widthAnchor.constraint(equalToConstant: 40),
-            speedButton.heightAnchor.constraint(equalToConstant: 40)
-        ])
+        
+        guard let sliderView = sliderHostingController?.view else { return }
+        
+        if menuButton.isHidden {
+            NSLayoutConstraint.activate([
+                speedButton.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor, constant: -50),
+                speedButton.trailingAnchor.constraint(equalTo: sliderView.trailingAnchor),
+                speedButton.widthAnchor.constraint(equalToConstant: 40),
+                speedButton.heightAnchor.constraint(equalToConstant: 40)
+            ])
+        } else {
+            NSLayoutConstraint.activate([
+                speedButton.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor, constant: -50),
+                speedButton.trailingAnchor.constraint(equalTo: menuButton.leadingAnchor),
+                speedButton.widthAnchor.constraint(equalToConstant: 40),
+                speedButton.heightAnchor.constraint(equalToConstant: 40)
+            ])
+        }
     }
     
     func setupWatchNextButton() {
@@ -418,7 +458,7 @@ class CustomMediaPlayerViewController: UIViewController {
         ]
         
         watchNextButtonControlsConstraints = [
-            watchNextButton.trailingAnchor.constraint(equalTo: speedButton.leadingAnchor),
+            watchNextButton.trailingAnchor.constraint(equalTo: qualityButton.leadingAnchor),
             watchNextButton.bottomAnchor.constraint(equalTo: skip85Button.bottomAnchor),
             watchNextButton.heightAnchor.constraint(equalToConstant: 50),
             watchNextButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
@@ -449,6 +489,24 @@ class CustomMediaPlayerViewController: UIViewController {
         ])
     }
     
+    private func setupQualityButton() {
+        qualityButton = UIButton(type: .system)
+        qualityButton.setImage(UIImage(systemName: "4k.tv"), for: .normal)
+        qualityButton.tintColor = .white
+        qualityButton.showsMenuAsPrimaryAction = true
+        qualityButton.menu = qualitySelectionMenu()
+        qualityButton.isHidden = true
+        
+        controlsContainerView.addSubview(qualityButton)
+        qualityButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            qualityButton.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor, constant: -50),
+            qualityButton.trailingAnchor.constraint(equalTo: speedButton.leadingAnchor),
+            qualityButton.widthAnchor.constraint(equalToConstant: 40),
+            qualityButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+    }
     
     func updateSubtitleLabelAppearance() {
         subtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
@@ -663,6 +721,173 @@ class CustomMediaPlayerViewController: UIViewController {
             }
         }
         return UIMenu(title: "Playback Speed", children: playbackSpeedActions)
+    }
+    
+    private func parseM3U8(url: URL, completion: @escaping () -> Void) {
+        var request = URLRequest(url: url)
+        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
+        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
+        
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            guard let self = self, let data = data, let content = String(data: data, encoding: .utf8) else {
+                print("Failed to load m3u8 file")
+                DispatchQueue.main.async {
+                    self?.qualities = []
+                    completion()
+                }
+                return
+            }
+            
+            let lines = content.components(separatedBy: .newlines)
+            var qualities: [(String, String)] = []
+            
+            qualities.append(("Auto (Recommended)", url.absoluteString))
+            
+            func getQualityName(for height: Int) -> String {
+                switch height {
+                case 1080...: return "\(height)p (FHD)"
+                case 720..<1080: return "\(height)p (HD)"
+                case 480..<720: return "\(height)p (SD)"
+                default: return "\(height)p"
+                }
+            }
+            
+            for (index, line) in lines.enumerated() {
+                if line.contains("#EXT-X-STREAM-INF"), index + 1 < lines.count {
+                    if let resolutionRange = line.range(of: "RESOLUTION="),
+                       let resolutionEndRange = line[resolutionRange.upperBound...].range(of: ",") ?? line[resolutionRange.upperBound...].range(of: "\n") {
+                        
+                        let resolutionPart = String(line[resolutionRange.upperBound..<resolutionEndRange.lowerBound])
+                        if let heightStr = resolutionPart.components(separatedBy: "x").last,
+                           let height = Int(heightStr) {
+                            
+                            let nextLine = lines[index + 1].trimmingCharacters(in: .whitespacesAndNewlines)
+                            let qualityName = getQualityName(for: height)
+                            
+                            var qualityURL = nextLine
+                            if !nextLine.hasPrefix("http") && nextLine.contains(".m3u8") {
+                                if let baseURL = self.baseM3U8URL {
+                                    let baseURLString = baseURL.deletingLastPathComponent().absoluteString
+                                    qualityURL = URL(string: nextLine, relativeTo: baseURL)?.absoluteString ?? baseURLString + "/" + nextLine
+                                }
+                            }
+                            
+                            if !qualities.contains(where: { $0.0 == qualityName }) {
+                                qualities.append((qualityName, qualityURL))
+                            }
+                        }
+                    }
+                }
+            }
+            
+            DispatchQueue.main.async {
+                let autoQuality = qualities.first
+                var sortedQualities = qualities.dropFirst().sorted { first, second in
+                    let firstHeight = Int(first.0.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 0
+                    let secondHeight = Int(second.0.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 0
+                    return firstHeight > secondHeight
+                }
+                
+                if let auto = autoQuality {
+                    sortedQualities.insert(auto, at: 0)
+                }
+                
+                self.qualities = sortedQualities
+                completion()
+            }
+        }.resume()
+    }
+    
+    private func switchToQuality(urlString: String) {
+        guard let url = URL(string: urlString), currentQualityURL?.absoluteString != urlString else { return }
+        
+        let currentTime = player.currentTime()
+        let wasPlaying = player.rate > 0
+        
+        var request = URLRequest(url: url)
+        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
+        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
+        
+        let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])
+        let playerItem = AVPlayerItem(asset: asset)
+        
+        player.replaceCurrentItem(with: playerItem)
+        
+        player.seek(to: currentTime)
+        if wasPlaying {
+            player.play()
+        }
+        
+        currentQualityURL = url
+        
+        UserDefaults.standard.set(urlString, forKey: "lastSelectedQuality")
+        qualityButton.menu = qualitySelectionMenu()
+        
+        if let selectedQuality = qualities.first(where: { $0.1 == urlString })?.0 {
+            DropManager.shared.showDrop(title: "Quality: \(selectedQuality)", subtitle: "", duration: 0.5, icon: UIImage(systemName: "eye"))
+        }
+    }
+    
+    private func qualitySelectionMenu() -> UIMenu {
+        var menuItems: [UIMenuElement] = []
+        
+        if isHLSStream {
+            if qualities.isEmpty {
+                let loadingAction = UIAction(title: "Loading qualities...", attributes: .disabled) { _ in }
+                menuItems.append(loadingAction)
+            } else {
+                var menuTitle = "Video Quality"
+                if let currentURL = currentQualityURL?.absoluteString,
+                   let selectedQuality = qualities.first(where: { $0.1 == currentURL })?.0 {
+                    menuTitle = "Quality: \(selectedQuality)"
+                }
+                
+                for (name, urlString) in qualities {
+                    let isCurrentQuality = currentQualityURL?.absoluteString == urlString
+                    
+                    let action = UIAction(
+                        title: name,
+                        state: isCurrentQuality ? .on : .off,
+                        handler: { [weak self] _ in
+                            self?.switchToQuality(urlString: urlString)
+                        }
+                    )
+                    menuItems.append(action)
+                }
+                
+                return UIMenu(title: menuTitle, children: menuItems)
+            }
+        } else {
+            let unavailableAction = UIAction(title: "Quality selection unavailable", attributes: .disabled) { _ in }
+            menuItems.append(unavailableAction)
+        }
+        
+        return UIMenu(title: "Video Quality", children: menuItems)
+    }
+    
+    private func checkForHLSStream() {
+        guard let url = URL(string: streamURL) else { return }
+        
+        if url.absoluteString.contains(".m3u8") {
+            isHLSStream = true
+            baseM3U8URL = url
+            currentQualityURL = url
+            
+            parseM3U8(url: url) { [weak self] in
+                guard let self = self else { return }
+                
+                if let lastSelectedQuality = UserDefaults.standard.string(forKey: "lastSelectedQuality"),
+                   self.qualities.contains(where: { $0.1 == lastSelectedQuality }) {
+                    self.switchToQuality(urlString: lastSelectedQuality)
+                }
+                
+                self.qualityButton.isHidden = false
+                self.qualityButton.menu = self.qualitySelectionMenu()
+            }
+        } else {
+            isHLSStream = false
+            qualityButton.isHidden = true
+        }
     }
     
     func buildOptionsMenu() -> UIMenu {
