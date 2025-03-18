@@ -28,6 +28,8 @@ class CustomMediaPlayerViewController: UIViewController {
     var timeObserverToken: Any?
     var inactivityTimer: Timer?
     var updateTimer: Timer?
+    var originalRate: Float = 1.0
+    var holdGesture: UILongPressGestureRecognizer?
     
     var isPlaying = true
     var currentTimeVal: Double = 0.0
@@ -117,6 +119,8 @@ class CustomMediaPlayerViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .black
         
+        setupHoldGesture()
+        setInitialPlayerRate()
         loadSubtitleSettings()
         setupPlayerViewController()
         setupControls()
@@ -135,7 +139,7 @@ class CustomMediaPlayerViewController: UIViewController {
         if let url = subtitlesURL, !url.isEmpty {
             subtitlesLoader.load(from: url)
         }
-
+        
         DispatchQueue.main.async {
             self.isControlsVisible = true
             NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
@@ -147,6 +151,9 @@ class CustomMediaPlayerViewController: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        if let playbackSpeed = player?.rate {
+            UserDefaults.standard.set(playbackSpeed, forKey: "lastPlaybackSpeed")
+        }
         player.pause()
         updateTimer?.invalidate()
         inactivityTimer?.invalidate()
@@ -218,20 +225,16 @@ class CustomMediaPlayerViewController: UIViewController {
         backwardButton.tintColor = .white
         backwardButton.contentMode = .scaleAspectFit
         backwardButton.isUserInteractionEnabled = true
-
-        // 1) Tap gesture → normal skip
+        
         let backwardTap = UITapGestureRecognizer(target: self, action: #selector(seekBackward))
         backwardTap.numberOfTapsRequired = 1
         backwardButton.addGestureRecognizer(backwardTap)
-
-        // 2) Long-press gesture → hold skip
+        
         let backwardLongPress = UILongPressGestureRecognizer(target: self, action: #selector(seekBackwardLongPress(_:)))
-        backwardLongPress.minimumPressDuration = 0.5  // Adjust as needed
+        backwardLongPress.minimumPressDuration = 0.5
         backwardButton.addGestureRecognizer(backwardLongPress)
-
-        // Make sure the tap doesn’t fire if the long-press is recognized
         backwardTap.require(toFail: backwardLongPress)
-
+        
         controlsContainerView.addSubview(backwardButton)
         backwardButton.translatesAutoresizingMaskIntoConstraints = false
         
@@ -245,22 +248,22 @@ class CustomMediaPlayerViewController: UIViewController {
         playPauseButton.translatesAutoresizingMaskIntoConstraints = false
         
         forwardButton = UIImageView(image: UIImage(systemName: "goforward"))
-            forwardButton.tintColor = .white
-            forwardButton.contentMode = .scaleAspectFit
-            forwardButton.isUserInteractionEnabled = true
-
-            let forwardTap = UITapGestureRecognizer(target: self, action: #selector(seekForward))
-            forwardTap.numberOfTapsRequired = 1
-            forwardButton.addGestureRecognizer(forwardTap)
-
-            let forwardLongPress = UILongPressGestureRecognizer(target: self, action: #selector(seekForwardLongPress(_:)))
-            forwardLongPress.minimumPressDuration = 0.5
-            forwardButton.addGestureRecognizer(forwardLongPress)
-
-            forwardTap.require(toFail: forwardLongPress)
-
-            controlsContainerView.addSubview(forwardButton)
-            forwardButton.translatesAutoresizingMaskIntoConstraints = false
+        forwardButton.tintColor = .white
+        forwardButton.contentMode = .scaleAspectFit
+        forwardButton.isUserInteractionEnabled = true
+        
+        let forwardTap = UITapGestureRecognizer(target: self, action: #selector(seekForward))
+        forwardTap.numberOfTapsRequired = 1
+        forwardButton.addGestureRecognizer(forwardTap)
+        
+        let forwardLongPress = UILongPressGestureRecognizer(target: self, action: #selector(seekForwardLongPress(_:)))
+        forwardLongPress.minimumPressDuration = 0.5
+        forwardButton.addGestureRecognizer(forwardLongPress)
+        
+        forwardTap.require(toFail: forwardLongPress)
+        
+        controlsContainerView.addSubview(forwardButton)
+        forwardButton.translatesAutoresizingMaskIntoConstraints = false
         
         let sliderView = MusicProgressSlider(
             value: Binding(get: { self.sliderViewModel.sliderValue },
@@ -285,8 +288,8 @@ class CustomMediaPlayerViewController: UIViewController {
         controlsContainerView.addSubview(sliderHostView)
         
         NSLayoutConstraint.activate([
-            sliderHostView.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: 26),
-            sliderHostView.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -26),
+            sliderHostView.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: 18),
+            sliderHostView.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -18),
             sliderHostView.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor, constant: -20),
             sliderHostView.heightAnchor.constraint(equalToConstant: 30)
         ])
@@ -401,29 +404,27 @@ class CustomMediaPlayerViewController: UIViewController {
         watchNextButton.layer.cornerRadius = 25
         watchNextButton.setTitleColor(.black, for: .normal)
         watchNextButton.addTarget(self, action: #selector(watchNextTapped), for: .touchUpInside)
-        watchNextButton.alpha = 0.0  // Initially invisible but not hidden
+        watchNextButton.alpha = 0.0
         watchNextButton.isHidden = true
-
+        
         view.addSubview(watchNextButton)
         watchNextButton.translatesAutoresizingMaskIntoConstraints = false
-
-        // Normal position (when controls are hidden) - above progress bar
+        
         watchNextButtonNormalConstraints = [
             watchNextButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            watchNextButton.bottomAnchor.constraint(equalTo: sliderHostingController!.view.topAnchor, constant: -10),
+            watchNextButton.bottomAnchor.constraint(equalTo: sliderHostingController!.view.centerYAnchor),
             watchNextButton.heightAnchor.constraint(equalToConstant: 50),
             watchNextButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
         ]
-
-        // Controls visible position (same height as Skip 85s)
+        
         watchNextButtonControlsConstraints = [
-            watchNextButton.trailingAnchor.constraint(equalTo: speedButton.leadingAnchor), // Move left of speed
-            watchNextButton.bottomAnchor.constraint(equalTo: skip85Button.bottomAnchor),  // Tie to Skip 85s button
+            watchNextButton.trailingAnchor.constraint(equalTo: speedButton.leadingAnchor),
+            watchNextButton.bottomAnchor.constraint(equalTo: skip85Button.bottomAnchor),
             watchNextButton.heightAnchor.constraint(equalToConstant: 50),
             watchNextButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
         ]
-
-        NSLayoutConstraint.activate(watchNextButtonNormalConstraints) // Default position
+        
+        NSLayoutConstraint.activate(watchNextButtonNormalConstraints)
     }
     
     func setupSkip85Button() {
@@ -441,13 +442,13 @@ class CustomMediaPlayerViewController: UIViewController {
         skip85Button.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            skip85Button.leadingAnchor.constraint(equalTo: sliderHostingController!.view.leadingAnchor), // Align with progress bar start
+            skip85Button.leadingAnchor.constraint(equalTo: sliderHostingController!.view.leadingAnchor),
             skip85Button.bottomAnchor.constraint(equalTo: sliderHostingController!.view.topAnchor, constant: -3),
             skip85Button.heightAnchor.constraint(equalToConstant: 50),
             skip85Button.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
         ])
     }
-
+    
     
     func updateSubtitleLabelAppearance() {
         subtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
@@ -478,39 +479,36 @@ class CustomMediaPlayerViewController: UIViewController {
         timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             guard let self = self, let currentItem = self.player.currentItem,
                   currentItem.duration.seconds.isFinite else { return }
-
+            
             let currentDuration = currentItem.duration.seconds
-            if currentDuration.isNaN || currentDuration <= 0 { return }  // Prevent invalid durations
-
+            if currentDuration.isNaN || currentDuration <= 0 { return }
+            
             self.currentTimeVal = time.seconds
             self.duration = currentDuration
-
-            // Ensure progress bar values remain within range
+            
             if !self.isSliderEditing {
                 self.sliderViewModel.sliderValue = max(0, min(self.currentTimeVal, self.duration))
             }
-
+            
             UserDefaults.standard.set(self.currentTimeVal, forKey: "lastPlayedTime_\(self.fullUrl)")
             UserDefaults.standard.set(self.duration, forKey: "totalTime_\(self.fullUrl)")
-
-            // Subtitle Handling
+            
             if let currentCue = self.subtitlesLoader.cues.first(where: { self.currentTimeVal >= $0.startTime && self.currentTimeVal <= $0.endTime }) {
                 self.subtitleLabel.text = currentCue.text.strippedHTML
             } else {
                 self.subtitleLabel.text = ""
             }
-
-            // --- WATCH NEXT BUTTON LOGIC ---
+            
             let isNearEnd = (self.duration - self.currentTimeVal) <= (self.duration * 0.10)
-                            && self.currentTimeVal != self.duration
-                            && self.showWatchNextButton
-                            && self.duration != 0
-
+            && self.currentTimeVal != self.duration
+            && self.showWatchNextButton
+            && self.duration != 0
+            
             if isNearEnd {
                 if !self.isWatchNextVisible {
                     self.isWatchNextVisible = true
                     self.watchNextButton.isHidden = false
-
+                    
                     if self.isControlsVisible {
                         self.watchNextButton.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
                         self.watchNextButton.alpha = 0.0
@@ -533,7 +531,6 @@ class CustomMediaPlayerViewController: UIViewController {
                     }
                 }
             } else {
-                // Hide the button if playback goes below 90%
                 self.isWatchNextVisible = false
                 UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
                     self.watchNextButton.alpha = 0.0
@@ -541,8 +538,7 @@ class CustomMediaPlayerViewController: UIViewController {
                     self.watchNextButton.isHidden = true
                 })
             }
-
-            // --- Update Slider in UI ---
+            
             DispatchQueue.main.async {
                 self.sliderHostingController?.rootView = MusicProgressSlider(
                     value: Binding(get: { max(0, min(self.sliderViewModel.sliderValue, self.duration)) },
@@ -573,37 +569,34 @@ class CustomMediaPlayerViewController: UIViewController {
     
     @objc func toggleControls() {
         isControlsVisible.toggle()
-
+        
         UIView.animate(withDuration: 0.2, animations: {
             self.controlsContainerView.alpha = self.isControlsVisible ? 1 : 0
             self.skip85Button.alpha = self.isControlsVisible ? 0.8 : 0
-
+            
             if self.isControlsVisible {
-                // Move Play Next beside playback controls AND align it with Skip 85s button
                 NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
                 NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
                 self.watchNextButton.alpha = 1.0
             } else {
-                // Move Play Next back above the progress bar
                 NSLayoutConstraint.deactivate(self.watchNextButtonControlsConstraints)
                 NSLayoutConstraint.activate(self.watchNextButtonNormalConstraints)
                 self.watchNextButton.alpha = 0.8
             }
-
+            
             self.view.layoutIfNeeded()
         })
     }
     
     @objc func seekBackwardLongPress(_ gesture: UILongPressGestureRecognizer) {
-        // Only do the skip when the gesture first begins
         if gesture.state == .began {
             let holdValue = UserDefaults.standard.double(forKey: "skipIncrementHold")
-            let finalSkip = holdValue > 0 ? holdValue : 30  // fallback to 30 if not set
+            let finalSkip = holdValue > 0 ? holdValue : 30
             currentTimeVal = max(currentTimeVal - finalSkip, 0)
             player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
         }
     }
-
+    
     @objc func seekForwardLongPress(_ gesture: UILongPressGestureRecognizer) {
         if gesture.state == .began {
             let holdValue = UserDefaults.standard.double(forKey: "skipIncrementHold")
@@ -619,7 +612,7 @@ class CustomMediaPlayerViewController: UIViewController {
         currentTimeVal = max(currentTimeVal - finalSkip, 0)
         player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
     }
-
+    
     @objc func seekForward() {
         let skipValue = UserDefaults.standard.double(forKey: "skipIncrement")
         let finalSkip = skipValue > 0 ? skipValue : 10
@@ -872,6 +865,43 @@ class CustomMediaPlayerViewController: UIViewController {
             try audioSession.overrideOutputAudioPort(.speaker)
         } catch {
             Logger.shared.log("Failed to set up AVAudioSession: \(error)")
+        }
+    }
+    
+    private func setupHoldGesture() {
+        holdGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleHoldGesture(_:)))
+        holdGesture?.minimumPressDuration = 0.5
+        if let holdGesture = holdGesture {
+            view.addGestureRecognizer(holdGesture)
+        }
+    }
+    
+    @objc private func handleHoldGesture(_ gesture: UILongPressGestureRecognizer) {
+        switch gesture.state {
+        case .began:
+            beginHoldSpeed()
+        case .ended, .cancelled:
+            endHoldSpeed()
+        default:
+            break
+        }
+    }
+    
+    private func beginHoldSpeed() {
+        guard let player = player else { return }
+        originalRate = player.rate
+        let holdSpeed = UserDefaults.standard.float(forKey: "holdSpeedPlayer")
+        player.rate = holdSpeed > 0 ? holdSpeed : 2.0
+    }
+    
+    private func endHoldSpeed() {
+        player?.rate = originalRate
+    }
+    
+    private func setInitialPlayerRate() {
+        if UserDefaults.standard.bool(forKey: "rememberPlaySpeed") {
+            let lastPlayedSpeed = UserDefaults.standard.float(forKey: "lastPlaybackSpeed")
+            player?.rate = lastPlayedSpeed > 0 ? lastPlayedSpeed : 1.0
         }
     }
 }
