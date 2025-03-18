@@ -81,7 +81,6 @@ struct SettingsViewGeneral: View {
             
             Section(header: Text("Media Grid Layout"), footer: Text("Adjust the number of media items per row in portrait and landscape modes.")) {
                 HStack {
-                    Spacer()
                     if UIDevice.current.userInterfaceIdiom == .pad {
                         Picker("Portrait Columns", selection: $mediaColumnsPortrait) {
                             ForEach(1..<6) { i in
@@ -99,7 +98,6 @@ struct SettingsViewGeneral: View {
                     }
                 }
                 HStack {
-                    Spacer()
                     if UIDevice.current.userInterfaceIdiom == .pad {
                         Picker("Landscape Columns", selection: $mediaColumnsLandscape) {
                             ForEach(2..<9) { i in
