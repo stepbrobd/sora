@@ -584,7 +584,7 @@ class CustomMediaPlayerViewController: UIViewController {
                 )
             }
             
-            // Watch Next Button Logic:
+            // --- Watch Next Button Logic ---
             let hideNext = UserDefaults.standard.bool(forKey: "hideNextButton")
             let isNearEnd = (self.duration - self.currentTimeVal) <= (self.duration * 0.10)
                 && self.currentTimeVal != self.duration
@@ -592,7 +592,7 @@ class CustomMediaPlayerViewController: UIViewController {
                 && self.duration != 0
             
             if isNearEnd {
-                // First appearance: show the button in its normal position.
+                // First appearance: show the button in its "normal" position.
                 if !self.isWatchNextVisible {
                     self.isWatchNextVisible = true
                     self.watchNextButtonAppearedAt = self.currentTimeVal
@@ -613,19 +613,34 @@ class CustomMediaPlayerViewController: UIViewController {
                     }, completion: nil)
                 }
                 
-                // When 5 seconds have elapsed from when the button first appeared:
-                if let appearedAt = self.watchNextButtonAppearedAt,
-                   (self.currentTimeVal - appearedAt) >= 5,
-                   !self.isWatchNextRepositioned {
-                    // Fade out the button first (even if controls are visible).
-                    UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
-                        self.watchNextButton.alpha = 0.0
-                    }, completion: { _ in
-                        self.watchNextButton.isHidden = true
-                        // Then lock it to the controls-attached constraints.
+                if hideNext {
+                    // When the toggle is on: after 5 seconds, fade out then lock.
+                    if let appearedAt = self.watchNextButtonAppearedAt,
+                       (self.currentTimeVal - appearedAt) >= 5,
+                       !self.isWatchNextRepositioned {
+                        // First fade out.
+                        UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
+                            self.watchNextButton.alpha = 0.0
+                        }, completion: { _ in
+                            self.watchNextButton.isHidden = true
+                            // Then lock it to the controls-attached constraints.
+                            NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
+                            NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
+                            self.isWatchNextRepositioned = true
+                        })
+                    }
+                } else {
+                    // When the toggle is off: always keep the button visible and simply update constraints.
+                    if self.isControlsVisible {
                         NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
                         NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
-                        self.isWatchNextRepositioned = true
+                    } else {
+                        NSLayoutConstraint.deactivate(self.watchNextButtonControlsConstraints)
+                        NSLayoutConstraint.activate(self.watchNextButtonNormalConstraints)
+                    }
+                    self.watchNextButton.isHidden = false
+                    UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
+                        self.watchNextButton.alpha = 0.8
                     })
                 }
             } else {
@@ -641,7 +656,6 @@ class CustomMediaPlayerViewController: UIViewController {
             }
         }
     }
-
 
     
     func repositionWatchNextButton() {
@@ -669,31 +683,36 @@ class CustomMediaPlayerViewController: UIViewController {
     
     @objc func toggleControls() {
         isControlsVisible.toggle()
+        // Read the toggle value.
+        let hideNext = UserDefaults.standard.bool(forKey: "hideNextButton")
         UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
             self.controlsContainerView.alpha = self.isControlsVisible ? 1 : 0
             self.skip85Button.alpha = self.isControlsVisible ? 0.8 : 0
             
             if self.isControlsVisible {
-                // Always use the controls-attached constraints.
+                // When controls are shown, always use the controls-attached constraints.
                 NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
                 NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
-                if self.isWatchNextRepositioned || self.isWatchNextVisible {
-                    self.watchNextButton.isHidden = false
-                    UIView.animate(withDuration: 0.5, animations: {
-                        self.watchNextButton.alpha = 0.8
-                    })
-                }
+                self.watchNextButton.isHidden = false
+                UIView.animate(withDuration: 0.5, animations: {
+                    self.watchNextButton.alpha = 0.8
+                })
             } else {
                 // When controls are hidden:
-                if !self.isWatchNextRepositioned && self.isWatchNextVisible {
-                    NSLayoutConstraint.deactivate(self.watchNextButtonControlsConstraints)
-                    NSLayoutConstraint.activate(self.watchNextButtonNormalConstraints)
-                }
-                if self.isWatchNextRepositioned {
+                if hideNext && self.isWatchNextRepositioned {
+                    // If the toggle is on and the button is locked, fade it out.
                     UIView.animate(withDuration: 0.5, animations: {
                         self.watchNextButton.alpha = 0.0
                     }, completion: { _ in
                         self.watchNextButton.isHidden = true
+                    })
+                } else {
+                    // Otherwise, update to the normal (hidden-controls) constraints and keep visible.
+                    NSLayoutConstraint.deactivate(self.watchNextButtonControlsConstraints)
+                    NSLayoutConstraint.activate(self.watchNextButtonNormalConstraints)
+                    self.watchNextButton.isHidden = false
+                    UIView.animate(withDuration: 0.5, animations: {
+                        self.watchNextButton.alpha = 0.8
                     })
                 }
             }
