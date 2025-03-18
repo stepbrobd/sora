@@ -45,7 +45,7 @@ class LibraryManager: ObservableObject {
     
     private func loadBookmarks() {
         guard let data = UserDefaults.standard.data(forKey: bookmarksKey) else {
-            Logger.shared.log("No bookmarks data found in UserDefaults.", type: "Error")
+            Logger.shared.log("No bookmarks data found in UserDefaults.", type: "Debug")
             return
         }
         

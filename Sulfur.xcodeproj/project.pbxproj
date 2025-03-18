@@ -361,6 +361,15 @@
 			path = DetailsView;
 			sourceTree = "<group>";
 		};
+		1384DCDF2D89BE870094797A /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				13CBA0872D60F19C00EFE70A /* VTTSubtitlesLoader.swift */,
+				13DB7CC22D7D99C0004371D3 /* SubtitleSettingsManager.swift */,
+			);
+			path = Helpers;
+			sourceTree = "<group>";
+		};
 		138AA1B52D2D66EC0021F9DF /* EpisodeCell */ = {
 			isa = PBXGroup;
 			children = (
@@ -425,10 +434,9 @@
 		13EA2BD02D32D97400C1EBD7 /* CustomPlayer */ = {
 			isa = PBXGroup;
 			children = (
+				1384DCDF2D89BE870094797A /* Helpers */,
 				13EA2BD22D32D97400C1EBD7 /* Components */,
 				13EA2BD12D32D97400C1EBD7 /* CustomPlayer.swift */,
-				13CBA0872D60F19C00EFE70A /* VTTSubtitlesLoader.swift */,
-				13DB7CC22D7D99C0004371D3 /* SubtitleSettingsManager.swift */,
 			);
 			path = CustomPlayer;
 			sourceTree = "<group>";
