@@ -36,7 +36,13 @@ class CustomMediaPlayerViewController: UIViewController {
     var duration: Double = 0.0
     var isVideoLoaded = false
     var showWatchNextButton = true
+    
+    var watchNextButtonTimer: Timer?
+    var isWatchNextRepositioned: Bool = false
     var isWatchNextVisible: Bool = false
+    var lastDuration: Double = 0.0
+    var watchNextButtonAppearedAt: Double?
+
     
     var subtitleForegroundColor: String = "white"
     var subtitleBackgroundEnabled: Bool = true
@@ -535,7 +541,8 @@ class CustomMediaPlayerViewController: UIViewController {
     func addTimeObserver() {
         let interval = CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
         timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
-            guard let self = self, let currentItem = self.player.currentItem,
+            guard let self = self,
+                  let currentItem = self.player.currentItem,
                   currentItem.duration.seconds.isFinite else { return }
             
             let currentDuration = currentItem.duration.seconds
@@ -557,46 +564,7 @@ class CustomMediaPlayerViewController: UIViewController {
                 self.subtitleLabel.text = ""
             }
             
-            let isNearEnd = (self.duration - self.currentTimeVal) <= (self.duration * 0.10)
-            && self.currentTimeVal != self.duration
-            && self.showWatchNextButton
-            && self.duration != 0
-            
-            if isNearEnd {
-                if !self.isWatchNextVisible {
-                    self.isWatchNextVisible = true
-                    self.watchNextButton.isHidden = false
-                    
-                    if self.isControlsVisible {
-                        self.watchNextButton.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-                        self.watchNextButton.alpha = 0.0
-                        
-                        UIView.animate(withDuration: 0.7, delay: 0, options: .curveEaseInOut, animations: {
-                            NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
-                            NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
-                            self.view.layoutIfNeeded()
-                            self.watchNextButton.alpha = 0.8
-                            self.watchNextButton.transform = .identity
-                        })
-                    } else {
-                        self.watchNextButton.alpha = 0.0
-                        UIView.animate(withDuration: 0.7, delay: 0, options: .curveEaseInOut, animations: {
-                            NSLayoutConstraint.deactivate(self.watchNextButtonControlsConstraints)
-                            NSLayoutConstraint.activate(self.watchNextButtonNormalConstraints)
-                            self.view.layoutIfNeeded()
-                            self.watchNextButton.alpha = 0.8
-                        })
-                    }
-                }
-            } else {
-                self.isWatchNextVisible = false
-                UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
-                    self.watchNextButton.alpha = 0.0
-                }, completion: { _ in
-                    self.watchNextButton.isHidden = true
-                })
-            }
-            
+            // ORIGINAL PROGRESS BAR CODE:
             DispatchQueue.main.async {
                 self.sliderHostingController?.rootView = MusicProgressSlider(
                     value: Binding(get: { max(0, min(self.sliderViewModel.sliderValue, self.duration)) },
@@ -615,8 +583,82 @@ class CustomMediaPlayerViewController: UIViewController {
                     }
                 )
             }
+            
+            // Watch Next Button Logic:
+            let hideNext = UserDefaults.standard.bool(forKey: "hideNextButton")
+            let isNearEnd = (self.duration - self.currentTimeVal) <= (self.duration * 0.10)
+                && self.currentTimeVal != self.duration
+                && self.showWatchNextButton
+                && self.duration != 0
+            
+            if isNearEnd {
+                // First appearance: show the button in its normal position.
+                if !self.isWatchNextVisible {
+                    self.isWatchNextVisible = true
+                    self.watchNextButtonAppearedAt = self.currentTimeVal
+                    
+                    // Choose constraints based on current controls visibility.
+                    if self.isControlsVisible {
+                        NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
+                        NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
+                    } else {
+                        NSLayoutConstraint.deactivate(self.watchNextButtonControlsConstraints)
+                        NSLayoutConstraint.activate(self.watchNextButtonNormalConstraints)
+                    }
+                    // Soft fade-in.
+                    self.watchNextButton.isHidden = false
+                    self.watchNextButton.alpha = 0.0
+                    UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
+                        self.watchNextButton.alpha = 0.8
+                    }, completion: nil)
+                }
+                
+                // When 5 seconds have elapsed from when the button first appeared:
+                if let appearedAt = self.watchNextButtonAppearedAt,
+                   (self.currentTimeVal - appearedAt) >= 5,
+                   !self.isWatchNextRepositioned {
+                    // Fade out the button first (even if controls are visible).
+                    UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
+                        self.watchNextButton.alpha = 0.0
+                    }, completion: { _ in
+                        self.watchNextButton.isHidden = true
+                        // Then lock it to the controls-attached constraints.
+                        NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
+                        NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
+                        self.isWatchNextRepositioned = true
+                    })
+                }
+            } else {
+                // Not near end: reset the watch-next button state.
+                self.watchNextButtonAppearedAt = nil
+                self.isWatchNextVisible = false
+                self.isWatchNextRepositioned = false
+                UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
+                    self.watchNextButton.alpha = 0.0
+                }, completion: { _ in
+                    self.watchNextButton.isHidden = true
+                })
+            }
         }
     }
+
+
+    
+    func repositionWatchNextButton() {
+        self.isWatchNextRepositioned = true
+        // Update constraints so the button is now attached next to the playback controls.
+        UIView.animate(withDuration: 0.3, animations: {
+            NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
+            NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
+            self.view.layoutIfNeeded()
+            self.watchNextButton.alpha = 0.0
+        }, completion: { _ in
+            self.watchNextButton.isHidden = true
+        })
+        self.watchNextButtonTimer?.invalidate()
+        self.watchNextButtonTimer = nil
+    }
+
     
     func startUpdateTimer() {
         updateTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
@@ -627,21 +669,34 @@ class CustomMediaPlayerViewController: UIViewController {
     
     @objc func toggleControls() {
         isControlsVisible.toggle()
-        
-        UIView.animate(withDuration: 0.2, animations: {
+        UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
             self.controlsContainerView.alpha = self.isControlsVisible ? 1 : 0
             self.skip85Button.alpha = self.isControlsVisible ? 0.8 : 0
             
             if self.isControlsVisible {
+                // Always use the controls-attached constraints.
                 NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
                 NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
-                self.watchNextButton.alpha = 1.0
+                if self.isWatchNextRepositioned || self.isWatchNextVisible {
+                    self.watchNextButton.isHidden = false
+                    UIView.animate(withDuration: 0.5, animations: {
+                        self.watchNextButton.alpha = 0.8
+                    })
+                }
             } else {
-                NSLayoutConstraint.deactivate(self.watchNextButtonControlsConstraints)
-                NSLayoutConstraint.activate(self.watchNextButtonNormalConstraints)
-                self.watchNextButton.alpha = 0.8
+                // When controls are hidden:
+                if !self.isWatchNextRepositioned && self.isWatchNextVisible {
+                    NSLayoutConstraint.deactivate(self.watchNextButtonControlsConstraints)
+                    NSLayoutConstraint.activate(self.watchNextButtonNormalConstraints)
+                }
+                if self.isWatchNextRepositioned {
+                    UIView.animate(withDuration: 0.5, animations: {
+                        self.watchNextButton.alpha = 0.0
+                    }, completion: { _ in
+                        self.watchNextButton.isHidden = true
+                    })
+                }
             }
-            
             self.view.layoutIfNeeded()
         })
     }
