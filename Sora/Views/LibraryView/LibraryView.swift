@@ -205,6 +205,8 @@ struct ContinueWatchingCell: View {
     var markAsWatched: () -> Void
     var removeItem: () -> Void
     
+    @State private var currentProgress: Double = 0.0
+    
     var body: some View {
         Button(action: {
             if UserDefaults.standard.string(forKey: "externalPlayer") == "Default" {
@@ -271,7 +273,7 @@ struct ContinueWatchingCell: View {
                             .blur(radius: 3)
                             .frame(height: 30)
                         
-                        ProgressView(value: item.progress)
+                        ProgressView(value: currentProgress)
                             .progressViewStyle(LinearProgressViewStyle(tint: .white))
                             .padding(.horizontal, 8)
                             .scaleEffect(x: 1, y: 1.5, anchor: .center)
@@ -301,6 +303,23 @@ struct ContinueWatchingCell: View {
             Button(role: .destructive, action: { removeItem() }) {
                 Label("Remove Item", systemImage: "trash")
             }
+        }
+        .onAppear {
+            updateProgress()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            updateProgress()
+        }
+    }
+    
+    private func updateProgress() {
+        let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(item.fullUrl)")
+        let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(item.fullUrl)")
+        
+        if totalTime > 0 {
+            currentProgress = lastPlayedTime / totalTime
+        } else {
+            currentProgress = item.progress
         }
     }
 }
