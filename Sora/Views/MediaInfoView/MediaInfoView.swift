@@ -38,6 +38,7 @@ struct MediaInfoView: View {
     
     @State private var selectedEpisodeNumber: Int = 0
     @State private var selectedEpisodeImage: String = ""
+    @State private var selectedSeason: Int = 0
     
     @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
     @AppStorage("episodeChunkSize") private var episodeChunkSize: Int = 100
@@ -47,6 +48,10 @@ struct MediaInfoView: View {
     @EnvironmentObject private var libraryManager: LibraryManager
     
     @State private var selectedRange: Range<Int> = 0..<100
+    
+    private var isGroupedBySeasons: Bool {
+        return groupedEpisodes().count > 1
+    }
     
     var body: some View {
         Group {
@@ -65,9 +70,10 @@ struct MediaInfoView: View {
                                         .shimmering()
                                 }
                                 .resizable()
-                                .aspectRatio(2/3, contentMode: .fit)
-                                .cornerRadius(10)
+                                .aspectRatio(contentMode: .fill)
                                 .frame(width: 150, height: 225)
+                                .clipped()
+                                .cornerRadius(10)
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(title)
@@ -189,12 +195,10 @@ struct MediaInfoView: View {
                                     
                                     Spacer()
                                     
-                                    if episodeLinks.count > episodeChunkSize {
+                                    if !isGroupedBySeasons, episodeLinks.count > episodeChunkSize {
                                         Menu {
                                             ForEach(generateRanges(), id: \.self) { range in
-                                                Button(action: {
-                                                    selectedRange = range
-                                                }) {
+                                                Button(action: { selectedRange = range }) {
                                                     Text("\(range.lowerBound + 1)-\(range.upperBound)")
                                                 }
                                             }
@@ -203,44 +207,101 @@ struct MediaInfoView: View {
                                                 .font(.system(size: 14))
                                                 .foregroundColor(.accentColor)
                                         }
+                                    } else if isGroupedBySeasons {
+                                        let seasons = groupedEpisodes()
+                                        if seasons.count > 1 {
+                                            Menu {
+                                                ForEach(0..<seasons.count, id: \.self) { index in
+                                                    Button(action: { selectedSeason = index }) {
+                                                        Text("Season \(index + 1)")
+                                                    }
+                                                }
+                                            } label: {
+                                                Text("Season \(selectedSeason + 1)")
+                                                    .font(.system(size: 14))
+                                                    .foregroundColor(.accentColor)
+                                            }
+                                        }
                                     }
                                 }
-                                
-                                ForEach(episodeLinks.indices.filter { selectedRange.contains($0) }, id: \.self) { i in
-                                    let ep = episodeLinks[i]
-                                    let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-                                    let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-                                    let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
-                                    
-                                    EpisodeCell(
-                                        episodeIndex: i,
-                                        episode: ep.href,
-                                        episodeID: ep.number - 1,
-                                        progress: progress,
-                                        itemID: itemID ?? 0,
-                                        onTap: { imageUrl in
-                                            if !isFetchingEpisode {
-                                                selectedEpisodeNumber = ep.number
-                                                selectedEpisodeImage = imageUrl
-                                                fetchStream(href: ep.href)
-                                                AnalyticsManager.shared.sendEvent(
-                                                    event: "watch",
-                                                    additionalData: ["title": title, "episode": ep.number]
-                                                )
-                                            }
-                                        },
-                                        onMarkAllPrevious: {
-                                            for idx in 0..<i {
-                                                let href = episodeLinks[idx].href
-                                                UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(href)")
-                                                UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(href)")
-                                            }
-                                            refreshTrigger.toggle()
-                                            Logger.shared.log("Marked \(ep.number) episodes watched within anime \"\(title)\".", type: "General")
+                                if isGroupedBySeasons {
+                                    let seasons = groupedEpisodes()
+                                    if !seasons.isEmpty, selectedSeason < seasons.count {
+                                        ForEach(seasons[selectedSeason]) { ep in
+                                            let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+                                            let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+                                            let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
+                                            
+                                            EpisodeCell(
+                                                episodeIndex: selectedSeason,
+                                                episode: ep.href,
+                                                episodeID: ep.number - 1,
+                                                progress: progress,
+                                                itemID: itemID ?? 0,
+                                                onTap: { imageUrl in
+                                                    if !isFetchingEpisode {
+                                                        selectedEpisodeNumber = ep.number
+                                                        selectedEpisodeImage = imageUrl
+                                                        fetchStream(href: ep.href)
+                                                        AnalyticsManager.shared.sendEvent(
+                                                            event: "watch",
+                                                            additionalData: ["title": title, "episode": ep.number]
+                                                        )
+                                                    }
+                                                },
+                                                onMarkAllPrevious: {
+                                                    for ep2 in seasons[selectedSeason] {
+                                                        let href = ep2.href
+                                                        UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(href)")
+                                                        UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(href)")
+                                                    }
+                                                    refreshTrigger.toggle()
+                                                    Logger.shared.log("Marked episodes watched within season \(selectedSeason + 1) of \"\(title)\".", type: "General")
+                                                }
+                                            )
+                                            .id(refreshTrigger)
+                                            .disabled(isFetchingEpisode)
                                         }
-                                    )
-                                    .id(refreshTrigger)
-                                    .disabled(isFetchingEpisode)
+                                    } else {
+                                        Text("No episodes available")
+                                    }
+                                } else {
+                                    ForEach(episodeLinks.indices.filter { selectedRange.contains($0) }, id: \.self) { i in
+                                        let ep = episodeLinks[i]
+                                        let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+                                        let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+                                        let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
+                                        
+                                        EpisodeCell(
+                                            episodeIndex: i,
+                                            episode: ep.href,
+                                            episodeID: ep.number - 1,
+                                            progress: progress,
+                                            itemID: itemID ?? 0,
+                                            onTap: { imageUrl in
+                                                if !isFetchingEpisode {
+                                                    selectedEpisodeNumber = ep.number
+                                                    selectedEpisodeImage = imageUrl
+                                                    fetchStream(href: ep.href)
+                                                    AnalyticsManager.shared.sendEvent(
+                                                        event: "watch",
+                                                        additionalData: ["title": title, "episode": ep.number]
+                                                    )
+                                                }
+                                            },
+                                            onMarkAllPrevious: {
+                                                for idx in 0..<i {
+                                                    let href = episodeLinks[idx].href
+                                                    UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(href)")
+                                                    UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(href)")
+                                                }
+                                                refreshTrigger.toggle()
+                                                Logger.shared.log("Marked \(ep.number - 1) episodes watched within anime \"\(title)\".", type: "General")
+                                            }
+                                        )
+                                        .id(refreshTrigger)
+                                        .disabled(isFetchingEpisode)
+                                    }
                                 }
                             }
                         } else {
@@ -369,6 +430,25 @@ struct MediaInfoView: View {
         
         return ranges
     }
+    
+    private func groupedEpisodes() -> [[EpisodeLink]] {
+        guard !episodeLinks.isEmpty else { return [] }
+        var groups: [[EpisodeLink]] = []
+        var currentGroup: [EpisodeLink] = [episodeLinks[0]]
+        
+        for ep in episodeLinks.dropFirst() {
+            if let last = currentGroup.last, ep.number < last.number {
+                groups.append(currentGroup)
+                currentGroup = [ep]
+            } else {
+                currentGroup.append(ep)
+            }
+        }
+        
+        groups.append(currentGroup)
+        return groups
+    }
+
     
     func fetchDetails() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -511,13 +591,6 @@ struct MediaInfoView: View {
     
     func playStream(url: String, fullURL: String, subtitles: String? = nil) {
         DispatchQueue.main.async {
-            guard let streamURL = URL(string: url) else {
-                Logger.shared.log("Invalid stream URL: \(url)", type: "Error")
-                handleStreamFailure()
-                return
-            }
-            let subtitleFileURL = subtitles != nil ? URL(string: subtitles!) : nil
-            
             let externalPlayer = UserDefaults.standard.string(forKey: "externalPlayer") ?? "Sora"
             var scheme: String?
             

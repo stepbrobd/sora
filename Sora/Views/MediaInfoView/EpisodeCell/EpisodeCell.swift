@@ -80,11 +80,15 @@ struct EpisodeCell: View {
             }
         }
         .onAppear {
+            updateProgress()
+            
             if UserDefaults.standard.object(forKey: "fetchEpisodeMetadata") == nil
                 || UserDefaults.standard.bool(forKey: "fetchEpisodeMetadata") {
                 fetchEpisodeDetails()
             }
-            currentProgress = progress
+        }
+        .onChange(of: progress) { newProgress in
+            updateProgress()
         }
         .onTapGesture {
             onTap(episodeImageUrl)

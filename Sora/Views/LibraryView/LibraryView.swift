@@ -12,7 +12,13 @@ struct LibraryView: View {
     @EnvironmentObject private var libraryManager: LibraryManager
     @EnvironmentObject private var moduleManager: ModuleManager
     
+    @AppStorage("mediaColumnsPortrait") private var mediaColumnsPortrait: Int = 2
+    @AppStorage("mediaColumnsLandscape") private var mediaColumnsLandscape: Int = 4
+    
+    @Environment(\.verticalSizeClass) var verticalSizeClass
+    
     @State private var continueWatchingItems: [ContinueWatchingItem] = []
+    @State private var isLandscape: Bool = UIDevice.current.orientation.isLandscape
     
     private let columns = [
         GridItem(.adaptive(minimum: 150), spacing: 12)
@@ -21,6 +27,8 @@ struct LibraryView: View {
     var body: some View {
         NavigationView {
             ScrollView {
+                let columnsCount = determineColumns()
+                
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Continue Watching")
                         .font(.title2)
@@ -67,22 +75,27 @@ struct LibraryView: View {
                         .padding()
                         .frame(maxWidth: .infinity)
                     } else {
-                        LazyVGrid(columns: columns, spacing: 12) {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: columnsCount), spacing: 12) {
+                            let totalSpacing: CGFloat = 16 * CGFloat(columnsCount + 1)
+                            let availableWidth = UIScreen.main.bounds.width - totalSpacing
+                            let cellWidth = availableWidth / CGFloat(columnsCount)
+                            
                             ForEach(libraryManager.bookmarks) { item in
                                 if let module = moduleManager.modules.first(where: { $0.id.uuidString == item.moduleId }) {
                                     NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: module)) {
-                                        VStack {
+                                        VStack(alignment: .leading) {
                                             ZStack {
                                                 KFImage(URL(string: item.imageUrl))
                                                     .placeholder {
                                                         RoundedRectangle(cornerRadius: 10)
                                                             .fill(Color.gray.opacity(0.3))
-                                                            .frame(width: 150, height: 225)
+                                                            .aspectRatio(2/3, contentMode: .fit)
                                                             .shimmering()
                                                     }
                                                     .resizable()
-                                                    .aspectRatio(2/3, contentMode: .fill)
-                                                    .frame(width: 150, height: 225)
+                                                    .aspectRatio(contentMode: .fill)
+                                                    .frame(height: cellWidth * 3 / 2)
+                                                    .frame(maxWidth: cellWidth)
                                                     .cornerRadius(10)
                                                     .clipped()
                                                     .overlay(
@@ -94,18 +107,30 @@ struct LibraryView: View {
                                                         alignment: .topLeading
                                                     )
                                             }
-                                            
                                             Text(item.title)
                                                 .font(.subheadline)
                                                 .foregroundColor(.primary)
-                                                .lineLimit(2)
+                                                .lineLimit(1)
                                                 .multilineTextAlignment(.leading)
+                                        }
+                                    }
+                                    .contextMenu {
+                                        Button(role: .destructive, action: {
+                                            libraryManager.removeBookmark(item: item)
+                                        }) {
+                                            Label("Remove from Bookmarks", systemImage: "trash")
                                         }
                                     }
                                 }
                             }
                         }
                         .padding(.horizontal, 20)
+                        .onAppear {
+                            updateOrientation()
+                        }
+                        .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+                            updateOrientation()
+                        }
                     }
                 }
                 .padding(.vertical, 20)
@@ -135,6 +160,20 @@ struct LibraryView: View {
         ContinueWatchingManager.shared.remove(item: item)
         continueWatchingItems.removeAll { $0.id == item.id }
     }
+    
+    private func updateOrientation() {
+        DispatchQueue.main.async {
+            isLandscape = UIDevice.current.orientation.isLandscape
+        }
+    }
+    
+    private func determineColumns() -> Int {
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            return isLandscape ? mediaColumnsLandscape : mediaColumnsPortrait
+        } else {
+            return verticalSizeClass == .compact ? mediaColumnsLandscape : mediaColumnsPortrait
+        }
+    }
 }
 
 struct ContinueWatchingSection: View {
@@ -147,7 +186,7 @@ struct ContinueWatchingSection: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(Array(items.reversed())) { item in
-                        ContinueWatchingCell(item: item,markAsWatched: {
+                        ContinueWatchingCell(item: item, markAsWatched: {
                             markAsWatched(item)
                         }, removeItem: {
                             removeItem(item)
@@ -165,6 +204,8 @@ struct ContinueWatchingCell: View {
     let item: ContinueWatchingItem
     var markAsWatched: () -> Void
     var removeItem: () -> Void
+    
+    @State private var currentProgress: Double = 0.0
     
     var body: some View {
         Button(action: {
@@ -232,7 +273,7 @@ struct ContinueWatchingCell: View {
                             .blur(radius: 3)
                             .frame(height: 30)
                         
-                        ProgressView(value: item.progress)
+                        ProgressView(value: currentProgress)
                             .progressViewStyle(LinearProgressViewStyle(tint: .white))
                             .padding(.horizontal, 8)
                             .scaleEffect(x: 1, y: 1.5, anchor: .center)
@@ -262,6 +303,23 @@ struct ContinueWatchingCell: View {
             Button(role: .destructive, action: { removeItem() }) {
                 Label("Remove Item", systemImage: "trash")
             }
+        }
+        .onAppear {
+            updateProgress()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            updateProgress()
+        }
+    }
+    
+    private func updateProgress() {
+        let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(item.fullUrl)")
+        let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(item.fullUrl)")
+        
+        if totalTime > 0 {
+            currentProgress = lastPlayedTime / totalTime
+        } else {
+            currentProgress = item.progress
         }
     }
 }
