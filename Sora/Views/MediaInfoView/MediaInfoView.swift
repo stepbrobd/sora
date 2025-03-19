@@ -50,14 +50,7 @@ struct MediaInfoView: View {
     @State private var selectedRange: Range<Int> = 0..<100
     
     private var isGroupedBySeasons: Bool {
-        var lastEpisodeNumber = 0
-        for episode in episodeLinks {
-            if episode.number == 1 && lastEpisodeNumber > 1 {
-                return true
-            }
-            lastEpisodeNumber = episode.number
-        }
-        return false
+        return groupedEpisodes().count > 1
     }
     
     var body: some View {
@@ -205,9 +198,7 @@ struct MediaInfoView: View {
                                     if !isGroupedBySeasons, episodeLinks.count > episodeChunkSize {
                                         Menu {
                                             ForEach(generateRanges(), id: \.self) { range in
-                                                Button(action: {
-                                                    selectedRange = range
-                                                }) {
+                                                Button(action: { selectedRange = range }) {
                                                     Text("\(range.lowerBound + 1)-\(range.upperBound)")
                                                 }
                                             }
@@ -218,12 +209,10 @@ struct MediaInfoView: View {
                                         }
                                     } else if isGroupedBySeasons {
                                         let seasons = groupedEpisodes()
-                                        if !seasons.isEmpty {
+                                        if seasons.count > 1 {
                                             Menu {
                                                 ForEach(0..<seasons.count, id: \.self) { index in
-                                                    Button(action: {
-                                                        selectedSeason = index
-                                                    }) {
+                                                    Button(action: { selectedSeason = index }) {
                                                         Text("Season \(index + 1)")
                                                     }
                                                 }
@@ -234,19 +223,17 @@ struct MediaInfoView: View {
                                             }
                                         }
                                     }
-
                                 }
                                 if isGroupedBySeasons {
                                     let seasons = groupedEpisodes()
                                     if !seasons.isEmpty, selectedSeason < seasons.count {
-                                        ForEach(episodeLinks.indices.filter { selectedRange.contains($0) }, id: \.self) { i in
-                                            let ep = episodeLinks[i]
+                                        ForEach(seasons[selectedSeason]) { ep in
                                             let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
                                             let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
                                             let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
                                             
                                             EpisodeCell(
-                                                episodeIndex: i,
+                                                episodeIndex: selectedSeason,
                                                 episode: ep.href,
                                                 episodeID: ep.number - 1,
                                                 progress: progress,
@@ -263,13 +250,13 @@ struct MediaInfoView: View {
                                                     }
                                                 },
                                                 onMarkAllPrevious: {
-                                                    for idx in 0..<i {
-                                                        let href = episodeLinks[idx].href
+                                                    for ep2 in seasons[selectedSeason] {
+                                                        let href = ep2.href
                                                         UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(href)")
                                                         UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(href)")
                                                     }
                                                     refreshTrigger.toggle()
-                                                    Logger.shared.log("Marked \(ep.number - 1) episodes watched within anime \"\(title)\".", type: "General")
+                                                    Logger.shared.log("Marked episodes watched within season \(selectedSeason + 1) of \"\(title)\".", type: "General")
                                                 }
                                             )
                                             .id(refreshTrigger)
@@ -447,10 +434,10 @@ struct MediaInfoView: View {
     private func groupedEpisodes() -> [[EpisodeLink]] {
         guard !episodeLinks.isEmpty else { return [] }
         var groups: [[EpisodeLink]] = []
-        var currentGroup: [EpisodeLink] = []
+        var currentGroup: [EpisodeLink] = [episodeLinks[0]]
         
-        for ep in episodeLinks {
-            if let last = currentGroup.last, ep.number <= last.number {
+        for ep in episodeLinks.dropFirst() {
+            if let last = currentGroup.last, ep.number < last.number {
                 groups.append(currentGroup)
                 currentGroup = [ep]
             } else {
@@ -458,11 +445,10 @@ struct MediaInfoView: View {
             }
         }
         
-        if !currentGroup.isEmpty {
-            groups.append(currentGroup)
-        }
+        groups.append(currentGroup)
         return groups
     }
+
     
     func fetchDetails() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
