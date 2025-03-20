@@ -136,6 +136,7 @@ class CustomMediaPlayerViewController: UIViewController {
         loadSubtitleSettings()
         setupPlayerViewController()
         setupControls()
+        addInvisibleControlOverlays()
         setupSubtitleLabel()
         setupDismissButton()
         setupMenuButton()
@@ -345,6 +346,45 @@ class CustomMediaPlayerViewController: UIViewController {
             forwardButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
+    
+    func addInvisibleControlOverlays() {
+        let playPauseOverlay = UIButton(type: .custom)
+        playPauseOverlay.backgroundColor = .clear
+        playPauseOverlay.addTarget(self, action: #selector(togglePlayPause), for: .touchUpInside)
+        view.addSubview(playPauseOverlay)
+        playPauseOverlay.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            playPauseOverlay.centerXAnchor.constraint(equalTo: playPauseButton.centerXAnchor),
+            playPauseOverlay.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
+            playPauseOverlay.widthAnchor.constraint(equalTo: playPauseButton.widthAnchor, constant: 20),
+            playPauseOverlay.heightAnchor.constraint(equalTo: playPauseButton.heightAnchor, constant: 20)
+        ])
+        
+        let backwardOverlay = UIButton(type: .custom)
+        backwardOverlay.backgroundColor = .clear
+        backwardOverlay.addTarget(self, action: #selector(seekBackward), for: .touchUpInside)
+        view.addSubview(backwardOverlay)
+        backwardOverlay.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            backwardOverlay.centerXAnchor.constraint(equalTo: backwardButton.centerXAnchor),
+            backwardOverlay.centerYAnchor.constraint(equalTo: backwardButton.centerYAnchor),
+            backwardOverlay.widthAnchor.constraint(equalTo: backwardButton.widthAnchor, constant: 20),
+            backwardOverlay.heightAnchor.constraint(equalTo: backwardButton.heightAnchor, constant: 20)
+        ])
+        
+        let forwardOverlay = UIButton(type: .custom)
+        forwardOverlay.backgroundColor = .clear
+        forwardOverlay.addTarget(self, action: #selector(seekForward), for: .touchUpInside)
+        view.addSubview(forwardOverlay)
+        forwardOverlay.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            forwardOverlay.centerXAnchor.constraint(equalTo: forwardButton.centerXAnchor),
+            forwardOverlay.centerYAnchor.constraint(equalTo: forwardButton.centerYAnchor),
+            forwardOverlay.widthAnchor.constraint(equalTo: forwardButton.widthAnchor, constant: 20),
+            forwardOverlay.heightAnchor.constraint(equalTo: forwardButton.heightAnchor, constant: 20)
+        ])
+    }
+
     
     func setupSubtitleLabel() {
         subtitleLabel = UILabel()
@@ -735,6 +775,14 @@ class CustomMediaPlayerViewController: UIViewController {
     
     @objc func togglePlayPause() {
         if isPlaying {
+            if !isControlsVisible {
+                isControlsVisible = true
+                UIView.animate(withDuration: 0.5) {
+                    self.controlsContainerView.alpha = 1.0
+                    self.skip85Button.alpha = 0.8
+                    self.view.layoutIfNeeded()
+                }
+            }
             player.pause()
             playPauseButton.image = UIImage(systemName: "play.fill")
         } else {

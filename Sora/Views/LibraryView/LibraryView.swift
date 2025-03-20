@@ -24,6 +24,26 @@ struct LibraryView: View {
         GridItem(.adaptive(minimum: 150), spacing: 12)
     ]
     
+    private var columnsCount: Int {
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            let isLandscape = UIScreen.main.bounds.width > UIScreen.main.bounds.height
+            return isLandscape ? mediaColumnsLandscape : mediaColumnsPortrait
+        } else {
+            return verticalSizeClass == .compact ? mediaColumnsLandscape : mediaColumnsPortrait
+        }
+    }
+    
+    private var cellWidth: CGFloat {
+        let keyWindow = UIApplication.shared.connectedScenes
+            .compactMap { ($0 as? UIWindowScene)?.windows.first(where: { $0.isKeyWindow }) }
+            .first
+        let safeAreaInsets = keyWindow?.safeAreaInsets ?? .zero
+        let safeWidth = UIScreen.main.bounds.width - safeAreaInsets.left - safeAreaInsets.right
+        let totalSpacing: CGFloat = 16 * CGFloat(columnsCount + 1)
+        let availableWidth = safeWidth - totalSpacing
+        return availableWidth / CGFloat(columnsCount)
+    }
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -76,10 +96,6 @@ struct LibraryView: View {
                         .frame(maxWidth: .infinity)
                     } else {
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: columnsCount), spacing: 12) {
-                            let totalSpacing: CGFloat = 16 * CGFloat(columnsCount + 1)
-                            let availableWidth = UIScreen.main.bounds.width - totalSpacing
-                            let cellWidth = availableWidth / CGFloat(columnsCount)
-                            
                             ForEach(libraryManager.bookmarks) { item in
                                 if let module = moduleManager.modules.first(where: { $0.id.uuidString == item.moduleId }) {
                                     NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: module)) {
