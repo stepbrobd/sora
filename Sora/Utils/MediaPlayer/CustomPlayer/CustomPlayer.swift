@@ -136,6 +136,7 @@ class CustomMediaPlayerViewController: UIViewController {
         loadSubtitleSettings()
         setupPlayerViewController()
         setupControls()
+        setupSkipAndDismissGestures()
         addInvisibleControlOverlays()
         setupSubtitleLabel()
         setupDismissButton()
@@ -385,6 +386,95 @@ class CustomMediaPlayerViewController: UIViewController {
         ])
     }
 
+    func setupSkipAndDismissGestures() {
+        let doubleTapGesture = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
+        doubleTapGesture.numberOfTapsRequired = 2
+        view.addGestureRecognizer(doubleTapGesture)
+        
+        if let gestures = view.gestureRecognizers {
+            for gesture in gestures {
+                if let tapGesture = gesture as? UITapGestureRecognizer, tapGesture.numberOfTapsRequired == 1 {
+                    tapGesture.require(toFail: doubleTapGesture)
+                }
+            }
+        }
+        
+        let swipeDownGesture = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeDown(_:)))
+        swipeDownGesture.direction = .down
+        view.addGestureRecognizer(swipeDownGesture)
+    }
+    
+    func showSkipFeedback(direction: String) {
+        let diameter: CGFloat = 700.0
+
+        if let existingFeedback = view.viewWithTag(999) {
+            existingFeedback.layer.removeAllAnimations()
+            existingFeedback.removeFromSuperview()
+        }
+        
+        let circleView = UIView()
+        circleView.backgroundColor = UIColor.white.withAlphaComponent(0.0)
+        circleView.layer.cornerRadius = diameter / 2
+        circleView.clipsToBounds = true
+        circleView.translatesAutoresizingMaskIntoConstraints = false
+        circleView.tag = 999
+
+        let iconName = (direction == "forward") ? "goforward" : "gobackward"
+        let imageView = UIImageView(image: UIImage(systemName: iconName))
+        imageView.tintColor = .black
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.alpha = 0.8
+        
+        circleView.addSubview(imageView)
+        
+        if direction == "forward" {
+            NSLayoutConstraint.activate([
+                imageView.centerYAnchor.constraint(equalTo: circleView.centerYAnchor),
+                imageView.centerXAnchor.constraint(equalTo: circleView.leadingAnchor, constant: diameter / 4),
+                imageView.widthAnchor.constraint(equalToConstant: 100),
+                imageView.heightAnchor.constraint(equalToConstant: 100)
+            ])
+        } else {
+            NSLayoutConstraint.activate([
+                imageView.centerYAnchor.constraint(equalTo: circleView.centerYAnchor),
+                imageView.centerXAnchor.constraint(equalTo: circleView.trailingAnchor, constant: -diameter / 4),
+                imageView.widthAnchor.constraint(equalToConstant: 100),
+                imageView.heightAnchor.constraint(equalToConstant: 100)
+            ])
+        }
+        
+        view.addSubview(circleView)
+        
+        if direction == "forward" {
+            NSLayoutConstraint.activate([
+                circleView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+                circleView.centerXAnchor.constraint(equalTo: view.trailingAnchor),
+                circleView.widthAnchor.constraint(equalToConstant: diameter),
+                circleView.heightAnchor.constraint(equalToConstant: diameter)
+            ])
+        } else {
+            NSLayoutConstraint.activate([
+                circleView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+                circleView.centerXAnchor.constraint(equalTo: view.leadingAnchor),
+                circleView.widthAnchor.constraint(equalToConstant: diameter),
+                circleView.heightAnchor.constraint(equalToConstant: diameter)
+            ])
+        }
+        
+        UIView.animate(withDuration: 0.2, animations: {
+            circleView.backgroundColor = UIColor.white.withAlphaComponent(0.5)
+            imageView.alpha = 0.8
+        }) { _ in
+            UIView.animate(withDuration: 0.5, delay: 0.5, options: [], animations: {
+                circleView.backgroundColor = UIColor.white.withAlphaComponent(0.0)
+                imageView.alpha = 0.0
+            }, completion: { _ in
+                circleView.removeFromSuperview()
+                imageView.removeFromSuperview()
+            })
+        }
+    }
     
     func setupSubtitleLabel() {
         subtitleLabel = UILabel()
@@ -771,6 +861,21 @@ class CustomMediaPlayerViewController: UIViewController {
         let finalSkip = skipValue > 0 ? skipValue : 10
         currentTimeVal = min(currentTimeVal + finalSkip, duration)
         player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
+    }
+    
+    @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
+        let tapLocation = gesture.location(in: view)
+        if tapLocation.x < view.bounds.width / 2 {
+            seekBackward()
+            showSkipFeedback(direction: "backward")
+        } else {
+            seekForward()
+            showSkipFeedback(direction: "forward")
+        }
+    }
+
+    @objc func handleSwipeDown(_ gesture: UISwipeGestureRecognizer) {
+        dismiss(animated: true, completion: nil)
     }
     
     @objc func togglePlayPause() {
