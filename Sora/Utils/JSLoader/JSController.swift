@@ -16,60 +16,7 @@ class JSController: ObservableObject {
     }
     
     private func setupContext() {
-        let consoleObject = JSValue(newObjectIn: context)
-        let consoleLogFunction: @convention(block) (String) -> Void = { message in
-            Logger.shared.log(message, type: "Debug")
-        }
-        consoleObject?.setObject(consoleLogFunction, forKeyedSubscript: "log" as NSString)
-        context.setObject(consoleObject, forKeyedSubscript: "console" as NSString)
-        
-        let logFunction: @convention(block) (String) -> Void = { message in
-            Logger.shared.log("JavaScript log: \(message)", type: "Debug")
-        }
-        context.setObject(logFunction, forKeyedSubscript: "log" as NSString)
-        
-        let fetchNativeFunction: @convention(block) (String, [String: String]?, JSValue, JSValue) -> Void = { urlString, headers, resolve, reject in
-            guard let url = URL(string: urlString) else {
-                Logger.shared.log("Invalid URL", type: "Error")
-                reject.call(withArguments: ["Invalid URL"])
-                return
-            }
-            var request = URLRequest(url: url)
-            if let headers = headers {
-                for (key, value) in headers {
-                    request.setValue(value, forHTTPHeaderField: key)
-                }
-            }
-            let task = URLSession.custom.dataTask(with: request) { data, _, error in
-                if let error = error {
-                    Logger.shared.log("Network error in fetchNativeFunction: \(error.localizedDescription)", type: "Error")
-                    reject.call(withArguments: [error.localizedDescription])
-                    return
-                }
-                guard let data = data else {
-                    Logger.shared.log("No data in response", type: "Error")
-                    reject.call(withArguments: ["No data"])
-                    return
-                }
-                if let text = String(data: data, encoding: .utf8) {
-                    resolve.call(withArguments: [text])
-                } else {
-                    Logger.shared.log("Unable to decode data to text", type: "Error")
-                    reject.call(withArguments: ["Unable to decode data"])
-                }
-            }
-            task.resume()
-        }
-        context.setObject(fetchNativeFunction, forKeyedSubscript: "fetchNative" as NSString)
-        
-        let fetchDefinition = """
-                        function fetch(url, headers) {
-                            return new Promise(function(resolve, reject) {
-                                fetchNative(url, headers, resolve, reject);
-                            });
-                        }
-                        """
-        context.evaluateScript(fetchDefinition)
+        context.setupJavaScriptEnvironment()
     }
     
     func loadScript(_ script: String) {
