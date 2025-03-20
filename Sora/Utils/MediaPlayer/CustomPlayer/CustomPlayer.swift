@@ -42,13 +42,17 @@ class CustomMediaPlayerViewController: UIViewController {
     var isWatchNextVisible: Bool = false
     var lastDuration: Double = 0.0
     var watchNextButtonAppearedAt: Double?
-
     
     var subtitleForegroundColor: String = "white"
     var subtitleBackgroundEnabled: Bool = true
     var subtitleFontSize: Double = 20.0
     var subtitleShadowRadius: Double = 1.0
     var subtitlesLoader = VTTSubtitlesLoader()
+    var subtitlesEnabled: Bool = true {
+        didSet {
+            subtitleLabel.isHidden = !subtitlesEnabled
+        }
+    }
     
     var playerViewController: AVPlayerViewController!
     var controlsContainerView: UIView!
@@ -405,7 +409,7 @@ class CustomMediaPlayerViewController: UIViewController {
     }
     
     func showSkipFeedback(direction: String) {
-        let diameter: CGFloat = 700.0
+        let diameter: CGFloat = 600
 
         if let existingFeedback = view.viewWithTag(999) {
             existingFeedback.layer.removeAllAnimations()
@@ -417,6 +421,7 @@ class CustomMediaPlayerViewController: UIViewController {
         circleView.layer.cornerRadius = diameter / 2
         circleView.clipsToBounds = true
         circleView.translatesAutoresizingMaskIntoConstraints = false
+        circleView.isUserInteractionEnabled = false
         circleView.tag = 999
 
         let iconName = (direction == "forward") ? "goforward" : "gobackward"
@@ -688,7 +693,8 @@ class CustomMediaPlayerViewController: UIViewController {
             UserDefaults.standard.set(self.currentTimeVal, forKey: "lastPlayedTime_\(self.fullUrl)")
             UserDefaults.standard.set(self.duration, forKey: "totalTime_\(self.fullUrl)")
             
-            if let currentCue = self.subtitlesLoader.cues.first(where: { self.currentTimeVal >= $0.startTime && self.currentTimeVal <= $0.endTime }) {
+            if self.subtitlesEnabled,
+               let currentCue = self.subtitlesLoader.cues.first(where: { self.currentTimeVal >= $0.startTime && self.currentTimeVal <= $0.endTime }) {
                 self.subtitleLabel.text = currentCue.text.strippedHTML
             } else {
                 self.subtitleLabel.text = ""
@@ -1102,6 +1108,11 @@ class CustomMediaPlayerViewController: UIViewController {
         var menuElements: [UIMenuElement] = []
         
         if let subURL = subtitlesURL, !subURL.isEmpty {
+            let subtitlesToggleAction = UIAction(title: "Toggle Subtitles") { [weak self] _ in
+                guard let self = self else { return }
+                self.subtitlesEnabled.toggle()
+            }
+            
             let foregroundActions = [
                 UIAction(title: "White") { _ in
                     SubtitleSettingsManager.shared.update { settings in settings.foregroundColor = "white" }
@@ -1216,7 +1227,7 @@ class CustomMediaPlayerViewController: UIViewController {
             ]
             let paddingMenu = UIMenu(title: "Bottom Padding", children: paddingActions)
             
-            let subtitleOptionsMenu = UIMenu(title: "Subtitle Options", children: [colorMenu, fontSizeMenu, shadowMenu, backgroundMenu, paddingMenu])
+            let subtitleOptionsMenu = UIMenu(title: "Subtitle Options", children: [subtitlesToggleAction, colorMenu, fontSizeMenu, shadowMenu, backgroundMenu, paddingMenu])
             
             menuElements = [subtitleOptionsMenu]
         }
