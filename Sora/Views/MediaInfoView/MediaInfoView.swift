@@ -250,7 +250,7 @@ struct MediaInfoView: View {
                                                     }
                                                 },
                                                 onMarkAllPrevious: {
-                                                    for ep2 in seasons[selectedSeason] {
+                                                    for ep2 in seasons[selectedSeason] where ep2.number < ep.number {
                                                         let href = ep2.href
                                                         UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(href)")
                                                         UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(href)")
