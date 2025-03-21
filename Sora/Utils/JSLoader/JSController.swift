@@ -23,6 +23,9 @@ class JSController: ObservableObject {
         context = JSContext()
         setupContext()
         context.evaluateScript(script)
+        if let exception = context.exception {
+            Logger.shared.log("Error loading script: \(exception)", type: "Error")
+        }
     }
     
     func fetchSearchResults(keyword: String, module: ScrapingModule, completion: @escaping ([SearchItem]) -> Void) {
@@ -196,10 +199,13 @@ class JSController: ObservableObject {
                let data = jsonString.data(using: .utf8) {
                 do {
                     if let array = try JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]] {
-                        let resultItems = array.map { item -> SearchItem in
-                            let title = item["title"] as? String ?? ""
-                            let imageUrl = item["image"] as? String ?? "https://s4.anilist.co/file/anilistcdn/character/large/default.jpg"
-                            let href = item["href"] as? String ?? ""
+                        let resultItems = array.compactMap { item -> SearchItem? in
+                            guard let title = item["title"] as? String,
+                                  let imageUrl = item["image"] as? String,
+                                  let href = item["href"] as? String else {
+                                      Logger.shared.log("Missing or invalid data in search result item: \(item)", type: "Error")
+                                      return nil
+                                  }
                             return SearchItem(title: title, imageUrl: imageUrl, href: href)
                         }
                         
