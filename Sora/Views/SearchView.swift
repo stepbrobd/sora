@@ -19,7 +19,7 @@ struct SearchView: View {
     @AppStorage("selectedModuleId") private var selectedModuleId: String?
     @AppStorage("mediaColumnsPortrait") private var mediaColumnsPortrait: Int = 2
     @AppStorage("mediaColumnsLandscape") private var mediaColumnsLandscape: Int = 4
-
+    
     @StateObject private var jsController = JSController()
     @EnvironmentObject var moduleManager: ModuleManager
     @Environment(\.verticalSizeClass) var verticalSizeClass
@@ -30,6 +30,7 @@ struct SearchView: View {
     @State private var searchText = ""
     @State private var hasNoResults = false
     @State private var isLandscape: Bool = UIDevice.current.orientation.isLandscape
+    @State private var isModuleSelectorPresented = false
     
     private var selectedModule: ScrapingModule? {
         guard let id = selectedModuleId else { return nil }
@@ -63,12 +64,11 @@ struct SearchView: View {
         let availableWidth = safeWidth - totalSpacing
         return availableWidth / CGFloat(columnsCount)
     }
-
+    
     var body: some View {
         NavigationView {
             ScrollView {
                 let columnsCount = determineColumns()
-                
                 VStack(spacing: 0) {
                     HStack {
                         SearchBar(text: $searchText, onSearchButtonClicked: performSearch)
@@ -164,38 +164,40 @@ struct SearchView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack(spacing: 4) {
-                        if let selectedModule = selectedModule {
-                            Text(selectedModule.metadata.sourceName)
-                                .font(.headline)
-                                .foregroundColor(.secondary)
-                        }
-                        Menu {
-                            ForEach(moduleManager.modules) { module in
-                                Button {
-                                    selectedModuleId = module.id.uuidString
-                                } label: {
-                                    HStack {
-                                        KFImage(URL(string: module.metadata.iconUrl))
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .frame(width: 20, height: 20)
-                                            .cornerRadius(4)
-                                        
-                                        Text(module.metadata.sourceName)
-                                        Spacer()
-                                        if module.id.uuidString == selectedModuleId {
-                                            Image(systemName: "checkmark")
-                                        }
+                    Menu {
+                        ForEach(moduleManager.modules, id: \.id) { module in
+                            Button {
+                                selectedModuleId = module.id.uuidString
+                            } label: {
+                                HStack {
+                                    KFImage(URL(string: module.metadata.iconUrl))
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: 20, height: 20)
+                                        .cornerRadius(4)
+                                    Text(module.metadata.sourceName)
+                                    if module.id.uuidString == selectedModuleId {
+                                        Image(systemName: "checkmark")
+                                            .foregroundColor(.accentColor)
                                     }
                                 }
                             }
-                        } label: {
-                            Image(systemName: "chevron.up.chevron.down")
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            if let selectedModule = selectedModule {
+                                Text(selectedModule.metadata.sourceName)
+                                    .font(.headline)
+                                    .foregroundColor(.secondary)
+                            } else {
+                                Text("Select Module")
+                                    .font(.headline)
+                                    .foregroundColor(.accentColor)
+                            }
+                            Image(systemName: "chevron.down")
                                 .foregroundColor(.secondary)
                         }
                     }
-                    .id("moduleMenuHStack")
                     .fixedSize()
                 }
             }
