@@ -146,22 +146,22 @@ struct ModuleAdditionSettingsView: View {
         errorMessage = nil
         
         Task {
-            do {
-                guard let url = URL(string: moduleUrl) else {
-                    DispatchQueue.main.async {
-                        self.errorMessage = "Invalid URL"
-                        self.isLoading = false
-                    }
-                    return
+            guard let url = URL(string: moduleUrl) else {
+                await MainActor.run {
+                    self.errorMessage = "Invalid URL"
+                    self.isLoading = false
                 }
+                return
+            }
+            do {
                 let (data, _) = try await URLSession.custom.data(from: url)
                 let metadata = try JSONDecoder().decode(ModuleMetadata.self, from: data)
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.moduleMetadata = metadata
                     self.isLoading = false
                 }
             } catch {
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.errorMessage = "Failed to fetch module: \(error.localizedDescription)"
                     self.isLoading = false
                 }
@@ -174,13 +174,13 @@ struct ModuleAdditionSettingsView: View {
         Task {
             do {
                 let _ = try await moduleManager.addModule(metadataUrl: moduleUrl)
-                DispatchQueue.main.async {
+                await MainActor.run {
                     isLoading = false
                     DropManager.shared.showDrop(title: "Module Added", subtitle: "click it to select it", duration: 2.0, icon: UIImage(systemName:"gear.badge.checkmark"))
                     self.presentationMode.wrappedValue.dismiss()
                 }
             } catch {
-                DispatchQueue.main.async {
+                await MainActor.run {
                     isLoading = false
                     if (error as NSError).domain == "Module already exists" {
                         errorMessage = "Module already exists"
