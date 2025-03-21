@@ -700,7 +700,6 @@ class CustomMediaPlayerViewController: UIViewController {
                 self.subtitleLabel.text = ""
             }
             
-            // ORIGINAL PROGRESS BAR CODE:
             DispatchQueue.main.async {
                 self.sliderHostingController?.rootView = MusicProgressSlider(
                     value: Binding(get: { max(0, min(self.sliderViewModel.sliderValue, self.duration)) },

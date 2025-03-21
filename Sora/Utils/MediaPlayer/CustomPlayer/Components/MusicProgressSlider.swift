@@ -42,9 +42,9 @@ struct MusicProgressSlider<T: BinaryFloatingPoint>: View {
                     }
                     
                     HStack {
-                        Text(value.asTimeString(style: .positional))
+                        Text(value.asTimeString(style: .positional, showHours: true))
                         Spacer(minLength: 0)
-                        Text("-" + (inRange.upperBound - value).asTimeString(style: .positional))
+                        Text("-" + (inRange.upperBound - value).asTimeString(style: .positional, showHours: true))
                     }
                     .font(.system(size: 12))
                     .foregroundColor(isActive ? fillColor : emptyColor)

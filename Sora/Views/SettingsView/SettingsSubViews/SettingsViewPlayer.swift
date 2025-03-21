@@ -59,14 +59,12 @@ struct SettingsViewPlayer: View {
                 }
             }
             Section(header: Text("Skip Settings")) {
-                // Normal skip
                 HStack {
                     Text("Tap Skip:")
                     Spacer()
                     Stepper("\(Int(skipIncrement))s", value: $skipIncrement, in: 5...300, step: 5)
                 }
                 
-                // Long-press skip
                 HStack {
                     Text("Long press Skip:")
                     Spacer()
