@@ -717,7 +717,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Sora/Preview Content\"";
-				DEVELOPMENT_TEAM = 44V6G67299;
+				DEVELOPMENT_TEAM = 399LMK6Q2Y;
 				"ENABLE_HARDENED_RUNTIME[sdk=macosx*]" = NO;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -737,7 +737,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.2.1;
-				PRODUCT_BUNDLE_IDENTIFIER = me.hamzo.sulfur;
+				PRODUCT_BUNDLE_IDENTIFIER = me.cranci.sulfur;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -759,7 +759,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Sora/Preview Content\"";
-				DEVELOPMENT_TEAM = 44V6G67299;
+				DEVELOPMENT_TEAM = 399LMK6Q2Y;
 				"ENABLE_HARDENED_RUNTIME[sdk=macosx*]" = NO;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -779,7 +779,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.2.1;
-				PRODUCT_BUNDLE_IDENTIFIER = me.hamzo.sulfur;
+				PRODUCT_BUNDLE_IDENTIFIER = me.cranci.sulfur;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
