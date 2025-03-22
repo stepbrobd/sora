@@ -145,8 +145,8 @@ class CustomMediaPlayerViewController: UIViewController {
         setupSubtitleLabel()
         setupDismissButton()
         setupQualityButton()
-        setupMenuButton()
         setupSpeedButton()
+        setupMenuButton()
         setupSkip85Button()
         setupWatchNextButton()
         addTimeObserver()
@@ -540,7 +540,7 @@ class CustomMediaPlayerViewController: UIViewController {
 
         NSLayoutConstraint.activate([
             menuButton.topAnchor.constraint(equalTo: controlsContainerView.topAnchor, constant: 20),
-            menuButton.trailingAnchor.constraint(equalTo: qualityButton.leadingAnchor, constant: -20),
+            menuButton.trailingAnchor.constraint(equalTo: speedButton.leadingAnchor, constant: -20),
             menuButton.widthAnchor.constraint(equalToConstant: 40),
             menuButton.heightAnchor.constraint(equalToConstant: 40)
         ])
@@ -550,17 +550,16 @@ class CustomMediaPlayerViewController: UIViewController {
         speedButton = UIButton(type: .system)
         speedButton.setImage(UIImage(systemName: "speedometer"), for: .normal)
         speedButton.tintColor = .white
-
         speedButton.showsMenuAsPrimaryAction = true
-        speedButton.menu = speedChangerMenu() // If you want the speed menu
+        speedButton.menu = speedChangerMenu()
 
         controlsContainerView.addSubview(speedButton)
         speedButton.translatesAutoresizingMaskIntoConstraints = false
 
-        // Pin it at the top, to the left of the subtitles (menu) button.
         NSLayoutConstraint.activate([
+            // Middle
             speedButton.topAnchor.constraint(equalTo: controlsContainerView.topAnchor, constant: 20),
-            speedButton.trailingAnchor.constraint(equalTo: menuButton.leadingAnchor, constant: -20),
+            speedButton.trailingAnchor.constraint(equalTo: qualityButton.leadingAnchor, constant: -20),
             speedButton.widthAnchor.constraint(equalToConstant: 40),
             speedButton.heightAnchor.constraint(equalToConstant: 40)
         ])
