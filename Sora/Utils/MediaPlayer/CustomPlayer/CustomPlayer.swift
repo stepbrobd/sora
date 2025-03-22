@@ -144,9 +144,9 @@ class CustomMediaPlayerViewController: UIViewController {
         addInvisibleControlOverlays()
         setupSubtitleLabel()
         setupDismissButton()
+        setupQualityButton()
         setupMenuButton()
         setupSpeedButton()
-        setupQualityButton()
         setupSkip85Button()
         setupWatchNextButton()
         addTimeObserver()
@@ -527,20 +527,20 @@ class CustomMediaPlayerViewController: UIViewController {
         menuButton = UIButton(type: .system)
         menuButton.setImage(UIImage(systemName: "text.bubble"), for: .normal)
         menuButton.tintColor = .white
-        
+
         if let subtitlesURL = subtitlesURL, !subtitlesURL.isEmpty {
             menuButton.showsMenuAsPrimaryAction = true
             menuButton.menu = buildOptionsMenu()
         } else {
             menuButton.isHidden = true
         }
-        
+
         controlsContainerView.addSubview(menuButton)
         menuButton.translatesAutoresizingMaskIntoConstraints = false
-        guard let sliderView = sliderHostingController?.view else { return }
+
         NSLayoutConstraint.activate([
-            menuButton.bottomAnchor.constraint(equalTo: sliderView.topAnchor),
-            menuButton.trailingAnchor.constraint(equalTo: sliderView.trailingAnchor),
+            menuButton.topAnchor.constraint(equalTo: controlsContainerView.topAnchor, constant: 20),
+            menuButton.trailingAnchor.constraint(equalTo: qualityButton.leadingAnchor, constant: -20),
             menuButton.widthAnchor.constraint(equalToConstant: 40),
             menuButton.heightAnchor.constraint(equalToConstant: 40)
         ])
@@ -550,30 +550,20 @@ class CustomMediaPlayerViewController: UIViewController {
         speedButton = UIButton(type: .system)
         speedButton.setImage(UIImage(systemName: "speedometer"), for: .normal)
         speedButton.tintColor = .white
-        
+
         speedButton.showsMenuAsPrimaryAction = true
-        speedButton.menu = speedChangerMenu()
-        
+        speedButton.menu = speedChangerMenu() // If you want the speed menu
+
         controlsContainerView.addSubview(speedButton)
         speedButton.translatesAutoresizingMaskIntoConstraints = false
-        
-        guard let sliderView = sliderHostingController?.view else { return }
-        
-        if menuButton.isHidden {
-            NSLayoutConstraint.activate([
-                speedButton.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor, constant: -50),
-                speedButton.trailingAnchor.constraint(equalTo: sliderView.trailingAnchor),
-                speedButton.widthAnchor.constraint(equalToConstant: 40),
-                speedButton.heightAnchor.constraint(equalToConstant: 40)
-            ])
-        } else {
-            NSLayoutConstraint.activate([
-                speedButton.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor, constant: -50),
-                speedButton.trailingAnchor.constraint(equalTo: menuButton.leadingAnchor),
-                speedButton.widthAnchor.constraint(equalToConstant: 40),
-                speedButton.heightAnchor.constraint(equalToConstant: 40)
-            ])
-        }
+
+        // Pin it at the top, to the left of the subtitles (menu) button.
+        NSLayoutConstraint.activate([
+            speedButton.topAnchor.constraint(equalTo: controlsContainerView.topAnchor, constant: 20),
+            speedButton.trailingAnchor.constraint(equalTo: menuButton.leadingAnchor, constant: -20),
+            speedButton.widthAnchor.constraint(equalToConstant: 40),
+            speedButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
     }
     
     func setupWatchNextButton() {
@@ -599,8 +589,8 @@ class CustomMediaPlayerViewController: UIViewController {
         ]
         
         watchNextButtonControlsConstraints = [
-            watchNextButton.trailingAnchor.constraint(equalTo: qualityButton.leadingAnchor),
-            watchNextButton.bottomAnchor.constraint(equalTo: skip85Button.bottomAnchor),
+            watchNextButton.trailingAnchor.constraint(equalTo: sliderHostingController!.view.trailingAnchor),
+            watchNextButton.bottomAnchor.constraint(equalTo: sliderHostingController!.view.topAnchor, constant: -5),
             watchNextButton.heightAnchor.constraint(equalToConstant: 50),
             watchNextButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
         ]
@@ -637,17 +627,18 @@ class CustomMediaPlayerViewController: UIViewController {
         qualityButton.showsMenuAsPrimaryAction = true
         qualityButton.menu = qualitySelectionMenu()
         qualityButton.isHidden = true
-        
+
         controlsContainerView.addSubview(qualityButton)
         qualityButton.translatesAutoresizingMaskIntoConstraints = false
-        
+
         NSLayoutConstraint.activate([
-            qualityButton.bottomAnchor.constraint(equalTo: controlsContainerView.bottomAnchor, constant: -50),
-            qualityButton.trailingAnchor.constraint(equalTo: speedButton.leadingAnchor),
+            qualityButton.topAnchor.constraint(equalTo: controlsContainerView.topAnchor, constant: 20),
+            qualityButton.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -20),
             qualityButton.widthAnchor.constraint(equalToConstant: 40),
             qualityButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
+
     
     func updateSubtitleLabelAppearance() {
         subtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
