@@ -58,7 +58,7 @@ struct SettingsViewPlayer: View {
                     }
                 }
             }
-            Section(header: Text("Skip Settings")) {
+            Section(header: Text("Skip Settings"), footer : Text("Double tapping the screen on it's sides will skip with the short tap setting.")) {
                 HStack {
                     Text("Tap Skip:")
                     Spacer()
