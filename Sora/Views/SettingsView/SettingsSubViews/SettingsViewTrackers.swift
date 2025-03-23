@@ -14,16 +14,23 @@ struct SettingsViewTrackers: View {
     @State private var isLoggedIn: Bool = false
     @State private var username: String = ""
     @State private var isLoading: Bool = false
-    @State private var profileColor: Color = .primary
+    @State private var profileColor: Color = .accentColor
     
     var body: some View {
         Form {
             Section(header: Text("AniList"), footer: Text("Sora and cranci1 are not affiliated with AniList in any way.")) {
                 HStack() {
                     KFImage(URL(string: "https://raw.githubusercontent.com/cranci1/Ryu/2f10226aa087154974a70c1ec78aa83a47daced9/Ryu/Assets.xcassets/Listing/Anilist.imageset/anilist.png"))
+                        .placeholder {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(width: 80, height: 80)
+                                .shimmering()
+                        }
                         .resizable()
                         .frame(width: 80, height: 80)
                         .clipShape(Rectangle())
+                        .cornerRadius(10)
                     Text("AniList.co")
                         .font(.title2)
                 }
@@ -35,6 +42,7 @@ struct SettingsViewTrackers: View {
                             Text("Logged in as ")
                             Text(username)
                                 .foregroundColor(profileColor)
+                                .font(.body)
                                 .fontWeight(.semibold)
                         }
                     } else {
@@ -49,6 +57,7 @@ struct SettingsViewTrackers: View {
                         login()
                     }
                 }
+                .font(.body)
             }
         }
         .navigationTitle("Trackers")
