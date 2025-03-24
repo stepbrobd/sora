@@ -45,7 +45,7 @@ extension JSContext {
                     request.setValue(value, forHTTPHeaderField: key)
                 }
             }
-            let task = URLSession.custom.dataTask(with: request) { data, _, error in
+            let task = URLSession.cloudflareCustom.dataTask(with: request) { data, _, error in
                 if let error = error {
                     Logger.shared.log("Network error in fetchNativeFunction: \(error.localizedDescription)", type: "Error")
                     reject.call(withArguments: [error.localizedDescription])
@@ -90,7 +90,7 @@ extension JSContext {
                     request.setValue(value, forHTTPHeaderField: key)
                 }
             }
-            let task = URLSession.custom.dataTask(with: request) { data, response, error in
+            let task = URLSession.cloudflareCustom.dataTask(with: request) { data, response, error in
                 if let error = error {
                     Logger.shared.log("Network error in fetchV2NativeFunction: \(error.localizedDescription)", type: "Error")
                     reject.call(withArguments: [error.localizedDescription])

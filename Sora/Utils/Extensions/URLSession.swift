@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Network
 
 extension URLSession {
     static let userAgents = [
@@ -43,6 +44,22 @@ extension URLSession {
         configuration.httpAdditionalHeaders = [
             "User-Agent": randomUserAgent
         ]
+        return URLSession(configuration: configuration)
+    }()
+    
+    static let cloudflareCustom: URLSession = {
+        let configuration = URLSessionConfiguration.default
+        configuration.httpAdditionalHeaders = [
+            "User-Agent": randomUserAgent
+        ]
+        
+        let dnsSettings: [AnyHashable: Any] = [
+            "DNSSettings": [
+                "ServerAddresses": ["1.1.1.1", "1.0.0.1"]
+            ]
+        ]
+        
+        configuration.connectionProxyDictionary = dnsSettings
         return URLSession(configuration: configuration)
     }()
 }
