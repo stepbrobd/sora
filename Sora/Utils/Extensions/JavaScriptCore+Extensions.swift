@@ -78,65 +78,127 @@ extension JSContext {
     }
     
     func setupFetchV2() {
-        let fetchV2NativeFunction: @convention(block) (String, [String: String]?, JSValue, JSValue) -> Void = { urlString, headers, resolve, reject in
+        let fetchV2NativeFunction: @convention(block) (String, [String: String]?, String?, String?, JSValue, JSValue) -> Void = { urlString, headers, method, body, resolve, reject in
             guard let url = URL(string: urlString) else {
                 Logger.shared.log("Invalid URL", type: "Error")
                 reject.call(withArguments: ["Invalid URL"])
                 return
             }
+            
+            let httpMethod = method ?? "GET"
             var request = URLRequest(url: url)
+            request.httpMethod = httpMethod
+            
+            Logger.shared.log("FetchV2 Request: URL=\(url), Method=\(httpMethod), Body=\(body ?? "nil")", type: "Debug")
+            
+            // Ensure no body for GET requests
+            if httpMethod == "GET", let body = body, !body.isEmpty, body != "null", body != "undefined" {
+                Logger.shared.log("GET request must not have a body", type: "Error")
+                reject.call(withArguments: ["GET request must not have a body"])
+                return
+            }
+            
+            // Set the body for non-GET requests
+            if httpMethod != "GET", let body = body, !body.isEmpty, body != "null", body != "undefined" {
+                request.httpBody = body.data(using: .utf8)
+            }
+            
+            
+            // Set headers
             if let headers = headers {
                 for (key, value) in headers {
                     request.setValue(value, forHTTPHeaderField: key)
                 }
             }
-            let task = URLSession.cloudflareCustom.dataTask(with: request) { data, response, error in
+            
+            let task = URLSession.cloudflareCustom.downloadTask(with: request) { tempFileURL, response, error in
                 if let error = error {
                     Logger.shared.log("Network error in fetchV2NativeFunction: \(error.localizedDescription)", type: "Error")
                     reject.call(withArguments: [error.localizedDescription])
                     return
                 }
-                guard let data = data else {
+                
+                guard let tempFileURL = tempFileURL else {
                     Logger.shared.log("No data in response", type: "Error")
                     reject.call(withArguments: ["No data"])
                     return
                 }
                 
-                // Just pass the raw data string and let JavaScript handle it
-                if let text = String(data: data, encoding: .utf8) {
-                    resolve.call(withArguments: [text])
-                } else {
-                    Logger.shared.log("Unable to decode data to text", type: "Error")
-                    reject.call(withArguments: ["Unable to decode data"])
+                do {
+                    let data = try Data(contentsOf: tempFileURL)
+                    
+                    // Check response size before processing
+                    if data.count > 10_000_000 { // Example: 10MB limit
+                        Logger.shared.log("Response exceeds maximum size", type: "Error")
+                        reject.call(withArguments: ["Response exceeds maximum size"])
+                        return
+                    }
+                    
+                    if let text = String(data: data, encoding: .utf8) {
+                        resolve.call(withArguments: [text])
+                    } else {
+                        Logger.shared.log("Unable to decode data to text", type: "Error")
+                        reject.call(withArguments: ["Unable to decode data"])
+                    }
+                    
+                } catch {
+                    Logger.shared.log("Error reading downloaded file: \(error.localizedDescription)", type: "Error")
+                    reject.call(withArguments: ["Error reading downloaded file"])
                 }
             }
             task.resume()
         }
+        
+        
         self.setObject(fetchV2NativeFunction, forKeyedSubscript: "fetchV2Native" as NSString)
         
-        // Simpler fetchv2 implementation with text() and json() methods
         let fetchv2Definition = """
-            function fetchv2(url, headers) {
-                return new Promise(function(resolve, reject) {
-                    fetchV2Native(url, headers, function(rawText) {
-                        const responseObj = {
-                            _data: rawText,
-                            text: function() {
-                                return Promise.resolve(this._data);
-                            },
-                            json: function() {
-                                try {
-                                    return Promise.resolve(JSON.parse(this._data));
-                                } catch (e) {
-                                    return Promise.reject("JSON parse error: " + e.message);
-                                }
-                            }
-                        };
-                        resolve(responseObj);
-                    }, reject);
-                });
-            }
-        """
+                    function fetchv2(url, headers = {}, method = "GET", body = null) {
+                        if (method === "GET") {
+                            return new Promise(function(resolve, reject) {
+                                fetchV2Native(url, headers, method, null, function(rawText) {  // Pass `null` explicitly
+                                    const responseObj = {
+                                        _data: rawText,
+                                        text: function() {
+                                            return Promise.resolve(this._data);
+                                        },
+                                        json: function() {
+                                            try {
+                                                return Promise.resolve(JSON.parse(this._data));
+                                            } catch (e) {
+                                                return Promise.reject("JSON parse error: " + e.message);
+                                            }
+                                        }
+                                    };
+                                    resolve(responseObj);
+                                }, reject);
+                            });
+                        }
+            
+                        // Ensure body is properly serialized
+                        const processedBody = body ? JSON.stringify(body) : null;
+            
+                        return new Promise(function(resolve, reject) {
+                            fetchV2Native(url, headers, method, processedBody, function(rawText) {
+                                const responseObj = {
+                                    _data: rawText,
+                                    text: function() {
+                                        return Promise.resolve(this._data);
+                                    },
+                                    json: function() {
+                                        try {
+                                            return Promise.resolve(JSON.parse(this._data));
+                                        } catch (e) {
+                                            return Promise.reject("JSON parse error: " + e.message);
+                                        }
+                                    }
+                                };
+                                resolve(responseObj);
+                            }, reject);
+                        });
+                    }
+            
+            """
         self.evaluateScript(fetchv2Definition)
     }
     
