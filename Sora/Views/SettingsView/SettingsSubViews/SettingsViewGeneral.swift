@@ -14,9 +14,11 @@ struct SettingsViewGeneral: View {
     @AppStorage("analyticsEnabled") private var analyticsEnabled: Bool = false
     @AppStorage("multiThreads") private var multiThreadsEnabled: Bool = false
     @AppStorage("metadataProviders") private var metadataProviders: String = "AniList"
+    @AppStorage("CustomDNSProvider") private var customDNSProvider: String = "Cloudflare"
     @AppStorage("mediaColumnsPortrait") private var mediaColumnsPortrait: Int = 2
     @AppStorage("mediaColumnsLandscape") private var mediaColumnsLandscape: Int = 4
     
+    private let customDNSProviderList = ["Cloudflare", "Google", "OpenDNS", "Quad9", "AdGuard", "CleanBrowsing", "ControlD"]
     private let metadataProvidersList = ["AniList"]
     @EnvironmentObject var settings: Settings
     
@@ -70,7 +72,6 @@ struct SettingsViewGeneral: View {
                             }
                         }
                     }
-                    
                 }
             }
             
@@ -121,9 +122,23 @@ struct SettingsViewGeneral: View {
                     .tint(.accentColor)
             }
             
-            Section(header: Text("Analytics"), footer: Text("Allow Sora to collect anonymous data to improve the app. No personal information is collected. This can be disabled at any time.\n\n Information collected: \n- App version\n- Device model\n- Module Name/Version\n- Error Messages\n- Title of Watched Content")) {
+            Section(header: Text("Advanced"), footer: Text("Thanks to this Sora to collect anonymous data to improve the app. No personal information is collected. This can be disabled at any time.\n\n Information collected: \n- App version\n- Device model\n- Module Name/Version\n- Error Messages\n- Title of Watched Content")) {
                 Toggle("Enable Analytics", isOn: $analyticsEnabled)
                     .tint(.accentColor)
+                
+                HStack {
+                    Text("DNS service")
+                    Spacer()
+                    Menu(customDNSProvider) {
+                        ForEach(customDNSProviderList, id: \.self) { provider in
+                            Button(action: {
+                                customDNSProvider = provider
+                            }) {
+                                Text(provider)
+                            }
+                        }
+                    }
+                }
             }
         }
         .navigationTitle("General")

@@ -46,14 +46,14 @@ class ModuleManager: ObservableObject {
             throw NSError(domain: "Module already exists", code: -1)
         }
         
-        let (metadataData, _) = try await URLSession.custom.data(from: url)
+        let (metadataData, _) = try await URLSession.cloudflareCustom.data(from: url)
         let metadata = try JSONDecoder().decode(ModuleMetadata.self, from: metadataData)
         
         guard let scriptUrl = URL(string: metadata.scriptUrl) else {
             throw NSError(domain: "Invalid script URL", code: -1)
         }
         
-        let (scriptData, _) = try await URLSession.custom.data(from: scriptUrl)
+        let (scriptData, _) = try await URLSession.cloudflareCustom.data(from: scriptUrl)
         guard let jsContent = String(data: scriptData, encoding: .utf8) else {
             throw NSError(domain: "Invalid script encoding", code: -1)
         }
@@ -94,7 +94,7 @@ class ModuleManager: ObservableObject {
     func refreshModules() async {
         for (index, module) in modules.enumerated() {
             do {
-                let (metadataData, _) = try await URLSession.custom.data(from: URL(string: module.metadataUrl)!)
+                let (metadataData, _) = try await URLSession.cloudflareCustom.data(from: URL(string: module.metadataUrl)!)
                 let newMetadata = try JSONDecoder().decode(ModuleMetadata.self, from: metadataData)
                 
                 if newMetadata.version != module.metadata.version {
@@ -102,7 +102,7 @@ class ModuleManager: ObservableObject {
                         throw NSError(domain: "Invalid script URL", code: -1)
                     }
                     
-                    let (scriptData, _) = try await URLSession.custom.data(from: scriptUrl)
+                    let (scriptData, _) = try await URLSession.cloudflareCustom.data(from: scriptUrl)
                     guard let jsContent = String(data: scriptData, encoding: .utf8) else {
                         throw NSError(domain: "Invalid script encoding", code: -1)
                     }
