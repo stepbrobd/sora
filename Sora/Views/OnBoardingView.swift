@@ -178,6 +178,10 @@ struct OnboardingCustomizeAppearanceView: View {
     @AppStorage("alwaysLandscape") private var isAlwaysLandscape = false
     
     @AppStorage("externalPlayer") private var externalPlayer: String = "Sora"
+    
+    @AppStorage("mediaColumnsPortrait") private var mediaColumnsPortrait: Int = 2
+    @AppStorage("mediaColumnsLandscape") private var mediaColumnsLandscape: Int = 4
+    
     private let mediaPlayers = ["Default", "VLC", "OutPlayer", "Infuse", "nPlayer", "Sora"]
     
     var body: some View {
@@ -217,6 +221,44 @@ struct OnboardingCustomizeAppearanceView: View {
                     
                     Toggle("Force Landscape", isOn: $isAlwaysLandscape)
                         .tint(.accentColor)
+                }
+                
+                SettingsSection(title: "Grid Layout") {
+                    HStack {
+                        Text("Portrait Columns")
+                        Spacer()
+                        Picker("", selection: $mediaColumnsPortrait) {
+                            if UIDevice.current.userInterfaceIdiom == .pad {
+                                ForEach(1..<6) { i in
+                                    Text("\(i)").tag(i)
+                                }
+                            } else {
+                                ForEach(1..<5) { i in
+                                    Text("\(i)").tag(i)
+                                }
+                            }
+                        }
+                        .pickerStyle(MenuPickerStyle())
+                        .labelsHidden()
+                    }
+                    
+                    HStack {
+                        Text("Landscape Columns")
+                        Spacer()
+                        Picker("", selection: $mediaColumnsLandscape) {
+                            if UIDevice.current.userInterfaceIdiom == .pad {
+                                ForEach(2..<9) { i in
+                                    Text("\(i)").tag(i)
+                                }
+                            } else {
+                                ForEach(2..<6) { i in
+                                    Text("\(i)").tag(i)
+                                }
+                            }
+                        }
+                        .pickerStyle(MenuPickerStyle())
+                        .labelsHidden()
+                    }
                 }
             }
             .padding()
