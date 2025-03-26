@@ -122,6 +122,10 @@
 		73D164D42D8B5B340011A360 /* JavaScriptCore+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JavaScriptCore+Extensions.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		1EBA87D92D94653B00CABC28 /* NetworkDns */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = NetworkDns; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		133D7C672D2BE2500075467E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -294,6 +298,7 @@
 				133D7C882D2BE2640075467E /* Modules */,
 				1399FAD12D3AB33D00E97C31 /* Logger */,
 				13D842532D45266900EBBFA6 /* Drops */,
+				1EBA87D92D94653B00CABC28 /* NetworkDns */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -451,6 +456,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1EBA87D92D94653B00CABC28 /* NetworkDns */,
 			);
 			name = Sulfur;
 			packageProductDependencies = (
@@ -701,13 +709,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Sora/Preview Content\"";
-				DEVELOPMENT_TEAM = 399LMK6Q2Y;
 				"ENABLE_HARDENED_RUNTIME[sdk=macosx*]" = NO;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Sora/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Sora;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Sora may requires access to your device's camera.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -750,6 +758,7 @@
 				INFOPLIST_FILE = Sora/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Sora;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Sora may requires access to your device's camera.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

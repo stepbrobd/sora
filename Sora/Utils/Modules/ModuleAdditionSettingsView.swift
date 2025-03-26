@@ -154,7 +154,7 @@ struct ModuleAdditionSettingsView: View {
                 return
             }
             do {
-                let (data, _) = try await URLSession.cloudflareCustom.data(from: url)
+                let (data, _) = try await URLSession.customDNS.data(from: url)
                 let metadata = try JSONDecoder().decode(ModuleMetadata.self, from: data)
                 await MainActor.run {
                     self.moduleMetadata = metadata
