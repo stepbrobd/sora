@@ -4,6 +4,7 @@
 //
 //  Created by Seiike on 26/03/25.
 //
+// fuck region restrictions
 
 import Foundation
 import Network
