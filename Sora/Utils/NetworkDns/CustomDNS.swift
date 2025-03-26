@@ -48,8 +48,24 @@ enum DNSProvider: String, CaseIterable, Hashable {
 }
 
 class CustomDNSResolver {
+    // Use custom DNS servers if "Custom" is selected; otherwise, fall back to the default provider's servers.
+    var dnsServers: [String] {
+        if let provider = UserDefaults.standard.string(forKey: "CustomDNSProvider"),
+           provider == "Custom" {
+            let primary = UserDefaults.standard.string(forKey: "customPrimaryDNS") ?? ""
+            let secondary = UserDefaults.standard.string(forKey: "customSecondaryDNS") ?? ""
+            var servers = [String]()
+            if !primary.isEmpty { servers.append(primary) }
+            if !secondary.isEmpty { servers.append(secondary) }
+            if !servers.isEmpty {
+                return servers
+            }
+        }
+        return DNSProvider.current.servers
+    }
+    
     var dnsServerIP: String {
-        return DNSProvider.current.servers.first ?? "1.1.1.1"
+        return dnsServers.first ?? "1.1.1.1"
     }
     
     func buildDNSQuery(for host: String) -> (Data, UInt16) {
@@ -74,6 +90,7 @@ class CustomDNSResolver {
     }
     
     func parseDNSResponse(_ data: Data, queryID: UInt16) -> [String] {
+        // Existing implementation remains unchanged.
         var ips = [String]()
         var offset = 0
         func readUInt16() -> UInt16? {
@@ -172,6 +189,7 @@ class CustomDNSResolver {
         connection.start(queue: DispatchQueue.global())
     }
 }
+
 
 class CustomURLProtocol: URLProtocol {
     static let resolver = CustomDNSResolver()
