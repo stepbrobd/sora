@@ -70,6 +70,7 @@ struct SettingsViewGeneral: View {
                             }
                         }
                     }
+                    
                 }
             }
             

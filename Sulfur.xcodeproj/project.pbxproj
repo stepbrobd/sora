@@ -41,7 +41,6 @@
 		139935662D468C450065CEFF /* ModuleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 139935652D468C450065CEFF /* ModuleManager.swift */; };
 		1399FAD42D3AB38C00E97C31 /* SettingsViewLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1399FAD32D3AB38C00E97C31 /* SettingsViewLogger.swift */; };
 		1399FAD62D3AB3DB00E97C31 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1399FAD52D3AB3DB00E97C31 /* Logger.swift */; };
-		13ADAE022D92ED46007DCE7D /* OnBoardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13ADAE012D92ED46007DCE7D /* OnBoardingView.swift */; };
 		13B7F4C12D58FFDD0045714A /* Shimmer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B7F4C02D58FFDD0045714A /* Shimmer.swift */; };
 		13C0E5EA2D5F85EA00E7F619 /* ContinueWatchingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C0E5E92D5F85EA00E7F619 /* ContinueWatchingManager.swift */; };
 		13C0E5EC2D5F85F800E7F619 /* ContinueWatchingItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C0E5EB2D5F85F800E7F619 /* ContinueWatchingItem.swift */; };
@@ -100,7 +99,6 @@
 		139935652D468C450065CEFF /* ModuleManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModuleManager.swift; sourceTree = "<group>"; };
 		1399FAD32D3AB38C00E97C31 /* SettingsViewLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewLogger.swift; sourceTree = "<group>"; };
 		1399FAD52D3AB3DB00E97C31 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
-		13ADAE012D92ED46007DCE7D /* OnBoardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnBoardingView.swift; sourceTree = "<group>"; };
 		13B7F4C02D58FFDD0045714A /* Shimmer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shimmer.swift; sourceTree = "<group>"; };
 		13C0E5E92D5F85EA00E7F619 /* ContinueWatchingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueWatchingManager.swift; sourceTree = "<group>"; };
 		13C0E5EB2D5F85F800E7F619 /* ContinueWatchingItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueWatchingItem.swift; sourceTree = "<group>"; };
@@ -256,7 +254,6 @@
 				133F55B92D33B53E00E08EEA /* LibraryView */,
 				133D7C7C2D2BE2630075467E /* SearchView.swift */,
 				130217CB2D81C55E0011EFF5 /* DownloadView.swift */,
-				13ADAE012D92ED46007DCE7D /* OnBoardingView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -528,7 +525,6 @@
 				139935662D468C450065CEFF /* ModuleManager.swift in Sources */,
 				133D7C902D2BE2640075467E /* SettingsView.swift in Sources */,
 				1334FF4F2D786C9E007E289F /* TMDB-Trending.swift in Sources */,
-				13ADAE022D92ED46007DCE7D /* OnBoardingView.swift in Sources */,
 				13CBEFDA2D5F7D1200D011EE /* String.swift in Sources */,
 				13DB46902D900A38008CBC03 /* URL.swift in Sources */,
 				130C6BFA2D53AB1F00DC1432 /* SettingsViewData.swift in Sources */,
