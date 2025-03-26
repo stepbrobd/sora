@@ -296,7 +296,7 @@ struct MediaInfoView: View {
                                                     UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(href)")
                                                 }
                                                 refreshTrigger.toggle()
-                                                Logger.shared.log("Marked \(ep.number - 1) episodes watched within anime \"\(title)\".", type: "General")
+                                                Logger.shared.log("Marked \(ep.number - 1) episodes watched within series \"\(title)\".", type: "General")
                                             }
                                         )
                                         .id(refreshTrigger)
