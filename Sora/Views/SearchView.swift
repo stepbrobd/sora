@@ -165,23 +165,9 @@ struct SearchView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
-                        let modulesByLanguage = Dictionary(grouping: moduleManager.modules) { module in
-                            guard let language = module.metadata.language else { return "Unknown" }
-                            
-                            let cleanLanguage = language.replacingOccurrences(
-                                of: "\\s*\\([^\\)]*\\)",
-                                with: "",
-                                options: .regularExpression
-                            ).trimmingCharacters(in: .whitespaces)
-                            
-                            return cleanLanguage.isEmpty ? "Unknown" : cleanLanguage
-                        }
-                        
-                        let sortedLanguages = modulesByLanguage.keys.sorted()
-                        
-                        ForEach(sortedLanguages, id: \.self) { language in
+                        ForEach(getModuleLanguageGroups(), id: \.self) { language in
                             Menu(language) {
-                                ForEach(modulesByLanguage[language] ?? [], id: \.id) { module in
+                                ForEach(getModulesForLanguage(language), id: \.id) { module in
                                     Button {
                                         selectedModuleId = module.id.uuidString
                                     } label: {
@@ -286,6 +272,41 @@ struct SearchView: View {
         } else {
             return verticalSizeClass == .compact ? mediaColumnsLandscape : mediaColumnsPortrait
         }
+    }
+    
+    private func cleanLanguageName(_ language: String?) -> String {
+        guard let language = language else { return "Unknown" }
+        
+        let cleaned = language.replacingOccurrences(
+            of: "\\s*\\([^\\)]*\\)",
+            with: "",
+            options: .regularExpression
+        ).trimmingCharacters(in: .whitespaces)
+        
+        return cleaned.isEmpty ? "Unknown" : cleaned
+    }
+    
+    private func getModulesByLanguage() -> [String: [ScrapingModule]] {
+        var result = [String: [ScrapingModule]]()
+        
+        for module in moduleManager.modules {
+            let language = cleanLanguageName(module.metadata.language)
+            if result[language] == nil {
+                result[language] = [module]
+            } else {
+                result[language]?.append(module)
+            }
+        }
+        
+        return result
+    }
+    
+    private func getModuleLanguageGroups() -> [String] {
+        return getModulesByLanguage().keys.sorted()
+    }
+    
+    private func getModulesForLanguage(_ language: String) -> [ScrapingModule] {
+        return getModulesByLanguage()[language] ?? []
     }
 }
 
