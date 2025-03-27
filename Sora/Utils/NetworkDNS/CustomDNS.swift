@@ -49,7 +49,6 @@ enum DNSProvider: String, CaseIterable, Hashable {
 }
 
 class CustomDNSResolver {
-    // Use custom DNS servers if "Custom" is selected; otherwise, fall back to the default provider's servers.
     var dnsServers: [String] {
         if let provider = UserDefaults.standard.string(forKey: "CustomDNSProvider"),
            provider == "Custom" {
@@ -91,7 +90,6 @@ class CustomDNSResolver {
     }
     
     func parseDNSResponse(_ data: Data, queryID: UInt16) -> [String] {
-        // Existing implementation remains unchanged.
         var ips = [String]()
         var offset = 0
         func readUInt16() -> UInt16? {
@@ -210,9 +208,9 @@ class CustomURLProtocol: URLProtocol {
             case .success(let ips):
                 guard let ip = ips.first,
                       var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
-                    self.client?.urlProtocol(self, didFailWithError: NSError(domain: "CustomDNS", code: -2, userInfo: nil))
-                    return
-                }
+                          self.client?.urlProtocol(self, didFailWithError: NSError(domain: "CustomDNS", code: -2, userInfo: nil))
+                          return
+                      }
                 components.host = ip
                 guard let ipURL = components.url else {
                     self.client?.urlProtocol(self, didFailWithError: NSError(domain: "CustomDNS", code: -3, userInfo: nil))
