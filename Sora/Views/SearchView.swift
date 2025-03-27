@@ -165,20 +165,38 @@ struct SearchView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
-                        ForEach(moduleManager.modules, id: \.id) { module in
-                            Button {
-                                selectedModuleId = module.id.uuidString
-                            } label: {
-                                HStack {
-                                    KFImage(URL(string: module.metadata.iconUrl))
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 20, height: 20)
-                                        .cornerRadius(4)
-                                    Text(module.metadata.sourceName)
-                                    if module.id.uuidString == selectedModuleId {
-                                        Image(systemName: "checkmark")
-                                            .foregroundColor(.accentColor)
+                        let modulesByLanguage = Dictionary(grouping: moduleManager.modules) { module in
+                            guard let language = module.metadata.language else { return "Unknown" }
+                            
+                            let cleanLanguage = language.replacingOccurrences(
+                                of: "\\s*\\([^\\)]*\\)",
+                                with: "",
+                                options: .regularExpression
+                            ).trimmingCharacters(in: .whitespaces)
+                            
+                            return cleanLanguage.isEmpty ? "Unknown" : cleanLanguage
+                        }
+                        
+                        let sortedLanguages = modulesByLanguage.keys.sorted()
+                        
+                        ForEach(sortedLanguages, id: \.self) { language in
+                            Menu(language) {
+                                ForEach(modulesByLanguage[language] ?? [], id: \.id) { module in
+                                    Button {
+                                        selectedModuleId = module.id.uuidString
+                                    } label: {
+                                        HStack {
+                                            KFImage(URL(string: module.metadata.iconUrl))
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
+                                                .frame(width: 20, height: 20)
+                                                .cornerRadius(4)
+                                            Text(module.metadata.sourceName)
+                                            if module.id.uuidString == selectedModuleId {
+                                                Image(systemName: "checkmark")
+                                                    .foregroundColor(.accentColor)
+                                            }
+                                        }
                                     }
                                 }
                             }
