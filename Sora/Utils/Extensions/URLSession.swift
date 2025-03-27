@@ -5,55 +5,9 @@
 //  Created by Francesco on 05/01/25.
 //
 
-import Network
 import Foundation
 
-enum DNSProvider: String, CaseIterable, Hashable {
-    case cloudflare = "Cloudflare"
-    case google = "Google"
-    case openDNS = "OpenDNS"
-    case quad9 = "Quad9"
-    case adGuard = "AdGuard"
-    case cleanbrowsing = "CleanBrowsing"
-    case controld = "ControlD"
-    
-    var servers: [String] {
-        switch self {
-        case .cloudflare:
-            return ["1.1.1.1", "1.0.0.1"]
-        case .google:
-            return ["8.8.8.8", "8.8.4.4"]
-        case .openDNS:
-            return ["208.67.222.222", "208.67.220.220"]
-        case .quad9:
-            return ["9.9.9.9", "149.112.112.112"]
-        case .adGuard:
-            return ["94.140.14.14", "94.140.15.15"]
-        case .cleanbrowsing:
-            return ["185.228.168.168", "185.228.169.168"]
-        case .controld:
-            return ["76.76.2.0", "76.76.10.0"]
-        }
-    }
-}
-
 extension URLSession {
-    private static let dnsSelectorKey = "CustomDNSProvider"
-    
-    static var currentDNSProvider: DNSProvider {
-        get {
-            guard let savedProviderRawValue = UserDefaults.standard.string(forKey: dnsSelectorKey) else {
-                UserDefaults.standard.set(DNSProvider.cloudflare.rawValue, forKey: dnsSelectorKey)
-                return .cloudflare
-            }
-            
-            return DNSProvider(rawValue: savedProviderRawValue) ?? .cloudflare
-        }
-        set {
-            UserDefaults.standard.set(newValue.rawValue, forKey: dnsSelectorKey)
-        }
-    }
-    
     static let userAgents = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
@@ -80,33 +34,21 @@ extension URLSession {
         "Mozilla/5.0 (Android 13; Mobile; rv:122.0) Gecko/122.0 Firefox/122.0"
     ]
     
-    static var randomUserAgent: String {
+    static let randomUserAgent: String = {
         userAgents.randomElement() ?? userAgents[0]
-    }
+    }()
     
-    static var custom: URLSession {
+    static let custom: URLSession = {
         let configuration = URLSessionConfiguration.default
-        configuration.httpAdditionalHeaders = [
-            "User-Agent": randomUserAgent
-        ]
+        configuration.httpAdditionalHeaders = ["User-Agent": randomUserAgent]
         return URLSession(configuration: configuration)
-    }
+    }()
     
-    static var cloudflareCustom: URLSession {
-        let configuration = URLSessionConfiguration.default
-        configuration.httpAdditionalHeaders = [
-            "User-Agent": randomUserAgent
-        ]
-        
-        let dnsServers = currentDNSProvider.servers
-        
-        let dnsSettings: [AnyHashable: Any] = [
-            "DNSSettings": [
-                "ServerAddresses": dnsServers
-            ]
-        ]
-        
-        configuration.connectionProxyDictionary = dnsSettings
-        return URLSession(configuration: configuration)
-    }
+    static let customDNS: URLSession = {
+        let config = URLSessionConfiguration.default
+        var protocols = config.protocolClasses ?? []
+        protocols.insert(CustomURLProtocol.self, at: 0)
+        config.protocolClasses = protocols
+        return URLSession(configuration: config, delegate: InsecureSessionDelegate(), delegateQueue: nil)
+    }()
 }
