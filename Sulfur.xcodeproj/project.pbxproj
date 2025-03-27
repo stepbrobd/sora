@@ -15,6 +15,9 @@
 		131845F92D47C62D00CA7A54 /* SettingsViewGeneral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 131845F82D47C62D00CA7A54 /* SettingsViewGeneral.swift */; };
 		1327FBA72D758CEA00FC6689 /* Analytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1327FBA62D758CEA00FC6689 /* Analytics.swift */; };
 		1327FBA92D758DEA00FC6689 /* UIDevice+Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1327FBA82D758DEA00FC6689 /* UIDevice+Model.swift */; };
+		132E351D2D959DDB0007800E /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = 132E351C2D959DDB0007800E /* Drops */; };
+		132E35202D959E1D0007800E /* FFmpeg-iOS-Lame in Frameworks */ = {isa = PBXBuildFile; productRef = 132E351F2D959E1D0007800E /* FFmpeg-iOS-Lame */; };
+		132E35232D959E410007800E /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 132E35222D959E410007800E /* Kingfisher */; };
 		1334FF4D2D786C93007E289F /* TMDB-Seasonal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1334FF4C2D786C93007E289F /* TMDB-Seasonal.swift */; };
 		1334FF4F2D786C9E007E289F /* TMDB-Trending.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1334FF4E2D786C9E007E289F /* TMDB-Trending.swift */; };
 		1334FF522D7871B7007E289F /* TMDBItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1334FF512D7871B7007E289F /* TMDBItem.swift */; };
@@ -126,6 +129,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				132E35232D959E410007800E /* Kingfisher in Frameworks */,
+				132E35202D959E1D0007800E /* FFmpeg-iOS-Lame in Frameworks */,
+				132E351D2D959DDB0007800E /* Drops in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -459,6 +465,9 @@
 			);
 			name = Sulfur;
 			packageProductDependencies = (
+				132E351C2D959DDB0007800E /* Drops */,
+				132E351F2D959E1D0007800E /* FFmpeg-iOS-Lame */,
+				132E35222D959E410007800E /* Kingfisher */,
 			);
 			productName = Sora;
 			productReference = 133D7C6A2D2BE2500075467E /* Sulfur.app */;
@@ -488,6 +497,9 @@
 			);
 			mainGroup = 133D7C612D2BE2500075467E;
 			packageReferences = (
+				132E351B2D959DDB0007800E /* XCRemoteSwiftPackageReference "Drops" */,
+				132E351E2D959E1D0007800E /* XCRemoteSwiftPackageReference "FFmpeg-iOS-Lame" */,
+				132E35212D959E410007800E /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
 			productRefGroup = 133D7C6B2D2BE2500075467E /* Products */;
 			projectDirPath = "";
@@ -796,6 +808,51 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		132E351B2D959DDB0007800E /* XCRemoteSwiftPackageReference "Drops" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/omaralbeik/Drops.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		132E351E2D959E1D0007800E /* XCRemoteSwiftPackageReference "FFmpeg-iOS-Lame" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kewlbear/FFmpeg-iOS-Lame";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		132E35212D959E410007800E /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = exactVersion;
+				version = 7.9.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		132E351C2D959DDB0007800E /* Drops */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 132E351B2D959DDB0007800E /* XCRemoteSwiftPackageReference "Drops" */;
+			productName = Drops;
+		};
+		132E351F2D959E1D0007800E /* FFmpeg-iOS-Lame */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 132E351E2D959E1D0007800E /* XCRemoteSwiftPackageReference "FFmpeg-iOS-Lame" */;
+			productName = "FFmpeg-iOS-Lame";
+		};
+		132E35222D959E410007800E /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 132E35212D959E410007800E /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 133D7C622D2BE2500075467E /* Project object */;
 }
