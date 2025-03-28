@@ -29,7 +29,11 @@ struct SoraApp: App {
                     }
                 }
                 .onOpenURL { url in
-                    handleURL(url)
+                    if let params = url.queryParameters, params["code"] != nil {
+                        Self.handleRedirect(url: url)
+                    } else {
+                        handleURL(url)
+                    }
                 }
         }
     }
@@ -50,6 +54,22 @@ struct SoraApp: App {
             window.rootViewController?.present(hostingController, animated: true)
         } else {
             Logger.shared.log("Failed to present module addition view: No window scene found", type: "Error")
+        }
+    }
+    
+    static func handleRedirect(url: URL) {
+        guard let params = url.queryParameters,
+              let code = params["code"] else {
+                  Logger.shared.log("Failed to extract authorization code")
+                  return
+              }
+        
+        AniListToken.exchangeAuthorizationCodeForToken(code: code) { success in
+            if success {
+                Logger.shared.log("Token exchange successful")
+            } else {
+                Logger.shared.log("Token exchange failed", type: "Error")
+            }
         }
     }
 }

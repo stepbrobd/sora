@@ -250,7 +250,7 @@ struct MediaInfoView: View {
                                                     }
                                                 },
                                                 onMarkAllPrevious: {
-                                                    for ep2 in seasons[selectedSeason] {
+                                                    for ep2 in seasons[selectedSeason] where ep2.number < ep.number {
                                                         let href = ep2.href
                                                         UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(href)")
                                                         UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(href)")
@@ -296,7 +296,7 @@ struct MediaInfoView: View {
                                                     UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(href)")
                                                 }
                                                 refreshTrigger.toggle()
-                                                Logger.shared.log("Marked \(ep.number - 1) episodes watched within anime \"\(title)\".", type: "General")
+                                                Logger.shared.log("Marked \(ep.number - 1) episodes watched within series \"\(title)\".", type: "General")
                                             }
                                         )
                                         .id(refreshTrigger)
@@ -626,9 +626,15 @@ struct MediaInfoView: View {
                 UIApplication.shared.open(url, options: [:], completionHandler: nil)
                 Logger.shared.log("Opening external app with scheme: \(url)", type: "General")
             } else {
+                guard let url = URL(string: url) else {
+                    Logger.shared.log("Invalid stream URL: \(url)", type: "Error")
+                    DropManager.shared.showDrop(title: "Error", subtitle: "Invalid stream URL", duration: 2.0, icon: UIImage(systemName: "xmark.circle"))
+                    return
+                }
+                
                 let customMediaPlayer = CustomMediaPlayerViewController(
                     module: module,
-                    urlString: url,
+                    urlString: url.absoluteString,
                     fullUrl: fullURL,
                     title: title,
                     episodeNumber: selectedEpisodeNumber,
@@ -644,6 +650,9 @@ struct MediaInfoView: View {
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                    let rootVC = windowScene.windows.first?.rootViewController {
                     findTopViewController.findViewController(rootVC).present(customMediaPlayer, animated: true, completion: nil)
+                } else {
+                    Logger.shared.log("Failed to find root view controller", type: "Error")
+                    DropManager.shared.showDrop(title: "Error", subtitle: "Failed to present player", duration: 2.0, icon: UIImage(systemName: "xmark.circle"))
                 }
             }
         }

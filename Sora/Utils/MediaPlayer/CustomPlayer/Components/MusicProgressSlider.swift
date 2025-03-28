@@ -42,10 +42,13 @@ struct MusicProgressSlider<T: BinaryFloatingPoint>: View {
                     }
                     
                     HStack {
-                        Text(value.asTimeString(style: .positional))
+                        // Determine if we should show hours based on the total duration.
+                        let shouldShowHours = inRange.upperBound >= 3600
+                        Text(value.asTimeString(style: .positional, showHours: shouldShowHours))
                         Spacer(minLength: 0)
-                        Text("-" + (inRange.upperBound - value).asTimeString(style: .positional))
+                        Text("-" + (inRange.upperBound - value).asTimeString(style: .positional, showHours: shouldShowHours))
                     }
+
                     .font(.system(size: 12))
                     .foregroundColor(isActive ? fillColor : emptyColor)
                 }

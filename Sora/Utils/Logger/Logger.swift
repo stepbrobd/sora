@@ -31,6 +31,8 @@ class Logger {
         let entry = LogEntry(message: message, type: type, timestamp: Date())
         logs.append(entry)
         saveLogToFile(entry)
+        
+        debugLog(entry)
     }
     
     
@@ -38,7 +40,7 @@ class Logger {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd-MM HH:mm:ss"
         return logs.map { "[\(dateFormatter.string(from: $0.timestamp))] [\($0.type)] \($0.message)" }
-        .joined(separator: "\n----\n")
+            .joined(separator: "\n----\n")
     }
     
     func clearLogs() {
@@ -64,4 +66,13 @@ class Logger {
             }
         }
     }
-}
+    
+    /// Prints log messages to the Xcode console only in DEBUG mode
+    private func debugLog(_ entry: LogEntry) {
+        #if DEBUG
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd-MM HH:mm:ss"
+        let formattedMessage = "[\(dateFormatter.string(from: entry.timestamp))] [\(entry.type)] \(entry.message)"
+        print(formattedMessage)
+        #endif
+    }}

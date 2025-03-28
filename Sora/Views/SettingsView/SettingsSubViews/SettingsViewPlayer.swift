@@ -58,15 +58,13 @@ struct SettingsViewPlayer: View {
                     }
                 }
             }
-            Section(header: Text("Skip Settings")) {
-                // Normal skip
+            Section(header: Text("Skip Settings"), footer : Text("Double tapping the screen on it's sides will skip with the short tap setting.")) {
                 HStack {
                     Text("Tap Skip:")
                     Spacer()
                     Stepper("\(Int(skipIncrement))s", value: $skipIncrement, in: 5...300, step: 5)
                 }
                 
-                // Long-press skip
                 HStack {
                     Text("Long press Skip:")
                     Spacer()

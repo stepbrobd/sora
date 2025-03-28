@@ -16,66 +16,16 @@ class JSController: ObservableObject {
     }
     
     private func setupContext() {
-        let consoleObject = JSValue(newObjectIn: context)
-        let consoleLogFunction: @convention(block) (String) -> Void = { message in
-            Logger.shared.log(message, type: "Debug")
-        }
-        consoleObject?.setObject(consoleLogFunction, forKeyedSubscript: "log" as NSString)
-        context.setObject(consoleObject, forKeyedSubscript: "console" as NSString)
-        
-        let logFunction: @convention(block) (String) -> Void = { message in
-            Logger.shared.log("JavaScript log: \(message)", type: "Debug")
-        }
-        context.setObject(logFunction, forKeyedSubscript: "log" as NSString)
-        
-        let fetchNativeFunction: @convention(block) (String, [String: String]?, JSValue, JSValue) -> Void = { urlString, headers, resolve, reject in
-            guard let url = URL(string: urlString) else {
-                Logger.shared.log("Invalid URL", type: "Error")
-                reject.call(withArguments: ["Invalid URL"])
-                return
-            }
-            var request = URLRequest(url: url)
-            if let headers = headers {
-                for (key, value) in headers {
-                    request.setValue(value, forHTTPHeaderField: key)
-                }
-            }
-            let task = URLSession.custom.dataTask(with: request) { data, _, error in
-                if let error = error {
-                    Logger.shared.log("Network error in fetchNativeFunction: \(error.localizedDescription)", type: "Error")
-                    reject.call(withArguments: [error.localizedDescription])
-                    return
-                }
-                guard let data = data else {
-                    Logger.shared.log("No data in response", type: "Error")
-                    reject.call(withArguments: ["No data"])
-                    return
-                }
-                if let text = String(data: data, encoding: .utf8) {
-                    resolve.call(withArguments: [text])
-                } else {
-                    Logger.shared.log("Unable to decode data to text", type: "Error")
-                    reject.call(withArguments: ["Unable to decode data"])
-                }
-            }
-            task.resume()
-        }
-        context.setObject(fetchNativeFunction, forKeyedSubscript: "fetchNative" as NSString)
-        
-        let fetchDefinition = """
-                        function fetch(url, headers) {
-                            return new Promise(function(resolve, reject) {
-                                fetchNative(url, headers, resolve, reject);
-                            });
-                        }
-                        """
-        context.evaluateScript(fetchDefinition)
+        context.setupJavaScriptEnvironment()
     }
     
     func loadScript(_ script: String) {
         context = JSContext()
         setupContext()
         context.evaluateScript(script)
+        if let exception = context.exception {
+            Logger.shared.log("Error loading script: \(exception)", type: "Error")
+        }
     }
     
     func fetchSearchResults(keyword: String, module: ScrapingModule, completion: @escaping ([SearchItem]) -> Void) {
@@ -249,10 +199,13 @@ class JSController: ObservableObject {
                let data = jsonString.data(using: .utf8) {
                 do {
                     if let array = try JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]] {
-                        let resultItems = array.map { item -> SearchItem in
-                            let title = item["title"] as? String ?? ""
-                            let imageUrl = item["image"] as? String ?? "https://s4.anilist.co/file/anilistcdn/character/large/default.jpg"
-                            let href = item["href"] as? String ?? ""
+                        let resultItems = array.compactMap { item -> SearchItem? in
+                            guard let title = item["title"] as? String,
+                                  let imageUrl = item["image"] as? String,
+                                  let href = item["href"] as? String else {
+                                      Logger.shared.log("Missing or invalid data in search result item: \(item)", type: "Error")
+                                      return nil
+                                  }
                             return SearchItem(title: title, imageUrl: imageUrl, href: href)
                         }
                         
