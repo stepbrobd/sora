@@ -43,12 +43,4 @@ extension URLSession {
         configuration.httpAdditionalHeaders = ["User-Agent": randomUserAgent]
         return URLSession(configuration: configuration)
     }()
-    
-    static let customDNS: URLSession = {
-        let config = URLSessionConfiguration.default
-        var protocols = config.protocolClasses ?? []
-        protocols.insert(CustomURLProtocol.self, at: 0)
-        config.protocolClasses = protocols
-        return URLSession(configuration: config, delegate: InsecureSessionDelegate(), delegateQueue: nil)
-    }()
 }

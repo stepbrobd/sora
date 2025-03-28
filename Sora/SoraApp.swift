@@ -13,10 +13,6 @@ struct SoraApp: App {
     @StateObject private var moduleManager = ModuleManager()
     @StateObject private var librarykManager = LibraryManager()
     
-    init() {
-        registerCustomDNSGlobally()
-    }
-    
     var body: some Scene {
         WindowGroup {
             ContentView()

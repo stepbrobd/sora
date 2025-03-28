@@ -11,13 +11,11 @@ extension JSContext {
     func setupConsoleLogging() {
         let consoleObject = JSValue(newObjectIn: self)
         
-        // Set up console.log
         let consoleLogFunction: @convention(block) (String) -> Void = { message in
             Logger.shared.log(message, type: "Debug")
         }
         consoleObject?.setObject(consoleLogFunction, forKeyedSubscript: "log" as NSString)
         
-        // Set up console.error
         let consoleErrorFunction: @convention(block) (String) -> Void = { message in
             Logger.shared.log(message, type: "Error")
         }
@@ -25,7 +23,6 @@ extension JSContext {
         
         self.setObject(consoleObject, forKeyedSubscript: "console" as NSString)
         
-        // Global log function
         let logFunction: @convention(block) (String) -> Void = { message in
             Logger.shared.log("JavaScript log: \(message)", type: "Debug")
         }
@@ -45,7 +42,7 @@ extension JSContext {
                     request.setValue(value, forHTTPHeaderField: key)
                 }
             }
-            let task = URLSession.customDNS.dataTask(with: request) { data, _, error in
+            let task = URLSession.custom.dataTask(with: request) { data, _, error in
                 if let error = error {
                     Logger.shared.log("Network error in fetchNativeFunction: \(error.localizedDescription)", type: "Error")
                     reject.call(withArguments: [error.localizedDescription])
@@ -91,27 +88,24 @@ extension JSContext {
             
             Logger.shared.log("FetchV2 Request: URL=\(url), Method=\(httpMethod), Body=\(body ?? "nil")", type: "Debug")
             
-            // Ensure no body for GET requests
             if httpMethod == "GET", let body = body, !body.isEmpty, body != "null", body != "undefined" {
                 Logger.shared.log("GET request must not have a body", type: "Error")
                 reject.call(withArguments: ["GET request must not have a body"])
                 return
             }
             
-            // Set the body for non-GET requests
             if httpMethod != "GET", let body = body, !body.isEmpty, body != "null", body != "undefined" {
                 request.httpBody = body.data(using: .utf8)
             }
             
             
-            // Set headers
             if let headers = headers {
                 for (key, value) in headers {
                     request.setValue(value, forHTTPHeaderField: key)
                 }
             }
             
-            let task = URLSession.customDNS.downloadTask(with: request) { tempFileURL, response, error in
+            let task = URLSession.custom.downloadTask(with: request) { tempFileURL, response, error in
                 if let error = error {
                     Logger.shared.log("Network error in fetchV2NativeFunction: \(error.localizedDescription)", type: "Error")
                     reject.call(withArguments: [error.localizedDescription])
@@ -127,8 +121,7 @@ extension JSContext {
                 do {
                     let data = try Data(contentsOf: tempFileURL)
                     
-                    // Check response size before processing
-                    if data.count > 10_000_000 { // Example: 10MB limit
+                    if data.count > 10_000_000 {
                         Logger.shared.log("Response exceeds maximum size", type: "Error")
                         reject.call(withArguments: ["Response exceeds maximum size"])
                         return
@@ -203,7 +196,6 @@ extension JSContext {
     }
     
     func setupBase64Functions() {
-        // btoa function: converts binary string to base64-encoded ASCII string
         let btoaFunction: @convention(block) (String) -> String? = { data in
             guard let data = data.data(using: .utf8) else {
                 Logger.shared.log("btoa: Failed to encode input as UTF-8", type: "Error")
@@ -212,7 +204,6 @@ extension JSContext {
             return data.base64EncodedString()
         }
         
-        // atob function: decodes base64-encoded ASCII string to binary string
         let atobFunction: @convention(block) (String) -> String? = { base64String in
             guard let data = Data(base64Encoded: base64String) else {
                 Logger.shared.log("atob: Invalid base64 input", type: "Error")
@@ -222,12 +213,10 @@ extension JSContext {
             return String(data: data, encoding: .utf8)
         }
         
-        // Add the functions to the JavaScript context
         self.setObject(btoaFunction, forKeyedSubscript: "btoa" as NSString)
         self.setObject(atobFunction, forKeyedSubscript: "atob" as NSString)
     }
     
-    // Helper method to set up all JavaScript functionality
     func setupJavaScriptEnvironment() {
         setupConsoleLogging()
         setupNativeFetch()
