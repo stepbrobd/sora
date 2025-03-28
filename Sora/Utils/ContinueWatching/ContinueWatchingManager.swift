@@ -14,6 +14,11 @@ class ContinueWatchingManager {
     private init() {}
     
     func save(item: ContinueWatchingItem) {
+        if item.progress >= 0.9 {
+            remove(item: item)
+            return
+        }
+        
         var items = fetchItems()
         if let index = items.firstIndex(where: { $0.streamUrl == item.streamUrl && $0.episodeNumber == item.episodeNumber }) {
             items[index] = item
