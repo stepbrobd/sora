@@ -21,6 +21,8 @@ struct ModuleMetadata: Codable, Hashable {
     let asyncJS: Bool?
     let streamAsyncJS: Bool?
     let softsub: Bool?
+    let multiStream: Bool?
+    let multiSubs: Bool?
 
     struct Author: Codable, Hashable {
         let name: String
