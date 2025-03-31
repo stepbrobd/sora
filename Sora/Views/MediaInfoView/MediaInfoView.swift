@@ -500,8 +500,9 @@ struct MediaInfoView: View {
                     if module.metadata.softsub == true {
                         if module.metadata.asyncJS == true {
                             jsController.fetchStreamUrlJS(episodeUrl: href, softsub: true) { result in
-                                if let streamUrl = result.stream {
-                                    self.playStream(url: streamUrl, fullURL: href, subtitles: result.subtitles)
+                                // Use first stream from array
+                                if let streams = result.streams, !streams.isEmpty {
+                                    self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
                                 } else {
                                     self.handleStreamFailure(error: nil)
                                 }
@@ -511,8 +512,8 @@ struct MediaInfoView: View {
                             }
                         } else if module.metadata.streamAsyncJS == true {
                             jsController.fetchStreamUrlJSSecond(episodeUrl: href, softsub: true) { result in
-                                if let streamUrl = result.stream {
-                                    self.playStream(url: streamUrl, fullURL: href, subtitles: result.subtitles)
+                                if let streams = result.streams, !streams.isEmpty {
+                                    self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
                                 } else {
                                     self.handleStreamFailure(error: nil)
                                 }
@@ -522,8 +523,8 @@ struct MediaInfoView: View {
                             }
                         } else {
                             jsController.fetchStreamUrl(episodeUrl: href, softsub: true) { result in
-                                if let streamUrl = result.stream {
-                                    self.playStream(url: streamUrl, fullURL: href, subtitles: result.subtitles)
+                                if let streams = result.streams, !streams.isEmpty {
+                                    self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
                                 } else {
                                     self.handleStreamFailure(error: nil)
                                 }
@@ -535,8 +536,8 @@ struct MediaInfoView: View {
                     } else {
                         if module.metadata.asyncJS == true {
                             jsController.fetchStreamUrlJS(episodeUrl: href) { result in
-                                if let streamUrl = result.stream {
-                                    self.playStream(url: streamUrl, fullURL: href)
+                                if let streams = result.streams, !streams.isEmpty {
+                                    self.playStream(url: streams[0], fullURL: href)
                                 } else {
                                     self.handleStreamFailure(error: nil)
                                 }
@@ -546,8 +547,8 @@ struct MediaInfoView: View {
                             }
                         } else if module.metadata.streamAsyncJS == true {
                             jsController.fetchStreamUrlJSSecond(episodeUrl: href) { result in
-                                if let streamUrl = result.stream {
-                                    self.playStream(url: streamUrl, fullURL: href)
+                                if let streams = result.streams, !streams.isEmpty {
+                                    self.playStream(url: streams[0], fullURL: href)
                                 } else {
                                     self.handleStreamFailure(error: nil)
                                 }
@@ -557,8 +558,8 @@ struct MediaInfoView: View {
                             }
                         } else {
                             jsController.fetchStreamUrl(episodeUrl: href) { result in
-                                if let streamUrl = result.stream {
-                                    self.playStream(url: streamUrl, fullURL: href)
+                                if let streams = result.streams, !streams.isEmpty {
+                                    self.playStream(url: streams[0], fullURL: href)
                                 } else {
                                     self.handleStreamFailure(error: nil)
                                 }

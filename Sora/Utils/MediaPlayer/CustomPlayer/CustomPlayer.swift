@@ -114,6 +114,7 @@ class CustomMediaPlayerViewController: UIViewController {
         }
         var request = URLRequest(url: url)
         request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
+        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
         request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
         
         let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])
@@ -917,6 +918,7 @@ class CustomMediaPlayerViewController: UIViewController {
     private func parseM3U8(url: URL, completion: @escaping () -> Void) {
         var request = URLRequest(url: url)
         request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
+        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
         request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
@@ -997,6 +999,7 @@ class CustomMediaPlayerViewController: UIViewController {
         
         var request = URLRequest(url: url)
         request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
+        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
         request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
         
         let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])

@@ -15,6 +15,9 @@
 		131845F92D47C62D00CA7A54 /* SettingsViewGeneral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 131845F82D47C62D00CA7A54 /* SettingsViewGeneral.swift */; };
 		1327FBA72D758CEA00FC6689 /* Analytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1327FBA62D758CEA00FC6689 /* Analytics.swift */; };
 		1327FBA92D758DEA00FC6689 /* UIDevice+Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1327FBA82D758DEA00FC6689 /* UIDevice+Model.swift */; };
+		132AF1212D99951700A0140B /* JSController-Streams.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132AF1202D99951700A0140B /* JSController-Streams.swift */; };
+		132AF1232D9995C300A0140B /* JSController-Details.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132AF1222D9995C300A0140B /* JSController-Details.swift */; };
+		132AF1252D9995F900A0140B /* JSController-Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132AF1242D9995F900A0140B /* JSController-Search.swift */; };
 		132E351D2D959DDB0007800E /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = 132E351C2D959DDB0007800E /* Drops */; };
 		132E35202D959E1D0007800E /* FFmpeg-iOS-Lame in Frameworks */ = {isa = PBXBuildFile; productRef = 132E351F2D959E1D0007800E /* FFmpeg-iOS-Lame */; };
 		132E35232D959E410007800E /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 132E35222D959E410007800E /* Kingfisher */; };
@@ -74,6 +77,9 @@
 		131845F82D47C62D00CA7A54 /* SettingsViewGeneral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewGeneral.swift; sourceTree = "<group>"; };
 		1327FBA62D758CEA00FC6689 /* Analytics.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Analytics.swift; sourceTree = "<group>"; };
 		1327FBA82D758DEA00FC6689 /* UIDevice+Model.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIDevice+Model.swift"; sourceTree = "<group>"; };
+		132AF1202D99951700A0140B /* JSController-Streams.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JSController-Streams.swift"; sourceTree = "<group>"; };
+		132AF1222D9995C300A0140B /* JSController-Details.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JSController-Details.swift"; sourceTree = "<group>"; };
+		132AF1242D9995F900A0140B /* JSController-Search.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JSController-Search.swift"; sourceTree = "<group>"; };
 		1334FF4C2D786C93007E289F /* TMDB-Seasonal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TMDB-Seasonal.swift"; sourceTree = "<group>"; };
 		1334FF4E2D786C9E007E289F /* TMDB-Trending.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TMDB-Trending.swift"; sourceTree = "<group>"; };
 		1334FF512D7871B7007E289F /* TMDBItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TMDBItem.swift; sourceTree = "<group>"; };
@@ -326,6 +332,9 @@
 			isa = PBXGroup;
 			children = (
 				133D7C8B2D2BE2640075467E /* JSController.swift */,
+				132AF1202D99951700A0140B /* JSController-Streams.swift */,
+				132AF1222D9995C300A0140B /* JSController-Details.swift */,
+				132AF1242D9995F900A0140B /* JSController-Search.swift */,
 			);
 			path = JSLoader;
 			sourceTree = "<group>";
@@ -524,6 +533,7 @@
 				13B7F4C12D58FFDD0045714A /* Shimmer.swift in Sources */,
 				139935662D468C450065CEFF /* ModuleManager.swift in Sources */,
 				133D7C902D2BE2640075467E /* SettingsView.swift in Sources */,
+				132AF1252D9995F900A0140B /* JSController-Search.swift in Sources */,
 				1334FF4F2D786C9E007E289F /* TMDB-Trending.swift in Sources */,
 				13CBEFDA2D5F7D1200D011EE /* String.swift in Sources */,
 				13DB46902D900A38008CBC03 /* URL.swift in Sources */,
@@ -542,6 +552,7 @@
 				13EA2BD62D32D97400C1EBD7 /* Double+Extension.swift in Sources */,
 				133D7C8F2D2BE2640075467E /* MediaInfoView.swift in Sources */,
 				13103E892D58A39A000F0673 /* AniListItem.swift in Sources */,
+				132AF1212D99951700A0140B /* JSController-Streams.swift in Sources */,
 				131845F92D47C62D00CA7A54 /* SettingsViewGeneral.swift in Sources */,
 				13103E8E2D58E04A000F0673 /* SkeletonCell.swift in Sources */,
 				13D842552D45267500EBBFA6 /* DropManager.swift in Sources */,
@@ -562,6 +573,7 @@
 				1334FF4D2D786C93007E289F /* TMDB-Seasonal.swift in Sources */,
 				13DB468D2D90093A008CBC03 /* Anilist-Login.swift in Sources */,
 				73D164D52D8B5B470011A360 /* JavaScriptCore+Extensions.swift in Sources */,
+				132AF1232D9995C300A0140B /* JSController-Details.swift in Sources */,
 				13EA2BD52D32D97400C1EBD7 /* CustomPlayer.swift in Sources */,
 				1399FAD42D3AB38C00E97C31 /* SettingsViewLogger.swift in Sources */,
 				13DB46922D900BCE008CBC03 /* SettingsViewTrackers.swift in Sources */,
