@@ -101,26 +101,6 @@ struct SettingsViewGeneral: View {
                     .tint(.accentColor)
             }
             
-            Section(header: Text("Network"), footer: Text("Try between some of the providers in case something is not loading if it should be, as it might be the fault of your ISP.")){
-                HStack {
-                    Text("DNS service")
-                    Spacer()
-                    Menu(customDNSProvider) {
-                        ForEach(customDNSProviderList, id: \.self) { provider in
-                            Button(action: { customDNSProvider = provider }) {
-                                Text(provider)
-                            }
-                        }
-                    }
-                }
-                if customDNSProvider == "Custom" {
-                    TextField("Primary DNS", text: $customPrimaryDNS)
-                        .keyboardType(.numbersAndPunctuation)
-                    TextField("Secondary DNS", text: $customSecondaryDNS)
-                        .keyboardType(.numbersAndPunctuation)
-                }
-            }
-            
             Section(header: Text("Advanced"), footer: Text("Anonymous data is collected to improve the app. No personal information is collected. This can be disabled at any time.")) {
                 Toggle("Enable Analytics", isOn: $analyticsEnabled)
                     .tint(.accentColor)
