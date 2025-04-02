@@ -479,11 +479,28 @@ class CustomMediaPlayerViewController: UIViewController {
         dismissButton.addTarget(self, action: #selector(dismissTapped), for: .touchUpInside)
         controlsContainerView.addSubview(dismissButton)
         dismissButton.translatesAutoresizingMaskIntoConstraints = false
+
         NSLayoutConstraint.activate([
             dismissButton.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: 16),
             dismissButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             dismissButton.widthAnchor.constraint(equalToConstant: 40),
             dismissButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+
+        let episodeLabel = UILabel()
+        episodeLabel.text = "\(titleText) • Ep \(episodeNumber)"
+        episodeLabel.textColor = .white
+        episodeLabel.font = UIFont.systemFont(ofSize: 15, weight: .medium)
+        episodeLabel.numberOfLines = 1
+        episodeLabel.lineBreakMode = .byTruncatingTail
+
+        controlsContainerView.addSubview(episodeLabel)
+        episodeLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            episodeLabel.centerYAnchor.constraint(equalTo: dismissButton.centerYAnchor),
+            episodeLabel.leadingAnchor.constraint(equalTo: dismissButton.trailingAnchor, constant: 12),
+            episodeLabel.trailingAnchor.constraint(lessThanOrEqualTo: controlsContainerView.trailingAnchor, constant: -16)
         ])
     }
     
