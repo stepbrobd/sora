@@ -577,7 +577,7 @@ class CustomMediaPlayerViewController: UIViewController {
         
         NSLayoutConstraint.activate([
             skip85Button.leadingAnchor.constraint(equalTo: sliderHostingController!.view.leadingAnchor),
-            skip85Button.bottomAnchor.constraint(equalTo: sliderHostingController!.view.topAnchor, constant: -3),
+            skip85Button.bottomAnchor.constraint(equalTo: sliderHostingController!.view.topAnchor, constant: -5),
             skip85Button.heightAnchor.constraint(equalToConstant: 50),
             skip85Button.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
         ])
