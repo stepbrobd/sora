@@ -42,7 +42,7 @@ struct VerticalBrightnessSlider<T: BinaryFloatingPoint>: View {
                         
                         Image(systemName: getIconName)
                             .font(.system(size: isActive ? 16 : 12, weight: .medium, design: .rounded))
-                            .foregroundColor(isActive ? fillColor : Color.white) // bright white when not active
+                            .foregroundColor(isActive ? fillColor : Color.white)
                             .animation(.spring(), value: isActive)
                             .frame(maxHeight: .infinity, alignment: .bottom)
                             .padding(.bottom)

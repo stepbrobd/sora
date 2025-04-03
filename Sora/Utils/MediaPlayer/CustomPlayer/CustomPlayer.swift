@@ -430,29 +430,23 @@ class CustomMediaPlayerViewController: UIViewController {
                 get: { self.brightnessValue },
                 set: { newValue in
                     self.brightnessValue = newValue
-                    // UIScreen.main.brightness is updated inside VerticalVolumeSlider.
                 }
             ),
             inRange: 0...1,
-            activeFillColor: .white,             // Preserves original active color
-            fillColor: .white.opacity(0.5),        // Preserves original fill color
-            emptyColor: .white.opacity(0.3),       // Preserves original empty color
-            width: 22,                           // Keeps the original width and corner style
+            activeFillColor: .white,
+            fillColor: .white.opacity(0.5),
+            emptyColor: .white.opacity(0.3),
+            width: 22,
             onEditingChanged: { editing in
-                // Optionally handle editing events here.
                 }
         )
         
-        // Create a container view for the brightness slider.
         let brightnessContainer = UIView()
         brightnessContainer.translatesAutoresizingMaskIntoConstraints = false
-        // Optionally, set backgroundColor to clear.
         brightnessContainer.backgroundColor = .clear
         
-        // Add the container to the controls container.
         controlsContainerView.addSubview(brightnessContainer)
         
-        // Constrain the container so that its bounds follow the slider's visual position.
         NSLayoutConstraint.activate([
             brightnessContainer.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: -4),
             brightnessContainer.centerYAnchor.constraint(equalTo: controlsContainerView.centerYAnchor, constant: -10),
@@ -460,16 +454,13 @@ class CustomMediaPlayerViewController: UIViewController {
             brightnessContainer.heightAnchor.constraint(equalToConstant: 170)
         ])
         
-        // Embed the brightness slider in a UIHostingController.
         brightnessSliderHostingController = UIHostingController(rootView: brightnessSlider)
         guard let brightnessSliderView = brightnessSliderHostingController?.view else { return }
         brightnessSliderView.backgroundColor = .clear
         brightnessSliderView.translatesAutoresizingMaskIntoConstraints = false
         
-        // Add the slider view to the container.
         brightnessContainer.addSubview(brightnessSliderView)
         
-        // Constrain the slider view to the container’s bounds.
         NSLayoutConstraint.activate([
             brightnessSliderView.topAnchor.constraint(equalTo: brightnessContainer.topAnchor),
             brightnessSliderView.bottomAnchor.constraint(equalTo: brightnessContainer.bottomAnchor),
