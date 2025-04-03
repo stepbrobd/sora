@@ -40,8 +40,11 @@ class CustomMediaPlayerViewController: UIViewController {
     var currentTimeVal: Double = 0.0
     var duration: Double = 0.0
     var isVideoLoaded = false
-    var showWatchNextButton = true
     
+    var brightnessValue: Double = Double(UIScreen.main.brightness)
+    var brightnessSliderHostingController: UIHostingController<VerticalVolumeSlider<Double>>?
+    
+    var showWatchNextButton = true
     var watchNextButtonTimer: Timer?
     var isWatchNextRepositioned: Bool = false
     var isWatchNextVisible: Bool = false
@@ -151,6 +154,7 @@ class CustomMediaPlayerViewController: UIViewController {
         loadSubtitleSettings()
         setupPlayerViewController()
         setupControls()
+        brightnessControl()
         setupSkipAndDismissGestures()
         addInvisibleControlOverlays()
         setupSubtitleLabel()
@@ -405,6 +409,43 @@ class CustomMediaPlayerViewController: UIViewController {
         ])
     }
     
+    
+    func brightnessControl() {
+        let brightnessSlider = VerticalVolumeSlider(
+            value: Binding(
+                get: { self.brightnessValue },
+                set: { newValue in
+                    self.brightnessValue = newValue
+                    // No need to update UIScreen.main.brightness here since it's handled inside VerticalVolumeSlider.
+                }
+            ),
+            inRange: 0...1,
+            activeFillColor: .white,             // Preserves original active color
+            fillColor: .white.opacity(0.5),        // Preserves original fill color
+            emptyColor: .white.opacity(0.3),       // Preserves original empty color
+            width: 15,                           // Keeps the original width and corner style
+            onEditingChanged: { editing in
+                // Optionally handle editing events here.
+            }
+        )
+        
+        // Embed the slider in a UIHostingController.
+        brightnessSliderHostingController = UIHostingController(rootView: brightnessSlider)
+        guard let brightnessSliderView = brightnessSliderHostingController?.view else { return }
+        
+        brightnessSliderView.backgroundColor = .clear
+        brightnessSliderView.translatesAutoresizingMaskIntoConstraints = false
+        controlsContainerView.addSubview(brightnessSliderView)
+        
+        // Position the slider on the left side of the player while preserving its original appearance.
+        NSLayoutConstraint.activate([
+            brightnessSliderView.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: -10),
+            brightnessSliderView.centerYAnchor.constraint(equalTo: controlsContainerView.centerYAnchor),
+            brightnessSliderView.widthAnchor.constraint(equalToConstant: 15),  // Match the slider's defined width
+            brightnessSliderView.heightAnchor.constraint(equalToConstant: 170) // Adjust height to properly display the slider
+        ])
+        
+    }
     
     func addInvisibleControlOverlays() {
         let playPauseOverlay = UIButton(type: .custom)
