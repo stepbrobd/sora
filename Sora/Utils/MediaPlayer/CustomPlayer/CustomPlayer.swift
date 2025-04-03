@@ -419,7 +419,7 @@ class CustomMediaPlayerViewController: UIViewController {
     
     func holdForPause() {
         let holdForPauseGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleHoldForPause(_:)))
-        holdForPauseGesture.minimumPressDuration = 2.0
+        holdForPauseGesture.minimumPressDuration = 1
         holdForPauseGesture.numberOfTouchesRequired = 2
         view.addGestureRecognizer(holdForPauseGesture)
     }
@@ -437,7 +437,7 @@ class CustomMediaPlayerViewController: UIViewController {
             activeFillColor: .white,             // Preserves original active color
             fillColor: .white.opacity(0.5),        // Preserves original fill color
             emptyColor: .white.opacity(0.3),       // Preserves original empty color
-            width: 16,                           // Keeps the original width and corner style
+            width: 22,                           // Keeps the original width and corner style
             onEditingChanged: { editing in
                 // Optionally handle editing events here.
                 }
@@ -454,9 +454,9 @@ class CustomMediaPlayerViewController: UIViewController {
         
         // Constrain the container so that its bounds follow the slider's visual position.
         NSLayoutConstraint.activate([
-            brightnessContainer.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: 1.8),
+            brightnessContainer.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: -4),
             brightnessContainer.centerYAnchor.constraint(equalTo: controlsContainerView.centerYAnchor, constant: -10),
-            brightnessContainer.widthAnchor.constraint(equalToConstant: 16),
+            brightnessContainer.widthAnchor.constraint(equalToConstant: 22),
             brightnessContainer.heightAnchor.constraint(equalToConstant: 170)
         ])
         
@@ -505,9 +505,8 @@ class CustomMediaPlayerViewController: UIViewController {
             }
         }
         
-        let swipeDownGesture = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeDown(_:)))
-        swipeDownGesture.direction = .down
-        view.addGestureRecognizer(swipeDownGesture)
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
+        view.addGestureRecognizer(panGesture)
     }
     
     func showSkipFeedback(direction: String) {
@@ -1460,6 +1459,19 @@ class CustomMediaPlayerViewController: UIViewController {
             beginHoldSpeed()
         case .ended, .cancelled:
             endHoldSpeed()
+        default:
+            break
+        }
+    }
+    
+    @objc private func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
+        let translation = gesture.translation(in: view)
+        
+        switch gesture.state {
+        case .ended:
+            if translation.y > 100 {
+                dismiss(animated: true, completion: nil)
+            }
         default:
             break
         }

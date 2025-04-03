@@ -98,7 +98,7 @@ struct VerticalBrightnessSlider<T: BinaryFloatingPoint>: View {
                 }
             }
         }
-        .frame(width: isActive ? width * 2.2 : width, alignment: .center)
+        .frame(width: isActive ? width * 1.9 : width, alignment: .center)
         .offset(x: isActive ? -10 : 0)
         .onChange(of: value) { newValue in
             UIScreen.main.brightness = CGFloat(newValue)
