@@ -155,8 +155,8 @@ class CustomMediaPlayerViewController: UIViewController {
         addInvisibleControlOverlays()
         setupSubtitleLabel()
         setupDismissButton()
-        setupQualityButton()
         setupSpeedButton()
+        setupQualityButton()
         setupMenuButton()
         setupSkip85Button()
         setupWatchNextButton()
@@ -587,7 +587,7 @@ class CustomMediaPlayerViewController: UIViewController {
         
         NSLayoutConstraint.activate([
             menuButton.topAnchor.constraint(equalTo: controlsContainerView.topAnchor, constant: 20),
-            menuButton.trailingAnchor.constraint(equalTo: speedButton.leadingAnchor, constant: -20),
+            menuButton.trailingAnchor.constraint(equalTo: qualityButton.leadingAnchor, constant: -20),
             menuButton.widthAnchor.constraint(equalToConstant: 40),
             menuButton.heightAnchor.constraint(equalToConstant: 40)
         ])
@@ -605,7 +605,7 @@ class CustomMediaPlayerViewController: UIViewController {
         
         NSLayoutConstraint.activate([
             speedButton.topAnchor.constraint(equalTo: controlsContainerView.topAnchor, constant: 20),
-            speedButton.trailingAnchor.constraint(equalTo: qualityButton.leadingAnchor, constant: -20),
+            speedButton.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -20),
             speedButton.widthAnchor.constraint(equalToConstant: 40),
             speedButton.heightAnchor.constraint(equalToConstant: 40)
         ])
@@ -616,7 +616,7 @@ class CustomMediaPlayerViewController: UIViewController {
         let image = UIImage(systemName: "forward.fill", withConfiguration: config)
         
         watchNextButton = UIButton(type: .system)
-        watchNextButton.setTitle("Play Next", for: .normal)
+        watchNextButton.setTitle(" Play Next", for: .normal)
         watchNextButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)
         watchNextButton.setImage(image, for: .normal)
         watchNextButton.tintColor = .black
@@ -652,7 +652,7 @@ class CustomMediaPlayerViewController: UIViewController {
         let image = UIImage(systemName: "goforward", withConfiguration: config)
         
         skip85Button = UIButton(type: .system)
-        skip85Button.setTitle("Skip 85s", for: .normal)
+        skip85Button.setTitle(" Skip 85s", for: .normal)
         skip85Button.titleLabel?.font = UIFont.systemFont(ofSize: 14)
         skip85Button.setImage(image, for: .normal)
         skip85Button.tintColor = .black
@@ -686,7 +686,7 @@ class CustomMediaPlayerViewController: UIViewController {
         
         NSLayoutConstraint.activate([
             qualityButton.topAnchor.constraint(equalTo: controlsContainerView.topAnchor, constant: 20),
-            qualityButton.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -20),
+            qualityButton.trailingAnchor.constraint(equalTo: speedButton.leadingAnchor, constant: -20),
             qualityButton.widthAnchor.constraint(equalToConstant: 40),
             qualityButton.heightAnchor.constraint(equalToConstant: 40)
         ])
