@@ -5,7 +5,7 @@
 //  Created by Pratik on 08/01/23.
 //
 //  Thanks to pratikg29 for this code inside his open source project "https://github.com/pratikg29/Custom-Slider-Control?ref=iosexample.com"
-//  I did edit just a little bit the code for my liking (added a buffer indicator, etc.)
+//  I did edit some of the code for my liking (added a buffer indicator, etc.)
 
 import SwiftUI
 
@@ -156,30 +156,25 @@ import SwiftUI
         return (total > 0) ? (normalized / total) : 0
     }
 
-    // Convert fraction to clamped 0...1
     private func clampedFraction(_ f: T) -> T {
         max(0, min(f, 1))
     }
 
-    // Convert fraction to actual time in seconds (or whatever T is)
     private func getCurrentValue() -> T {
         let total = inRange.upperBound - inRange.lowerBound
         let frac = clampedFraction(localRealProgress + localTempProgress)
         return frac * total + inRange.lowerBound
     }
 
-    // Clamp the final value to [lowerBound, upperBound]
     private func clampedValue(_ raw: T) -> T {
         max(inRange.lowerBound, min(raw, inRange.upperBound))
     }
 
-    // The actual width of the played portion in pixels
     private func playedWidth(boundsWidth: CGFloat) -> CGFloat {
         let frac = fraction(of: value)
         return max(0, min(boundsWidth * CGFloat(frac), boundsWidth))
     }
 
-    // The actual width of the buffered portion in pixels
     private func bufferWidth(boundsWidth: CGFloat) -> CGFloat {
         let frac = fraction(of: bufferValue)
         return max(0, min(boundsWidth * CGFloat(frac), boundsWidth))

@@ -93,7 +93,6 @@ class CustomMediaPlayerViewController: UIViewController {
         }
     }
     
-    // We’ll use this context to KVO loadedTimeRanges
     private var playerItemKVOContext = 0
     private var loadedTimeRangesObservation: NSKeyValueObservation?
 
@@ -153,6 +152,7 @@ class CustomMediaPlayerViewController: UIViewController {
         setupPlayerViewController()
         setupControls()
         setupSkipAndDismissGestures()
+        addInvisibleControlOverlays()
         setupSubtitleLabel()
         setupDismissButton()
         setupQualityButton()
@@ -200,26 +200,22 @@ class CustomMediaPlayerViewController: UIViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
-        NotificationCenter.default.removeObserver(self, name: .AVPlayerItemNewAccessLogEntry, object: nil)
-        
-        // Remove KVO observer for loadedTimeRanges
-        player.currentItem?.removeObserver(self,
-                                           forKeyPath: "loadedTimeRanges",
-                                           context: &playerItemKVOContext)
-        
-        if let playbackSpeed = player?.rate {
-            UserDefaults.standard.set(playbackSpeed, forKey: "lastPlaybackSpeed")
-        }
-        player.pause()
-        updateTimer?.invalidate()
-        inactivityTimer?.invalidate()
+        loadedTimeRangesObservation?.invalidate()
+        loadedTimeRangesObservation = nil
         
         if let token = timeObserverToken {
             player.removeTimeObserver(token)
             timeObserverToken = nil
         }
         
-        UserDefaults.standard.set(player.rate, forKey: "lastPlaybackSpeed")
+        updateTimer?.invalidate()
+        inactivityTimer?.invalidate()
+        
+        player.pause()
+        
+        if let playbackSpeed = player?.rate {
+            UserDefaults.standard.set(playbackSpeed, forKey: "lastPlaybackSpeed")
+        }
         
         if let currentItem = player.currentItem, currentItem.duration.seconds > 0 {
             let progress = currentTimeVal / currentItem.duration.seconds
@@ -238,7 +234,6 @@ class CustomMediaPlayerViewController: UIViewController {
         }
     }
     
-    // Observing loadedTimeRanges:
     override func observeValue(forKeyPath keyPath: String?,
                                of object: Any?,
                                change: [NSKeyValueChangeKey : Any]?,
@@ -259,7 +254,6 @@ class CustomMediaPlayerViewController: UIViewController {
         
         if let timeRange = item.loadedTimeRanges.first?.timeRangeValue {
             let buffered = CMTimeGetSeconds(timeRange.start) + CMTimeGetSeconds(timeRange.duration)
-            // This is how many seconds are currently buffered:
             DispatchQueue.main.async {
                 self.sliderViewModel.bufferValue = buffered
             }
@@ -366,10 +360,10 @@ class CustomMediaPlayerViewController: UIViewController {
             value: Binding(get: { self.sliderViewModel.sliderValue },
                            set: { self.sliderViewModel.sliderValue = $0 }),
             inRange: 0...(duration > 0 ? duration : 1.0),
-            bufferValue: self.sliderViewModel.bufferValue,  // <--- pass in buffer
+            bufferValue: self.sliderViewModel.bufferValue,
             activeFillColor: .white,
             fillColor: .white.opacity(0.5),
-            bufferColor: .white.opacity(0.2),               // <--- buffer color
+            bufferColor: .white.opacity(0.2),
             emptyColor: .white.opacity(0.3),
             height: 30,
             onEditingChanged: { editing in
@@ -411,6 +405,20 @@ class CustomMediaPlayerViewController: UIViewController {
         ])
     }
     
+    
+    func addInvisibleControlOverlays() {
+        let playPauseOverlay = UIButton(type: .custom)
+        playPauseOverlay.backgroundColor = .clear
+        playPauseOverlay.addTarget(self, action: #selector(togglePlayPause), for: .touchUpInside)
+        view.addSubview(playPauseOverlay)
+        playPauseOverlay.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            playPauseOverlay.centerXAnchor.constraint(equalTo: playPauseButton.centerXAnchor),
+            playPauseOverlay.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
+            playPauseOverlay.widthAnchor.constraint(equalTo: playPauseButton.widthAnchor, constant: 20),
+            playPauseOverlay.heightAnchor.constraint(equalTo: playPauseButton.heightAnchor, constant: 20)
+        ])
+    }
 
     func setupSkipAndDismissGestures() {
         let doubleTapGesture = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
@@ -715,7 +723,6 @@ class CustomMediaPlayerViewController: UIViewController {
             self.currentTimeVal = time.seconds
             self.duration = currentDuration
             
-            // If user is not dragging the slider, keep it in sync:
             if !self.isSliderEditing {
                 self.sliderViewModel.sliderValue = max(0, min(self.currentTimeVal, self.duration))
             }
@@ -730,7 +737,6 @@ class CustomMediaPlayerViewController: UIViewController {
                 self.subtitleLabel.text = ""
             }
             
-            // Rebuild the slider if needed (to ensure the SwiftUI view updates).
             DispatchQueue.main.async {
                 self.sliderHostingController?.rootView = MusicProgressSlider(
                     value: Binding(get: {
@@ -739,24 +745,23 @@ class CustomMediaPlayerViewController: UIViewController {
                         self.sliderViewModel.sliderValue = max(0, min($0, self.duration))
                     }),
                     inRange: 0...(self.duration > 0 ? self.duration : 1.0),
-                    bufferValue: self.sliderViewModel.bufferValue,  // pass buffer
+                    bufferValue: self.sliderViewModel.bufferValue,
                     activeFillColor: .white,
                     fillColor: .white.opacity(0.6),
                     bufferColor: .white.opacity(0.36),
                     emptyColor: .white.opacity(0.3),
                     height: 30,
                     onEditingChanged: { editing in
-                        self.isSliderEditing = editing
                         if !editing {
-                            let seekTime = CMTime(seconds: self.sliderViewModel.sliderValue,
-                                                  preferredTimescale: 600)
-                            self.player.seek(to: seekTime)
+                            let targetTime = CMTime(seconds: self.sliderViewModel.sliderValue, preferredTimescale: 600)
+                            self.player.seek(to: targetTime) { [weak self] finished in
+                                self?.updateBufferValue()
+                            }
                         }
                     }
                 )
             }
             
-            // Check whether to show/hide "Watch Next" button
             let isNearEnd = (self.duration - self.currentTimeVal) <= (self.duration * 0.10)
                 && self.currentTimeVal != self.duration
                 && self.showWatchNextButton
