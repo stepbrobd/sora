@@ -612,9 +612,13 @@ class CustomMediaPlayerViewController: UIViewController {
     }
     
     func setupWatchNextButton() {
+        let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+        let image = UIImage(systemName: "forward.fill", withConfiguration: config)
+        
         watchNextButton = UIButton(type: .system)
         watchNextButton.setTitle("Play Next", for: .normal)
-        watchNextButton.setImage(UIImage(systemName: "forward.fill"), for: .normal)
+        watchNextButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)
+        watchNextButton.setImage(image, for: .normal)
         watchNextButton.tintColor = .black
         watchNextButton.backgroundColor = .white
         watchNextButton.layer.cornerRadius = 25
@@ -636,17 +640,21 @@ class CustomMediaPlayerViewController: UIViewController {
         watchNextButtonControlsConstraints = [
             watchNextButton.trailingAnchor.constraint(equalTo: sliderHostingController!.view.trailingAnchor),
             watchNextButton.bottomAnchor.constraint(equalTo: sliderHostingController!.view.topAnchor, constant: -5),
-            watchNextButton.heightAnchor.constraint(equalToConstant: 50),
-            watchNextButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
+            watchNextButton.heightAnchor.constraint(equalToConstant: 47),
+            watchNextButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 97)
         ]
         
         NSLayoutConstraint.activate(watchNextButtonNormalConstraints)
     }
     
     func setupSkip85Button() {
+        let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+        let image = UIImage(systemName: "goforward", withConfiguration: config)
+        
         skip85Button = UIButton(type: .system)
         skip85Button.setTitle("Skip 85s", for: .normal)
-        skip85Button.setImage(UIImage(systemName: "goforward"), for: .normal)
+        skip85Button.titleLabel?.font = UIFont.systemFont(ofSize: 14)
+        skip85Button.setImage(image, for: .normal)
         skip85Button.tintColor = .black
         skip85Button.backgroundColor = .white
         skip85Button.layer.cornerRadius = 25
@@ -660,8 +668,8 @@ class CustomMediaPlayerViewController: UIViewController {
         NSLayoutConstraint.activate([
             skip85Button.leadingAnchor.constraint(equalTo: sliderHostingController!.view.leadingAnchor),
             skip85Button.bottomAnchor.constraint(equalTo: sliderHostingController!.view.topAnchor, constant: -5),
-            skip85Button.heightAnchor.constraint(equalToConstant: 50),
-            skip85Button.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
+            skip85Button.heightAnchor.constraint(equalToConstant: 47),
+            skip85Button.widthAnchor.constraint(greaterThanOrEqualToConstant: 97)
         ])
     }
     
