@@ -1,6 +1,6 @@
 //
-//  VerticalVolumeSlider.swift
-//  Custom Seekbar
+//  VerticalBrightnessSlider.swift
+//  Custom Brighness bar
 //
 //  Created by Pratik on 08/01/23.
 //  Modified to update screen brightness when used as a brightness slider.
@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct VerticalVolumeSlider<T: BinaryFloatingPoint>: View {
+struct VerticalBrightnessSlider<T: BinaryFloatingPoint>: View {
     @Binding var value: T
     let inRange: ClosedRange<T>
     let activeFillColor: Color
@@ -41,16 +41,16 @@ struct VerticalVolumeSlider<T: BinaryFloatingPoint>: View {
                             })
                         
                         Image(systemName: getIconName)
-                            .font(.system(size: 16, weight: .medium, design: .rounded))
-                            .foregroundColor(fillColor)
-                            .animation(.spring(), value: localRealProgress)
+                            .font(.system(size: isActive ? 16 : 12, weight: .medium, design: .rounded))
+                            .foregroundColor(isActive ? fillColor : Color.white) // bright white when not active
+                            .animation(.spring(), value: isActive)
                             .frame(maxHeight: .infinity, alignment: .bottom)
                             .padding(.bottom)
                             .overlay {
                                 Image(systemName: getIconName)
-                                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                                    .foregroundColor(.gray)
-                                    .animation(.spring(), value: localRealProgress)
+                                    .font(.system(size: isActive ? 16 : 12, weight: .medium, design: .rounded))
+                                    .foregroundColor(isActive ? Color.gray : Color.white.opacity(0.8))
+                                    .animation(.spring(), value: isActive)
                                     .frame(maxHeight: .infinity, alignment: .bottom)
                                     .padding(.bottom)
                                     .mask {
@@ -62,8 +62,8 @@ struct VerticalVolumeSlider<T: BinaryFloatingPoint>: View {
                                         }
                                     }
                             }
-                            .frame(maxWidth: isActive ? .infinity : 0)
-                            .opacity(isActive ? 1 : 0)
+                            //.frame(maxWidth: isActive ? .infinity : 0)
+                           // .opacity(isActive ? 1 : 0)
                     }
                     .clipped()
                 }
@@ -98,7 +98,7 @@ struct VerticalVolumeSlider<T: BinaryFloatingPoint>: View {
                 }
             }
         }
-        .frame(width: isActive ? width * 4 : width, alignment: .center)
+        .frame(width: isActive ? width * 2.2 : width, alignment: .center)
         .offset(x: isActive ? -10 : 0)
         .onChange(of: value) { newValue in
             UIScreen.main.brightness = CGFloat(newValue)
@@ -106,18 +106,17 @@ struct VerticalVolumeSlider<T: BinaryFloatingPoint>: View {
     }
     
     private var getIconName: String {
-        var name = "speaker.wave."
-        switch CGFloat((localRealProgress + localTempProgress)) {
-        case ..<0.01:
-            name = "speaker.slash.fill"
-        case ..<0.3:
-            name += "1.fill"
-        case ..<0.6:
-            name += "2.fill"
+        let brightnessLevel = CGFloat(localRealProgress + localTempProgress)
+        switch brightnessLevel {
+        case ..<0.2:
+            return "moon.fill"
+        case 0.2..<0.38:
+            return "sun.min"
+        case 0.38..<0.7:
+            return "sun.max"
         default:
-            name += "3.fill"
+            return "sun.max.fill"
         }
-        return name
     }
     
     private var animation: Animation {
