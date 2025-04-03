@@ -141,7 +141,9 @@ class CustomMediaPlayerViewController: UIViewController {
         let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(fullUrl)")
         if lastPlayedTime > 0 {
             let seekTime = CMTime(seconds: lastPlayedTime, preferredTimescale: 1)
-            self.player.seek(to: seekTime)
+            self.player.seek(to: seekTime) { [weak self] _ in
+                self?.updateBufferValue()
+            }
         }
     }
     

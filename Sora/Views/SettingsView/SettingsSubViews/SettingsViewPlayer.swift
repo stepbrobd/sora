@@ -42,7 +42,7 @@ struct SettingsViewPlayer: View {
                 Toggle("Force Landscape", isOn: $isAlwaysLandscape)
                     .tint(.accentColor)
                 
-                Toggle("Two finger hold for pause",isOn: $holdForPauseEnabled)
+                Toggle("Two Finger Hold for Pause",isOn: $holdForPauseEnabled)
                     .tint(.accentColor)
             }
             
