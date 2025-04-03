@@ -10,9 +10,14 @@ import AVKit
 import SwiftUI
 import AVFoundation
 
+// MARK: - SliderViewModel
+
 class SliderViewModel: ObservableObject {
     @Published var sliderValue: Double = 0.0
+    @Published var bufferValue: Double = 0.0
 }
+
+// MARK: - CustomMediaPlayerViewController
 
 class CustomMediaPlayerViewController: UIViewController {
     let module: ScrapingModule
@@ -82,12 +87,16 @@ class CustomMediaPlayerViewController: UIViewController {
     var isControlsVisible = false
     
     var subtitleBottomConstraint: NSLayoutConstraint?
-    
     var subtitleBottomPadding: CGFloat = 10.0 {
         didSet {
             updateSubtitleLabelConstraints()
         }
     }
+    
+    // We’ll use this context to KVO loadedTimeRanges
+    private var playerItemKVOContext = 0
+    private var loadedTimeRangesObservation: NSKeyValueObservation?
+
     
     init(module: ScrapingModule,
          urlString: String,
@@ -112,10 +121,12 @@ class CustomMediaPlayerViewController: UIViewController {
         guard let url = URL(string: urlString) else {
             fatalError("Invalid URL string")
         }
+        
         var request = URLRequest(url: url)
         request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
         request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
-        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
+        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+                         forHTTPHeaderField: "User-Agent")
         
         let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])
         let playerItem = AVPlayerItem(asset: asset)
@@ -153,6 +164,12 @@ class CustomMediaPlayerViewController: UIViewController {
         startUpdateTimer()
         setupAudioSession()
         
+        if let item = player.currentItem {
+            loadedTimeRangesObservation = item.observe(\.loadedTimeRanges, options: [.new, .initial]) { [weak self] (playerItem, change) in
+                self?.updateBufferValue()
+            }
+        }
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.checkForHLSStream()
         }
@@ -174,7 +191,10 @@ class CustomMediaPlayerViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        NotificationCenter.default.addObserver(self, selector: #selector(playerItemDidChange), name: .AVPlayerItemNewAccessLogEntry, object: nil)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(playerItemDidChange),
+                                               name: .AVPlayerItemNewAccessLogEntry,
+                                               object: nil)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -182,17 +202,25 @@ class CustomMediaPlayerViewController: UIViewController {
         
         NotificationCenter.default.removeObserver(self, name: .AVPlayerItemNewAccessLogEntry, object: nil)
         
+        // Remove KVO observer for loadedTimeRanges
+        player.currentItem?.removeObserver(self,
+                                           forKeyPath: "loadedTimeRanges",
+                                           context: &playerItemKVOContext)
+        
         if let playbackSpeed = player?.rate {
             UserDefaults.standard.set(playbackSpeed, forKey: "lastPlaybackSpeed")
         }
         player.pause()
         updateTimer?.invalidate()
         inactivityTimer?.invalidate()
+        
         if let token = timeObserverToken {
             player.removeTimeObserver(token)
             timeObserverToken = nil
         }
+        
         UserDefaults.standard.set(player.rate, forKey: "lastPlaybackSpeed")
+        
         if let currentItem = player.currentItem, currentItem.duration.seconds > 0 {
             let progress = currentTimeVal / currentItem.duration.seconds
             let item = ContinueWatchingItem(
@@ -210,9 +238,38 @@ class CustomMediaPlayerViewController: UIViewController {
         }
     }
     
+    // Observing loadedTimeRanges:
+    override func observeValue(forKeyPath keyPath: String?,
+                               of object: Any?,
+                               change: [NSKeyValueChangeKey : Any]?,
+                               context: UnsafeMutableRawPointer?) {
+        
+        guard context == &playerItemKVOContext else {
+            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
+            return
+        }
+        
+        if keyPath == "loadedTimeRanges" {
+            updateBufferValue()
+        }
+    }
+    
+    private func updateBufferValue() {
+        guard let item = player.currentItem else { return }
+        
+        if let timeRange = item.loadedTimeRanges.first?.timeRangeValue {
+            let buffered = CMTimeGetSeconds(timeRange.start) + CMTimeGetSeconds(timeRange.duration)
+            // This is how many seconds are currently buffered:
+            DispatchQueue.main.async {
+                self.sliderViewModel.bufferValue = buffered
+            }
+        }
+    }
+    
     @objc private func playerItemDidChange() {
         DispatchQueue.main.async { [weak self] in
-            if let self = self, self.qualityButton.isHidden && self.isHLSStream {
+            guard let self = self else { return }
+            if self.qualityButton.isHidden && self.isHLSStream {
                 self.qualityButton.isHidden = false
                 self.qualityButton.menu = self.qualitySelectionMenu()
             }
@@ -309,8 +366,10 @@ class CustomMediaPlayerViewController: UIViewController {
             value: Binding(get: { self.sliderViewModel.sliderValue },
                            set: { self.sliderViewModel.sliderValue = $0 }),
             inRange: 0...(duration > 0 ? duration : 1.0),
+            bufferValue: self.sliderViewModel.bufferValue,  // <--- pass in buffer
             activeFillColor: .white,
             fillColor: .white.opacity(0.5),
+            bufferColor: .white.opacity(0.2),               // <--- buffer color
             emptyColor: .white.opacity(0.3),
             height: 30,
             onEditingChanged: { editing in
@@ -352,7 +411,6 @@ class CustomMediaPlayerViewController: UIViewController {
         ])
     }
     
-
 
     func setupSkipAndDismissGestures() {
         let doubleTapGesture = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
@@ -479,24 +537,24 @@ class CustomMediaPlayerViewController: UIViewController {
         dismissButton.addTarget(self, action: #selector(dismissTapped), for: .touchUpInside)
         controlsContainerView.addSubview(dismissButton)
         dismissButton.translatesAutoresizingMaskIntoConstraints = false
-
+        
         NSLayoutConstraint.activate([
             dismissButton.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: 16),
             dismissButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             dismissButton.widthAnchor.constraint(equalToConstant: 40),
             dismissButton.heightAnchor.constraint(equalToConstant: 40)
         ])
-
+        
         let episodeLabel = UILabel()
         episodeLabel.text = "\(titleText) • Ep \(episodeNumber)"
         episodeLabel.textColor = .white
         episodeLabel.font = UIFont.systemFont(ofSize: 15, weight: .medium)
         episodeLabel.numberOfLines = 1
         episodeLabel.lineBreakMode = .byTruncatingTail
-
+        
         controlsContainerView.addSubview(episodeLabel)
         episodeLabel.translatesAutoresizingMaskIntoConstraints = false
-
+        
         NSLayoutConstraint.activate([
             episodeLabel.centerYAnchor.constraint(equalTo: dismissButton.centerYAnchor),
             episodeLabel.leadingAnchor.constraint(equalTo: dismissButton.trailingAnchor, constant: 12),
@@ -508,17 +566,17 @@ class CustomMediaPlayerViewController: UIViewController {
         menuButton = UIButton(type: .system)
         menuButton.setImage(UIImage(systemName: "text.bubble"), for: .normal)
         menuButton.tintColor = .white
-
+        
         if let subtitlesURL = subtitlesURL, !subtitlesURL.isEmpty {
             menuButton.showsMenuAsPrimaryAction = true
             menuButton.menu = buildOptionsMenu()
         } else {
             menuButton.isHidden = true
         }
-
+        
         controlsContainerView.addSubview(menuButton)
         menuButton.translatesAutoresizingMaskIntoConstraints = false
-
+        
         NSLayoutConstraint.activate([
             menuButton.topAnchor.constraint(equalTo: controlsContainerView.topAnchor, constant: 20),
             menuButton.trailingAnchor.constraint(equalTo: speedButton.leadingAnchor, constant: -20),
@@ -533,12 +591,11 @@ class CustomMediaPlayerViewController: UIViewController {
         speedButton.tintColor = .white
         speedButton.showsMenuAsPrimaryAction = true
         speedButton.menu = speedChangerMenu()
-
+        
         controlsContainerView.addSubview(speedButton)
         speedButton.translatesAutoresizingMaskIntoConstraints = false
-
+        
         NSLayoutConstraint.activate([
-            // Middle
             speedButton.topAnchor.constraint(equalTo: controlsContainerView.topAnchor, constant: 20),
             speedButton.trailingAnchor.constraint(equalTo: qualityButton.leadingAnchor, constant: -20),
             speedButton.widthAnchor.constraint(equalToConstant: 40),
@@ -607,10 +664,10 @@ class CustomMediaPlayerViewController: UIViewController {
         qualityButton.showsMenuAsPrimaryAction = true
         qualityButton.menu = qualitySelectionMenu()
         qualityButton.isHidden = true
-
+        
         controlsContainerView.addSubview(qualityButton)
         qualityButton.translatesAutoresizingMaskIntoConstraints = false
-
+        
         NSLayoutConstraint.activate([
             qualityButton.topAnchor.constraint(equalTo: controlsContainerView.topAnchor, constant: 20),
             qualityButton.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -20),
@@ -618,7 +675,6 @@ class CustomMediaPlayerViewController: UIViewController {
             qualityButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
-
     
     func updateSubtitleLabelAppearance() {
         subtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
@@ -646,7 +702,9 @@ class CustomMediaPlayerViewController: UIViewController {
     
     func addTimeObserver() {
         let interval = CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval,
+                                                           queue: .main)
+        { [weak self] time in
             guard let self = self,
                   let currentItem = self.player.currentItem,
                   currentItem.duration.seconds.isFinite else { return }
@@ -657,6 +715,7 @@ class CustomMediaPlayerViewController: UIViewController {
             self.currentTimeVal = time.seconds
             self.duration = currentDuration
             
+            // If user is not dragging the slider, keep it in sync:
             if !self.isSliderEditing {
                 self.sliderViewModel.sliderValue = max(0, min(self.currentTimeVal, self.duration))
             }
@@ -671,25 +730,33 @@ class CustomMediaPlayerViewController: UIViewController {
                 self.subtitleLabel.text = ""
             }
             
+            // Rebuild the slider if needed (to ensure the SwiftUI view updates).
             DispatchQueue.main.async {
                 self.sliderHostingController?.rootView = MusicProgressSlider(
-                    value: Binding(get: { max(0, min(self.sliderViewModel.sliderValue, self.duration)) },
-                                   set: { self.sliderViewModel.sliderValue = max(0, min($0, self.duration)) }),
+                    value: Binding(get: {
+                        max(0, min(self.sliderViewModel.sliderValue, self.duration))
+                    }, set: {
+                        self.sliderViewModel.sliderValue = max(0, min($0, self.duration))
+                    }),
                     inRange: 0...(self.duration > 0 ? self.duration : 1.0),
+                    bufferValue: self.sliderViewModel.bufferValue,  // pass buffer
                     activeFillColor: .white,
-                    fillColor: .white.opacity(0.5),
+                    fillColor: .white.opacity(0.6),
+                    bufferColor: .white.opacity(0.36),
                     emptyColor: .white.opacity(0.3),
                     height: 30,
                     onEditingChanged: { editing in
                         self.isSliderEditing = editing
                         if !editing {
-                            let seekTime = CMTime(seconds: self.sliderViewModel.sliderValue, preferredTimescale: 600)
+                            let seekTime = CMTime(seconds: self.sliderViewModel.sliderValue,
+                                                  preferredTimescale: 600)
                             self.player.seek(to: seekTime)
                         }
                     }
                 )
             }
             
+            // Check whether to show/hide "Watch Next" button
             let isNearEnd = (self.duration - self.currentTimeVal) <= (self.duration * 0.10)
                 && self.currentTimeVal != self.duration
                 && self.showWatchNextButton
@@ -738,8 +805,6 @@ class CustomMediaPlayerViewController: UIViewController {
             }
         }
     }
-
-
     
     func repositionWatchNextButton() {
         self.isWatchNextRepositioned = true
@@ -754,7 +819,6 @@ class CustomMediaPlayerViewController: UIViewController {
         self.watchNextButtonTimer?.invalidate()
         self.watchNextButtonTimer = nil
     }
-
     
     func startUpdateTimer() {
         updateTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
@@ -800,8 +864,11 @@ class CustomMediaPlayerViewController: UIViewController {
             let holdValue = UserDefaults.standard.double(forKey: "skipIncrementHold")
             let finalSkip = holdValue > 0 ? holdValue : 30
             currentTimeVal = max(currentTimeVal - finalSkip, 0)
-            player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
-        }
+            player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600)) { [weak self] finished in
+                  guard let self = self else { return }
+                  self.updateBufferValue()
+              }
+          }
     }
     
     @objc func seekForwardLongPress(_ gesture: UILongPressGestureRecognizer) {
@@ -809,23 +876,32 @@ class CustomMediaPlayerViewController: UIViewController {
             let holdValue = UserDefaults.standard.double(forKey: "skipIncrementHold")
             let finalSkip = holdValue > 0 ? holdValue : 30
             currentTimeVal = min(currentTimeVal + finalSkip, duration)
-            player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
-        }
+            player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600)) { [weak self] finished in
+                  guard let self = self else { return }
+                  self.updateBufferValue()
+              }
+          }
     }
     
     @objc func seekBackward() {
         let skipValue = UserDefaults.standard.double(forKey: "skipIncrement")
         let finalSkip = skipValue > 0 ? skipValue : 10
         currentTimeVal = max(currentTimeVal - finalSkip, 0)
-        player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
-    }
+        player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600)) { [weak self] finished in
+              guard let self = self else { return }
+              self.updateBufferValue()
+          }
+      }
     
     @objc func seekForward() {
         let skipValue = UserDefaults.standard.double(forKey: "skipIncrement")
         let finalSkip = skipValue > 0 ? skipValue : 10
         currentTimeVal = min(currentTimeVal + finalSkip, duration)
-        player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
-    }
+        player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600)) { [weak self] finished in
+              guard let self = self else { return }
+              self.updateBufferValue()
+          }
+      }
     
     @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
         let tapLocation = gesture.location(in: view)
@@ -837,7 +913,7 @@ class CustomMediaPlayerViewController: UIViewController {
             showSkipFeedback(direction: "forward")
         }
     }
-
+    
     @objc func handleSwipeDown(_ gesture: UISwipeGestureRecognizer) {
         dismiss(animated: true, completion: nil)
     }
@@ -859,11 +935,6 @@ class CustomMediaPlayerViewController: UIViewController {
             playPauseButton.image = UIImage(systemName: "pause.fill")
         }
         isPlaying.toggle()
-    }
-    
-    @objc func sliderEditingEnded() {
-        let newTime = sliderViewModel.sliderValue
-        player.seek(to: CMTime(seconds: newTime, preferredTimescale: 600))
     }
     
     @objc func dismissTapped() {
@@ -899,10 +970,13 @@ class CustomMediaPlayerViewController: UIViewController {
         var request = URLRequest(url: url)
         request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
         request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
-        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
+        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+                         forHTTPHeaderField: "User-Agent")
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            guard let self = self, let data = data, let content = String(data: data, encoding: .utf8) else {
+            guard let self = self,
+                  let data = data,
+                  let content = String(data: data, encoding: .utf8) else {
                 print("Failed to load m3u8 file")
                 DispatchQueue.main.async {
                     self?.qualities = []
@@ -928,7 +1002,8 @@ class CustomMediaPlayerViewController: UIViewController {
             for (index, line) in lines.enumerated() {
                 if line.contains("#EXT-X-STREAM-INF"), index + 1 < lines.count {
                     if let resolutionRange = line.range(of: "RESOLUTION="),
-                       let resolutionEndRange = line[resolutionRange.upperBound...].range(of: ",") ?? line[resolutionRange.upperBound...].range(of: "\n") {
+                       let resolutionEndRange = line[resolutionRange.upperBound...].range(of: ",")
+                          ?? line[resolutionRange.upperBound...].range(of: "\n") {
                         
                         let resolutionPart = String(line[resolutionRange.upperBound..<resolutionEndRange.lowerBound])
                         if let heightStr = resolutionPart.components(separatedBy: "x").last,
@@ -941,7 +1016,8 @@ class CustomMediaPlayerViewController: UIViewController {
                             if !nextLine.hasPrefix("http") && nextLine.contains(".m3u8") {
                                 if let baseURL = self.baseM3U8URL {
                                     let baseURLString = baseURL.deletingLastPathComponent().absoluteString
-                                    qualityURL = URL(string: nextLine, relativeTo: baseURL)?.absoluteString ?? baseURLString + "/" + nextLine
+                                    qualityURL = URL(string: nextLine, relativeTo: baseURL)?.absoluteString
+                                        ?? baseURLString + "/" + nextLine
                                 }
                             }
                             
@@ -972,7 +1048,8 @@ class CustomMediaPlayerViewController: UIViewController {
     }
     
     private func switchToQuality(urlString: String) {
-        guard let url = URL(string: urlString), currentQualityURL?.absoluteString != urlString else { return }
+        guard let url = URL(string: urlString),
+              currentQualityURL?.absoluteString != urlString else { return }
         
         let currentTime = player.currentTime()
         let wasPlaying = player.rate > 0
@@ -980,13 +1057,13 @@ class CustomMediaPlayerViewController: UIViewController {
         var request = URLRequest(url: url)
         request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
         request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
-        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
+        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+                         forHTTPHeaderField: "User-Agent")
         
         let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])
         let playerItem = AVPlayerItem(asset: asset)
         
         player.replaceCurrentItem(with: playerItem)
-        
         player.seek(to: currentTime)
         if wasPlaying {
             player.play()
@@ -998,7 +1075,10 @@ class CustomMediaPlayerViewController: UIViewController {
         qualityButton.menu = qualitySelectionMenu()
         
         if let selectedQuality = qualities.first(where: { $0.1 == urlString })?.0 {
-            DropManager.shared.showDrop(title: "Quality: \(selectedQuality)", subtitle: "", duration: 0.5, icon: UIImage(systemName: "eye"))
+            DropManager.shared.showDrop(title: "Quality: \(selectedQuality)",
+                                        subtitle: "",
+                                        duration: 0.5,
+                                        icon: UIImage(systemName: "eye"))
         }
     }
     
@@ -1187,7 +1267,9 @@ class CustomMediaPlayerViewController: UIViewController {
             ]
             let paddingMenu = UIMenu(title: "Bottom Padding", children: paddingActions)
             
-            let subtitleOptionsMenu = UIMenu(title: "Subtitle Options", children: [subtitlesToggleAction, colorMenu, fontSizeMenu, shadowMenu, backgroundMenu, paddingMenu])
+            let subtitleOptionsMenu = UIMenu(title: "Subtitle Options", children: [
+                subtitlesToggleAction, colorMenu, fontSizeMenu, shadowMenu, backgroundMenu, paddingMenu
+            ])
             
             menuElements = [subtitleOptionsMenu]
         }
@@ -1265,7 +1347,6 @@ class CustomMediaPlayerViewController: UIViewController {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.setCategory(.playback, mode: .moviePlayback, options: .mixWithOthers)
             try audioSession.setActive(true)
-            
             try audioSession.overrideOutputAudioPort(.speaker)
         } catch {
             Logger.shared.log("Failed to set up AVAudioSession: \(error)")
@@ -1309,6 +1390,7 @@ class CustomMediaPlayerViewController: UIViewController {
         }
     }
 }
+
 
 // yes? Like the plural of the famous american rapper ye? -IBHRAD
 // low taper fade the meme is massive -cranci
