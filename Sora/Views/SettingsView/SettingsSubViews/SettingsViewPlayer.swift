@@ -15,6 +15,7 @@ struct SettingsViewPlayer: View {
     @AppStorage("holdSpeedPlayer") private var holdSpeedPlayer: Double = 2.0
     @AppStorage("skipIncrement") private var skipIncrement: Double = 10.0
     @AppStorage("skipIncrementHold") private var skipIncrementHold: Double = 30.0
+    @AppStorage("holdForPauseEnabled") private var holdForPauseEnabled = false
     
     private let mediaPlayers = ["Default", "VLC", "OutPlayer", "Infuse", "nPlayer", "Sora"]
     
@@ -39,6 +40,9 @@ struct SettingsViewPlayer: View {
                     .tint(.accentColor)
                 
                 Toggle("Force Landscape", isOn: $isAlwaysLandscape)
+                    .tint(.accentColor)
+                
+                Toggle("Two finger hold for pause",isOn: $holdForPauseEnabled)
                     .tint(.accentColor)
             }
             

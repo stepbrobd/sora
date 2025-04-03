@@ -44,6 +44,10 @@ class CustomMediaPlayerViewController: UIViewController {
     var brightnessValue: Double = Double(UIScreen.main.brightness)
     var brightnessSliderHostingController: UIHostingController<VerticalBrightnessSlider<Double>>?
     
+    private var isHoldPauseEnabled: Bool {
+        UserDefaults.standard.bool(forKey: "holdForPauseEnabled")
+    }
+    
     var showWatchNextButton = true
     var watchNextButtonTimer: Timer?
     var isWatchNextRepositioned: Bool = false
@@ -176,6 +180,10 @@ class CustomMediaPlayerViewController: UIViewController {
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.checkForHLSStream()
+        }
+        
+        if isHoldPauseEnabled {
+            holdForPause()
         }
         
         player.play()
@@ -409,6 +417,12 @@ class CustomMediaPlayerViewController: UIViewController {
         ])
     }
     
+    func holdForPause() {
+        let holdForPauseGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleHoldForPause(_:)))
+        holdForPauseGesture.minimumPressDuration = 2.0
+        holdForPauseGesture.numberOfTouchesRequired = 2
+        view.addGestureRecognizer(holdForPauseGesture)
+    }
     
     func brightnessControl() {
         let brightnessSlider = VerticalBrightnessSlider(
@@ -1022,6 +1036,14 @@ class CustomMediaPlayerViewController: UIViewController {
     @objc func skip85Tapped() {
         currentTimeVal = min(currentTimeVal + 85, duration)
         player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
+    }
+    
+    @objc private func handleHoldForPause(_ gesture: UILongPressGestureRecognizer) {
+        guard isHoldPauseEnabled else { return }
+
+        if gesture.state == .began {
+            togglePlayPause()
+        }
     }
     
     func speedChangerMenu() -> UIMenu {
