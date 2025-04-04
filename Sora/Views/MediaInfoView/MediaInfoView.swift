@@ -627,7 +627,22 @@ struct MediaInfoView: View {
             alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
             
             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let rootVC = windowScene.windows.first?.rootViewController {
+               let window = windowScene.windows.first,
+               let rootVC = window.rootViewController {
+                
+                if UIDevice.current.userInterfaceIdiom == .pad {
+                    if let popover = alert.popoverPresentationController {
+                        popover.sourceView = window
+                        popover.sourceRect = CGRect(
+                            x: UIScreen.main.bounds.width / 2,
+                            y: UIScreen.main.bounds.height / 2,
+                            width: 0,
+                            height: 0
+                        )
+                        popover.permittedArrowDirections = []
+                    }
+                }
+                
                 findTopViewController.findViewController(rootVC).present(alert, animated: true)
             }
             
