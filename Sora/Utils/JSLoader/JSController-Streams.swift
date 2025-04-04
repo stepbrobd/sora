@@ -33,56 +33,45 @@ extension JSController {
             Logger.shared.log(html, type: "HTMLStrings")
             if let parseFunction = self.context.objectForKeyedSubscript("extractStreamUrl"),
                let resultString = parseFunction.call(withArguments: [html]).toString() {
-                if softsub {
-                    if let data = resultString.data(using: .utf8),
-                       let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                        let isMultiStream = module.metadata.multiStream ?? false
-                        let isMultiSubs = module.metadata.multiSubs ?? false
-                        
-                        var streamUrls: [String]?
-                        if isMultiStream, let streamsArray = json["streams"] as? [String] {
-                            streamUrls = streamsArray
-                            Logger.shared.log("Found \(streamsArray.count) streams", type: "Stream")
-                        } else if let streamUrl = json["stream"] as? String {
-                            streamUrls = [streamUrl]
-                            Logger.shared.log("Found single stream", type: "Stream")
+                if let data = resultString.data(using: .utf8) {
+                    do {
+                        if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                            var streamUrls: [String]? = nil
+                            var subtitleUrls: [String]? = nil
+                            
+                            if let streamsArray = json["streams"] as? [String] {
+                                streamUrls = streamsArray
+                                Logger.shared.log("Found \(streamsArray.count) streams", type: "Stream")
+                            } else if let streamUrl = json["stream"] as? String {
+                                streamUrls = [streamUrl]
+                                Logger.shared.log("Found single stream", type: "Stream")
+                            }
+                            
+                            if let subsArray = json["subtitles"] as? [String] {
+                                subtitleUrls = subsArray
+                                Logger.shared.log("Found \(subsArray.count) subtitle tracks", type: "Stream")
+                            } else if let subtitleUrl = json["subtitles"] as? String {
+                                subtitleUrls = [subtitleUrl]
+                                Logger.shared.log("Found single subtitle track", type: "Stream")
+                            }
+                            
+                            Logger.shared.log("Starting stream with \(streamUrls?.count ?? 0) sources and \(subtitleUrls?.count ?? 0) subtitles", type: "Stream")
+                            DispatchQueue.main.async {
+                                completion((streamUrls, subtitleUrls))
+                            }
+                            return
                         }
                         
-                        var subtitleUrls: [String]?
-                        if isMultiSubs, let subsArray = json["subtitles"] as? [String] {
-                            subtitleUrls = subsArray
-                            Logger.shared.log("Found \(subsArray.count) subtitle tracks", type: "Stream")
-                        } else if let subtitleUrl = json["subtitles"] as? String {
-                            subtitleUrls = [subtitleUrl]
-                            Logger.shared.log("Found single subtitle track", type: "Stream")
-                        }
-                        
-                        Logger.shared.log("Starting stream with \(streamUrls?.count ?? 0) sources and \(subtitleUrls?.count ?? 0) subtitles", type: "Stream")
-                        DispatchQueue.main.async {
-                            completion((streamUrls, subtitleUrls))
-                        }
-                    } else {
-                        Logger.shared.log("Failed to parse softsub JSON", type: "Error")
-                        DispatchQueue.main.async { completion((nil, nil)) }
-                    }
-                } else {
-                    let moduleMetadata = self.context.objectForKeyedSubscript("module")?.objectForKeyedSubscript("metadata")
-                    let isMultiStream = moduleMetadata?.objectForKeyedSubscript("multiStream")?.toBool() == true
-                    
-                    if isMultiStream {
-                        if let data = resultString.data(using: .utf8),
-                           let streamsArray = try? JSONSerialization.jsonObject(with: data, options: []) as? [String] {
+                        if let streamsArray = try? JSONSerialization.jsonObject(with: data, options: []) as? [String] {
                             Logger.shared.log("Starting multi-stream with \(streamsArray.count) sources", type: "Stream")
                             DispatchQueue.main.async { completion((streamsArray, nil)) }
-                        } else {
-                            Logger.shared.log("Failed to parse multi-stream JSON array", type: "Error")
-                            DispatchQueue.main.async { completion((nil, nil)) }
+                            return
                         }
-                    } else {
-                        Logger.shared.log("Starting stream from: \(resultString)", type: "Stream")
-                        DispatchQueue.main.async { completion(([resultString], nil)) }
                     }
                 }
+                
+                Logger.shared.log("Starting stream from: \(resultString)", type: "Stream")
+                DispatchQueue.main.async { completion(([resultString], nil)) }
             } else {
                 Logger.shared.log("Failed to extract stream URL", type: "Error")
                 DispatchQueue.main.async { completion((nil, nil)) }
@@ -111,64 +100,50 @@ extension JSController {
         }
         
         let thenBlock: @convention(block) (JSValue) -> Void = { [weak self] result in
-            guard let self = self else { return }
+            guard self != nil else { return }
             
-            if softsub {
-                if let jsonString = result.toString(),
-                   let data = jsonString.data(using: .utf8),
-                   let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                    let isMultiStream = module.metadata.multiStream ?? false
-                    let isMultiSubs = module.metadata.multiSubs ?? false
-                    
-                    var streamUrls: [String]?
-                    if isMultiStream, let streamsArray = json["streams"] as? [String] {
-                        streamUrls = streamsArray
-                        Logger.shared.log("Found \(streamsArray.count) streams", type: "Stream")
-                    } else if let streamUrl = json["stream"] as? String {
-                        streamUrls = [streamUrl]
-                        Logger.shared.log("Found single stream", type: "Stream")
+            if let jsonString = result.toString(),
+               let data = jsonString.data(using: .utf8) {
+                do {
+                    if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                        var streamUrls: [String]? = nil
+                        var subtitleUrls: [String]? = nil
+                        
+                        if let streamsArray = json["streams"] as? [String] {
+                            streamUrls = streamsArray
+                            Logger.shared.log("Found \(streamsArray.count) streams", type: "Stream")
+                        } else if let streamUrl = json["stream"] as? String {
+                            streamUrls = [streamUrl]
+                            Logger.shared.log("Found single stream", type: "Stream")
+                        }
+                        
+                        if let subsArray = json["subtitles"] as? [String] {
+                            subtitleUrls = subsArray
+                            Logger.shared.log("Found \(subsArray.count) subtitle tracks", type: "Stream")
+                        } else if let subtitleUrl = json["subtitles"] as? String {
+                            subtitleUrls = [subtitleUrl]
+                            Logger.shared.log("Found single subtitle track", type: "Stream")
+                        }
+                        
+                        Logger.shared.log("Starting stream with \(streamUrls?.count ?? 0) sources and \(subtitleUrls?.count ?? 0) subtitles", type: "Stream")
+                        DispatchQueue.main.async {
+                            completion((streamUrls, subtitleUrls))
+                        }
+                        return
                     }
                     
-                    var subtitleUrls: [String]?
-                    if isMultiSubs, let subsArray = json["subtitles"] as? [String] {
-                        subtitleUrls = subsArray
-                        Logger.shared.log("Found \(subsArray.count) subtitle tracks", type: "Stream")
-                    } else if let subtitleUrl = json["subtitles"] as? String {
-                        subtitleUrls = [subtitleUrl]
-                        Logger.shared.log("Found single subtitle track", type: "Stream")
-                    }
-                    
-                    Logger.shared.log("Starting stream with \(streamUrls?.count ?? 0) sources and \(subtitleUrls?.count ?? 0) subtitles", type: "Stream")
-                    DispatchQueue.main.async {
-                        completion((streamUrls, subtitleUrls))
-                    }
-                } else {
-                    Logger.shared.log("Failed to parse softsub JSON in JS", type: "Error")
-                    DispatchQueue.main.async {
-                        completion((nil, nil))
-                    }
-                }
-            } else {
-                let moduleMetadata = self.context.objectForKeyedSubscript("module")?.objectForKeyedSubscript("metadata")
-                let isMultiStream = moduleMetadata?.objectForKeyedSubscript("multiStream")?.toBool() == true
-                
-                if isMultiStream {
-                    if let jsonString = result.toString(),
-                       let data = jsonString.data(using: .utf8),
-                       let streamsArray = try? JSONSerialization.jsonObject(with: data, options: []) as? [String] {
+                    if let streamsArray = try? JSONSerialization.jsonObject(with: data, options: []) as? [String] {
                         Logger.shared.log("Starting multi-stream with \(streamsArray.count) sources", type: "Stream")
                         DispatchQueue.main.async { completion((streamsArray, nil)) }
-                    } else {
-                        Logger.shared.log("Failed to parse multi-stream JSON array", type: "Error")
-                        DispatchQueue.main.async { completion((nil, nil)) }
-                    }
-                } else {
-                    let streamUrl = result.toString()
-                    Logger.shared.log("Starting stream from: \(streamUrl ?? "nil")", type: "Stream")
-                    DispatchQueue.main.async {
-                        completion((streamUrl != nil ? [streamUrl!] : nil, nil))
+                        return
                     }
                 }
+            }
+            
+            let streamUrl = result.toString()
+            Logger.shared.log("Starting stream from: \(streamUrl ?? "nil")", type: "Stream")
+            DispatchQueue.main.async {
+                completion((streamUrl != nil ? [streamUrl!] : nil, nil))
             }
         }
         
@@ -224,64 +199,50 @@ extension JSController {
                 }
                 
                 let thenBlock: @convention(block) (JSValue) -> Void = { [weak self] result in
-                    guard let self = self else { return }
+                    guard self != nil else { return }
                     
-                    if softsub {
-                        if let jsonString = result.toString(),
-                           let data = jsonString.data(using: .utf8),
-                           let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                            let isMultiStream = module.metadata.multiStream ?? false
-                            let isMultiSubs = module.metadata.multiSubs ?? false
-                            
-                            var streamUrls: [String]?
-                            if isMultiStream, let streamsArray = json["streams"] as? [String] {
-                                streamUrls = streamsArray
-                                Logger.shared.log("Found \(streamsArray.count) streams", type: "Stream")
-                            } else if let streamUrl = json["stream"] as? String {
-                                streamUrls = [streamUrl]
-                                Logger.shared.log("Found single stream", type: "Stream")
+                    if let jsonString = result.toString(),
+                       let data = jsonString.data(using: .utf8) {
+                        do {
+                            if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                                var streamUrls: [String]? = nil
+                                var subtitleUrls: [String]? = nil
+                                
+                                if let streamsArray = json["streams"] as? [String] {
+                                    streamUrls = streamsArray
+                                    Logger.shared.log("Found \(streamsArray.count) streams", type: "Stream")
+                                } else if let streamUrl = json["stream"] as? String {
+                                    streamUrls = [streamUrl]
+                                    Logger.shared.log("Found single stream", type: "Stream")
+                                }
+                                
+                                if let subsArray = json["subtitles"] as? [String] {
+                                    subtitleUrls = subsArray
+                                    Logger.shared.log("Found \(subsArray.count) subtitle tracks", type: "Stream")
+                                } else if let subtitleUrl = json["subtitles"] as? String {
+                                    subtitleUrls = [subtitleUrl]
+                                    Logger.shared.log("Found single subtitle track", type: "Stream")
+                                }
+                                
+                                Logger.shared.log("Starting stream with \(streamUrls?.count ?? 0) sources and \(subtitleUrls?.count ?? 0) subtitles", type: "Stream")
+                                DispatchQueue.main.async {
+                                    completion((streamUrls, subtitleUrls))
+                                }
+                                return
                             }
                             
-                            var subtitleUrls: [String]?
-                            if isMultiSubs, let subsArray = json["subtitles"] as? [String] {
-                                subtitleUrls = subsArray
-                                Logger.shared.log("Found \(subsArray.count) subtitle tracks", type: "Stream")
-                            } else if let subtitleUrl = json["subtitles"] as? String {
-                                subtitleUrls = [subtitleUrl]
-                                Logger.shared.log("Found single subtitle track", type: "Stream")
-                            }
-                            
-                            Logger.shared.log("Starting stream with \(streamUrls?.count ?? 0) sources and \(subtitleUrls?.count ?? 0) subtitles", type: "Stream")
-                            DispatchQueue.main.async {
-                                completion((streamUrls, subtitleUrls))
-                            }
-                        } else {
-                            Logger.shared.log("Failed to parse softsub JSON in JSSecond", type: "Error")
-                            DispatchQueue.main.async {
-                                completion((nil, nil))
-                            }
-                        }
-                    } else {
-                        let moduleMetadata = self.context.objectForKeyedSubscript("module")?.objectForKeyedSubscript("metadata")
-                        let isMultiStream = moduleMetadata?.objectForKeyedSubscript("multiStream")?.toBool() == true
-                        
-                        if isMultiStream {
-                            if let jsonString = result.toString(),
-                               let data = jsonString.data(using: .utf8),
-                               let streamsArray = try? JSONSerialization.jsonObject(with: data, options: []) as? [String] {
+                            if let streamsArray = try? JSONSerialization.jsonObject(with: data, options: []) as? [String] {
                                 Logger.shared.log("Starting multi-stream with \(streamsArray.count) sources", type: "Stream")
                                 DispatchQueue.main.async { completion((streamsArray, nil)) }
-                            } else {
-                                Logger.shared.log("Failed to parse multi-stream JSON array", type: "Error")
-                                DispatchQueue.main.async { completion((nil, nil)) }
-                            }
-                        } else {
-                            let streamUrl = result.toString()
-                            Logger.shared.log("Starting stream from: \(streamUrl ?? "nil")", type: "Stream")
-                            DispatchQueue.main.async {
-                                completion((streamUrl != nil ? [streamUrl!] : nil, nil))
+                                return
                             }
                         }
+                    }
+                    
+                    let streamUrl = result.toString()
+                    Logger.shared.log("Starting stream from: \(streamUrl ?? "nil")", type: "Stream")
+                    DispatchQueue.main.async {
+                        completion((streamUrl != nil ? [streamUrl!] : nil, nil))
                     }
                 }
                 
