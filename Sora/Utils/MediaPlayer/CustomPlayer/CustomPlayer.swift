@@ -40,8 +40,15 @@ class CustomMediaPlayerViewController: UIViewController {
     var currentTimeVal: Double = 0.0
     var duration: Double = 0.0
     var isVideoLoaded = false
-    var showWatchNextButton = true
     
+    var brightnessValue: Double = Double(UIScreen.main.brightness)
+    var brightnessSliderHostingController: UIHostingController<VerticalBrightnessSlider<Double>>?
+    
+    private var isHoldPauseEnabled: Bool {
+        UserDefaults.standard.bool(forKey: "holdForPauseEnabled")
+    }
+    
+    var showWatchNextButton = true
     var watchNextButtonTimer: Timer?
     var isWatchNextRepositioned: Bool = false
     var isWatchNextVisible: Bool = false
@@ -134,7 +141,9 @@ class CustomMediaPlayerViewController: UIViewController {
         let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(fullUrl)")
         if lastPlayedTime > 0 {
             let seekTime = CMTime(seconds: lastPlayedTime, preferredTimescale: 1)
-            self.player.seek(to: seekTime)
+            self.player.seek(to: seekTime) { [weak self] _ in
+                self?.updateBufferValue()
+            }
         }
     }
     
@@ -151,6 +160,7 @@ class CustomMediaPlayerViewController: UIViewController {
         loadSubtitleSettings()
         setupPlayerViewController()
         setupControls()
+        brightnessControl()
         setupSkipAndDismissGestures()
         addInvisibleControlOverlays()
         setupSubtitleLabel()
@@ -172,6 +182,10 @@ class CustomMediaPlayerViewController: UIViewController {
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.checkForHLSStream()
+        }
+        
+        if isHoldPauseEnabled {
+            holdForPause()
         }
         
         player.play()
@@ -405,6 +419,57 @@ class CustomMediaPlayerViewController: UIViewController {
         ])
     }
     
+    func holdForPause() {
+        let holdForPauseGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleHoldForPause(_:)))
+        holdForPauseGesture.minimumPressDuration = 1
+        holdForPauseGesture.numberOfTouchesRequired = 2
+        view.addGestureRecognizer(holdForPauseGesture)
+    }
+    
+    func brightnessControl() {
+        let brightnessSlider = VerticalBrightnessSlider(
+            value: Binding(
+                get: { self.brightnessValue },
+                set: { newValue in
+                    self.brightnessValue = newValue
+                }
+            ),
+            inRange: 0...1,
+            activeFillColor: .white,
+            fillColor: .white.opacity(0.5),
+            emptyColor: .white.opacity(0.3),
+            width: 22,
+            onEditingChanged: { editing in
+                }
+        )
+        
+        let brightnessContainer = UIView()
+        brightnessContainer.translatesAutoresizingMaskIntoConstraints = false
+        brightnessContainer.backgroundColor = .clear
+        
+        controlsContainerView.addSubview(brightnessContainer)
+        
+        NSLayoutConstraint.activate([
+            brightnessContainer.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: -4),
+            brightnessContainer.centerYAnchor.constraint(equalTo: controlsContainerView.centerYAnchor, constant: -10),
+            brightnessContainer.widthAnchor.constraint(equalToConstant: 22),
+            brightnessContainer.heightAnchor.constraint(equalToConstant: 170)
+        ])
+        
+        brightnessSliderHostingController = UIHostingController(rootView: brightnessSlider)
+        guard let brightnessSliderView = brightnessSliderHostingController?.view else { return }
+        brightnessSliderView.backgroundColor = .clear
+        brightnessSliderView.translatesAutoresizingMaskIntoConstraints = false
+        
+        brightnessContainer.addSubview(brightnessSliderView)
+        
+        NSLayoutConstraint.activate([
+            brightnessSliderView.topAnchor.constraint(equalTo: brightnessContainer.topAnchor),
+            brightnessSliderView.bottomAnchor.constraint(equalTo: brightnessContainer.bottomAnchor),
+            brightnessSliderView.leadingAnchor.constraint(equalTo: brightnessContainer.leadingAnchor),
+            brightnessSliderView.trailingAnchor.constraint(equalTo: brightnessContainer.trailingAnchor)
+        ])
+    }
     
     func addInvisibleControlOverlays() {
         let playPauseOverlay = UIButton(type: .custom)
@@ -433,9 +498,8 @@ class CustomMediaPlayerViewController: UIViewController {
             }
         }
         
-        let swipeDownGesture = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeDown(_:)))
-        swipeDownGesture.direction = .down
-        view.addGestureRecognizer(swipeDownGesture)
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
+        view.addGestureRecognizer(panGesture)
     }
     
     func showSkipFeedback(direction: String) {
@@ -966,6 +1030,14 @@ class CustomMediaPlayerViewController: UIViewController {
         player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
     }
     
+    @objc private func handleHoldForPause(_ gesture: UILongPressGestureRecognizer) {
+        guard isHoldPauseEnabled else { return }
+
+        if gesture.state == .began {
+            togglePlayPause()
+        }
+    }
+    
     func speedChangerMenu() -> UIMenu {
         let speeds: [Double] = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
         let playbackSpeedActions = speeds.map { speed in
@@ -1380,6 +1452,19 @@ class CustomMediaPlayerViewController: UIViewController {
             beginHoldSpeed()
         case .ended, .cancelled:
             endHoldSpeed()
+        default:
+            break
+        }
+    }
+    
+    @objc private func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
+        let translation = gesture.translation(in: view)
+        
+        switch gesture.state {
+        case .ended:
+            if translation.y > 100 {
+                dismiss(animated: true, completion: nil)
+            }
         default:
             break
         }
