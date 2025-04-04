@@ -499,7 +499,7 @@ struct MediaInfoView: View {
                     
                     if module.metadata.softsub == true {
                         if module.metadata.asyncJS == true {
-                            jsController.fetchStreamUrlJS(episodeUrl: href, softsub: true) { result in
+                            jsController.fetchStreamUrlJS(episodeUrl: href, softsub: true, module: module) { result in
                                 // Use first stream from array
                                 if let streams = result.streams, !streams.isEmpty {
                                     self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
@@ -511,7 +511,7 @@ struct MediaInfoView: View {
                                 }
                             }
                         } else if module.metadata.streamAsyncJS == true {
-                            jsController.fetchStreamUrlJSSecond(episodeUrl: href, softsub: true) { result in
+                            jsController.fetchStreamUrlJSSecond(episodeUrl: href, softsub: true, module: module) { result in
                                 if let streams = result.streams, !streams.isEmpty {
                                     self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
                                 } else {
@@ -522,7 +522,7 @@ struct MediaInfoView: View {
                                 }
                             }
                         } else {
-                            jsController.fetchStreamUrl(episodeUrl: href, softsub: true) { result in
+                            jsController.fetchStreamUrl(episodeUrl: href, softsub: true, module: module) { result in
                                 if let streams = result.streams, !streams.isEmpty {
                                     self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
                                 } else {
@@ -535,7 +535,7 @@ struct MediaInfoView: View {
                         }
                     } else {
                         if module.metadata.asyncJS == true {
-                            jsController.fetchStreamUrlJS(episodeUrl: href) { result in
+                            jsController.fetchStreamUrlJS(episodeUrl: href, module: module) { result in
                                 if let streams = result.streams, !streams.isEmpty {
                                     self.playStream(url: streams[0], fullURL: href)
                                 } else {
@@ -546,7 +546,7 @@ struct MediaInfoView: View {
                                 }
                             }
                         } else if module.metadata.streamAsyncJS == true {
-                            jsController.fetchStreamUrlJSSecond(episodeUrl: href) { result in
+                            jsController.fetchStreamUrlJSSecond(episodeUrl: href, module: module) { result in
                                 if let streams = result.streams, !streams.isEmpty {
                                     self.playStream(url: streams[0], fullURL: href)
                                 } else {
@@ -557,7 +557,7 @@ struct MediaInfoView: View {
                                 }
                             }
                         } else {
-                            jsController.fetchStreamUrl(episodeUrl: href) { result in
+                            jsController.fetchStreamUrl(episodeUrl: href, module: module) { result in
                                 if let streams = result.streams, !streams.isEmpty {
                                     self.playStream(url: streams[0], fullURL: href)
                                 } else {
