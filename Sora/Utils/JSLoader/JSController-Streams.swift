@@ -9,7 +9,7 @@ import JavaScriptCore
 
 extension JSController {
     
-    func fetchStreamUrl(episodeUrl: String, softsub: Bool = false, completion: @escaping ((streams: [String]?, subtitles: [String]?)) -> Void) {
+    func fetchStreamUrl(episodeUrl: String, softsub: Bool = false, module: ScrapingModule, completion: @escaping ((streams: [String]?, subtitles: [String]?)) -> Void) {
         guard let url = URL(string: episodeUrl) else {
             completion((nil, nil))
             return
@@ -36,9 +36,8 @@ extension JSController {
                 if softsub {
                     if let data = resultString.data(using: .utf8),
                        let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                        let moduleMetadata = self.context.objectForKeyedSubscript("module")?.objectForKeyedSubscript("metadata")
-                        let isMultiStream = moduleMetadata?.objectForKeyedSubscript("multiStream")?.toBool() == true
-                        let isMultiSubs = moduleMetadata?.objectForKeyedSubscript("multiSubs")?.toBool() == true
+                        let isMultiStream = module.metadata.multiStream ?? false
+                        let isMultiSubs = module.metadata.multiSubs ?? false
                         
                         var streamUrls: [String]?
                         if isMultiStream, let streamsArray = json["streams"] as? [String] {
@@ -91,7 +90,7 @@ extension JSController {
         }.resume()
     }
     
-    func fetchStreamUrlJS(episodeUrl: String, softsub: Bool = false, completion: @escaping ((streams: [String]?, subtitles: [String]?)) -> Void) {
+    func fetchStreamUrlJS(episodeUrl: String, softsub: Bool = false, module: ScrapingModule, completion: @escaping ((streams: [String]?, subtitles: [String]?)) -> Void) {
         if let exception = context.exception {
             Logger.shared.log("JavaScript exception: \(exception)", type: "Error")
             completion((nil, nil))
@@ -118,9 +117,8 @@ extension JSController {
                 if let jsonString = result.toString(),
                    let data = jsonString.data(using: .utf8),
                    let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                    let moduleMetadata = self.context.objectForKeyedSubscript("module")?.objectForKeyedSubscript("metadata")
-                    let isMultiStream = moduleMetadata?.objectForKeyedSubscript("multiStream")?.toBool() == true
-                    let isMultiSubs = moduleMetadata?.objectForKeyedSubscript("multiSubs")?.toBool() == true
+                    let isMultiStream = module.metadata.multiStream ?? false
+                    let isMultiSubs = module.metadata.multiSubs ?? false
                     
                     var streamUrls: [String]?
                     if isMultiStream, let streamsArray = json["streams"] as? [String] {
@@ -188,7 +186,7 @@ extension JSController {
         promise.invokeMethod("catch", withArguments: [catchFunction as Any])
     }
     
-    func fetchStreamUrlJSSecond(episodeUrl: String, softsub: Bool = false, completion: @escaping ((streams: [String]?, subtitles: [String]?)) -> Void) {
+    func fetchStreamUrlJSSecond(episodeUrl: String, softsub: Bool = false, module: ScrapingModule, completion: @escaping ((streams: [String]?, subtitles: [String]?)) -> Void) {
         let url = URL(string: episodeUrl)!
         let task = URLSession.custom.dataTask(with: url) { [weak self] data, response, error in
             guard let self = self else { return }
@@ -232,9 +230,8 @@ extension JSController {
                         if let jsonString = result.toString(),
                            let data = jsonString.data(using: .utf8),
                            let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                            let moduleMetadata = self.context.objectForKeyedSubscript("module")?.objectForKeyedSubscript("metadata")
-                            let isMultiStream = moduleMetadata?.objectForKeyedSubscript("multiStream")?.toBool() == true
-                            let isMultiSubs = moduleMetadata?.objectForKeyedSubscript("multiSubs")?.toBool() == true
+                            let isMultiStream = module.metadata.multiStream ?? false
+                            let isMultiSubs = module.metadata.multiSubs ?? false
                             
                             var streamUrls: [String]?
                             if isMultiStream, let streamsArray = json["streams"] as? [String] {
