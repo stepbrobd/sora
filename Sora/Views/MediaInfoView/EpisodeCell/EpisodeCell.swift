@@ -96,20 +96,29 @@ struct EpisodeCell: View {
     }
     
     private func markAsWatched() {
-        UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(episode)")
-        UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(episode)")
-        updateProgress()
+        let userDefaults = UserDefaults.standard
+        userDefaults.set(99999999.0, forKey: "lastPlayedTime_\(episode)")
+        userDefaults.set(99999999.0, forKey: "totalTime_\(episode)")
+        userDefaults.synchronize()
+        DispatchQueue.main.async {
+            self.updateProgress()
+        }
     }
     
     private func resetProgress() {
-        UserDefaults.standard.set(0.0, forKey: "lastPlayedTime_\(episode)")
-        UserDefaults.standard.set(0.0, forKey: "totalTime_\(episode)")
-        updateProgress()
+        let userDefaults = UserDefaults.standard
+        userDefaults.set(0.0, forKey: "lastPlayedTime_\(episode)")
+        userDefaults.set(0.0, forKey: "totalTime_\(episode)")
+        userDefaults.synchronize()
+        DispatchQueue.main.async {
+            self.updateProgress()
+        }
     }
     
     private func updateProgress() {
-        let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(episode)")
-        let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(episode)")
+        let userDefaults = UserDefaults.standard
+        let lastPlayedTime = userDefaults.double(forKey: "lastPlayedTime_\(episode)")
+        let totalTime = userDefaults.double(forKey: "totalTime_\(episode)")
         currentProgress = totalTime > 0 ? lastPlayedTime / totalTime : 0
     }
     

@@ -250,11 +250,21 @@ struct MediaInfoView: View {
                                                     }
                                                 },
                                                 onMarkAllPrevious: {
+                                                    let userDefaults = UserDefaults.standard
+                                                    var updates = [String: Double]()
+                                                    
                                                     for ep2 in seasons[selectedSeason] where ep2.number < ep.number {
                                                         let href = ep2.href
-                                                        UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(href)")
-                                                        UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(href)")
+                                                        updates["lastPlayedTime_\(href)"] = 99999999.0
+                                                        updates["totalTime_\(href)"] = 99999999.0
                                                     }
+                                                    
+                                                    for (key, value) in updates {
+                                                        userDefaults.set(value, forKey: key)
+                                                    }
+                                                    
+                                                    userDefaults.synchronize()
+                                                    
                                                     refreshTrigger.toggle()
                                                     Logger.shared.log("Marked episodes watched within season \(selectedSeason + 1) of \"\(title)\".", type: "General")
                                                 }
@@ -290,11 +300,23 @@ struct MediaInfoView: View {
                                                 }
                                             },
                                             onMarkAllPrevious: {
+                                                let userDefaults = UserDefaults.standard
+                                                var updates = [String: Double]()
+                                                
                                                 for idx in 0..<i {
-                                                    let href = episodeLinks[idx].href
-                                                    UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(href)")
-                                                    UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(href)")
+                                                    if idx < episodeLinks.count {
+                                                        let href = episodeLinks[idx].href
+                                                        updates["lastPlayedTime_\(href)"] = 99999999.0
+                                                        updates["totalTime_\(href)"] = 99999999.0
+                                                    }
                                                 }
+                                                
+                                                for (key, value) in updates {
+                                                    userDefaults.set(value, forKey: key)
+                                                }
+                                                
+                                                userDefaults.synchronize()
+                                                
                                                 refreshTrigger.toggle()
                                                 Logger.shared.log("Marked \(ep.number - 1) episodes watched within series \"\(title)\".", type: "General")
                                             }
