@@ -91,7 +91,8 @@ struct EpisodeCell: View {
             updateProgress()
         }
         .onTapGesture {
-            onTap(episodeImageUrl)
+            let imageUrl = episodeImageUrl.isEmpty ? "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/main/assets/banner2.png" : episodeImageUrl
+            onTap(imageUrl)
         }
     }
     
