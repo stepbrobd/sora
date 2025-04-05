@@ -306,16 +306,14 @@ struct MediaInfoView: View {
                                                 for idx in 0..<i {
                                                     if idx < episodeLinks.count {
                                                         let href = episodeLinks[idx].href
-                                                        updates["lastPlayedTime_\(href)"] = 99999999.0
-                                                        updates["totalTime_\(href)"] = 99999999.0
+                                                        updates["lastPlayedTime_\(href)"] = 1000.0
+                                                        updates["totalTime_\(href)"] = 1000.0
                                                     }
                                                 }
                                                 
                                                 for (key, value) in updates {
                                                     userDefaults.set(value, forKey: key)
                                                 }
-                                                
-                                                userDefaults.synchronize()
                                                 
                                                 refreshTrigger.toggle()
                                                 Logger.shared.log("Marked \(ep.number - 1) episodes watched within series \"\(title)\".", type: "General")

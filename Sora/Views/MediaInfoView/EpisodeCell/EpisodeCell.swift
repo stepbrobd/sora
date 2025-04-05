@@ -98,9 +98,10 @@ struct EpisodeCell: View {
     
     private func markAsWatched() {
         let userDefaults = UserDefaults.standard
-        userDefaults.set(99999999.0, forKey: "lastPlayedTime_\(episode)")
-        userDefaults.set(99999999.0, forKey: "totalTime_\(episode)")
-        userDefaults.synchronize()
+        let totalTime = 1000.0
+        let watchedTime = totalTime
+        userDefaults.set(watchedTime, forKey: "lastPlayedTime_\(episode)")
+        userDefaults.set(totalTime, forKey: "totalTime_\(episode)")
         DispatchQueue.main.async {
             self.updateProgress()
         }
@@ -110,7 +111,6 @@ struct EpisodeCell: View {
         let userDefaults = UserDefaults.standard
         userDefaults.set(0.0, forKey: "lastPlayedTime_\(episode)")
         userDefaults.set(0.0, forKey: "totalTime_\(episode)")
-        userDefaults.synchronize()
         DispatchQueue.main.async {
             self.updateProgress()
         }
@@ -120,7 +120,7 @@ struct EpisodeCell: View {
         let userDefaults = UserDefaults.standard
         let lastPlayedTime = userDefaults.double(forKey: "lastPlayedTime_\(episode)")
         let totalTime = userDefaults.double(forKey: "totalTime_\(episode)")
-        currentProgress = totalTime > 0 ? lastPlayedTime / totalTime : 0
+        currentProgress = totalTime > 0 ? min(lastPlayedTime / totalTime, 1.0) : 0
     }
     
     private func fetchEpisodeDetails() {
