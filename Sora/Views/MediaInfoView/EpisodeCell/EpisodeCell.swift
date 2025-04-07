@@ -20,6 +20,7 @@ struct EpisodeCell: View {
     let episodeID: Int
     let progress: Double
     let itemID: Int
+    let module: ScrapingModule
     
     let onTap: (String) -> Void
     let onMarkAllPrevious: () -> Void
@@ -124,6 +125,11 @@ struct EpisodeCell: View {
     }
     
     private func fetchEpisodeDetails() {
+        guard module.metadata.type == "anime" else {
+            isLoading = false
+            return
+        }
+        
         guard let url = URL(string: "https://api.ani.zip/mappings?anilist_id=\(itemID)") else {
             isLoading = false
             return
