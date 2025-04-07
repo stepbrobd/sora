@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import MarqueeLabel
 import AVKit
 import SwiftUI
 import AVFoundation
@@ -55,6 +56,13 @@ class CustomMediaPlayerViewController: UIViewController {
     var lastDuration: Double = 0.0
     var watchNextButtonAppearedAt: Double?
     
+    // MARK: - Constraint Sets
+    var portraitButtonVisibleConstraints: [NSLayoutConstraint] = []
+    var portraitButtonHiddenConstraints: [NSLayoutConstraint] = []
+    var landscapeButtonVisibleConstraints: [NSLayoutConstraint] = []
+    var landscapeButtonHiddenConstraints: [NSLayoutConstraint] = []
+    var currentMarqueeConstraints: [NSLayoutConstraint] = []
+    
     var subtitleForegroundColor: String = "white"
     var subtitleBackgroundEnabled: Bool = true
     var subtitleFontSize: Double = 20.0
@@ -66,6 +74,7 @@ class CustomMediaPlayerViewController: UIViewController {
         }
     }
     
+    var marqueeLabel: MarqueeLabel!
     var playerViewController: AVPlayerViewController!
     var controlsContainerView: UIView!
     var playPauseButton: UIImageView!
@@ -102,7 +111,7 @@ class CustomMediaPlayerViewController: UIViewController {
     
     private var playerItemKVOContext = 0
     private var loadedTimeRangesObservation: NSKeyValueObservation?
-
+    private var playerTimeControlStatusObserver: NSKeyValueObservation?
     
     init(module: ScrapingModule,
          urlString: String,
@@ -168,6 +177,7 @@ class CustomMediaPlayerViewController: UIViewController {
         setupSpeedButton()
         setupQualityButton()
         setupMenuButton()
+        setupMarqueeLabel()
         setupSkip85Button()
         setupWatchNextButton()
         addTimeObserver()
@@ -179,7 +189,7 @@ class CustomMediaPlayerViewController: UIViewController {
                 self?.updateBufferValue()
             }
         }
-
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.checkForHLSStream()
         }
@@ -187,6 +197,7 @@ class CustomMediaPlayerViewController: UIViewController {
         if isHoldPauseEnabled {
             holdForPause()
         }
+        
         
         player.play()
         
@@ -200,6 +211,32 @@ class CustomMediaPlayerViewController: UIViewController {
             NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
             self.watchNextButton.alpha = 1.0
             self.view.layoutIfNeeded()
+        }
+    }
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        coordinator.animate(alongsideTransition: { _ in
+            self.updateMarqueeConstraints()
+        })
+    }
+    
+    /// In layoutSubviews, check if the text width is larger than the available space and update the label’s properties.
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        // Safely unwrap marqueeLabel
+        guard let marqueeLabel = marqueeLabel else {
+            return  // or handle the error gracefully
+        }
+        
+        let availableWidth = marqueeLabel.frame.width
+        let textWidth = marqueeLabel.intrinsicContentSize.width
+
+        if textWidth > availableWidth {
+            marqueeLabel.lineBreakMode = .byTruncatingTail
+        } else {
+            marqueeLabel.lineBreakMode = .byClipping
         }
     }
     
@@ -371,19 +408,39 @@ class CustomMediaPlayerViewController: UIViewController {
         forwardButton.translatesAutoresizingMaskIntoConstraints = false
         
         let sliderView = MusicProgressSlider(
-            value: Binding(get: { self.sliderViewModel.sliderValue },
-                           set: { self.sliderViewModel.sliderValue = $0 }),
+            value: Binding(
+                get: { self.sliderViewModel.sliderValue },
+                set: { self.sliderViewModel.sliderValue = $0 }
+            ),
+            bufferValue: Binding(
+                get: { self.sliderViewModel.bufferValue },        // NEW
+                set: { self.sliderViewModel.bufferValue = $0 }    // NEW
+            ),
             inRange: 0...(duration > 0 ? duration : 1.0),
-            bufferValue: self.sliderViewModel.bufferValue,
             activeFillColor: .white,
             fillColor: .white.opacity(0.5),
-            bufferColor: .white.opacity(0.2),
             emptyColor: .white.opacity(0.3),
             height: 30,
             onEditingChanged: { editing in
-                self.isSliderEditing = editing
-                if !editing {
-                    self.player.seek(to: CMTime(seconds: self.sliderViewModel.sliderValue, preferredTimescale: 600))
+                if editing {
+                    self.isSliderEditing = true
+                } else {
+                    let wasPlaying = self.isPlaying
+                    let targetTime = CMTime(seconds: self.sliderViewModel.sliderValue,
+                                            preferredTimescale: 600)
+                    self.player.seek(to: targetTime) { [weak self] finished in
+                        guard let self = self else { return }
+                        
+                        let final = self.player.currentTime().seconds
+                        self.sliderViewModel.sliderValue = final
+                        self.currentTimeVal = final
+                        self.updateBufferValue()
+                        self.isSliderEditing = false
+                        
+                        if wasPlaying {
+                            self.player.play()
+                        }
+                    }
                 }
             }
         )
@@ -440,7 +497,7 @@ class CustomMediaPlayerViewController: UIViewController {
             emptyColor: .white.opacity(0.3),
             width: 22,
             onEditingChanged: { editing in
-                }
+            }
         )
         
         let brightnessContainer = UIView()
@@ -616,22 +673,90 @@ class CustomMediaPlayerViewController: UIViewController {
             dismissButton.widthAnchor.constraint(equalToConstant: 40),
             dismissButton.heightAnchor.constraint(equalToConstant: 40)
         ])
+    }
+    
+    func setupMarqueeLabel() {
+        // Create the MarqueeLabel and configure its scrolling behavior
+        marqueeLabel = MarqueeLabel()
+        marqueeLabel.text = "\(titleText) • Ep \(episodeNumber)"
+        marqueeLabel.type = .continuous
+        marqueeLabel.textColor = .white
+        marqueeLabel.font = UIFont.systemFont(ofSize: 15, weight: .medium)
         
-        let episodeLabel = UILabel()
-        episodeLabel.text = "\(titleText) • Ep \(episodeNumber)"
-        episodeLabel.textColor = .white
-        episodeLabel.font = UIFont.systemFont(ofSize: 15, weight: .medium)
-        episodeLabel.numberOfLines = 1
-        episodeLabel.lineBreakMode = .byTruncatingTail
+        marqueeLabel.speed = .rate(30)         // Adjust scrolling speed as needed
+        marqueeLabel.fadeLength = 10.0         // Fading at the label’s edges
+        marqueeLabel.leadingBuffer = 1.0      // Left inset for scrolling
+        marqueeLabel.trailingBuffer = 16.0     // Right inset for scrolling
+        marqueeLabel.animationDelay = 2.5
         
-        controlsContainerView.addSubview(episodeLabel)
-        episodeLabel.translatesAutoresizingMaskIntoConstraints = false
+        // Set default lineBreakMode (will be updated later based on available width)
+        marqueeLabel.lineBreakMode = .byTruncatingTail
+        marqueeLabel.textAlignment = .left
         
-        NSLayoutConstraint.activate([
-            episodeLabel.centerYAnchor.constraint(equalTo: dismissButton.centerYAnchor),
-            episodeLabel.leadingAnchor.constraint(equalTo: dismissButton.trailingAnchor, constant: 12),
-            episodeLabel.trailingAnchor.constraint(lessThanOrEqualTo: controlsContainerView.trailingAnchor, constant: -16)
-        ])
+        controlsContainerView.addSubview(marqueeLabel)
+        marqueeLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Define four sets of constraints:
+        // 1. Portrait mode with button visible
+        portraitButtonVisibleConstraints = [
+            marqueeLabel.leadingAnchor.constraint(equalTo: dismissButton.trailingAnchor, constant: 12),
+            marqueeLabel.trailingAnchor.constraint(equalTo: menuButton.leadingAnchor, constant: -16),
+            marqueeLabel.centerYAnchor.constraint(equalTo: dismissButton.centerYAnchor)
+        ]
+        
+        // 2. Portrait mode with button hidden
+        portraitButtonHiddenConstraints = [
+            marqueeLabel.leadingAnchor.constraint(equalTo: dismissButton.trailingAnchor, constant: 12),
+            marqueeLabel.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -16),
+            marqueeLabel.centerYAnchor.constraint(equalTo: dismissButton.centerYAnchor)
+        ]
+        
+        // 3. Landscape mode with button visible (using smaller margins)
+        landscapeButtonVisibleConstraints = [
+            marqueeLabel.leadingAnchor.constraint(equalTo: dismissButton.trailingAnchor, constant: 8),
+            marqueeLabel.trailingAnchor.constraint(equalTo: menuButton.leadingAnchor, constant: -8),
+            marqueeLabel.centerYAnchor.constraint(equalTo: dismissButton.centerYAnchor)
+        ]
+        
+        // 4. Landscape mode with button hidden
+        landscapeButtonHiddenConstraints = [
+            marqueeLabel.leadingAnchor.constraint(equalTo: dismissButton.trailingAnchor, constant: 8),
+            marqueeLabel.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -8),
+            marqueeLabel.centerYAnchor.constraint(equalTo: dismissButton.centerYAnchor)
+        ]
+        
+        // Activate an initial set based on the current orientation and menuButton state
+        updateMarqueeConstraints()
+    }
+
+    func updateMarqueeConstraints() {
+        // First, remove any existing marquee constraints.
+        NSLayoutConstraint.deactivate(currentMarqueeConstraints)
+        
+        // Decide on spacing constants based on orientation.
+        let isPortrait = UIDevice.current.orientation.isPortrait || view.bounds.height > view.bounds.width
+        let leftSpacing: CGFloat = isPortrait ? 2 : 1
+        let rightSpacing: CGFloat = isPortrait ? 16 : 8
+        
+        // Determine which button to use for the trailing anchor.
+        var trailingAnchor: NSLayoutXAxisAnchor = controlsContainerView.trailingAnchor // default fallback
+        if let menu = menuButton, !menu.isHidden {
+            trailingAnchor = menu.leadingAnchor
+        } else if let quality = qualityButton, !quality.isHidden {
+            trailingAnchor = quality.leadingAnchor
+        } else if let speed = speedButton, !speed.isHidden {
+            trailingAnchor = speed.leadingAnchor
+        }
+        
+        // Create new constraints for the marquee label.
+        currentMarqueeConstraints = [
+            marqueeLabel.leadingAnchor.constraint(equalTo: dismissButton.trailingAnchor, constant: leftSpacing),
+            marqueeLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -rightSpacing),
+            marqueeLabel.centerYAnchor.constraint(equalTo: dismissButton.centerYAnchor)
+        ]
+        
+        NSLayoutConstraint.activate(currentMarqueeConstraints)
+        view.layoutIfNeeded()
     }
     
     func setupMenuButton() {
@@ -789,6 +914,7 @@ class CustomMediaPlayerViewController: UIViewController {
                   let currentItem = self.player.currentItem,
                   currentItem.duration.seconds.isFinite else { return }
             
+            self.updateBufferValue()
             let currentDuration = currentItem.duration.seconds
             if currentDuration.isNaN || currentDuration <= 0 { return }
             
@@ -811,21 +937,24 @@ class CustomMediaPlayerViewController: UIViewController {
             
             DispatchQueue.main.async {
                 self.sliderHostingController?.rootView = MusicProgressSlider(
-                    value: Binding(get: {
-                        max(0, min(self.sliderViewModel.sliderValue, self.duration))
-                    }, set: {
-                        self.sliderViewModel.sliderValue = max(0, min($0, self.duration))
-                    }),
-                    inRange: 0...(self.duration > 0 ? self.duration : 1.0),
-                    bufferValue: self.sliderViewModel.bufferValue,
+                    value: Binding(
+                        get: { max(0, min(self.sliderViewModel.sliderValue, self.duration)) },
+                        set: {
+                            self.sliderViewModel.sliderValue = max(0, min($0, self.duration))
+                        }
+                    ),
+                    bufferValue: Binding(get: { self.sliderViewModel.bufferValue },
+                                         set: { self.sliderViewModel.bufferValue = $0 }), inRange: 0...(self.duration > 0 ? self.duration : 1.0),
                     activeFillColor: .white,
                     fillColor: .white.opacity(0.6),
-                    bufferColor: .white.opacity(0.36),
                     emptyColor: .white.opacity(0.3),
                     height: 30,
                     onEditingChanged: { editing in
                         if !editing {
-                            let targetTime = CMTime(seconds: self.sliderViewModel.sliderValue, preferredTimescale: 600)
+                            let targetTime = CMTime(
+                                seconds: self.sliderViewModel.sliderValue,
+                                preferredTimescale: 600
+                            )
                             self.player.seek(to: targetTime) { [weak self] finished in
                                 self?.updateBufferValue()
                             }
@@ -835,9 +964,9 @@ class CustomMediaPlayerViewController: UIViewController {
             }
             
             let isNearEnd = (self.duration - self.currentTimeVal) <= (self.duration * 0.10)
-                && self.currentTimeVal != self.duration
-                && self.showWatchNextButton
-                && self.duration != 0
+            && self.currentTimeVal != self.duration
+            && self.showWatchNextButton
+            && self.duration != 0
             
             if isNearEnd {
                 if !self.isWatchNextVisible {
@@ -942,10 +1071,10 @@ class CustomMediaPlayerViewController: UIViewController {
             let finalSkip = holdValue > 0 ? holdValue : 30
             currentTimeVal = max(currentTimeVal - finalSkip, 0)
             player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600)) { [weak self] finished in
-                  guard let self = self else { return }
-                  self.updateBufferValue()
-              }
-          }
+                guard let self = self else { return }
+                self.updateBufferValue()
+            }
+        }
     }
     
     @objc func seekForwardLongPress(_ gesture: UILongPressGestureRecognizer) {
@@ -954,10 +1083,10 @@ class CustomMediaPlayerViewController: UIViewController {
             let finalSkip = holdValue > 0 ? holdValue : 30
             currentTimeVal = min(currentTimeVal + finalSkip, duration)
             player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600)) { [weak self] finished in
-                  guard let self = self else { return }
-                  self.updateBufferValue()
-              }
-          }
+                guard let self = self else { return }
+                self.updateBufferValue()
+            }
+        }
     }
     
     @objc func seekBackward() {
@@ -965,20 +1094,20 @@ class CustomMediaPlayerViewController: UIViewController {
         let finalSkip = skipValue > 0 ? skipValue : 10
         currentTimeVal = max(currentTimeVal - finalSkip, 0)
         player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600)) { [weak self] finished in
-              guard let self = self else { return }
-              self.updateBufferValue()
-          }
-      }
+            guard let self = self else { return }
+            self.updateBufferValue()
+        }
+    }
     
     @objc func seekForward() {
         let skipValue = UserDefaults.standard.double(forKey: "skipIncrement")
         let finalSkip = skipValue > 0 ? skipValue : 10
         currentTimeVal = min(currentTimeVal + finalSkip, duration)
         player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600)) { [weak self] finished in
-              guard let self = self else { return }
-              self.updateBufferValue()
-          }
-      }
+            guard let self = self else { return }
+            self.updateBufferValue()
+        }
+    }
     
     @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
         let tapLocation = gesture.location(in: view)
@@ -997,21 +1126,23 @@ class CustomMediaPlayerViewController: UIViewController {
     
     @objc func togglePlayPause() {
         if isPlaying {
+            player.pause()
+            isPlaying = false
+            playPauseButton.image = UIImage(systemName: "play.fill")
+            
             if !isControlsVisible {
                 isControlsVisible = true
-                UIView.animate(withDuration: 0.5) {
+                UIView.animate(withDuration: 0.2) {
                     self.controlsContainerView.alpha = 1.0
                     self.skip85Button.alpha = 0.8
                     self.view.layoutIfNeeded()
                 }
             }
-            player.pause()
-            playPauseButton.image = UIImage(systemName: "play.fill")
         } else {
             player.play()
+            isPlaying = true
             playPauseButton.image = UIImage(systemName: "pause.fill")
         }
-        isPlaying.toggle()
     }
     
     @objc func dismissTapped() {
@@ -1032,7 +1163,7 @@ class CustomMediaPlayerViewController: UIViewController {
     
     @objc private func handleHoldForPause(_ gesture: UILongPressGestureRecognizer) {
         guard isHoldPauseEnabled else { return }
-
+        
         if gesture.state == .began {
             togglePlayPause()
         }
@@ -1088,7 +1219,7 @@ class CustomMediaPlayerViewController: UIViewController {
                 if line.contains("#EXT-X-STREAM-INF"), index + 1 < lines.count {
                     if let resolutionRange = line.range(of: "RESOLUTION="),
                        let resolutionEndRange = line[resolutionRange.upperBound...].range(of: ",")
-                          ?? line[resolutionRange.upperBound...].range(of: "\n") {
+                        ?? line[resolutionRange.upperBound...].range(of: "\n") {
                         
                         let resolutionPart = String(line[resolutionRange.upperBound..<resolutionEndRange.lowerBound])
                         if let heightStr = resolutionPart.components(separatedBy: "x").last,
@@ -1102,7 +1233,7 @@ class CustomMediaPlayerViewController: UIViewController {
                                 if let baseURL = self.baseM3U8URL {
                                     let baseURLString = baseURL.deletingLastPathComponent().absoluteString
                                     qualityURL = URL(string: nextLine, relativeTo: baseURL)?.absoluteString
-                                        ?? baseURLString + "/" + nextLine
+                                    ?? baseURLString + "/" + nextLine
                                 }
                             }
                             
@@ -1222,6 +1353,7 @@ class CustomMediaPlayerViewController: UIViewController {
                 
                 self.qualityButton.isHidden = false
                 self.qualityButton.menu = self.qualitySelectionMenu()
+                self.updateMarqueeConstraints()
             }
         } else {
             isHLSStream = false
@@ -1485,6 +1617,20 @@ class CustomMediaPlayerViewController: UIViewController {
         if UserDefaults.standard.bool(forKey: "rememberPlaySpeed") {
             let lastPlayedSpeed = UserDefaults.standard.float(forKey: "lastPlaybackSpeed")
             player?.rate = lastPlayedSpeed > 0 ? lastPlayedSpeed : 1.0
+        }
+    }
+    
+    func setupTimeControlStatusObservation() {
+        playerTimeControlStatusObserver = player.observe(\.timeControlStatus, options: [.new]) { [weak self] player, _ in
+            guard let self = self else { return }
+            if player.timeControlStatus == .paused,
+               let reason = player.reasonForWaitingToPlay {
+                // If we are paused for a “stall/minimize stalls” reason, forcibly resume:
+                Logger.shared.log("Paused reason: \(reason)", type: "Error")
+                if reason == .toMinimizeStalls || reason == .evaluatingBufferingRate {
+                    player.play()
+                }
+            }
         }
     }
 }
