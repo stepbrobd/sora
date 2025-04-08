@@ -50,6 +50,10 @@ class CustomMediaPlayerViewController: UIViewController {
         UserDefaults.standard.bool(forKey: "holdForPauseEnabled")
     }
     
+    private var isSkip85Visible: Bool {
+        return UserDefaults.standard.bool(forKey: "skip85Visible")
+    }
+    
     var showWatchNextButton = true
     var watchNextButtonTimer: Timer?
     var isWatchNextRepositioned: Bool = false
@@ -248,6 +252,8 @@ class CustomMediaPlayerViewController: UIViewController {
                                                selector: #selector(playerItemDidChange),
                                                name: .AVPlayerItemNewAccessLogEntry,
                                                object: nil)
+        
+        skip85Button?.isHidden = !isSkip85Visible
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -470,9 +476,7 @@ class CustomMediaPlayerViewController: UIViewController {
         let brightnessSlider = VerticalBrightnessSlider(
             value: Binding(
                 get: { self.brightnessValue },
-                set: { newValue in
-                    self.brightnessValue = newValue
-                }
+                set: { newValue in self.brightnessValue = newValue }
             ),
             inRange: 0...1,
             activeFillColor: .white,
@@ -487,8 +491,8 @@ class CustomMediaPlayerViewController: UIViewController {
         brightnessContainer.translatesAutoresizingMaskIntoConstraints = false
         brightnessContainer.backgroundColor = .clear
         
-        // Add the container to the main view and anchor it to the safe area.
-        view.addSubview(brightnessContainer)
+        controlsContainerView.addSubview(brightnessContainer)
+        
         NSLayoutConstraint.activate([
             brightnessContainer.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             brightnessContainer.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
@@ -511,7 +515,6 @@ class CustomMediaPlayerViewController: UIViewController {
         ])
     }
 
-    
     func addInvisibleControlOverlays() {
         let playPauseOverlay = UIButton(type: .custom)
         playPauseOverlay.backgroundColor = .clear
@@ -660,12 +663,11 @@ class CustomMediaPlayerViewController: UIViewController {
     }
     
     func setupMarqueeLabel() {
-        // Create the MarqueeLabel and configure its scrolling behavior
         marqueeLabel = MarqueeLabel()
         marqueeLabel.text = "\(titleText) • Ep \(episodeNumber)"
         marqueeLabel.type = .continuous
         marqueeLabel.textColor = .white
-        marqueeLabel.font = UIFont.systemFont(ofSize: 15, weight: .medium)
+        marqueeLabel.font = UIFont.systemFont(ofSize: 14, weight: .heavy)
         
         marqueeLabel.speed = .rate(30)         // Adjust scrolling speed as needed
         marqueeLabel.fadeLength = 10.0         // Fading at the label’s edges
@@ -673,14 +675,12 @@ class CustomMediaPlayerViewController: UIViewController {
         marqueeLabel.trailingBuffer = 16.0     // Right inset for scrolling
         marqueeLabel.animationDelay = 2.5
         
-        // Set default lineBreakMode (will be updated later based on available width)
         marqueeLabel.lineBreakMode = .byTruncatingTail
         marqueeLabel.textAlignment = .left
         
         controlsContainerView.addSubview(marqueeLabel)
         marqueeLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        // Define four sets of constraints:
         // 1. Portrait mode with button visible
         portraitButtonVisibleConstraints = [
             marqueeLabel.leadingAnchor.constraint(equalTo: dismissButton.trailingAnchor, constant: 12),
@@ -708,8 +708,6 @@ class CustomMediaPlayerViewController: UIViewController {
             marqueeLabel.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -8),
             marqueeLabel.centerYAnchor.constraint(equalTo: dismissButton.centerYAnchor)
         ]
-        
-        // Activate an initial set based on the current orientation and menuButton state
         updateMarqueeConstraints()
     }
 
@@ -844,6 +842,8 @@ class CustomMediaPlayerViewController: UIViewController {
             skip85Button.heightAnchor.constraint(equalToConstant: 47),
             skip85Button.widthAnchor.constraint(greaterThanOrEqualToConstant: 97)
         ])
+        
+        skip85Button.isHidden = !isSkip85Visible
     }
     
     private func setupQualityButton() {
@@ -1050,7 +1050,7 @@ class CustomMediaPlayerViewController: UIViewController {
     
     @objc func toggleControls() {
         isControlsVisible.toggle()
-        UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
             self.controlsContainerView.alpha = self.isControlsVisible ? 1 : 0
             self.skip85Button.alpha = self.isControlsVisible ? 0.8 : 0
             
@@ -1059,7 +1059,7 @@ class CustomMediaPlayerViewController: UIViewController {
                 NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
                 if self.isWatchNextRepositioned || self.isWatchNextVisible {
                     self.watchNextButton.isHidden = false
-                    UIView.animate(withDuration: 0.5, animations: {
+                    UIView.animate(withDuration: 0.3, animations: {
                         self.watchNextButton.alpha = 0.8
                     })
                 }
