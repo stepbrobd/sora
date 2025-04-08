@@ -250,17 +250,27 @@ struct MediaInfoView: View {
                                                     }
                                                 },
                                                 onMarkAllPrevious: {
+                                                    let userDefaults = UserDefaults.standard
+                                                    var updates = [String: Double]()
+                                                    
                                                     for ep2 in seasons[selectedSeason] where ep2.number < ep.number {
                                                         let href = ep2.href
-                                                        UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(href)")
-                                                        UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(href)")
+                                                        updates["lastPlayedTime_\(href)"] = 99999999.0
+                                                        updates["totalTime_\(href)"] = 99999999.0
                                                     }
+                                                    
+                                                    for (key, value) in updates {
+                                                        userDefaults.set(value, forKey: key)
+                                                    }
+                                                    
+                                                    userDefaults.synchronize()
+                                                    
                                                     refreshTrigger.toggle()
                                                     Logger.shared.log("Marked episodes watched within season \(selectedSeason + 1) of \"\(title)\".", type: "General")
                                                 }
                                             )
-                                            .id(refreshTrigger)
-                                            .disabled(isFetchingEpisode)
+                                                .id(refreshTrigger)
+                                                .disabled(isFetchingEpisode)
                                         }
                                     } else {
                                         Text("No episodes available")
@@ -290,17 +300,27 @@ struct MediaInfoView: View {
                                                 }
                                             },
                                             onMarkAllPrevious: {
+                                                let userDefaults = UserDefaults.standard
+                                                var updates = [String: Double]()
+                                                
                                                 for idx in 0..<i {
-                                                    let href = episodeLinks[idx].href
-                                                    UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(href)")
-                                                    UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(href)")
+                                                    if idx < episodeLinks.count {
+                                                        let href = episodeLinks[idx].href
+                                                        updates["lastPlayedTime_\(href)"] = 1000.0
+                                                        updates["totalTime_\(href)"] = 1000.0
+                                                    }
                                                 }
+                                                
+                                                for (key, value) in updates {
+                                                    userDefaults.set(value, forKey: key)
+                                                }
+                                                
                                                 refreshTrigger.toggle()
                                                 Logger.shared.log("Marked \(ep.number - 1) episodes watched within series \"\(title)\".", type: "General")
                                             }
                                         )
-                                        .id(refreshTrigger)
-                                        .disabled(isFetchingEpisode)
+                                            .id(refreshTrigger)
+                                            .disabled(isFetchingEpisode)
                                     }
                                 }
                             }
@@ -448,7 +468,7 @@ struct MediaInfoView: View {
         groups.append(currentGroup)
         return groups
     }
-
+    
     
     func fetchDetails() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -499,9 +519,13 @@ struct MediaInfoView: View {
                     
                     if module.metadata.softsub == true {
                         if module.metadata.asyncJS == true {
-                            jsController.fetchStreamUrlJS(episodeUrl: href, softsub: true) { result in
-                                if let streamUrl = result.stream {
-                                    self.playStream(url: streamUrl, fullURL: href, subtitles: result.subtitles)
+                            jsController.fetchStreamUrlJS(episodeUrl: href, softsub: true, module: module) { result in
+                                if let streams = result.streams, !streams.isEmpty {
+                                    if streams.count > 1 {
+                                        self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first)
+                                    } else {
+                                        self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
+                                    }
                                 } else {
                                     self.handleStreamFailure(error: nil)
                                 }
@@ -510,9 +534,13 @@ struct MediaInfoView: View {
                                 }
                             }
                         } else if module.metadata.streamAsyncJS == true {
-                            jsController.fetchStreamUrlJSSecond(episodeUrl: href, softsub: true) { result in
-                                if let streamUrl = result.stream {
-                                    self.playStream(url: streamUrl, fullURL: href, subtitles: result.subtitles)
+                            jsController.fetchStreamUrlJSSecond(episodeUrl: href, softsub: true, module: module) { result in
+                                if let streams = result.streams, !streams.isEmpty {
+                                    if streams.count > 1 {
+                                        self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first)
+                                    } else {
+                                        self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
+                                    }
                                 } else {
                                     self.handleStreamFailure(error: nil)
                                 }
@@ -521,9 +549,13 @@ struct MediaInfoView: View {
                                 }
                             }
                         } else {
-                            jsController.fetchStreamUrl(episodeUrl: href, softsub: true) { result in
-                                if let streamUrl = result.stream {
-                                    self.playStream(url: streamUrl, fullURL: href, subtitles: result.subtitles)
+                            jsController.fetchStreamUrl(episodeUrl: href, softsub: true, module: module) { result in
+                                if let streams = result.streams, !streams.isEmpty {
+                                    if streams.count > 1 {
+                                        self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first)
+                                    } else {
+                                        self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
+                                    }
                                 } else {
                                     self.handleStreamFailure(error: nil)
                                 }
@@ -534,9 +566,13 @@ struct MediaInfoView: View {
                         }
                     } else {
                         if module.metadata.asyncJS == true {
-                            jsController.fetchStreamUrlJS(episodeUrl: href) { result in
-                                if let streamUrl = result.stream {
-                                    self.playStream(url: streamUrl, fullURL: href)
+                            jsController.fetchStreamUrlJS(episodeUrl: href, module: module) { result in
+                                if let streams = result.streams, !streams.isEmpty {
+                                    if streams.count > 1 {
+                                        self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first)
+                                    } else {
+                                        self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
+                                    }
                                 } else {
                                     self.handleStreamFailure(error: nil)
                                 }
@@ -545,9 +581,13 @@ struct MediaInfoView: View {
                                 }
                             }
                         } else if module.metadata.streamAsyncJS == true {
-                            jsController.fetchStreamUrlJSSecond(episodeUrl: href) { result in
-                                if let streamUrl = result.stream {
-                                    self.playStream(url: streamUrl, fullURL: href)
+                            jsController.fetchStreamUrlJSSecond(episodeUrl: href, module: module) { result in
+                                if let streams = result.streams, !streams.isEmpty {
+                                    if streams.count > 1 {
+                                        self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first)
+                                    } else {
+                                        self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
+                                    }
                                 } else {
                                     self.handleStreamFailure(error: nil)
                                 }
@@ -556,9 +596,13 @@ struct MediaInfoView: View {
                                 }
                             }
                         } else {
-                            jsController.fetchStreamUrl(episodeUrl: href) { result in
-                                if let streamUrl = result.stream {
-                                    self.playStream(url: streamUrl, fullURL: href)
+                            jsController.fetchStreamUrl(episodeUrl: href, module: module) { result in
+                                if let streams = result.streams, !streams.isEmpty {
+                                    if streams.count > 1 {
+                                        self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first)
+                                    } else {
+                                        self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
+                                    }
                                 } else {
                                     self.handleStreamFailure(error: nil)
                                 }
@@ -589,6 +633,45 @@ struct MediaInfoView: View {
         self.isLoading = false
     }
     
+    func showStreamSelectionAlert(streams: [String], fullURL: String, subtitles: String? = nil) {
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: "Select Server", message: "Choose a server to play from", preferredStyle: .actionSheet)
+            
+            for (index, stream) in streams.enumerated() {
+                let quality = "Stream \(index + 1)"
+                alert.addAction(UIAlertAction(title: quality, style: .default) { _ in
+                    self.playStream(url: stream, fullURL: fullURL, subtitles: subtitles)
+                })
+            }
+            
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first,
+               let rootVC = window.rootViewController {
+                
+                if UIDevice.current.userInterfaceIdiom == .pad {
+                    if let popover = alert.popoverPresentationController {
+                        popover.sourceView = window
+                        popover.sourceRect = CGRect(
+                            x: UIScreen.main.bounds.width / 2,
+                            y: UIScreen.main.bounds.height / 2,
+                            width: 0,
+                            height: 0
+                        )
+                        popover.permittedArrowDirections = []
+                    }
+                }
+                
+                findTopViewController.findViewController(rootVC).present(alert, animated: true)
+            }
+            
+            DispatchQueue.main.async {
+                self.isFetchingEpisode = false
+            }
+        }
+    }
+    
     func playStream(url: String, fullURL: String, subtitles: String? = nil) {
         DispatchQueue.main.async {
             let externalPlayer = UserDefaults.standard.string(forKey: "externalPlayer") ?? "Sora"
@@ -611,6 +694,7 @@ struct MediaInfoView: View {
                 videoPlayerViewController.episodeImageUrl = selectedEpisodeImage
                 videoPlayerViewController.mediaTitle = title
                 videoPlayerViewController.subtitles = subtitles ?? ""
+                videoPlayerViewController.aniListID = itemID ?? 0
                 videoPlayerViewController.modalPresentationStyle = .fullScreen
                 
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
@@ -642,6 +726,7 @@ struct MediaInfoView: View {
                         selectNextEpisode()
                     },
                     subtitlesURL: subtitles,
+                    aniListID: itemID ?? 0,
                     episodeImageUrl: selectedEpisodeImage
                 )
                 customMediaPlayer.modalPresentationStyle = .fullScreen

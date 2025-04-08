@@ -233,6 +233,7 @@ struct ContinueWatchingCell: View {
                 videoPlayerViewController.episodeNumber = item.episodeNumber
                 videoPlayerViewController.mediaTitle = item.mediaTitle
                 videoPlayerViewController.subtitles = item.subtitles ?? ""
+                videoPlayerViewController.aniListID = item.aniListID ?? 0
                 videoPlayerViewController.modalPresentationStyle = .fullScreen
                 
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
@@ -248,6 +249,7 @@ struct ContinueWatchingCell: View {
                     episodeNumber: item.episodeNumber,
                     onWatchNext: { },
                     subtitlesURL: item.subtitles,
+                    aniListID: item.aniListID ?? 0,
                     episodeImageUrl: item.imageUrl
                 )
                 customMediaPlayer.modalPresentationStyle = .fullScreen

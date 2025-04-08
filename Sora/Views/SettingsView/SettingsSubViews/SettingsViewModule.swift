@@ -16,6 +16,7 @@ struct SettingsViewModule: View {
     @State private var isLoading = false
     @State private var isRefreshing = false
     @State private var moduleUrl: String = ""
+    @State private var refreshTask: Task<Void, Never>?
     
     var body: some View {
         VStack {
@@ -113,23 +114,30 @@ struct SettingsViewModule: View {
             })
             .refreshable {
                 isRefreshing = true
-                await moduleManager.refreshModules()
-                isRefreshing = false
+                refreshTask?.cancel()
+                refreshTask = Task {
+                    await moduleManager.refreshModules()
+                    isRefreshing = false
+                }
             }
         }
         .onAppear {
-            Task {
+            refreshTask = Task {
                 await moduleManager.refreshModules()
             }
         }
-        .alert(isPresented: .constant(errorMessage != nil)) {
-            Alert(
-                title: Text("Error"),
-                message: Text(errorMessage ?? "Unknown error"),
-                dismissButton: .default(Text("OK")) {
-                    errorMessage = nil
-                }
-            )
+        .onDisappear {
+            refreshTask?.cancel()
+        }
+        .alert("Error", isPresented: Binding(
+            get: { errorMessage != nil },
+            set: { if !$0 { errorMessage = nil } }
+        )) {
+            Button("OK") {
+                errorMessage = nil
+            }
+        } message: {
+            Text(errorMessage ?? "Unknown error")
         }
     }
     

@@ -126,7 +126,7 @@ class DownloadManager {
                 
                 ffmpegCommand.append(contentsOf: ["-fflags", "+genpts"])
                 ffmpegCommand.append(contentsOf: ["-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "5"])
-                ffmpegCommand.append(contentsOf: ["-headers", "Referer: \(module.metadata.baseUrl)"])
+                ffmpegCommand.append(contentsOf: ["-headers", "Referer: \(module.metadata.baseUrl)\nOrigin: \(module.metadata.baseUrl)"])
                 
                 let multiThreads = UserDefaults.standard.bool(forKey: "multiThreads")
                 if multiThreads {

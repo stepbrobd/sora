@@ -17,6 +17,7 @@ class VideoPlayerViewController: UIViewController {
     var streamUrl: String?
     var fullUrl: String = ""
     var subtitles: String = ""
+    var aniListID: Int = 0
     
     var episodeNumber: Int = 0
     var episodeImageUrl: String = ""
@@ -40,6 +41,7 @@ class VideoPlayerViewController: UIViewController {
         
         var request = URLRequest(url: url)
         request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
+        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
         request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
         
         let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])
@@ -86,25 +88,6 @@ class VideoPlayerViewController: UIViewController {
             player?.removeTimeObserver(timeObserverToken)
             self.timeObserverToken = nil
         }
-        
-        if let currentItem = player?.currentItem, currentItem.duration.seconds > 0,
-           let streamUrl = streamUrl {
-            let currentTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(fullUrl)")
-            let duration = currentItem.duration.seconds
-            let progress = currentTime / duration
-            let item = ContinueWatchingItem(
-                id: UUID(),
-                imageUrl: episodeImageUrl,
-                episodeNumber: episodeNumber,
-                mediaTitle: mediaTitle,
-                progress: progress,
-                streamUrl: streamUrl,
-                fullUrl: fullUrl,
-                subtitles: subtitles,
-                module: module
-            )
-            ContinueWatchingManager.shared.save(item: item)
-        }
     }
     
     private func setInitialPlayerRate() {
@@ -118,8 +101,9 @@ class VideoPlayerViewController: UIViewController {
         guard let player = self.player else { return }
         
         let interval = CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { time in
-            guard let currentItem = player.currentItem,
+        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            guard let self = self,
+                  let currentItem = player.currentItem,
                   currentItem.duration.seconds.isFinite else {
                       return
                   }
@@ -129,6 +113,37 @@ class VideoPlayerViewController: UIViewController {
             
             UserDefaults.standard.set(currentTime, forKey: "lastPlayedTime_\(fullURL)")
             UserDefaults.standard.set(duration, forKey: "totalTime_\(fullURL)")
+            
+            let remainingPercentage = (duration - currentTime) / duration
+            
+            if remainingPercentage < 0.1 && self.module.metadata.type == "anime" && self.aniListID != 0 {
+                let aniListMutation = AniListMutation()
+                aniListMutation.updateAnimeProgress(animeId: self.aniListID, episodeNumber: self.episodeNumber) { result in
+                    switch result {
+                    case .success:
+                        Logger.shared.log("Successfully updated AniList progress for episode \(self.episodeNumber)", type: "General")
+                    case .failure(let error):
+                        Logger.shared.log("Failed to update AniList progress: \(error.localizedDescription)", type: "Error")
+                    }
+                }
+            }
+            
+            if let streamUrl = self.streamUrl {
+                let progress = currentTime / duration
+                let item = ContinueWatchingItem(
+                    id: UUID(),
+                    imageUrl: self.episodeImageUrl,
+                    episodeNumber: self.episodeNumber,
+                    mediaTitle: self.mediaTitle,
+                    progress: progress,
+                    streamUrl: streamUrl,
+                    fullUrl: self.fullUrl,
+                    subtitles: self.subtitles,
+                    aniListID: self.aniListID,
+                    module: self.module
+                )
+                ContinueWatchingManager.shared.save(item: item)
+            }
         }
     }
     

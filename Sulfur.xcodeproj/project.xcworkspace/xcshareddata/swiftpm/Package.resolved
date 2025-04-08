@@ -36,6 +36,15 @@
           "revision": "b6f62758f21a8c03cd64f4009c037cfa580a256e",
           "version": "7.9.1"
         }
+      },
+      {
+        "package": "MarqueeLabel",
+        "repositoryURL": "https://github.com/cbpowell/MarqueeLabel",
+        "state": {
+          "branch": null,
+          "revision": "cffb6938940d3242882e6a2f9170b7890a4729ea",
+          "version": "4.2.1"
+        }
       }
     ]
   },
