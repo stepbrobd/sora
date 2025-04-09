@@ -920,6 +920,24 @@ class CustomMediaPlayerViewController: UIViewController {
             }
             
             DispatchQueue.main.async {
+                if let currentItem = self.player.currentItem, currentItem.duration.seconds > 0 {
+                    let progress = min(max(self.currentTimeVal / self.duration, 0), 1.0)
+                    
+                    let item = ContinueWatchingItem(
+                        id: UUID(),
+                        imageUrl: self.episodeImageUrl,
+                        episodeNumber: self.episodeNumber,
+                        mediaTitle: self.titleText,
+                        progress: progress,
+                        streamUrl: self.streamURL,
+                        fullUrl: self.fullUrl,
+                        subtitles: self.subtitlesURL,
+                        aniListID: self.aniListID,
+                        module: self.module
+                    )
+                    ContinueWatchingManager.shared.save(item: item)
+                }
+                
                 let remainingPercentage = (self.duration - self.currentTimeVal) / self.duration
                 
                 if remainingPercentage < 0.1 && self.module.metadata.type == "anime" && self.aniListID != 0 {
@@ -1007,23 +1025,6 @@ class CustomMediaPlayerViewController: UIViewController {
                     self.watchNextButton.isHidden = true
                 })
             }
-        }
-        
-        if let currentItem = player.currentItem, currentItem.duration.seconds > 0 {
-            let progress = currentTimeVal / currentItem.duration.seconds
-            let item = ContinueWatchingItem(
-                id: UUID(),
-                imageUrl: episodeImageUrl,
-                episodeNumber: episodeNumber,
-                mediaTitle: titleText,
-                progress: progress,
-                streamUrl: streamURL,
-                fullUrl: fullUrl,
-                subtitles: subtitlesURL,
-                aniListID: aniListID,
-                module: module
-            )
-            ContinueWatchingManager.shared.save(item: item)
         }
     }
     
@@ -1581,7 +1582,7 @@ class CustomMediaPlayerViewController: UIViewController {
             try audioSession.setActive(true)
             try audioSession.overrideOutputAudioPort(.speaker)
         } catch {
-            Logger.shared.log("Failed to set up AVAudioSession: \(error)")
+            Logger.shared.log("Didn't set up AVAudioSession: \(error)", type: "Debug")
         }
     }
     

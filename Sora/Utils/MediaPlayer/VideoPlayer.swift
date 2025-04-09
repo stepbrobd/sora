@@ -114,22 +114,9 @@ class VideoPlayerViewController: UIViewController {
             UserDefaults.standard.set(currentTime, forKey: "lastPlayedTime_\(fullURL)")
             UserDefaults.standard.set(duration, forKey: "totalTime_\(fullURL)")
             
-            let remainingPercentage = (duration - currentTime) / duration
-            
-            if remainingPercentage < 0.1 && self.module.metadata.type == "anime" && self.aniListID != 0 {
-                let aniListMutation = AniListMutation()
-                aniListMutation.updateAnimeProgress(animeId: self.aniListID, episodeNumber: self.episodeNumber) { result in
-                    switch result {
-                    case .success:
-                        Logger.shared.log("Successfully updated AniList progress for episode \(self.episodeNumber)", type: "General")
-                    case .failure(let error):
-                        Logger.shared.log("Failed to update AniList progress: \(error.localizedDescription)", type: "Error")
-                    }
-                }
-            }
-            
             if let streamUrl = self.streamUrl {
-                let progress = currentTime / duration
+                let progress = min(max(currentTime / duration, 0), 1.0)
+                
                 let item = ContinueWatchingItem(
                     id: UUID(),
                     imageUrl: self.episodeImageUrl,
@@ -143,6 +130,20 @@ class VideoPlayerViewController: UIViewController {
                     module: self.module
                 )
                 ContinueWatchingManager.shared.save(item: item)
+            }
+            
+            let remainingPercentage = (duration - currentTime) / duration
+            
+            if remainingPercentage < 0.1 && self.module.metadata.type == "anime" && self.aniListID != 0 {
+                let aniListMutation = AniListMutation()
+                aniListMutation.updateAnimeProgress(animeId: self.aniListID, episodeNumber: self.episodeNumber) { result in
+                    switch result {
+                    case .success:
+                        Logger.shared.log("Successfully updated AniList progress for episode \(self.episodeNumber)", type: "General")
+                    case .failure(let error):
+                        Logger.shared.log("Failed to update AniList progress: \(error.localizedDescription)", type: "Error")
+                    }
+                }
             }
         }
     }
