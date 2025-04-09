@@ -35,6 +35,7 @@ struct MediaInfoView: View {
     @State var isFetchingEpisode: Bool = false
     
     @State private var refreshTrigger: Bool = false
+    @State private var buttonRefreshTrigger: Bool = false
     
     @State private var selectedEpisodeNumber: Int = 0
     @State private var selectedEpisodeImage: String = ""
@@ -169,6 +170,7 @@ struct MediaInfoView: View {
                                 .cornerRadius(10)
                             }
                             .disabled(isFetchingEpisode)
+                            .id(buttonRefreshTrigger)
                             
                             Button(action: {
                                 libraryManager.toggleBookmark(
@@ -363,6 +365,8 @@ struct MediaInfoView: View {
             }
         }
         .onAppear {
+            buttonRefreshTrigger.toggle()
+            
             if !hasFetched {
                 DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching.", duration: 1.0, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
                 fetchDetails()

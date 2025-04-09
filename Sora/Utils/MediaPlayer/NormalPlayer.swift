@@ -55,7 +55,7 @@ class NormalPlayer: AVPlayerViewController {
             
             try audioSession.overrideOutputAudioPort(.speaker)
         } catch {
-            Logger.shared.log("Failed to set up AVAudioSession: \(error)")
+            Logger.shared.log("Didn't set up AVAudioSession: \(error)", type: "Debug")
         }
     }
 }
