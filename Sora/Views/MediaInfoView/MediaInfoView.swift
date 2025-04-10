@@ -368,9 +368,9 @@ struct MediaInfoView: View {
             buttonRefreshTrigger.toggle()
             
             if !hasFetched {
-                DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching.", duration: 1.0, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
+                DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching.", duration: 0.5, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
                 fetchDetails()
-                fetchItemID(byTitle: title) { result in
+                fetchItemID(byTitle: cleanTitle(title)) { result in
                     switch result {
                     case .success(let id):
                         itemID = id
@@ -631,7 +631,7 @@ struct MediaInfoView: View {
             Logger.shared.log("Error loading module: \(error)", type: "Error")
             AnalyticsManager.shared.sendEvent(event: "error", additionalData: ["error": error, "message": "Failed to fetch stream"])
         }
-        DropManager.shared.showDrop(title: "Stream not Found", subtitle: "", duration: 1.0, icon: UIImage(systemName: "xmark"))
+        DropManager.shared.showDrop(title: "Stream not Found", subtitle: "", duration: 0.5, icon: UIImage(systemName: "xmark"))
         
         UINotificationFeedbackGenerator().notificationOccurred(.error)
         self.isLoading = false
@@ -770,6 +770,18 @@ struct MediaInfoView: View {
            let rootVC = windowScene.windows.first?.rootViewController {
             rootVC.present(safariViewController, animated: true, completion: nil)
         }
+    }
+    
+    private func cleanTitle(_ title: String?) -> String {
+        guard let title = title else { return "Unknown" }
+        
+        let cleaned = title.replacingOccurrences(
+            of: "\\s*\\([^\\)]*\\)",
+            with: "",
+            options: .regularExpression
+        ).trimmingCharacters(in: .whitespaces)
+        
+        return cleaned.isEmpty ? "Unknown" : cleaned
     }
     
     private func fetchItemID(byTitle title: String, completion: @escaping (Result<Int, Error>) -> Void) {
