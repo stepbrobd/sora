@@ -27,6 +27,7 @@ struct MediaInfoView: View {
     @State var airdate: String = ""
     @State var episodeLinks: [EpisodeLink] = []
     @State var itemID: Int?
+    @State var tmdbID: Int?
     
     @State var isLoading: Bool = true
     @State var showFullSynopsis: Bool = false
@@ -240,6 +241,8 @@ struct MediaInfoView: View {
                                                 episodeID: ep.number - 1,
                                                 progress: progress,
                                                 itemID: itemID ?? 0,
+                                                isAnime: module.metadata.type?.lowercased() == "anime",
+                                                tmdbID: tmdbID,
                                                 onTap: { imageUrl in
                                                     if !isFetchingEpisode {
                                                         selectedEpisodeNumber = ep.number
@@ -290,6 +293,8 @@ struct MediaInfoView: View {
                                             episodeID: ep.number - 1,
                                             progress: progress,
                                             itemID: itemID ?? 0,
+                                            isAnime: module.metadata.type?.lowercased() == "anime",
+                                            tmdbID: tmdbID,
                                             onTap: { imageUrl in
                                                 if !isFetchingEpisode {
                                                     selectedEpisodeNumber = ep.number
@@ -370,15 +375,29 @@ struct MediaInfoView: View {
             if !hasFetched {
                 DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching.", duration: 0.5, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
                 fetchDetails()
-                fetchItemID(byTitle: cleanTitle(title)) { result in
-                    switch result {
-                    case .success(let id):
-                        itemID = id
-                    case .failure(let error):
-                        Logger.shared.log("Failed to fetch Item ID: \(error)")
-                        AnalyticsManager.shared.sendEvent(event: "error", additionalData: ["error": error, "message": "Failed to fetch Item ID"])
+                
+                if module.metadata.type == "anime" {
+                    fetchItemID(byTitle: cleanTitle(title)) { result in
+                        switch result {
+                        case .success(let id):
+                            itemID = id
+                        case .failure(let error):
+                            Logger.shared.log("Failed to fetch AniList ID: \(error)")
+                            AnalyticsManager.shared.sendEvent(event: "error", additionalData: ["error": error, "message": "Failed to fetch AniList ID"])
+                        }
+                    }
+                } else {
+                    fetchTMDBID(byTitle: cleanTitle(title)) { result in
+                        switch result {
+                        case .success(let id):
+                            tmdbID = id
+                        case .failure(let error):
+                            Logger.shared.log("Failed to fetch TMDB ID: \(error)")
+                            AnalyticsManager.shared.sendEvent(event: "error", additionalData: ["error": error, "message": "Failed to fetch TMDB ID"])
+                        }
                     }
                 }
+                
                 hasFetched = true
                 AnalyticsManager.shared.sendEvent(event: "search", additionalData: ["title": title])
             }
@@ -824,6 +843,44 @@ struct MediaInfoView: View {
                     completion(.success(id))
                 } else {
                     let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])
+                    completion(.failure(error))
+                }
+            } catch {
+                completion(.failure(error))
+            }
+        }.resume()
+    }
+    
+    private func fetchTMDBID(byTitle title: String, completion: @escaping (Result<Int, Error>) -> Void) {
+        let encodedTitle = title.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let apiKey = "738b4edd0a156cc126dc4a4b8aea4aca"
+        
+        let urlString = "https://api.themoviedb.org/3/search/multi?api_key=\(apiKey)&query=\(encodedTitle)"
+        
+        guard let url = URL(string: urlString) else {
+            completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
+            return
+        }
+        
+        URLSession.custom.dataTask(with: url) { data, _, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let data = data else {
+                completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                return
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let results = json["results"] as? [[String: Any]],
+                   let firstResult = results.first,
+                   let id = firstResult["id"] as? Int {
+                    completion(.success(id))
+                } else {
+                    let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No matching TMDB content found"])
                     completion(.failure(error))
                 }
             } catch {
