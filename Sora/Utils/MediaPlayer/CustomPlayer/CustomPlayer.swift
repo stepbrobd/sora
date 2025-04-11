@@ -31,6 +31,11 @@ class CustomMediaPlayerViewController: UIViewController {
     let onWatchNext: () -> Void
     let aniListID: Int
     
+    private var aniListUpdatedSuccessfully = false
+    private var aniListUpdateImpossible: Bool = false
+    private var aniListRetryCount = 0
+    private let aniListMaxRetries = 6
+    
     var player: AVPlayer!
     var timeObserverToken: Any?
     var inactivityTimer: Timer?
@@ -48,6 +53,9 @@ class CustomMediaPlayerViewController: UIViewController {
     }
     
     private var isSkip85Visible: Bool {
+        if UserDefaults.standard.object(forKey: "skip85Visible") == nil {
+            return true
+        }
         return UserDefaults.standard.bool(forKey: "skip85Visible")
     }
     
@@ -85,6 +93,7 @@ class CustomMediaPlayerViewController: UIViewController {
     var dismissButton: UIButton!
     var menuButton: UIButton!
     var watchNextButton: UIButton!
+    var watchNextIconButton: UIButton!
     var blackCoverView: UIView!
     var speedButton: UIButton!
     var skip85Button: UIButton!
@@ -174,6 +183,7 @@ class CustomMediaPlayerViewController: UIViewController {
         setupControls()
         setupSkipAndDismissGestures()
         addInvisibleControlOverlays()
+        setupWatchNextButton()
         setupSubtitleLabel()
         setupDismissButton()
         setupSpeedButton()
@@ -181,7 +191,6 @@ class CustomMediaPlayerViewController: UIViewController {
         setupMenuButton()
         setupMarqueeLabel()
         setupSkip85Button()
-        setupWatchNextButton()
         addTimeObserver()
         startUpdateTimer()
         setupAudioSession()
@@ -200,6 +209,9 @@ class CustomMediaPlayerViewController: UIViewController {
             holdForPause()
         }
         
+        if #available(iOS 16.0, *) {
+            playerViewController.allowsVideoFrameAnalysis = false
+        }
         
         player.play()
         
@@ -223,13 +235,11 @@ class CustomMediaPlayerViewController: UIViewController {
         })
     }
     
-    /// In layoutSubviews, check if the text width is larger than the available space and update the label’s properties.
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
-        // Safely unwrap marqueeLabel
         guard let marqueeLabel = marqueeLabel else {
-            return  // or handle the error gracefully
+            return
         }
         
         let availableWidth = marqueeLabel.frame.width
@@ -353,6 +363,12 @@ class CustomMediaPlayerViewController: UIViewController {
         backwardButton.contentMode = .scaleAspectFit
         backwardButton.isUserInteractionEnabled = true
         
+        backwardButton.layer.shadowColor = UIColor.black.cgColor
+        backwardButton.layer.shadowOffset = CGSize(width: 0, height: 2)
+        backwardButton.layer.shadowOpacity = 0.6
+        backwardButton.layer.shadowRadius = 4
+        backwardButton.layer.masksToBounds = false
+        
         let backwardTap = UITapGestureRecognizer(target: self, action: #selector(seekBackward))
         backwardTap.numberOfTapsRequired = 1
         backwardButton.addGestureRecognizer(backwardTap)
@@ -369,7 +385,15 @@ class CustomMediaPlayerViewController: UIViewController {
         playPauseButton.tintColor = .white
         playPauseButton.contentMode = .scaleAspectFit
         playPauseButton.isUserInteractionEnabled = true
+        
+        playPauseButton.layer.shadowColor = UIColor.black.cgColor
+        playPauseButton.layer.shadowOffset = CGSize(width: 0, height: 2)
+        playPauseButton.layer.shadowOpacity = 0.6
+        playPauseButton.layer.shadowRadius = 4
+        playPauseButton.layer.masksToBounds = false
+        
         let playPauseTap = UITapGestureRecognizer(target: self, action: #selector(togglePlayPause))
+        
         playPauseButton.addGestureRecognizer(playPauseTap)
         controlsContainerView.addSubview(playPauseButton)
         playPauseButton.translatesAutoresizingMaskIntoConstraints = false
@@ -378,6 +402,12 @@ class CustomMediaPlayerViewController: UIViewController {
         forwardButton.tintColor = .white
         forwardButton.contentMode = .scaleAspectFit
         forwardButton.isUserInteractionEnabled = true
+        
+        forwardButton.layer.shadowColor = UIColor.black.cgColor
+        forwardButton.layer.shadowOffset = CGSize(width: 0, height: 2)
+        forwardButton.layer.shadowOpacity = 0.6
+        forwardButton.layer.shadowRadius = 4
+        forwardButton.layer.masksToBounds = false
         
         let forwardTap = UITapGestureRecognizer(target: self, action: #selector(seekForward))
         forwardTap.numberOfTapsRequired = 1
@@ -596,12 +626,21 @@ class CustomMediaPlayerViewController: UIViewController {
     }
     
     func setupDismissButton() {
+        let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
+        let image = UIImage(systemName: "xmark", withConfiguration: config)
+        
         dismissButton = UIButton(type: .system)
-        dismissButton.setImage(UIImage(systemName: "xmark"), for: .normal)
+        dismissButton.setImage(image, for: .normal)
         dismissButton.tintColor = .white
         dismissButton.addTarget(self, action: #selector(dismissTapped), for: .touchUpInside)
         controlsContainerView.addSubview(dismissButton)
         dismissButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        dismissButton.layer.shadowColor = UIColor.black.cgColor
+        dismissButton.layer.shadowOffset = CGSize(width: 0, height: 2)
+        dismissButton.layer.shadowOpacity = 0.6
+        dismissButton.layer.shadowRadius = 4
+        dismissButton.layer.masksToBounds = false
         
         NSLayoutConstraint.activate([
             dismissButton.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: 16),
@@ -618,11 +657,17 @@ class CustomMediaPlayerViewController: UIViewController {
         marqueeLabel.textColor = .white
         marqueeLabel.font = UIFont.systemFont(ofSize: 14, weight: .heavy)
         
-        marqueeLabel.speed = .rate(30)         // Adjust scrolling speed as needed
+        marqueeLabel.speed = .rate(35)         // Adjust scrolling speed as needed
         marqueeLabel.fadeLength = 10.0         // Fading at the label’s edges
         marqueeLabel.leadingBuffer = 1.0      // Left inset for scrolling
         marqueeLabel.trailingBuffer = 16.0     // Right inset for scrolling
         marqueeLabel.animationDelay = 2.5
+        
+        marqueeLabel.layer.shadowColor = UIColor.black.cgColor
+        marqueeLabel.layer.shadowOffset = CGSize(width: 0, height: 2)
+        marqueeLabel.layer.shadowOpacity = 0.6
+        marqueeLabel.layer.shadowRadius = 4
+        marqueeLabel.layer.masksToBounds = false
         
         marqueeLabel.lineBreakMode = .byTruncatingTail
         marqueeLabel.textAlignment = .left
@@ -632,7 +677,7 @@ class CustomMediaPlayerViewController: UIViewController {
         
         // 1. Portrait mode with button visible
         portraitButtonVisibleConstraints = [
-            marqueeLabel.leadingAnchor.constraint(equalTo: dismissButton.trailingAnchor, constant: 12),
+            marqueeLabel.leadingAnchor.constraint(equalTo: dismissButton.trailingAnchor, constant: 8),
             marqueeLabel.trailingAnchor.constraint(equalTo: menuButton.leadingAnchor, constant: -16),
             marqueeLabel.centerYAnchor.constraint(equalTo: dismissButton.centerYAnchor)
         ]
@@ -661,28 +706,16 @@ class CustomMediaPlayerViewController: UIViewController {
     }
 
     func updateMarqueeConstraints() {
-        // First, remove any existing marquee constraints.
         NSLayoutConstraint.deactivate(currentMarqueeConstraints)
-        
-        // Decide on spacing constants based on orientation.
-        let isPortrait = UIDevice.current.orientation.isPortrait || view.bounds.height > view.bounds.width
-        let leftSpacing: CGFloat = isPortrait ? 2 : 1
-        let rightSpacing: CGFloat = isPortrait ? 16 : 8
-        
-        // Determine which button to use for the trailing anchor.
-        var trailingAnchor: NSLayoutXAxisAnchor = controlsContainerView.trailingAnchor // default fallback
-        if let menu = menuButton, !menu.isHidden {
-            trailingAnchor = menu.leadingAnchor
-        } else if let quality = qualityButton, !quality.isHidden {
-            trailingAnchor = quality.leadingAnchor
-        } else if let speed = speedButton, !speed.isHidden {
-            trailingAnchor = speed.leadingAnchor
-        }
-        
-        // Create new constraints for the marquee label.
+
+        let leftSpacing: CGFloat = 8
+        let rightSpacing: CGFloat = 8
+
         currentMarqueeConstraints = [
             marqueeLabel.leadingAnchor.constraint(equalTo: dismissButton.trailingAnchor, constant: leftSpacing),
-            marqueeLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -rightSpacing),
+            
+            marqueeLabel.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -rightSpacing-20),
+            
             marqueeLabel.centerYAnchor.constraint(equalTo: dismissButton.centerYAnchor)
         ]
         
@@ -691,8 +724,11 @@ class CustomMediaPlayerViewController: UIViewController {
     }
     
     func setupMenuButton() {
+        let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
+        let image = UIImage(systemName: "text.bubble", withConfiguration: config)
+        
         menuButton = UIButton(type: .system)
-        menuButton.setImage(UIImage(systemName: "text.bubble"), for: .normal)
+        menuButton.setImage(image, for: .normal)
         menuButton.tintColor = .white
         
         if let subtitlesURL = subtitlesURL, !subtitlesURL.isEmpty {
@@ -702,20 +738,29 @@ class CustomMediaPlayerViewController: UIViewController {
             menuButton.isHidden = true
         }
         
+        dismissButton.layer.shadowColor = UIColor.black.cgColor
+        dismissButton.layer.shadowOffset = CGSize(width: 0, height: 2)
+        dismissButton.layer.shadowOpacity = 0.6
+        dismissButton.layer.shadowRadius = 4
+        dismissButton.layer.masksToBounds = false
+        
         controlsContainerView.addSubview(menuButton)
         menuButton.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            menuButton.topAnchor.constraint(equalTo: controlsContainerView.topAnchor, constant: 20),
-            menuButton.trailingAnchor.constraint(equalTo: qualityButton.leadingAnchor, constant: -20),
+            menuButton.topAnchor.constraint(equalTo: qualityButton.topAnchor),
+            menuButton.trailingAnchor.constraint(equalTo: qualityButton.leadingAnchor, constant: -8),
             menuButton.widthAnchor.constraint(equalToConstant: 40),
             menuButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
     
     func setupSpeedButton() {
+        let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
+        let image = UIImage(systemName: "speedometer", withConfiguration: config)
+        
         speedButton = UIButton(type: .system)
-        speedButton.setImage(UIImage(systemName: "speedometer"), for: .normal)
+        speedButton.setImage(image, for: .normal)
         speedButton.tintColor = .white
         speedButton.showsMenuAsPrimaryAction = true
         speedButton.menu = speedChangerMenu()
@@ -724,62 +769,66 @@ class CustomMediaPlayerViewController: UIViewController {
         speedButton.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            speedButton.topAnchor.constraint(equalTo: controlsContainerView.topAnchor, constant: 20),
-            speedButton.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -20),
+            speedButton.topAnchor.constraint(equalTo: watchNextButton.topAnchor),
+            speedButton.trailingAnchor.constraint(equalTo: watchNextButton.leadingAnchor, constant: 20),
             speedButton.widthAnchor.constraint(equalToConstant: 40),
             speedButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
     
     func setupWatchNextButton() {
-        let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular)
-        let image = UIImage(systemName: "forward.fill", withConfiguration: config)
+        let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
+        let image = UIImage(systemName: "forward.end", withConfiguration: config)
         
         watchNextButton = UIButton(type: .system)
-        watchNextButton.setTitle(" Play Next", for: .normal)
-        watchNextButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)
         watchNextButton.setImage(image, for: .normal)
-        watchNextButton.tintColor = .black
-        watchNextButton.backgroundColor = .white
-        watchNextButton.layer.cornerRadius = 25
-        watchNextButton.setTitleColor(.black, for: .normal)
-        watchNextButton.addTarget(self, action: #selector(watchNextTapped), for: .touchUpInside)
-        watchNextButton.alpha = 0.0
-        watchNextButton.isHidden = true
+        watchNextButton.backgroundColor = .clear
+        watchNextButton.tintColor = .white
+        watchNextButton.setTitleColor(.white, for: .normal)
         
-        view.addSubview(watchNextButton)
+        // The shadow:
+        watchNextButton.layer.shadowColor = UIColor.black.cgColor
+        watchNextButton.layer.shadowOffset = CGSize(width: 0, height: 2)
+        watchNextButton.layer.shadowOpacity = 0.6
+        watchNextButton.layer.shadowRadius = 4
+        watchNextButton.layer.masksToBounds = false
+        
+        watchNextButton.addTarget(self, action: #selector(watchNextTapped), for: .touchUpInside)
+        
+        controlsContainerView.addSubview(watchNextButton)
         watchNextButton.translatesAutoresizingMaskIntoConstraints = false
         
-        watchNextButtonNormalConstraints = [
-            watchNextButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            watchNextButton.bottomAnchor.constraint(equalTo: sliderHostingController!.view.centerYAnchor),
-            watchNextButton.heightAnchor.constraint(equalToConstant: 50),
-            watchNextButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
-        ]
-        
-        watchNextButtonControlsConstraints = [
-            watchNextButton.trailingAnchor.constraint(equalTo: sliderHostingController!.view.trailingAnchor),
+        NSLayoutConstraint.activate([
+            watchNextButton.trailingAnchor.constraint(equalTo: sliderHostingController!.view.trailingAnchor, constant: 20),
             watchNextButton.bottomAnchor.constraint(equalTo: sliderHostingController!.view.topAnchor, constant: -5),
-            watchNextButton.heightAnchor.constraint(equalToConstant: 47),
-            watchNextButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 97)
-        ]
-        
-        NSLayoutConstraint.activate(watchNextButtonNormalConstraints)
+            watchNextButton.heightAnchor.constraint(equalToConstant: 40),
+            watchNextButton.widthAnchor.constraint(equalToConstant: 80)
+        ])
     }
     
     func setupSkip85Button() {
-        let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+        let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
         let image = UIImage(systemName: "goforward", withConfiguration: config)
         
         skip85Button = UIButton(type: .system)
         skip85Button.setTitle(" Skip 85s", for: .normal)
-        skip85Button.titleLabel?.font = UIFont.systemFont(ofSize: 14)
+        skip85Button.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .bold)
         skip85Button.setImage(image, for: .normal)
-        skip85Button.tintColor = .black
-        skip85Button.backgroundColor = .white
-        skip85Button.layer.cornerRadius = 25
-        skip85Button.setTitleColor(.black, for: .normal)
-        skip85Button.alpha = 0.8
+        
+        skip85Button.backgroundColor = UIColor(red: 51/255.0, green: 51/255.0, blue: 51/255.0, alpha: 0.8)
+        skip85Button.tintColor = .white
+        skip85Button.setTitleColor(.white, for: .normal)
+        skip85Button.layer.cornerRadius = 21
+        skip85Button.alpha = 0.7
+        
+        skip85Button.contentEdgeInsets = UIEdgeInsets(top: 6, left: 10, bottom: 6, right: 10)
+        
+        skip85Button.layer.shadowColor = UIColor.black.cgColor
+        skip85Button.layer.shadowOffset = CGSize(width: 0, height: 2)
+        skip85Button.layer.shadowOpacity = 0.6
+        skip85Button.layer.shadowRadius = 4
+        skip85Button.layer.masksToBounds = false
+        
         skip85Button.addTarget(self, action: #selector(skip85Tapped), for: .touchUpInside)
         
         view.addSubview(skip85Button)
@@ -788,27 +837,37 @@ class CustomMediaPlayerViewController: UIViewController {
         NSLayoutConstraint.activate([
             skip85Button.leadingAnchor.constraint(equalTo: sliderHostingController!.view.leadingAnchor),
             skip85Button.bottomAnchor.constraint(equalTo: sliderHostingController!.view.topAnchor, constant: -5),
-            skip85Button.heightAnchor.constraint(equalToConstant: 47),
+            skip85Button.heightAnchor.constraint(equalToConstant: 40),
             skip85Button.widthAnchor.constraint(greaterThanOrEqualToConstant: 97)
         ])
         
         skip85Button.isHidden = !isSkip85Visible
     }
+
     
     private func setupQualityButton() {
+        let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
+        let image = UIImage(systemName: "4k.tv", withConfiguration: config)
+        
         qualityButton = UIButton(type: .system)
-        qualityButton.setImage(UIImage(systemName: "4k.tv"), for: .normal)
+        qualityButton.setImage(image, for: .normal)
         qualityButton.tintColor = .white
         qualityButton.showsMenuAsPrimaryAction = true
         qualityButton.menu = qualitySelectionMenu()
         qualityButton.isHidden = true
         
+        speedButton.layer.shadowColor = UIColor.black.cgColor
+        speedButton.layer.shadowOffset = CGSize(width: 0, height: 2)
+        speedButton.layer.shadowOpacity = 0.6
+        speedButton.layer.shadowRadius = 4
+        speedButton.layer.masksToBounds = false
+        
         controlsContainerView.addSubview(qualityButton)
         qualityButton.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            qualityButton.topAnchor.constraint(equalTo: controlsContainerView.topAnchor, constant: 20),
-            qualityButton.trailingAnchor.constraint(equalTo: speedButton.leadingAnchor, constant: -20),
+            qualityButton.topAnchor.constraint(equalTo: speedButton.topAnchor),
+            qualityButton.trailingAnchor.constraint(equalTo: speedButton.leadingAnchor, constant: -8),
             qualityButton.widthAnchor.constraint(equalToConstant: 40),
             qualityButton.heightAnchor.constraint(equalToConstant: 40)
         ])
@@ -887,18 +946,16 @@ class CustomMediaPlayerViewController: UIViewController {
                     ContinueWatchingManager.shared.save(item: item)
                 }
                 
+                
                 let remainingPercentage = (self.duration - self.currentTimeVal) / self.duration
                 
-                if remainingPercentage < 0.1 && self.module.metadata.type == "anime" && self.aniListID != 0 {
-                    let aniListMutation = AniListMutation()
-                    aniListMutation.updateAnimeProgress(animeId: self.aniListID, episodeNumber: self.episodeNumber) { result in
-                        switch result {
-                        case .success:
-                            Logger.shared.log("Successfully updated AniList progress for episode \(self.episodeNumber)", type: "General")
-                        case .failure(let error):
-                            Logger.shared.log("Failed to update AniList progress: \(error.localizedDescription)", type: "Error")
-                        }
-                    }
+                if remainingPercentage < 0.1 &&
+                    self.module.metadata.type == "anime" &&
+                    self.aniListID != 0 &&
+                   !self.aniListUpdatedSuccessfully &&
+                   !self.aniListUpdateImpossible
+                {
+                    self.tryAniListUpdate()
                 }
                 
                 self.sliderHostingController?.rootView = MusicProgressSlider(
@@ -932,46 +989,14 @@ class CustomMediaPlayerViewController: UIViewController {
             && self.showWatchNextButton
             && self.duration != 0
             
+
             if isNearEnd {
-                if !self.isWatchNextVisible {
-                    self.isWatchNextVisible = true
-                    self.watchNextButtonAppearedAt = self.currentTimeVal
-                    
-                    if self.isControlsVisible {
-                        NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
-                        NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
-                    } else {
-                        NSLayoutConstraint.deactivate(self.watchNextButtonControlsConstraints)
-                        NSLayoutConstraint.activate(self.watchNextButtonNormalConstraints)
-                    }
-                    self.watchNextButton.isHidden = false
-                    self.watchNextButton.alpha = 0.0
-                    UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
-                        self.watchNextButton.alpha = 0.8
-                    }, completion: nil)
-                }
-                
-                if let appearedAt = self.watchNextButtonAppearedAt,
-                   (self.currentTimeVal - appearedAt) >= 5,
-                   !self.isWatchNextRepositioned {
-                    UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
-                        self.watchNextButton.alpha = 0.0
-                    }, completion: { _ in
-                        self.watchNextButton.isHidden = true
-                        NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
-                        NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
-                        self.isWatchNextRepositioned = true
-                    })
+                if !isWatchNextVisible {
+                    watchNextButtonAppearedAt = currentTimeVal
+
                 }
             } else {
-                self.watchNextButtonAppearedAt = nil
-                self.isWatchNextVisible = false
-                self.isWatchNextRepositioned = false
-                UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
-                    self.watchNextButton.alpha = 0.0
-                }, completion: { _ in
-                    self.watchNextButton.isHidden = true
-                })
+
             }
         }
     }
@@ -1000,32 +1025,10 @@ class CustomMediaPlayerViewController: UIViewController {
     @objc func toggleControls() {
         isControlsVisible.toggle()
         UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
-            self.controlsContainerView.alpha = self.isControlsVisible ? 1 : 0
-            self.skip85Button.alpha = self.isControlsVisible ? 0.8 : 0
-            
-            if self.isControlsVisible {
-                NSLayoutConstraint.deactivate(self.watchNextButtonNormalConstraints)
-                NSLayoutConstraint.activate(self.watchNextButtonControlsConstraints)
-                if self.isWatchNextRepositioned || self.isWatchNextVisible {
-                    self.watchNextButton.isHidden = false
-                    UIView.animate(withDuration: 0.3, animations: {
-                        self.watchNextButton.alpha = 0.8
-                    })
-                }
-            } else {
-                if !self.isWatchNextRepositioned && self.isWatchNextVisible {
-                    NSLayoutConstraint.deactivate(self.watchNextButtonControlsConstraints)
-                    NSLayoutConstraint.activate(self.watchNextButtonNormalConstraints)
-                }
-                if self.isWatchNextRepositioned {
-                    UIView.animate(withDuration: 0.5, animations: {
-                        self.watchNextButton.alpha = 0.0
-                    }, completion: { _ in
-                        self.watchNextButton.isHidden = true
-                    })
-                }
-            }
-            self.view.layoutIfNeeded()
+            let alphaVal: CGFloat = self.isControlsVisible ? 1 : 0
+            self.controlsContainerView.alpha = alphaVal
+            self.skip85Button.alpha = alphaVal
+            self.watchNextButton.alpha = alphaVal
         })
     }
     
@@ -1144,6 +1147,42 @@ class CustomMediaPlayerViewController: UIViewController {
             }
         }
         return UIMenu(title: "Playback Speed", children: playbackSpeedActions)
+    }
+    
+    private func tryAniListUpdate() {
+        let aniListMutation = AniListMutation()
+        aniListMutation.updateAnimeProgress(animeId: self.aniListID, episodeNumber: self.episodeNumber) { [weak self] result in
+            guard let self = self else { return }
+            
+            switch result {
+            case .success:
+                self.aniListUpdatedSuccessfully = true
+                Logger.shared.log("Successfully updated AniList progress for episode \(self.episodeNumber)", type: "General")
+                
+            case .failure(let error):
+                let errorString = error.localizedDescription.lowercased()
+                Logger.shared.log("AniList progress update failed: \(errorString)", type: "Error")
+                
+                if errorString.contains("access token not found") {
+                    Logger.shared.log("AniList update will NOT retry due to missing token.", type: "Error")
+                    self.aniListUpdateImpossible = true
+                    
+                } else {
+                    if self.aniListRetryCount < self.aniListMaxRetries {
+                        self.aniListRetryCount += 1
+                        
+                        let delaySeconds = 5.0
+                        Logger.shared.log("AniList update will retry in \(delaySeconds)s (attempt \(self.aniListRetryCount)).", type: "Debug")
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + delaySeconds) {
+                            self.tryAniListUpdate()
+                        }
+                    } else {
+                        Logger.shared.log("AniList update reached max retries. No more attempts.", type: "Error")
+                    }
+                }
+            }
+        }
     }
     
     private func parseM3U8(url: URL, completion: @escaping () -> Void) {
