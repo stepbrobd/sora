@@ -138,6 +138,9 @@ class CustomMediaPlayerViewController: UIViewController {
     private var volumeValue: Double = 0.0
     private var volumeViewModel = VolumeViewModel()
     var volumeSliderHostingView: UIView?
+    
+    private let rotationDuration: Double = 0.3
+    private let hapticFeedback = UIImpactFeedbackGenerator(style: .medium)
 
     
     init(module: ScrapingModule,
@@ -244,11 +247,6 @@ class CustomMediaPlayerViewController: UIViewController {
             }
         }
         
-        
-        if #available(iOS 16.0, *) {
-            playerViewController.allowsVideoFrameAnalysis = false
-        }
-        
         player.play()
         
         if let url = subtitlesURL, !url.isEmpty {
@@ -305,10 +303,7 @@ class CustomMediaPlayerViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(playerItemDidChange),
-                                               name: .AVPlayerItemNewAccessLogEntry,
-                                               object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(playerItemDidChange), name: .AVPlayerItemNewAccessLogEntry, object: nil)
         
         skip85Button?.isHidden = !isSkip85Visible
     }
@@ -1142,6 +1137,17 @@ class CustomMediaPlayerViewController: UIViewController {
     }
     
     @objc func seekBackward() {
+        hapticFeedback.impactOccurred()
+        self.backwardButton.transform = .identity
+        
+        UIView.animate(withDuration: rotationDuration, delay: 0, options: [.curveLinear, .beginFromCurrentState]) {
+            self.backwardButton.transform = CGAffineTransform(rotationAngle: -.pi * 2)
+        } completion: { finished in
+            if finished {
+                self.backwardButton.transform = .identity
+            }
+        }
+        
         let skipValue = UserDefaults.standard.double(forKey: "skipIncrement")
         let finalSkip = skipValue > 0 ? skipValue : 10
         currentTimeVal = max(currentTimeVal - finalSkip, 0)
@@ -1152,6 +1158,17 @@ class CustomMediaPlayerViewController: UIViewController {
     }
     
     @objc func seekForward() {
+        hapticFeedback.impactOccurred()
+        self.forwardButton.transform = .identity
+        
+        UIView.animate(withDuration: rotationDuration, delay: 0, options: [.curveLinear, .beginFromCurrentState]) {
+            self.forwardButton.transform = CGAffineTransform(rotationAngle: .pi * 2)
+        } completion: { finished in
+            if finished {
+                self.forwardButton.transform = .identity
+            }
+        }
+        
         let skipValue = UserDefaults.standard.double(forKey: "skipIncrement")
         let finalSkip = skipValue > 0 ? skipValue : 10
         currentTimeVal = min(currentTimeVal + finalSkip, duration)
@@ -1160,7 +1177,6 @@ class CustomMediaPlayerViewController: UIViewController {
             self.updateBufferValue()
         }
     }
-    
     @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
         let tapLocation = gesture.location(in: view)
         if tapLocation.x < view.bounds.width / 2 {
@@ -1177,10 +1193,14 @@ class CustomMediaPlayerViewController: UIViewController {
     }
     
     @objc func togglePlayPause() {
+        hapticFeedback.impactOccurred()
+        
         if isPlaying {
             player.pause()
             isPlaying = false
-            playPauseButton.image = UIImage(systemName: "play.fill")
+            UIView.transition(with: playPauseButton, duration: 0.2, options: .transitionCrossDissolve) {
+                self.playPauseButton.image = UIImage(systemName: "play.fill")
+            }
             
             if !isControlsVisible {
                 isControlsVisible = true
@@ -1193,7 +1213,9 @@ class CustomMediaPlayerViewController: UIViewController {
         } else {
             player.play()
             isPlaying = true
-            playPauseButton.image = UIImage(systemName: "pause.fill")
+            UIView.transition(with: playPauseButton, duration: 0.2, options: .transitionCrossDissolve) {
+                self.playPauseButton.image = UIImage(systemName: "pause.fill")
+            }
         }
     }
     
