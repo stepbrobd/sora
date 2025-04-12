@@ -241,7 +241,7 @@ struct MediaInfoView: View {
                                                 episodeID: ep.number - 1,
                                                 progress: progress,
                                                 itemID: itemID ?? 0,
-                                                isAnime: module.metadata.type?.lowercased() == "anime",
+                                                useAnilist: UserDefaults.standard.string(forKey: "metadataProviders") == "AniList",
                                                 tmdbID: tmdbID,
                                                 onTap: { imageUrl in
                                                     if !isFetchingEpisode {
@@ -293,7 +293,7 @@ struct MediaInfoView: View {
                                             episodeID: ep.number - 1,
                                             progress: progress,
                                             itemID: itemID ?? 0,
-                                            isAnime: module.metadata.type?.lowercased() == "anime",
+                                            useAnilist: UserDefaults.standard.string(forKey: "metadataProviders") == "AniList",
                                             tmdbID: tmdbID,
                                             onTap: { imageUrl in
                                                 if !isFetchingEpisode {
@@ -376,7 +376,7 @@ struct MediaInfoView: View {
                 DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching.", duration: 0.5, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
                 fetchDetails()
                 
-                if module.metadata.type == "anime" {
+                if UserDefaults.standard.string(forKey: "metadataProviders") == "AniList" {
                     fetchItemID(byTitle: cleanTitle(title)) { result in
                         switch result {
                         case .success(let id):

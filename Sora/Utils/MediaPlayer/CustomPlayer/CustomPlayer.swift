@@ -1035,7 +1035,6 @@ class CustomMediaPlayerViewController: UIViewController {
                 let remainingPercentage = (self.duration - self.currentTimeVal) / self.duration
                 
                 if remainingPercentage < 0.1 &&
-                    self.module.metadata.type == "anime" &&
                     self.aniListID != 0 &&
                    !self.aniListUpdatedSuccessfully &&
                    !self.aniListUpdateImpossible
@@ -1077,8 +1076,8 @@ class CustomMediaPlayerViewController: UIViewController {
             
 
             if isNearEnd {
-                if !isWatchNextVisible {
-                    watchNextButtonAppearedAt = currentTimeVal
+                if !self.isWatchNextVisible {
+                    self.watchNextButtonAppearedAt = self.currentTimeVal
 
                 }
             } else {

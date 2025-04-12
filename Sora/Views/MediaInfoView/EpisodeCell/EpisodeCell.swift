@@ -20,7 +20,7 @@ struct EpisodeCell: View {
     let episodeID: Int
     let progress: Double
     let itemID: Int
-    let isAnime: Bool
+    let useAnilist: Bool
     let tmdbID: Int?
     
     let onTap: (String) -> Void
@@ -32,14 +32,14 @@ struct EpisodeCell: View {
     @State private var currentProgress: Double = 0.0
     
     init(episodeIndex: Int, episode: String, episodeID: Int, progress: Double, 
-         itemID: Int, isAnime: Bool = true, tmdbID: Int? = nil, 
+         itemID: Int, useAnilist: Bool = true, tmdbID: Int? = nil,
          onTap: @escaping (String) -> Void, onMarkAllPrevious: @escaping () -> Void) {
         self.episodeIndex = episodeIndex
         self.episode = episode
         self.episodeID = episodeID
         self.progress = progress
         self.itemID = itemID
-        self.isAnime = isAnime
+        self.useAnilist = useAnilist
         self.tmdbID = tmdbID
         self.onTap = onTap
         self.onMarkAllPrevious = onMarkAllPrevious
@@ -140,7 +140,7 @@ struct EpisodeCell: View {
     }
     
     private func fetchEpisodeDetails() {
-        if isAnime {
+        if useAnilist {
             fetchAnimeEpisodeDetails()
         } else {
             fetchTMDBEpisodeDetails()
