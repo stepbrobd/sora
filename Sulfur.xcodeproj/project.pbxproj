@@ -141,6 +141,7 @@
 		13103E802D589D6C000F0673 /* Tracking Services */ = {
 			isa = PBXGroup;
 			children = (
+				13E62FBF2DABC3A20007E259 /* Trakt */,
 				13103E812D589D77000F0673 /* AniList */,
 			);
 			path = "Tracking Services";
@@ -393,6 +394,21 @@
 				13EA2BD82D32D98400C1EBD7 /* NormalPlayer.swift */,
 			);
 			path = MediaPlayer;
+			sourceTree = "<group>";
+		};
+		13E62FBF2DABC3A20007E259 /* Trakt */ = {
+			isa = PBXGroup;
+			children = (
+				13E62FC02DABC3A90007E259 /* Auth */,
+			);
+			path = Trakt;
+			sourceTree = "<group>";
+		};
+		13E62FC02DABC3A90007E259 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Auth;
 			sourceTree = "<group>";
 		};
 		13EA2BD02D32D97400C1EBD7 /* CustomPlayer */ = {
