@@ -660,11 +660,34 @@ struct MediaInfoView: View {
         DispatchQueue.main.async {
             let alert = UIAlertController(title: "Select Server", message: "Choose a server to play from", preferredStyle: .actionSheet)
             
-            for (index, stream) in streams.enumerated() {
-                let quality = "Stream \(index + 1)"
-                alert.addAction(UIAlertAction(title: quality, style: .default) { _ in
-                    self.playStream(url: stream, fullURL: fullURL, subtitles: subtitles)
+            var index = 0
+            var streamIndex = 1
+            
+            while index < streams.count {
+                let title: String
+                let streamUrl: String
+                
+                if index + 1 < streams.count {
+                    if !streams[index].lowercased().contains("http") {
+                        title = streams[index]
+                        streamUrl = streams[index + 1]
+                        index += 2
+                    } else {
+                        title = "Stream \(streamIndex)"
+                        streamUrl = streams[index]
+                        index += 1
+                    }
+                } else {
+                    title = "Stream \(streamIndex)"
+                    streamUrl = streams[index]
+                    index += 1
+                }
+                
+                alert.addAction(UIAlertAction(title: title, style: .default) { _ in
+                    self.playStream(url: streamUrl, fullURL: fullURL, subtitles: subtitles)
                 })
+                
+                streamIndex += 1
             }
             
             alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))

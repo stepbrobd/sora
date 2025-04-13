@@ -138,7 +138,6 @@ class CustomMediaPlayerViewController: UIViewController {
     private var volumeValue: Double = 0.0
     private var volumeViewModel = VolumeViewModel()
     var volumeSliderHostingView: UIView?
-
     
     init(module: ScrapingModule,
          urlString: String,
@@ -272,7 +271,6 @@ class CustomMediaPlayerViewController: UIViewController {
         hiddenVolumeView.heightAnchor.constraint(equalToConstant: 1).isActive = true
         hiddenVolumeView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         hiddenVolumeView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
-        
         
         if let slider = hiddenVolumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
             systemVolumeSlider = slider
@@ -769,13 +767,13 @@ class CustomMediaPlayerViewController: UIViewController {
         let hostingController = UIHostingController(rootView: container)
         hostingController.view.backgroundColor = UIColor.clear
         hostingController.view.translatesAutoresizingMaskIntoConstraints = false
-
+        
         controlsContainerView.addSubview(hostingController.view)
         addChild(hostingController)
         hostingController.didMove(toParent: self)
         
         self.volumeSliderHostingView = hostingController.view
-
+        
         NSLayoutConstraint.activate([
             hostingController.view.centerYAnchor.constraint(equalTo: dismissButton.centerYAnchor),
             hostingController.view.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -16),
@@ -783,11 +781,11 @@ class CustomMediaPlayerViewController: UIViewController {
             hostingController.view.heightAnchor.constraint(equalToConstant: 30)
         ])
     }
-
+    
     
     func updateMarqueeConstraints() {
         NSLayoutConstraint.deactivate(currentMarqueeConstraints)
-
+        
         let leftSpacing: CGFloat = 2
         let rightSpacing: CGFloat = 6
         
@@ -797,7 +795,7 @@ class CustomMediaPlayerViewController: UIViewController {
         } else {
             trailingAnchor = view.safeAreaLayoutGuide.trailingAnchor
         }
-
+        
         currentMarqueeConstraints = [
             marqueeLabel.leadingAnchor.constraint(equalTo: dismissButton.trailingAnchor, constant: leftSpacing),
             marqueeLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -rightSpacing - 10),
@@ -1036,8 +1034,8 @@ class CustomMediaPlayerViewController: UIViewController {
                 
                 if remainingPercentage < 0.1 &&
                     self.aniListID != 0 &&
-                   !self.aniListUpdatedSuccessfully &&
-                   !self.aniListUpdateImpossible
+                    !self.aniListUpdatedSuccessfully &&
+                    !self.aniListUpdateImpossible
                 {
                     self.tryAniListUpdate()
                 }
@@ -1074,14 +1072,14 @@ class CustomMediaPlayerViewController: UIViewController {
             && self.showWatchNextButton
             && self.duration != 0
             
-
+            
             if isNearEnd {
                 if !self.isWatchNextVisible {
                     self.watchNextButtonAppearedAt = self.currentTimeVal
-
+                    
                 }
             } else {
-
+                
             }
         }
     }
@@ -1281,13 +1279,13 @@ class CustomMediaPlayerViewController: UIViewController {
             guard let self = self,
                   let data = data,
                   let content = String(data: data, encoding: .utf8) else {
-                Logger.shared.log("Failed to load m3u8 file")
-                DispatchQueue.main.async {
-                    self?.qualities = []
-                    completion()
-                }
-                return
-            }
+                      Logger.shared.log("Failed to load m3u8 file")
+                      DispatchQueue.main.async {
+                          self?.qualities = []
+                          completion()
+                      }
+                      return
+                  }
             
             let lines = content.components(separatedBy: .newlines)
             var qualities: [(String, String)] = []
@@ -1731,7 +1729,7 @@ class CustomMediaPlayerViewController: UIViewController {
     struct VolumeSliderContainer: View {
         @ObservedObject var volumeVM: VolumeViewModel
         var updateSystemSlider: ((Double) -> Void)? = nil // Optional callback if needed
-
+        
         var body: some View {
             VolumeSlider(
                 value: Binding(
