@@ -190,7 +190,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         view.backgroundColor = .black
         
         setupHoldGesture()
-        setInitialPlayerRate()
         loadSubtitleSettings()
         setupPlayerViewController()
         setupControls()
@@ -226,7 +225,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         
         volumeViewModel.value = Double(audioSession.outputVolume)
         
-        
         volumeObserver = audioSession.observe(\.outputVolume, options: [.new]) { [weak self] session, change in
             guard let newVol = change.newValue else { return }
             DispatchQueue.main.async {
@@ -239,8 +237,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         if #available(iOS 16.0, *) {
             playerViewController.allowsVideoFrameAnalysis = false
         }
-        
-        player.play()
         
         if let url = subtitlesURL, !url.isEmpty {
             subtitlesLoader.load(from: url)
@@ -293,36 +289,36 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         }
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        player?.play()
+        setInitialPlayerRate()
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(playerItemDidChange),
-                                               name: .AVPlayerItemNewAccessLogEntry,
-                                               object: nil)
-        
+        NotificationCenter.default.addObserver(self, selector: #selector(playerItemDidChange), name: .AVPlayerItemNewAccessLogEntry, object: nil)
         skip85Button?.isHidden = !isSkip85Visible
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        
-        loadedTimeRangesObservation?.invalidate()
-        loadedTimeRangesObservation = nil
+        if let playbackSpeed = player?.rate {
+            UserDefaults.standard.set(playbackSpeed, forKey: "lastPlaybackSpeed")
+        }
         
         if let token = timeObserverToken {
             player.removeTimeObserver(token)
             timeObserverToken = nil
         }
         
+        loadedTimeRangesObservation?.invalidate()
+        loadedTimeRangesObservation = nil
+        
         updateTimer?.invalidate()
         inactivityTimer?.invalidate()
         
         player.pause()
-        
-        if let playbackSpeed = player?.rate {
-            UserDefaults.standard.set(playbackSpeed, forKey: "lastPlaybackSpeed")
-        }
-        
     }
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
@@ -1098,7 +1094,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             let finalSkip = holdValue > 0 ? holdValue : 30
             currentTimeVal = max(currentTimeVal - finalSkip, 0)
             player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600)) { [weak self] finished in
-                guard let self = self else { return }
+                guard self != nil else { return }
             }
         }
     }
@@ -1109,7 +1105,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             let finalSkip = holdValue > 0 ? holdValue : 30
             currentTimeVal = min(currentTimeVal + finalSkip, duration)
             player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600)) { [weak self] finished in
-                guard let self = self else { return }
+                guard self != nil else { return }
             }
         }
     }
@@ -1119,7 +1115,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         let finalSkip = skipValue > 0 ? skipValue : 10
         currentTimeVal = max(currentTimeVal - finalSkip, 0)
         player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600)) { [weak self] finished in
-            guard let self = self else { return }
+            guard self != nil else { return }
         }
     }
     
@@ -1128,7 +1124,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         let finalSkip = skipValue > 0 ? skipValue : 10
         currentTimeVal = min(currentTimeVal + finalSkip, duration)
         player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600)) { [weak self] finished in
-            guard let self = self else { return }        }
+            guard self != nil else { return }        }
     }
     
     @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
