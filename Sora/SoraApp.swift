@@ -15,6 +15,14 @@ struct SoraApp: App {
     
     init() {
         _ = iCloudSyncManager.shared
+        
+        TraktToken.checkAuthenticationStatus { isAuthenticated in
+            if isAuthenticated {
+                Logger.shared.log("Trakt authentication is valid")
+            } else {
+                Logger.shared.log("Trakt authentication required", type: "Warning")
+            }
+        }
     }
     
     var body: some Scene {
