@@ -325,7 +325,7 @@ struct SearchBar: View {
                 .onChange(of: text){newValue in
                                     debounceTimer?.invalidate()
                                     // Start a new timer to wait before performing the action
-                    debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: false) { _ in
+                    debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
                                         // Perform the action after the delay (debouncing)
                                         onSearchButtonClicked()
                                     }
