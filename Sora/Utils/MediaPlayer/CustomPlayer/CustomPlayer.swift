@@ -301,38 +301,24 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         skip85Button?.isHidden = !isSkip85Visible
     }
     
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
         if let playbackSpeed = player?.rate {
             UserDefaults.standard.set(playbackSpeed, forKey: "lastPlaybackSpeed")
         }
-        player?.pause()
-        if let timeObserverToken = timeObserverToken {
-            player?.removeTimeObserver(timeObserverToken)
-            self.timeObserverToken = nil
-        }
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        loadedTimeRangesObservation?.invalidate()
-        loadedTimeRangesObservation = nil
         
         if let token = timeObserverToken {
             player.removeTimeObserver(token)
             timeObserverToken = nil
         }
         
+        loadedTimeRangesObservation?.invalidate()
+        loadedTimeRangesObservation = nil
+        
         updateTimer?.invalidate()
         inactivityTimer?.invalidate()
         
         player.pause()
-        
-        if let playbackSpeed = player?.rate {
-            UserDefaults.standard.set(playbackSpeed, forKey: "lastPlaybackSpeed")
-        }
-        
     }
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
