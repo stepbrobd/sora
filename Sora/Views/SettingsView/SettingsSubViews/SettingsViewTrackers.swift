@@ -107,11 +107,6 @@ struct SettingsViewTrackers: View {
                     }
                 }
                 
-                if isTraktLoggedIn {
-                    Toggle("Sync watch progress", isOn: $isSendTraktUpdates)
-                        .tint(.accentColor)
-                }
-                
                 Button(isTraktLoggedIn ? "Log Out from Trakt" : "Log In with Trakt") {
                     if isTraktLoggedIn {
                         logoutTrakt()
