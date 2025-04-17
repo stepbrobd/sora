@@ -88,9 +88,8 @@ class AniListMutation {
             
             if let data = data {
                 do {
-                    let responseJSON = try JSONSerialization.jsonObject(with: data, options: [])
-                    print("Successfully updated anime progress")
-                    print(responseJSON)
+                    _ = try JSONSerialization.jsonObject(with: data, options: [])
+                    Logger.shared.log("Successfully updated anime progress", type: "Debug")
                     completion(.success(()))
                 } catch {
                     completion(.failure(error))

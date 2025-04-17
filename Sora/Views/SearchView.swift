@@ -311,6 +311,7 @@ struct SearchView: View {
 }
 
 struct SearchBar: View {
+    @State private var debounceTimer: Timer?
     @Binding var text: String
     var onSearchButtonClicked: () -> Void
     
@@ -321,6 +322,14 @@ struct SearchBar: View {
                 .padding(.horizontal, 25)
                 .background(Color(.systemGray6))
                 .cornerRadius(8)
+                .onChange(of: text){newValue in
+                                    debounceTimer?.invalidate()
+                                    // Start a new timer to wait before performing the action
+                    debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
+                                        // Perform the action after the delay (debouncing)
+                                        onSearchButtonClicked()
+                                    }
+                                }
                 .overlay(
                     HStack {
                         Image(systemName: "magnifyingglass")

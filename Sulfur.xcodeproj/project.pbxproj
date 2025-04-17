@@ -35,6 +35,8 @@
 		133F55BB2D33B55100E08EEA /* LibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133F55BA2D33B55100E08EEA /* LibraryManager.swift */; };
 		1359ED142D76F49900C13034 /* finTopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1359ED132D76F49900C13034 /* finTopView.swift */; };
 		135CCBE22D4D1138008B9C0E /* SettingsViewPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135CCBE12D4D1138008B9C0E /* SettingsViewPlayer.swift */; };
+		136BBE7E2DB102D600906B5E /* iCloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136BBE7D2DB102D600906B5E /* iCloudSyncManager.swift */; };
+		136BBE802DB1038000906B5E /* Notification+Name.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136BBE7F2DB1038000906B5E /* Notification+Name.swift */; };
 		138AA1B82D2D66FD0021F9DF /* EpisodeCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138AA1B62D2D66FD0021F9DF /* EpisodeCell.swift */; };
 		138AA1B92D2D66FD0021F9DF /* CircularProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138AA1B72D2D66FD0021F9DF /* CircularProgressBar.swift */; };
 		139935662D468C450065CEFF /* ModuleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 139935652D468C450065CEFF /* ModuleManager.swift */; };
@@ -56,10 +58,13 @@
 		13DB7CC32D7D99C0004371D3 /* SubtitleSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DB7CC22D7D99C0004371D3 /* SubtitleSettingsManager.swift */; };
 		13DB7CEC2D7DED5D004371D3 /* DownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DB7CEB2D7DED5D004371D3 /* DownloadManager.swift */; };
 		13DC0C462D302C7500D0F966 /* VideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DC0C452D302C7500D0F966 /* VideoPlayer.swift */; };
+		13E62FC22DABC5830007E259 /* Trakt-Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13E62FC12DABC5830007E259 /* Trakt-Login.swift */; };
+		13E62FC42DABC58C0007E259 /* Trakt-Token.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13E62FC32DABC58C0007E259 /* Trakt-Token.swift */; };
+		13E62FC72DABFE900007E259 /* TraktPushUpdates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13E62FC62DABFE900007E259 /* TraktPushUpdates.swift */; };
 		13EA2BD52D32D97400C1EBD7 /* CustomPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD12D32D97400C1EBD7 /* CustomPlayer.swift */; };
 		13EA2BD62D32D97400C1EBD7 /* Double+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD32D32D97400C1EBD7 /* Double+Extension.swift */; };
 		13EA2BD92D32D98400C1EBD7 /* NormalPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD82D32D98400C1EBD7 /* NormalPlayer.swift */; };
-		1E3F5EC82D9F16B7003F310F /* VerticalBrightnessSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3F5EC72D9F16B7003F310F /* VerticalBrightnessSlider.swift */; };
+		1E26E9E72DA9577900B9DC02 /* VolumeSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E26E9E62DA9577900B9DC02 /* VolumeSlider.swift */; };
 		1E9FF1D32D403E49008AC100 /* SettingsViewLoggerFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E9FF1D22D403E42008AC100 /* SettingsViewLoggerFilter.swift */; };
 		1EAC7A322D888BC50083984D /* MusicProgressSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EAC7A312D888BC50083984D /* MusicProgressSlider.swift */; };
 		73D164D52D8B5B470011A360 /* JavaScriptCore+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73D164D42D8B5B340011A360 /* JavaScriptCore+Extensions.swift */; };
@@ -93,6 +98,8 @@
 		133F55BA2D33B55100E08EEA /* LibraryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryManager.swift; sourceTree = "<group>"; };
 		1359ED132D76F49900C13034 /* finTopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = finTopView.swift; sourceTree = "<group>"; };
 		135CCBE12D4D1138008B9C0E /* SettingsViewPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewPlayer.swift; sourceTree = "<group>"; };
+		136BBE7D2DB102D600906B5E /* iCloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iCloudSyncManager.swift; sourceTree = "<group>"; };
+		136BBE7F2DB1038000906B5E /* Notification+Name.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Notification+Name.swift"; sourceTree = "<group>"; };
 		138AA1B62D2D66FD0021F9DF /* EpisodeCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpisodeCell.swift; sourceTree = "<group>"; };
 		138AA1B72D2D66FD0021F9DF /* CircularProgressBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CircularProgressBar.swift; sourceTree = "<group>"; };
 		139935652D468C450065CEFF /* ModuleManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModuleManager.swift; sourceTree = "<group>"; };
@@ -114,10 +121,13 @@
 		13DB7CEB2D7DED5D004371D3 /* DownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadManager.swift; sourceTree = "<group>"; };
 		13DC0C412D2EC9BA00D0F966 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		13DC0C452D302C7500D0F966 /* VideoPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayer.swift; sourceTree = "<group>"; };
+		13E62FC12DABC5830007E259 /* Trakt-Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Trakt-Login.swift"; sourceTree = "<group>"; };
+		13E62FC32DABC58C0007E259 /* Trakt-Token.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Trakt-Token.swift"; sourceTree = "<group>"; };
+		13E62FC62DABFE900007E259 /* TraktPushUpdates.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TraktPushUpdates.swift; sourceTree = "<group>"; };
 		13EA2BD12D32D97400C1EBD7 /* CustomPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomPlayer.swift; sourceTree = "<group>"; };
 		13EA2BD32D32D97400C1EBD7 /* Double+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Double+Extension.swift"; sourceTree = "<group>"; };
 		13EA2BD82D32D98400C1EBD7 /* NormalPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NormalPlayer.swift; sourceTree = "<group>"; };
-		1E3F5EC72D9F16B7003F310F /* VerticalBrightnessSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerticalBrightnessSlider.swift; sourceTree = "<group>"; };
+		1E26E9E62DA9577900B9DC02 /* VolumeSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeSlider.swift; sourceTree = "<group>"; };
 		1E9FF1D22D403E42008AC100 /* SettingsViewLoggerFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewLoggerFilter.swift; sourceTree = "<group>"; };
 		1EAC7A312D888BC50083984D /* MusicProgressSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicProgressSlider.swift; sourceTree = "<group>"; };
 		73D164D42D8B5B340011A360 /* JavaScriptCore+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JavaScriptCore+Extensions.swift"; sourceTree = "<group>"; };
@@ -141,6 +151,7 @@
 		13103E802D589D6C000F0673 /* Tracking Services */ = {
 			isa = PBXGroup;
 			children = (
+				13E62FBF2DABC3A20007E259 /* Trakt */,
 				13103E812D589D77000F0673 /* AniList */,
 			);
 			path = "Tracking Services";
@@ -250,6 +261,7 @@
 		133D7C852D2BE2640075467E /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				136BBE7C2DB102BE00906B5E /* iCloudSyncManager */,
 				13DB7CEA2D7DED50004371D3 /* DownloadManager */,
 				13C0E5E82D5F85DD00E7F619 /* ContinueWatching */,
 				13103E8C2D58E037000F0673 /* SkeletonCells */,
@@ -268,6 +280,7 @@
 			isa = PBXGroup;
 			children = (
 				73D164D42D8B5B340011A360 /* JavaScriptCore+Extensions.swift */,
+				136BBE7F2DB1038000906B5E /* Notification+Name.swift */,
 				1327FBA82D758DEA00FC6689 /* UIDevice+Model.swift */,
 				133D7C872D2BE2640075467E /* URLSession.swift */,
 				1359ED132D76F49900C13034 /* finTopView.swift */,
@@ -306,6 +319,14 @@
 				133D7C7E2D2BE2630075467E /* LibraryView.swift */,
 			);
 			path = LibraryView;
+			sourceTree = "<group>";
+		};
+		136BBE7C2DB102BE00906B5E /* iCloudSyncManager */ = {
+			isa = PBXGroup;
+			children = (
+				136BBE7D2DB102D600906B5E /* iCloudSyncManager.swift */,
+			);
+			path = iCloudSyncManager;
 			sourceTree = "<group>";
 		};
 		1384DCDF2D89BE870094797A /* Helpers */ = {
@@ -395,6 +416,32 @@
 			path = MediaPlayer;
 			sourceTree = "<group>";
 		};
+		13E62FBF2DABC3A20007E259 /* Trakt */ = {
+			isa = PBXGroup;
+			children = (
+				13E62FC52DABFE810007E259 /* Mutations */,
+				13E62FC02DABC3A90007E259 /* Auth */,
+			);
+			path = Trakt;
+			sourceTree = "<group>";
+		};
+		13E62FC02DABC3A90007E259 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				13E62FC12DABC5830007E259 /* Trakt-Login.swift */,
+				13E62FC32DABC58C0007E259 /* Trakt-Token.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		13E62FC52DABFE810007E259 /* Mutations */ = {
+			isa = PBXGroup;
+			children = (
+				13E62FC62DABFE900007E259 /* TraktPushUpdates.swift */,
+			);
+			path = Mutations;
+			sourceTree = "<group>";
+		};
 		13EA2BD02D32D97400C1EBD7 /* CustomPlayer */ = {
 			isa = PBXGroup;
 			children = (
@@ -408,7 +455,7 @@
 		13EA2BD22D32D97400C1EBD7 /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				1E3F5EC72D9F16B7003F310F /* VerticalBrightnessSlider.swift */,
+				1E26E9E62DA9577900B9DC02 /* VolumeSlider.swift */,
 				13EA2BD32D32D97400C1EBD7 /* Double+Extension.swift */,
 				1EAC7A312D888BC50083984D /* MusicProgressSlider.swift */,
 			);
@@ -506,6 +553,9 @@
 				133D7C902D2BE2640075467E /* SettingsView.swift in Sources */,
 				132AF1252D9995F900A0140B /* JSController-Search.swift in Sources */,
 				13CBEFDA2D5F7D1200D011EE /* String.swift in Sources */,
+				136BBE7E2DB102D600906B5E /* iCloudSyncManager.swift in Sources */,
+				1E26E9E72DA9577900B9DC02 /* VolumeSlider.swift in Sources */,
+				136BBE802DB1038000906B5E /* Notification+Name.swift in Sources */,
 				13DB46902D900A38008CBC03 /* URL.swift in Sources */,
 				130C6BFA2D53AB1F00DC1432 /* SettingsViewData.swift in Sources */,
 				1E9FF1D32D403E49008AC100 /* SettingsViewLoggerFilter.swift in Sources */,
@@ -532,12 +582,14 @@
 				133D7C942D2BE2640075467E /* JSController.swift in Sources */,
 				133D7C922D2BE2640075467E /* URLSession.swift in Sources */,
 				133D7C912D2BE2640075467E /* SettingsViewModule.swift in Sources */,
+				13E62FC22DABC5830007E259 /* Trakt-Login.swift in Sources */,
 				130217CC2D81C55E0011EFF5 /* DownloadView.swift in Sources */,
 				133F55BB2D33B55100E08EEA /* LibraryManager.swift in Sources */,
+				13E62FC42DABC58C0007E259 /* Trakt-Token.swift in Sources */,
 				133D7C8E2D2BE2640075467E /* LibraryView.swift in Sources */,
+				13E62FC72DABFE900007E259 /* TraktPushUpdates.swift in Sources */,
 				133D7C6E2D2BE2500075467E /* SoraApp.swift in Sources */,
 				138AA1B92D2D66FD0021F9DF /* CircularProgressBar.swift in Sources */,
-				1E3F5EC82D9F16B7003F310F /* VerticalBrightnessSlider.swift in Sources */,
 				13DB468D2D90093A008CBC03 /* Anilist-Login.swift in Sources */,
 				73D164D52D8B5B470011A360 /* JavaScriptCore+Extensions.swift in Sources */,
 				132AF1232D9995C300A0140B /* JSController-Details.swift in Sources */,

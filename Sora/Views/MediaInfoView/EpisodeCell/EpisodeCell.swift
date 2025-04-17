@@ -29,6 +29,17 @@ struct EpisodeCell: View {
     @State private var isLoading: Bool = true
     @State private var currentProgress: Double = 0.0
     
+    init(episodeIndex: Int, episode: String, episodeID: Int, progress: Double, 
+         itemID: Int, onTap: @escaping (String) -> Void, onMarkAllPrevious: @escaping () -> Void) {
+        self.episodeIndex = episodeIndex
+        self.episode = episode
+        self.episodeID = episodeID
+        self.progress = progress
+        self.itemID = itemID
+        self.onTap = onTap
+        self.onMarkAllPrevious = onMarkAllPrevious
+    }
+    
     var body: some View {
         HStack {
             ZStack {
@@ -124,6 +135,10 @@ struct EpisodeCell: View {
     }
     
     private func fetchEpisodeDetails() {
+        fetchAnimeEpisodeDetails()
+    }
+    
+    private func fetchAnimeEpisodeDetails() {
         guard let url = URL(string: "https://api.ani.zip/mappings?anilist_id=\(itemID)") else {
             isLoading = false
             return
@@ -131,7 +146,7 @@ struct EpisodeCell: View {
         
         URLSession.custom.dataTask(with: url) { data, _, error in
             if let error = error {
-                Logger.shared.log("Failed to fetch episode details: \(error)", type: "Error")
+                Logger.shared.log("Failed to fetch anime episode details: \(error)", type: "Error")
                 DispatchQueue.main.async {
                     self.isLoading = false
                 }
@@ -152,7 +167,7 @@ struct EpisodeCell: View {
                       let episodeDetails = episodes["\(episodeID + 1)"] as? [String: Any],
                       let title = episodeDetails["title"] as? [String: String],
                       let image = episodeDetails["image"] as? String else {
-                          Logger.shared.log("Invalid response format", type: "Error")
+                          Logger.shared.log("Invalid anime response format", type: "Error")
                           DispatchQueue.main.async {
                               self.isLoading = false
                           }

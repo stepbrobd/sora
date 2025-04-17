@@ -75,7 +75,7 @@ extension JSContext {
     }
     
     func setupFetchV2() {
-        let fetchV2NativeFunction: @convention(block) (String, [String: String]?, String?, String?, JSValue, JSValue) -> Void = { urlString, headers, method, body, resolve, reject in
+        let fetchV2NativeFunction: @convention(block) (String, [String: String]?, String?, String?, ObjCBool,JSValue, JSValue) -> Void = { urlString, headers, method, body, redirect, resolve, reject in
             guard let url = URL(string: urlString) else {
                 Logger.shared.log("Invalid URL", type: "Error")
                 reject.call(withArguments: ["Invalid URL"])
@@ -104,8 +104,8 @@ extension JSContext {
                     request.setValue(value, forHTTPHeaderField: key)
                 }
             }
-            
-            let task = URLSession.custom.downloadTask(with: request) { tempFileURL, response, error in
+            Logger.shared.log("Redirect value is \(redirect.boolValue)",type:"Error")
+            let task = URLSession.fetchData(allowRedirects: redirect.boolValue).downloadTask(with: request) { tempFileURL, response, error in
                 if let error = error {
                     Logger.shared.log("Network error in fetchV2NativeFunction: \(error.localizedDescription)", type: "Error")
                     reject.call(withArguments: [error.localizedDescription])
@@ -117,6 +117,12 @@ extension JSContext {
                     reject.call(withArguments: ["No data"])
                     return
                 }
+                // initialise return Object
+                var responseDict: [String: Any] = [
+                    "status": (response as? HTTPURLResponse)?.statusCode ?? 0,
+                    "headers": (response as? HTTPURLResponse)?.allHeaderFields ?? [:],
+                    "body": ""
+                ]
                 
                 do {
                     let data = try Data(contentsOf: tempFileURL)
@@ -126,12 +132,15 @@ extension JSContext {
                         reject.call(withArguments: ["Response exceeds maximum size"])
                         return
                     }
-                    
+              
                     if let text = String(data: data, encoding: .utf8) {
-                        resolve.call(withArguments: [text])
+                        
+                        responseDict["body"] = text
+                        resolve.call(withArguments: [responseDict])
                     } else {
+                        // rather than reject -> resolve with empty body as user can utilise reponse headers.
                         Logger.shared.log("Unable to decode data to text", type: "Error")
-                        reject.call(withArguments: ["Unable to decode data"])
+                        resolve.call(withArguments: [responseDict])
                     }
                     
                 } catch {
@@ -146,35 +155,22 @@ extension JSContext {
         self.setObject(fetchV2NativeFunction, forKeyedSubscript: "fetchV2Native" as NSString)
         
         let fetchv2Definition = """
-                    function fetchv2(url, headers = {}, method = "GET", body = null) {
-                        if (method === "GET") {
-                            return new Promise(function(resolve, reject) {
-                                fetchV2Native(url, headers, method, null, function(rawText) {  // Pass `null` explicitly
-                                    const responseObj = {
-                                        _data: rawText,
-                                        text: function() {
-                                            return Promise.resolve(this._data);
-                                        },
-                                        json: function() {
-                                            try {
-                                                return Promise.resolve(JSON.parse(this._data));
-                                            } catch (e) {
-                                                return Promise.reject("JSON parse error: " + e.message);
-                                            }
-                                        }
-                                    };
-                                    resolve(responseObj);
-                                }, reject);
-                            });
-                        }
-            
+                    function fetchv2(url, headers = {}, method = "GET", body = null, redirect = true ) {
+                    
+                    
+                    var processedBody = null;
+                    if(method != "GET")
+                    {
                         // Ensure body is properly serialized
-                        const processedBody = body ? JSON.stringify(body) : null;
+                        processedBody = body ? JSON.stringify(body) : null
+                    }
             
                         return new Promise(function(resolve, reject) {
-                            fetchV2Native(url, headers, method, processedBody, function(rawText) {
+                            fetchV2Native(url, headers, method, processedBody, redirect, function(rawText) {
                                 const responseObj = {
-                                    _data: rawText,
+                                    headers: rawText.headers,
+                                    status: rawText.status,
+                                    _data: rawText.body,
                                     text: function() {
                                         return Promise.resolve(this._data);
                                     },

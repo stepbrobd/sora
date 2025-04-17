@@ -27,6 +27,7 @@ struct MediaInfoView: View {
     @State var airdate: String = ""
     @State var episodeLinks: [EpisodeLink] = []
     @State var itemID: Int?
+    @State var tmdbID: Int?
     
     @State var isLoading: Bool = true
     @State var showFullSynopsis: Bool = false
@@ -49,6 +50,8 @@ struct MediaInfoView: View {
     @EnvironmentObject private var libraryManager: LibraryManager
     
     @State private var selectedRange: Range<Int> = 0..<100
+    @State private var showSettingsMenu = false
+    @State private var customAniListID: Int?
     
     private var isGroupedBySeasons: Bool {
         return groupedEpisodes().count > 1
@@ -125,6 +128,55 @@ struct MediaInfoView: View {
                                         }
                                         .padding(4)
                                         .background(Capsule().fill(Color.accentColor.opacity(0.4)))
+                                    }
+                                    
+                                    Menu {
+                                        Button(action: {
+                                            showCustomIDAlert()
+                                        }) {
+                                            Label("Set Custom AniList ID", systemImage: "number")
+                                        }
+                                        
+                                        if let customID = customAniListID {
+                                            Button(action: {
+                                                customAniListID = nil
+                                                itemID = nil
+                                                fetchItemID(byTitle: cleanTitle(title)) { result in
+                                                    switch result {
+                                                    case .success(let id):
+                                                        itemID = id
+                                                    case .failure(let error):
+                                                        Logger.shared.log("Failed to fetch AniList ID: \(error)")
+                                                    }
+                                                }
+                                            }) {
+                                                Label("Reset AniList ID", systemImage: "arrow.clockwise")
+                                            }
+                                        }
+                                        
+                                        if let id = itemID ?? customAniListID {
+                                            Button(action: {
+                                                if let url = URL(string: "https://anilist.co/anime/\(id)") {
+                                                    openSafariViewController(with: url.absoluteString)
+                                                }
+                                            }) {
+                                                Label("Open in AniList", systemImage: "link")
+                                            }
+                                        }
+                                        
+                                        Divider()
+                                        
+                                        Button(action: {
+                                            Logger.shared.log("Debug Info:\nTitle: \(title)\nHref: \(href)\nModule: \(module.metadata.sourceName)\nAniList ID: \(itemID ?? -1)\nCustom ID: \(customAniListID ?? -1)", type: "Debug")
+                                            DropManager.shared.showDrop(title: "Debug Info Logged", subtitle: "", duration: 1.0, icon: UIImage(systemName: "terminal"))
+                                        }) {
+                                            Label("Log Debug Info", systemImage: "terminal")
+                                        }
+                                    } label: {
+                                        Image(systemName: "ellipsis.circle")
+                                            .resizable()
+                                            .frame(width: 20, height: 20)
+                                            .foregroundColor(.primary)
                                     }
                                 }
                             }
@@ -368,17 +420,25 @@ struct MediaInfoView: View {
             buttonRefreshTrigger.toggle()
             
             if !hasFetched {
-                DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching.", duration: 1.0, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
+                DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching.", duration: 0.5, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
                 fetchDetails()
-                fetchItemID(byTitle: title) { result in
-                    switch result {
-                    case .success(let id):
-                        itemID = id
-                    case .failure(let error):
-                        Logger.shared.log("Failed to fetch Item ID: \(error)")
-                        AnalyticsManager.shared.sendEvent(event: "error", additionalData: ["error": error, "message": "Failed to fetch Item ID"])
+                
+                if let savedID = UserDefaults.standard.object(forKey: "custom_anilist_id_\(href)") as? Int {
+                    customAniListID = savedID
+                    itemID = savedID
+                    Logger.shared.log("Using custom AniList ID: \(savedID)", type: "Debug")
+                } else {
+                    fetchItemID(byTitle: cleanTitle(title)) { result in
+                        switch result {
+                        case .success(let id):
+                            itemID = id
+                        case .failure(let error):
+                            Logger.shared.log("Failed to fetch AniList ID: \(error)")
+                            AnalyticsManager.shared.sendEvent(event: "error", additionalData: ["error": error, "message": "Failed to fetch AniList ID"])
+                        }
                     }
                 }
+                
                 hasFetched = true
                 AnalyticsManager.shared.sendEvent(event: "search", additionalData: ["title": title])
             }
@@ -631,7 +691,7 @@ struct MediaInfoView: View {
             Logger.shared.log("Error loading module: \(error)", type: "Error")
             AnalyticsManager.shared.sendEvent(event: "error", additionalData: ["error": error, "message": "Failed to fetch stream"])
         }
-        DropManager.shared.showDrop(title: "Stream not Found", subtitle: "", duration: 1.0, icon: UIImage(systemName: "xmark"))
+        DropManager.shared.showDrop(title: "Stream not Found", subtitle: "", duration: 0.5, icon: UIImage(systemName: "xmark"))
         
         UINotificationFeedbackGenerator().notificationOccurred(.error)
         self.isLoading = false
@@ -641,11 +701,34 @@ struct MediaInfoView: View {
         DispatchQueue.main.async {
             let alert = UIAlertController(title: "Select Server", message: "Choose a server to play from", preferredStyle: .actionSheet)
             
-            for (index, stream) in streams.enumerated() {
-                let quality = "Stream \(index + 1)"
-                alert.addAction(UIAlertAction(title: quality, style: .default) { _ in
-                    self.playStream(url: stream, fullURL: fullURL, subtitles: subtitles)
+            var index = 0
+            var streamIndex = 1
+            
+            while index < streams.count {
+                let title: String
+                let streamUrl: String
+                
+                if index + 1 < streams.count {
+                    if !streams[index].lowercased().contains("http") {
+                        title = streams[index]
+                        streamUrl = streams[index + 1]
+                        index += 2
+                    } else {
+                        title = "Stream \(streamIndex)"
+                        streamUrl = streams[index]
+                        index += 1
+                    }
+                } else {
+                    title = "Stream \(streamIndex)"
+                    streamUrl = streams[index]
+                    index += 1
+                }
+                
+                alert.addAction(UIAlertAction(title: title, style: .default) { _ in
+                    self.playStream(url: streamUrl, fullURL: fullURL, subtitles: subtitles)
                 })
+                
+                streamIndex += 1
             }
             
             alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
@@ -772,6 +855,18 @@ struct MediaInfoView: View {
         }
     }
     
+    private func cleanTitle(_ title: String?) -> String {
+        guard let title = title else { return "Unknown" }
+        
+        let cleaned = title.replacingOccurrences(
+            of: "\\s*\\([^\\)]*\\)",
+            with: "",
+            options: .regularExpression
+        ).trimmingCharacters(in: .whitespaces)
+        
+        return cleaned.isEmpty ? "Unknown" : cleaned
+    }
+    
     private func fetchItemID(byTitle title: String, completion: @escaping (Result<Int, Error>) -> Void) {
         let query = """
         query {
@@ -818,5 +913,34 @@ struct MediaInfoView: View {
                 completion(.failure(error))
             }
         }.resume()
+    }
+    
+    private func showCustomIDAlert() {
+        let alert = UIAlertController(title: "Set Custom AniList ID", message: "Enter the AniList ID for this media", preferredStyle: .alert)
+        
+        alert.addTextField { textField in
+            textField.placeholder = "AniList ID"
+            textField.keyboardType = .numberPad
+            if let customID = customAniListID {
+                textField.text = "\(customID)"
+            }
+        }
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Save", style: .default) { _ in
+            if let text = alert.textFields?.first?.text,
+               let id = Int(text) {
+                customAniListID = id
+                itemID = id
+                UserDefaults.standard.set(id, forKey: "custom_anilist_id_\(href)")
+                Logger.shared.log("Set custom AniList ID: \(id)", type: "General")
+            }
+        })
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first,
+           let rootVC = window.rootViewController {
+            findTopViewController.findViewController(rootVC).present(alert, animated: true)
+        }
     }
 }
