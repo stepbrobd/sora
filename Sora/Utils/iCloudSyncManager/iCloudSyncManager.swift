@@ -26,7 +26,12 @@ class iCloudSyncManager {
         "sendPushUpdates",
         "sendTraktUpdates",
         "bookmarkedItems",
-        "continueWatchingItems"
+        "continueWatchingItems",
+        "analyticsEnabled",
+        "refreshModulesOnLaunch",
+        "fetchEpisodeMetadata",
+        "multiThreads",
+        "metadataProviders"
     ]
     
     private let modulesFileName = "modules.json"
@@ -41,7 +46,6 @@ class iCloudSyncManager {
         NotificationCenter.default.addObserver(self, selector: #selector(willEnterBackground), name: UIApplication.willResignActiveNotification, object: nil)
     }
     
-    
     private func setupSync() {
         NSUbiquitousKeyValueStore.default.synchronize()
         syncFromiCloud()
@@ -55,11 +59,32 @@ class iCloudSyncManager {
         syncModulesToiCloud()
     }
     
+    private func allProgressKeys() -> [String] {
+        let allKeys = UserDefaults.standard.dictionaryRepresentation().keys
+        let progressPrefixes = ["lastPlayedTime_", "totalTime_"]
+        return allKeys.filter { key in
+            progressPrefixes.contains { prefix in key.hasPrefix(prefix) }
+        }
+    }
+    
+    private func allKeysToSync() -> [String] {
+        var keys = Set(defaultsToSync + allProgressKeys())
+        let userDefaults = UserDefaults.standard
+        let all = userDefaults.dictionaryRepresentation()
+        for (key, value) in all {
+            if key.hasPrefix("Apple") || key.hasPrefix("_") { continue }
+            if value is Int || value is Double || value is Bool || value is String {
+                keys.insert(key)
+            }
+        }
+        return Array(keys)
+    }
+    
     private func syncFromiCloud() {
         let iCloud = NSUbiquitousKeyValueStore.default
         let defaults = UserDefaults.standard
         
-        for key in defaultsToSync {
+        for key in allKeysToSync() {
             if let value = iCloud.object(forKey: key) {
                 defaults.set(value, forKey: key)
             }
@@ -73,7 +98,7 @@ class iCloudSyncManager {
         let iCloud = NSUbiquitousKeyValueStore.default
         let defaults = UserDefaults.standard
         
-        for key in defaultsToSync {
+        for key in allKeysToSync() {
             if let value = defaults.object(forKey: key) {
                 iCloud.set(value, forKey: key)
             }
