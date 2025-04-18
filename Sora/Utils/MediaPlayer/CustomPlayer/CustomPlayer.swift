@@ -215,7 +215,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         do {
             try audioSession.setActive(true)
         } catch {
-            print("Error activating audio session: \(error)")
+            Logger.shared.log("Error activating audio session: \(error)", type: "Debug")
         }
         
         volumeViewModel.value = Double(audioSession.outputVolume)
