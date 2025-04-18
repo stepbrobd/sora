@@ -29,6 +29,24 @@ class ModuleManager: ObservableObject {
         let url = getModulesFilePath()
         guard let data = try? Data(contentsOf: url) else { return }
         modules = (try? JSONDecoder().decode([ScrapingModule].self, from: data)) ?? []
+        
+        Task {
+            for module in modules {
+                let localUrl = getDocumentsDirectory().appendingPathComponent(module.localPath)
+                if (!fileManager.fileExists(atPath: localUrl.path)) {
+                    do {
+                        let scriptUrl = URL(string: module.metadata.scriptUrl)
+                        guard let scriptUrl = scriptUrl else { continue }
+                        let (scriptData, _) = try await URLSession.custom.data(from: scriptUrl)
+                        guard let jsContent = String(data: scriptData, encoding: .utf8) else { continue }
+                        try jsContent.write(to: localUrl, atomically: true, encoding: .utf8)
+                        Logger.shared.log("Recovered missing JS file for module: \(module.metadata.sourceName)")
+                    } catch {
+                        Logger.shared.log("Failed to recover JS file for module: \(module.metadata.sourceName) - \(error.localizedDescription)")
+                    }
+                }
+            }
+        }
     }
     
     private func saveModules() {
