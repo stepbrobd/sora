@@ -92,6 +92,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     var backwardButton: UIImageView!
     var forwardButton: UIImageView!
     var subtitleLabel: UILabel!
+    var topSubtitleLabel: UILabel!
     var dismissButton: UIButton!
     var menuButton: UIButton!
     var watchNextButton: UIButton!
@@ -652,6 +653,21 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             subtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 36),
             subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -36)
         ])
+        
+        topSubtitleLabel = UILabel()
+        topSubtitleLabel.textAlignment = .center
+        topSubtitleLabel.numberOfLines = 0
+        topSubtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
+        topSubtitleLabel.isHidden = true
+        view.addSubview(topSubtitleLabel)
+        topSubtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            topSubtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            topSubtitleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 30),
+            topSubtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 36),
+            topSubtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -36)
+        ])
     }
     
     func updateSubtitleLabelConstraints() {
@@ -949,6 +965,16 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         subtitleLabel.layer.shadowRadius = CGFloat(subtitleShadowRadius)
         subtitleLabel.layer.shadowOpacity = 1.0
         subtitleLabel.layer.shadowOffset = CGSize.zero
+        
+        topSubtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
+        topSubtitleLabel.textColor = subtitleUIColor()
+        topSubtitleLabel.backgroundColor = subtitleBackgroundEnabled ? UIColor.black.withAlphaComponent(0.6) : .clear
+        topSubtitleLabel.layer.cornerRadius = 5
+        topSubtitleLabel.clipsToBounds = true
+        topSubtitleLabel.layer.shadowColor = UIColor.black.cgColor
+        topSubtitleLabel.layer.shadowRadius = CGFloat(subtitleShadowRadius)
+        topSubtitleLabel.layer.shadowOpacity = 1.0
+        topSubtitleLabel.layer.shadowOffset = CGSize.zero
     }
     
     func subtitleUIColor() -> UIColor {
@@ -985,11 +1011,27 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             UserDefaults.standard.set(self.currentTimeVal, forKey: "lastPlayedTime_\(self.fullUrl)")
             UserDefaults.standard.set(self.duration, forKey: "totalTime_\(self.fullUrl)")
             
-            if self.subtitlesEnabled,
-               let currentCue = self.subtitlesLoader.cues.first(where: { self.currentTimeVal >= $0.startTime && self.currentTimeVal <= $0.endTime }) {
-                self.subtitleLabel.text = currentCue.text.strippedHTML
+            if self.subtitlesEnabled {
+                let cues = self.subtitlesLoader.cues.filter { self.currentTimeVal >= $0.startTime && self.currentTimeVal <= $0.endTime }
+                if cues.count > 0 {
+                    self.subtitleLabel.text = cues[0].text.strippedHTML
+                    self.subtitleLabel.isHidden = false
+                } else {
+                    self.subtitleLabel.text = ""
+                    self.subtitleLabel.isHidden = !self.subtitlesEnabled
+                }
+                if cues.count > 1 {
+                    self.topSubtitleLabel.text = cues[1].text.strippedHTML
+                    self.topSubtitleLabel.isHidden = false
+                } else {
+                    self.topSubtitleLabel.text = ""
+                    self.topSubtitleLabel.isHidden = true
+                }
             } else {
                 self.subtitleLabel.text = ""
+                self.subtitleLabel.isHidden = true
+                self.topSubtitleLabel.text = ""
+                self.topSubtitleLabel.isHidden = true
             }
             
             DispatchQueue.main.async {
