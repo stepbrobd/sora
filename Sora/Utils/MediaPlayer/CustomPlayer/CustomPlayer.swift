@@ -641,7 +641,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         subtitleLabel.textAlignment = .center
         subtitleLabel.numberOfLines = 0
         subtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
-        updateSubtitleLabelAppearance()
         view.addSubview(subtitleLabel)
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         
@@ -661,6 +660,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         topSubtitleLabel.isHidden = true
         view.addSubview(topSubtitleLabel)
         topSubtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        updateSubtitleLabelAppearance()
         
         NSLayoutConstraint.activate([
             topSubtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -956,25 +957,31 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     func updateSubtitleLabelAppearance() {
-        subtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
-        subtitleLabel.textColor = subtitleUIColor()
-        subtitleLabel.backgroundColor = subtitleBackgroundEnabled ? UIColor.black.withAlphaComponent(0.6) : .clear
-        subtitleLabel.layer.cornerRadius = 5
-        subtitleLabel.clipsToBounds = true
-        subtitleLabel.layer.shadowColor = UIColor.black.cgColor
-        subtitleLabel.layer.shadowRadius = CGFloat(subtitleShadowRadius)
-        subtitleLabel.layer.shadowOpacity = 1.0
-        subtitleLabel.layer.shadowOffset = CGSize.zero
-        
-        topSubtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
-        topSubtitleLabel.textColor = subtitleUIColor()
-        topSubtitleLabel.backgroundColor = subtitleBackgroundEnabled ? UIColor.black.withAlphaComponent(0.6) : .clear
-        topSubtitleLabel.layer.cornerRadius = 5
-        topSubtitleLabel.clipsToBounds = true
-        topSubtitleLabel.layer.shadowColor = UIColor.black.cgColor
-        topSubtitleLabel.layer.shadowRadius = CGFloat(subtitleShadowRadius)
-        topSubtitleLabel.layer.shadowOpacity = 1.0
-        topSubtitleLabel.layer.shadowOffset = CGSize.zero
+        // subtitleLabel always exists here:
+        subtitleLabel.font            = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
+        subtitleLabel.textColor       = subtitleUIColor()
+        subtitleLabel.backgroundColor = subtitleBackgroundEnabled
+            ? UIColor.black.withAlphaComponent(0.6)
+            : .clear
+        subtitleLabel.layer.cornerRadius   = 5
+        subtitleLabel.clipsToBounds        = true
+        subtitleLabel.layer.shadowColor    = UIColor.black.cgColor
+        subtitleLabel.layer.shadowRadius   = CGFloat(subtitleShadowRadius)
+        subtitleLabel.layer.shadowOpacity  = 1.0
+        subtitleLabel.layer.shadowOffset   = .zero
+
+        // only style it if it’s been created already
+        topSubtitleLabel?.font            = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
+        topSubtitleLabel?.textColor       = subtitleUIColor()
+        topSubtitleLabel?.backgroundColor = subtitleBackgroundEnabled
+            ? UIColor.black.withAlphaComponent(0.6)
+            : .clear
+        topSubtitleLabel?.layer.cornerRadius   = 5
+        topSubtitleLabel?.clipsToBounds        = true
+        topSubtitleLabel?.layer.shadowColor    = UIColor.black.cgColor
+        topSubtitleLabel?.layer.shadowRadius   = CGFloat(subtitleShadowRadius)
+        topSubtitleLabel?.layer.shadowOpacity  = 1.0
+        topSubtitleLabel?.layer.shadowOffset   = .zero
     }
     
     func subtitleUIColor() -> UIColor {
