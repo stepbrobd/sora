@@ -154,7 +154,7 @@ class iCloudSyncManager {
     
     func syncModulesFromiCloud() {
         guard let iCloudURL = self.ubiquityContainerURL else {
-            Logger.shared.log("iCloud container not available", type: "Warning")
+            Logger.shared.log("iCloud container not available", type: "Error")
             return
         }
         
