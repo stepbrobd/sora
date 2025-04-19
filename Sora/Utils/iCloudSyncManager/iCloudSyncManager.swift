@@ -164,6 +164,22 @@ class iCloudSyncManager {
         do {
             if !FileManager.default.fileExists(atPath: iCloudModulesURL.path) {
                 Logger.shared.log("No modules file found in iCloud", type: "Info")
+                
+                if FileManager.default.fileExists(atPath: localModulesURL.path) {
+                    Logger.shared.log("Copying local modules file to iCloud", type: "Info")
+                    try FileManager.default.copyItem(at: localModulesURL, to: iCloudModulesURL)
+                } else {
+                    Logger.shared.log("Creating new empty modules file in iCloud", type: "Info")
+                    let emptyModules: [ScrapingModule] = []
+                    let emptyData = try JSONEncoder().encode(emptyModules)
+                    try emptyData.write(to: iCloudModulesURL)
+                    
+                    try emptyData.write(to: localModulesURL)
+                    
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.post(name: .modulesSyncDidComplete, object: nil)
+                    }
+                }
                 return
             }
             
@@ -188,7 +204,7 @@ class iCloudSyncManager {
                 }
             }
         } catch {
-            Logger.shared.log("iCloud modules fetch error: \(error)", type: "Error")
+            Logger.shared.log("iCloud modules sync error: \(error)", type: "Error")
         }
     }
     
