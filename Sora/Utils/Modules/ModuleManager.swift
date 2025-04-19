@@ -15,6 +15,21 @@ class ModuleManager: ObservableObject {
     
     init() {
         loadModules()
+        NotificationCenter.default.addObserver(self, selector: #selector(handleModulesSyncCompleted), name: .modulesSyncDidComplete, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func handleModulesSyncCompleted() {
+        DispatchQueue.main.async {
+            self.loadModules()
+            Task {
+                await self.checkJSModuleFiles()
+            }
+            Logger.shared.log("Reloaded modules after iCloud sync")
+        }
     }
     
     private func getDocumentsDirectory() -> URL {
@@ -31,21 +46,44 @@ class ModuleManager: ObservableObject {
         modules = (try? JSONDecoder().decode([ScrapingModule].self, from: data)) ?? []
         
         Task {
-            for module in modules {
-                let localUrl = getDocumentsDirectory().appendingPathComponent(module.localPath)
-                if (!fileManager.fileExists(atPath: localUrl.path)) {
-                    do {
-                        let scriptUrl = URL(string: module.metadata.scriptUrl)
-                        guard let scriptUrl = scriptUrl else { continue }
-                        let (scriptData, _) = try await URLSession.custom.data(from: scriptUrl)
-                        guard let jsContent = String(data: scriptData, encoding: .utf8) else { continue }
-                        try jsContent.write(to: localUrl, atomically: true, encoding: .utf8)
-                        Logger.shared.log("Recovered missing JS file for module: \(module.metadata.sourceName)")
-                    } catch {
-                        Logger.shared.log("Failed to recover JS file for module: \(module.metadata.sourceName) - \(error.localizedDescription)")
+            await checkJSModuleFiles()
+        }
+    }
+    
+    func checkJSModuleFiles() async {
+        Logger.shared.log("Checking JS module files...", type: "Info")
+        var missingCount = 0
+        
+        for module in modules {
+            let localUrl = getDocumentsDirectory().appendingPathComponent(module.localPath)
+            if !fileManager.fileExists(atPath: localUrl.path) {
+                missingCount += 1
+                do {
+                    guard let scriptUrl = URL(string: module.metadata.scriptUrl) else {
+                        Logger.shared.log("Invalid script URL for module: \(module.metadata.sourceName)", type: "Error")
+                        continue
                     }
+                    
+                    Logger.shared.log("Downloading missing JS file for: \(module.metadata.sourceName)", type: "Info")
+                    
+                    let (scriptData, _) = try await URLSession.custom.data(from: scriptUrl)
+                    guard let jsContent = String(data: scriptData, encoding: .utf8) else {
+                        Logger.shared.log("Invalid script encoding for module: \(module.metadata.sourceName)", type: "Error")
+                        continue
+                    }
+                    
+                    try jsContent.write(to: localUrl, atomically: true, encoding: .utf8)
+                    Logger.shared.log("Successfully downloaded JS file for module: \(module.metadata.sourceName)")
+                } catch {
+                    Logger.shared.log("Failed to download JS file for module: \(module.metadata.sourceName) - \(error.localizedDescription)", type: "Error")
                 }
             }
+        }
+        
+        if missingCount > 0 {
+            Logger.shared.log("Downloaded \(missingCount) missing module JS files", type: "Info")
+        } else {
+            Logger.shared.log("All module JS files are present", type: "Info")
         }
     }
     

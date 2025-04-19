@@ -153,31 +153,58 @@ class iCloudSyncManager {
     }
     
     func syncModulesFromiCloud() {
-        DispatchQueue.global(qos: .background).async {
-            guard let iCloudURL = self.ubiquityContainerURL else { return }
-            let localModulesURL = self.getLocalModulesFileURL()
-            let iCloudModulesURL = iCloudURL.appendingPathComponent(self.modulesFileName)
-            do {
-                guard FileManager.default.fileExists(atPath: iCloudModulesURL.path) else { return }
+        guard let iCloudURL = self.ubiquityContainerURL else {
+            Logger.shared.log("iCloud container not available", type: "Error")
+            return
+        }
+        
+        let localModulesURL = self.getLocalModulesFileURL()
+        let iCloudModulesURL = iCloudURL.appendingPathComponent(self.modulesFileName)
+        
+        do {
+            if !FileManager.default.fileExists(atPath: iCloudModulesURL.path) {
+                Logger.shared.log("No modules file found in iCloud", type: "Info")
                 
-                let shouldCopy: Bool
                 if FileManager.default.fileExists(atPath: localModulesURL.path) {
-                    let localData = try Data(contentsOf: localModulesURL)
-                    let iCloudData = try Data(contentsOf: iCloudModulesURL)
-                    shouldCopy = localData != iCloudData
+                    Logger.shared.log("Copying local modules file to iCloud", type: "Info")
+                    try FileManager.default.copyItem(at: localModulesURL, to: iCloudModulesURL)
                 } else {
-                    shouldCopy = true
-                }
-                
-                if shouldCopy {
-                    if FileManager.default.fileExists(atPath: localModulesURL.path) {
-                        try FileManager.default.removeItem(at: localModulesURL)
+                    Logger.shared.log("Creating new empty modules file in iCloud", type: "Info")
+                    let emptyModules: [ScrapingModule] = []
+                    let emptyData = try JSONEncoder().encode(emptyModules)
+                    try emptyData.write(to: iCloudModulesURL)
+                    
+                    try emptyData.write(to: localModulesURL)
+                    
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.post(name: .modulesSyncDidComplete, object: nil)
                     }
-                    try FileManager.default.copyItem(at: iCloudModulesURL, to: localModulesURL)
                 }
-            } catch {
-                Logger.shared.log("iCloud modules fetch error: \(error)", type: "Error")
+                return
             }
+            
+            let shouldCopy: Bool
+            if FileManager.default.fileExists(atPath: localModulesURL.path) {
+                let localData = try Data(contentsOf: localModulesURL)
+                let iCloudData = try Data(contentsOf: iCloudModulesURL)
+                shouldCopy = localData != iCloudData
+            } else {
+                shouldCopy = true
+            }
+            
+            if shouldCopy {
+                Logger.shared.log("Syncing modules from iCloud", type: "Info")
+                if FileManager.default.fileExists(atPath: localModulesURL.path) {
+                    try FileManager.default.removeItem(at: localModulesURL)
+                }
+                try FileManager.default.copyItem(at: iCloudModulesURL, to: localModulesURL)
+                
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: .modulesSyncDidComplete, object: nil)
+                }
+            }
+        } catch {
+            Logger.shared.log("iCloud modules sync error: \(error)", type: "Error")
         }
     }
     

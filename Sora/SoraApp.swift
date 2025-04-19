@@ -20,7 +20,7 @@ struct SoraApp: App {
             if isAuthenticated {
                 Logger.shared.log("Trakt authentication is valid")
             } else {
-                Logger.shared.log("Trakt authentication required", type: "Warning")
+                Logger.shared.log("Trakt authentication required", type: "Error")
             }
         }
     }
@@ -34,8 +34,9 @@ struct SoraApp: App {
                 .accentColor(settings.accentColor)
                 .onAppear {
                     settings.updateAppearance()
-                    if UserDefaults.standard.bool(forKey: "refreshModulesOnLaunch") {
-                        Task {
+                    iCloudSyncManager.shared.syncModulesFromiCloud()
+                    Task {
+                        if UserDefaults.standard.bool(forKey: "refreshModulesOnLaunch") {
                             await moduleManager.refreshModules()
                         }
                     }
