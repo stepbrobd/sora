@@ -26,7 +26,7 @@ class ModuleManager: ObservableObject {
         DispatchQueue.main.async {
             self.loadModules()
             Task {
-                await self.cehckJSModuleFIle()
+                await self.checkJSModuleFiles()
             }
             Logger.shared.log("Reloaded modules after iCloud sync")
         }
@@ -46,19 +46,25 @@ class ModuleManager: ObservableObject {
         modules = (try? JSONDecoder().decode([ScrapingModule].self, from: data)) ?? []
         
         Task {
-            await cehckJSModuleFIle()
+            await checkJSModuleFiles()
         }
     }
     
-    func cehckJSModuleFIle() async {
+    func checkJSModuleFiles() async {
+        Logger.shared.log("Checking JS module files...", type: "Info")
+        var missingCount = 0
+        
         for module in modules {
             let localUrl = getDocumentsDirectory().appendingPathComponent(module.localPath)
-            if (!fileManager.fileExists(atPath: localUrl.path)) {
+            if !fileManager.fileExists(atPath: localUrl.path) {
+                missingCount += 1
                 do {
                     guard let scriptUrl = URL(string: module.metadata.scriptUrl) else {
                         Logger.shared.log("Invalid script URL for module: \(module.metadata.sourceName)", type: "Error")
                         continue
                     }
+                    
+                    Logger.shared.log("Downloading missing JS file for: \(module.metadata.sourceName)", type: "Info")
                     
                     let (scriptData, _) = try await URLSession.custom.data(from: scriptUrl)
                     guard let jsContent = String(data: scriptData, encoding: .utf8) else {
@@ -67,11 +73,17 @@ class ModuleManager: ObservableObject {
                     }
                     
                     try jsContent.write(to: localUrl, atomically: true, encoding: .utf8)
-                    Logger.shared.log("Recovered missing JS file for module: \(module.metadata.sourceName)")
+                    Logger.shared.log("Successfully downloaded JS file for module: \(module.metadata.sourceName)")
                 } catch {
-                    Logger.shared.log("Failed to recover JS file for module: \(module.metadata.sourceName) - \(error.localizedDescription)", type: "Error")
+                    Logger.shared.log("Failed to download JS file for module: \(module.metadata.sourceName) - \(error.localizedDescription)", type: "Error")
                 }
             }
+        }
+        
+        if missingCount > 0 {
+            Logger.shared.log("Downloaded \(missingCount) missing module JS files", type: "Info")
+        } else {
+            Logger.shared.log("All module JS files are present", type: "Info")
         }
     }
     
