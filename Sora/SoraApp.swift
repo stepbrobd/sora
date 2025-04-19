@@ -34,8 +34,9 @@ struct SoraApp: App {
                 .accentColor(settings.accentColor)
                 .onAppear {
                     settings.updateAppearance()
-                    if UserDefaults.standard.bool(forKey: "refreshModulesOnLaunch") {
-                        Task {
+                    iCloudSyncManager.shared.syncModulesFromiCloud()
+                    Task {
+                        if UserDefaults.standard.bool(forKey: "refreshModulesOnLaunch") {
                             await moduleManager.refreshModules()
                         }
                     }
