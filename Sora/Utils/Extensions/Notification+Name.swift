@@ -11,4 +11,5 @@ extension Notification.Name {
     static let iCloudSyncDidComplete = Notification.Name("iCloudSyncDidComplete")
     static let ContinueWatchingDidUpdate = Notification.Name("ContinueWatchingDidUpdate")
     static let DownloadManagerStatusUpdate = Notification.Name("DownloadManagerStatusUpdate")
+    static let modulesSyncDidComplete = Notification.Name("modulesSyncDidComplete")
 }

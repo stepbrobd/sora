@@ -174,6 +174,10 @@ class iCloudSyncManager {
                         try FileManager.default.removeItem(at: localModulesURL)
                     }
                     try FileManager.default.copyItem(at: iCloudModulesURL, to: localModulesURL)
+                    
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.post(name: .modulesSyncDidComplete, object: nil)
+                    }
                 }
             } catch {
                 Logger.shared.log("iCloud modules fetch error: \(error)", type: "Error")
