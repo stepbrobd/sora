@@ -86,7 +86,11 @@ class iCloudSyncManager {
         
         for key in allKeysToSync() {
             if let value = iCloud.object(forKey: key) {
-                defaults.set(value, forKey: key)
+                if (value is String) || (value is Bool) || (value is Int) || (value is Float) || (value is Double) || (value is Data) || (value is Date) || (value is Array<Any>) || (value is Dictionary<String, Any>) {
+                    defaults.set(value, forKey: key)
+                } else {
+                    Logger.shared.log("Skipped syncing invalid value type for key: \(key)", type: "Error")
+                }
             }
         }
         
@@ -108,14 +112,21 @@ class iCloudSyncManager {
     }
     
     @objc private func iCloudDidChangeExternally(_ notification: Notification) {
-        guard let userInfo = notification.userInfo,
-              let reason = userInfo[NSUbiquitousKeyValueStoreChangeReasonKey] as? Int else {
-                  return
-              }
-        if reason == NSUbiquitousKeyValueStoreServerChange ||
-            reason == NSUbiquitousKeyValueStoreInitialSyncChange {
-            syncFromiCloud()
-            syncModulesFromiCloud()
+        do {
+            guard let userInfo = notification.userInfo,
+                  let reason = userInfo[NSUbiquitousKeyValueStoreChangeReasonKey] as? Int else {
+                return
+            }
+            
+            if reason == NSUbiquitousKeyValueStoreServerChange ||
+                reason == NSUbiquitousKeyValueStoreInitialSyncChange {
+                DispatchQueue.main.async { [weak self] in
+                    self?.syncFromiCloud()
+                    self?.syncModulesFromiCloud()
+                }
+            }
+        } catch {
+            Logger.shared.log("Error handling iCloud sync: \(error.localizedDescription)", type: "Error")
         }
     }
     
@@ -124,28 +135,23 @@ class iCloudSyncManager {
     }
     
     func syncModulesToiCloud() {
-        DispatchQueue.global(qos: .background).async {
-            guard let iCloudURL = self.ubiquityContainerURL else { return }
+        DispatchQueue.global(qos: .background).async { [weak self] in
+            guard let self = self, let iCloudURL = self.ubiquityContainerURL else { return }
+            
             let localModulesURL = self.getLocalModulesFileURL()
             let iCloudModulesURL = iCloudURL.appendingPathComponent(self.modulesFileName)
+            
             do {
                 guard FileManager.default.fileExists(atPath: localModulesURL.path) else { return }
                 
-                let shouldCopy: Bool
-                if FileManager.default.fileExists(atPath: iCloudModulesURL.path) {
-                    let localData = try Data(contentsOf: localModulesURL)
-                    let iCloudData = try Data(contentsOf: iCloudModulesURL)
-                    shouldCopy = localData != iCloudData
-                } else {
-                    shouldCopy = true
-                }
+                let localData = try Data(contentsOf: localModulesURL)
+                let _ = try JSONSerialization.jsonObject(with: localData, options: [])
                 
-                if shouldCopy {
-                    if FileManager.default.fileExists(atPath: iCloudModulesURL.path) {
-                        try FileManager.default.removeItem(at: iCloudModulesURL)
-                    }
-                    try FileManager.default.copyItem(at: localModulesURL, to: iCloudModulesURL)
+                if FileManager.default.fileExists(atPath: iCloudModulesURL.path) {
+                    try FileManager.default.removeItem(at: iCloudModulesURL)
                 }
+                try FileManager.default.copyItem(at: localModulesURL, to: iCloudModulesURL)
+                
             } catch {
                 Logger.shared.log("iCloud modules sync error: \(error)", type: "Error")
             }
