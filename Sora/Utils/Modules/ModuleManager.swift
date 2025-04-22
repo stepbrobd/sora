@@ -32,12 +32,25 @@ class ModuleManager: ObservableObject {
     }
     
     @objc private func handleModulesSyncCompleted() {
-        DispatchQueue.main.async {
-            self.loadModules()
-            Task {
-                await self.checkJSModuleFiles()
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            do {
+                let url = self.getModulesFilePath()
+                if FileManager.default.fileExists(atPath: url.path) {
+                    self.loadModules()
+                    Task {
+                        await self.checkJSModuleFiles()
+                    }
+                    Logger.shared.log("Reloaded modules after iCloud sync")
+                } else {
+                    Logger.shared.log("No modules file found after sync", type: "Error")
+                    self.modules = []
+                }
+            } catch {
+                Logger.shared.log("Error handling modules sync: \(error.localizedDescription)", type: "Error")
+                self.modules = []
             }
-            Logger.shared.log("Reloaded modules after iCloud sync")
         }
     }
     
@@ -52,15 +65,34 @@ class ModuleManager: ObservableObject {
     func loadModules() {
         let url = getModulesFilePath()
         
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            Logger.shared.log("Modules file does not exist, creating empty one", type: "Info")
+            do {
+                try "[]".write(to: url, atomically: true, encoding: .utf8)
+                modules = []
+            } catch {
+                Logger.shared.log("Failed to create modules file: \(error.localizedDescription)", type: "Error")
+                modules = []
+            }
+            return
+        }
+        
         do {
             let data = try Data(contentsOf: url)
-            modules = (try? JSONDecoder().decode([ScrapingModule].self, from: data)) ?? []
-            
-            Task {
-                await checkJSModuleFiles()
+            do {
+                let decodedModules = try JSONDecoder().decode([ScrapingModule].self, from: data)
+                modules = decodedModules
+                
+                Task {
+                    await checkJSModuleFiles()
+                }
+            } catch {
+                Logger.shared.log("Failed to decode modules: \(error.localizedDescription)", type: "Error")
+                try "[]".write(to: url, atomically: true, encoding: .utf8)
+                modules = []
             }
         } catch {
-            Logger.shared.log("Failed to load modules: \(error.localizedDescription)", type: "Error")
+            Logger.shared.log("Failed to load modules file: \(error.localizedDescription)", type: "Error")
             modules = []
         }
     }
