@@ -35,18 +35,22 @@ class ModuleManager: ObservableObject {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             
+            let url = self.getModulesFilePath()
+            guard FileManager.default.fileExists(atPath: url.path) else {
+                Logger.shared.log("No modules file found after sync", type: "Error")
+                self.modules = []
+                return
+            }
+            
             do {
-                let url = self.getModulesFilePath()
-                if FileManager.default.fileExists(atPath: url.path) {
-                    self.loadModules()
-                    Task {
-                        await self.checkJSModuleFiles()
-                    }
-                    Logger.shared.log("Reloaded modules after iCloud sync")
-                } else {
-                    Logger.shared.log("No modules file found after sync", type: "Error")
-                    self.modules = []
+                let data = try Data(contentsOf: url)
+                let decodedModules = try JSONDecoder().decode([ScrapingModule].self, from: data)
+                self.modules = decodedModules
+                
+                Task {
+                    await self.checkJSModuleFiles()
                 }
+                Logger.shared.log("Reloaded modules after iCloud sync")
             } catch {
                 Logger.shared.log("Error handling modules sync: \(error.localizedDescription)", type: "Error")
                 self.modules = []
@@ -135,9 +139,11 @@ class ModuleManager: ObservableObject {
     }
     
     private func saveModules() {
-        let url = getModulesFilePath()
-        guard let data = try? JSONEncoder().encode(modules) else { return }
-        try? data.write(to: url)
+        DispatchQueue.main.async {
+            let url = self.getModulesFilePath()
+            guard let data = try? JSONEncoder().encode(self.modules) else { return }
+            try? data.write(to: url)
+        }
     }
     
     func addModule(metadataUrl: String) async throws -> ScrapingModule {
