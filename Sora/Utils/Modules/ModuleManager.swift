@@ -14,6 +14,15 @@ class ModuleManager: ObservableObject {
     private let modulesFileName = "modules.json"
     
     init() {
+        let url = getModulesFilePath()
+        if (!FileManager.default.fileExists(atPath: url.path)) {
+            do {
+                try "[]".write(to: url, atomically: true, encoding: .utf8)
+                Logger.shared.log("Created empty modules file", type: "Info")
+            } catch {
+                Logger.shared.log("Failed to create modules file: \(error.localizedDescription)", type: "Error")
+            }
+        }
         loadModules()
         NotificationCenter.default.addObserver(self, selector: #selector(handleModulesSyncCompleted), name: .modulesSyncDidComplete, object: nil)
     }
@@ -42,11 +51,17 @@ class ModuleManager: ObservableObject {
     
     func loadModules() {
         let url = getModulesFilePath()
-        guard let data = try? Data(contentsOf: url) else { return }
-        modules = (try? JSONDecoder().decode([ScrapingModule].self, from: data)) ?? []
         
-        Task {
-            await checkJSModuleFiles()
+        do {
+            let data = try Data(contentsOf: url)
+            modules = (try? JSONDecoder().decode([ScrapingModule].self, from: data)) ?? []
+            
+            Task {
+                await checkJSModuleFiles()
+            }
+        } catch {
+            Logger.shared.log("Failed to load modules: \(error.localizedDescription)", type: "Error")
+            modules = []
         }
     }
     
