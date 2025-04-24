@@ -10,6 +10,7 @@ import UIKit
 class iCloudSyncManager {
     static let shared = iCloudSyncManager()
     
+    private let syncQueue = DispatchQueue(label: "me.cranci.sora.icloud-sync", qos: .utility)
     private let defaultsToSync: [String] = [
         "externalPlayer",
         "alwaysLandscape",
@@ -43,20 +44,92 @@ class iCloudSyncManager {
     private init() {
         setupSync()
         
-        NotificationCenter.default.addObserver(self, selector: #selector(willEnterBackground), name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, 
+            selector: #selector(willEnterBackground),
+            name: UIApplication.willResignActiveNotification, 
+            object: nil)
     }
     
     private func setupSync() {
-        NSUbiquitousKeyValueStore.default.synchronize()
-        syncFromiCloud()
-        syncModulesFromiCloud()
-        NotificationCenter.default.addObserver(self, selector: #selector(iCloudDidChangeExternally), name: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: NSUbiquitousKeyValueStore.default)
-        NotificationCenter.default.addObserver(self, selector: #selector(userDefaultsDidChange), name: UserDefaults.didChangeNotification, object: nil)
+        syncQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            NSUbiquitousKeyValueStore.default.synchronize()
+            self.syncFromiCloud()
+            self.syncModulesFromiCloud()
+            
+            DispatchQueue.main.async {
+                NotificationCenter.default.addObserver(self,
+                    selector: #selector(self.iCloudDidChangeExternally),
+                    name: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
+                    object: NSUbiquitousKeyValueStore.default)
+                
+                NotificationCenter.default.addObserver(self,
+                    selector: #selector(self.userDefaultsDidChange),
+                    name: UserDefaults.didChangeNotification,
+                    object: nil)
+            }
+        }
+    }
+
+    @objc private func userDefaultsDidChange(_ notification: Notification) {
+        syncQueue.async { [weak self] in
+            self?.syncToiCloud()
+        }
+    }
+
+    private func syncToiCloud() {
+        let iCloud = NSUbiquitousKeyValueStore.default
+        let defaults = UserDefaults.standard
+        
+        do {
+            for key in allKeysToSync() {
+                if let value = defaults.object(forKey: key) {
+                    if isValidValueType(value) {
+                        iCloud.set(value, forKey: key)
+                    }
+                }
+            }
+            
+            iCloud.synchronize()
+        } catch {
+            Logger.shared.log("Failed to sync to iCloud: \(error)", type: "Error")
+        }
+    }
+    
+    private func syncFromiCloud() {
+        let iCloud = NSUbiquitousKeyValueStore.default
+        let defaults = UserDefaults.standard
+        
+        for key in allKeysToSync() {
+            if let value = iCloud.object(forKey: key) {
+                if isValidValueType(value) {
+                    defaults.set(value, forKey: key)
+                }
+            }
+        }
+        
+        defaults.synchronize()
+        NotificationCenter.default.post(name: .iCloudSyncDidComplete, object: nil)
+    }
+    
+    private func isValidValueType(_ value: Any) -> Bool {
+        return value is String || 
+               value is Bool || 
+               value is Int || 
+               value is Float || 
+               value is Double || 
+               value is Data || 
+               value is Date || 
+               value is [Any] ||
+               value is [String: Any]
     }
     
     @objc private func willEnterBackground() {
-        syncToiCloud()
-        syncModulesToiCloud()
+        syncQueue.async { [weak self] in
+            self?.syncToiCloud()
+            self?.syncModulesToiCloud()
+        }
     }
     
     private func allProgressKeys() -> [String] {
@@ -78,60 +151,6 @@ class iCloudSyncManager {
             }
         }
         return Array(keys)
-    }
-    
-    private func syncFromiCloud() {
-        let iCloud = NSUbiquitousKeyValueStore.default
-        let defaults = UserDefaults.standard
-        
-        for key in allKeysToSync() {
-            if let value = iCloud.object(forKey: key) {
-                if (value is String) || (value is Bool) || (value is Int) || (value is Float) || (value is Double) || (value is Data) || (value is Date) || (value is Array<Any>) || (value is Dictionary<String, Any>) {
-                    defaults.set(value, forKey: key)
-                } else {
-                    Logger.shared.log("Skipped syncing invalid value type for key: \(key)", type: "Error")
-                }
-            }
-        }
-        
-        defaults.synchronize()
-        NotificationCenter.default.post(name: .iCloudSyncDidComplete, object: nil)
-    }
-    
-    private func syncToiCloud() {
-        let iCloud = NSUbiquitousKeyValueStore.default
-        let defaults = UserDefaults.standard
-        
-        for key in allKeysToSync() {
-            if let value = defaults.object(forKey: key) {
-                iCloud.set(value, forKey: key)
-            }
-        }
-        
-        iCloud.synchronize()
-    }
-    
-    @objc private func iCloudDidChangeExternally(_ notification: Notification) {
-        do {
-            guard let userInfo = notification.userInfo,
-                  let reason = userInfo[NSUbiquitousKeyValueStoreChangeReasonKey] as? Int else {
-                return
-            }
-            
-            if reason == NSUbiquitousKeyValueStoreServerChange ||
-                reason == NSUbiquitousKeyValueStoreInitialSyncChange {
-                DispatchQueue.main.async { [weak self] in
-                    self?.syncFromiCloud()
-                    self?.syncModulesFromiCloud()
-                }
-            }
-        } catch {
-            Logger.shared.log("Error handling iCloud sync: \(error.localizedDescription)", type: "Error")
-        }
-    }
-    
-    @objc private func userDefaultsDidChange(_ notification: Notification) {
-        syncToiCloud()
     }
     
     func syncModulesToiCloud() {
