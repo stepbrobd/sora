@@ -59,6 +59,8 @@ struct MediaInfoView: View {
     @State private var activeFetchID: UUID? = nil
     @Environment(\.dismiss) private var dismiss
     
+    @State private var orientationChanged: Bool = false
+    
     private var isGroupedBySeasons: Bool {
         return groupedEpisodes().count > 1
     }
@@ -451,6 +453,9 @@ struct MediaInfoView: View {
                 }
                 selectedRange = 0..<episodeChunkSize
             }
+            .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+                orientationChanged.toggle()
+            }
             
             if showStreamLoadingView {
                 VStack(spacing: 16) {
@@ -469,7 +474,6 @@ struct MediaInfoView: View {
                     .padding(.vertical, 8)
                     .padding(.horizontal, 24)
                     .background(
-                        // Hex #FF705E
                         Color(red: 1.0, green: 112/255.0, blue: 94/255.0)
                     )
                     .foregroundColor(.white)
