@@ -11,7 +11,6 @@ import AVKit
 import SwiftUI
 import AVFoundation
 import MediaPlayer
-// MARK: - CustomMediaPlayerViewController
 
 class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDelegate {
     let module: ScrapingModule
@@ -997,7 +996,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     func setupSkipButtons() {
-        // MARK: – Skip Intro Button
         skipIntroButton = UIButton(type: .system)
         let introConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
         let introImage = UIImage(systemName: "forward.frame", withConfiguration: introConfig)
@@ -1027,10 +1025,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         )
         NSLayoutConstraint.activate([ skipIntroLeading, skipIntroBottom ])
         skipIntroButton.addTarget(self, action: #selector(skipIntro), for: .touchUpInside)
-        skipIntroButton.addGestureRecognizer(UIPanGestureRecognizer(target: self,
-                                                                    action: #selector(handleIntroPan(_:))))
+        skipIntroButton.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(handleIntroPan(_:))))
         
-        // MARK: – Skip Outro Button
         skipOutroButton = UIButton(type: .system)
         let outroConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
         let outroImage = UIImage(systemName: "forward.frame", withConfiguration: outroConfig)
