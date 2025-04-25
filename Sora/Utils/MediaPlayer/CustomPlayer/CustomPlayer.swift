@@ -2271,6 +2271,18 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                 .shadow(color: Color.black.opacity(0.6), radius: 4, x: 0, y: 2)
         }
     }
+    
+    func subtitleUIColor() -> UIColor {
+        switch subtitleForegroundColor {
+        case "white": return .white
+        case "yellow": return .yellow
+        case "green": return .green
+        case "purple": return .purple
+        case "blue": return .blue
+        case "red": return .red
+        default: return .white
+        }
+    }
 }
 
 // yes? Like the plural of the famous american rapper ye? -IBHRAD
