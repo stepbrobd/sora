@@ -16,8 +16,10 @@ struct SettingsViewGeneral: View {
     @AppStorage("metadataProviders") private var metadataProviders: String = "AniList"
     @AppStorage("mediaColumnsPortrait") private var mediaColumnsPortrait: Int = 2
     @AppStorage("mediaColumnsLandscape") private var mediaColumnsLandscape: Int = 4
+    @AppStorage("episodeSortOrder") private var episodeSortOrder: String = "Ascending"
     
     private let metadataProvidersList = ["AniList"]
+    private let sortOrderOptions = ["Ascending", "Descending"]
     @EnvironmentObject var settings: Settings
     
     var body: some View {
@@ -50,6 +52,20 @@ struct SettingsViewGeneral: View {
                 }
                 Toggle("Fetch Episode metadata", isOn: $fetchEpisodeMetadata)
                     .tint(.accentColor)
+                
+                HStack {
+                    Text("Episode Sort Order")
+                    Spacer()
+                    Menu(episodeSortOrder) {
+                        Button(action: { episodeSortOrder = "Ascending" }) {
+                            Text("Ascending (1-100)")
+                        }
+                        Button(action: { episodeSortOrder = "Descending" }) {
+                            Text("Descending (100-1)")
+                        }
+                    }
+                }
+                
                 HStack {
                     Text("Metadata Provider")
                     Spacer()
