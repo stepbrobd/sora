@@ -74,7 +74,6 @@ struct EpisodeCell: View {
                         .foregroundColor(.secondary)
                 }
             }
-            .padding(.leading)
             
             Spacer()
             
