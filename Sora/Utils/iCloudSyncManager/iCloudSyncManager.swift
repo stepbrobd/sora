@@ -142,11 +142,24 @@ class iCloudSyncManager {
             for key in keysToSync {
                 autoreleasepool {
                     if let value = iCloud.object(forKey: key) {
-                        if !key.isEmpty && self.isValidValueType(value) {
-                            defaults.set(value, forKey: key)
-                            syncedKeys += 1
-                        } else {
-                            Logger.shared.log("Invalid value type for key: \(key)", type: "Warning")
+                        do {
+                            if !key.isEmpty && self.isValidValueType(value) {
+                                if JSONSerialization.isValidJSONObject(value) {
+                                    _ = try JSONSerialization.data(withJSONObject: value)
+                                    defaults.set(value, forKey: key)
+                                    syncedKeys += 1
+                                } else {
+                                    Logger.shared.log("Invalid JSON value for key: \(key)", type: "Warning")
+                                    defaults.removeObject(forKey: key)
+                                    failedKeys += 1
+                                }
+                            } else {
+                                Logger.shared.log("Invalid value type for key: \(key)", type: "Warning")
+                                defaults.removeObject(forKey: key)
+                                failedKeys += 1
+                            }
+                        } catch {
+                            Logger.shared.log("JSON serialization failed for key: \(key) - \(error.localizedDescription)", type: "Error")
                             defaults.removeObject(forKey: key)
                             failedKeys += 1
                         }
