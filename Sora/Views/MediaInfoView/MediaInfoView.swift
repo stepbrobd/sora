@@ -44,6 +44,7 @@ struct MediaInfoView: View {
     
     @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
     @AppStorage("episodeChunkSize") private var episodeChunkSize: Int = 100
+    @AppStorage("episodeSortOrder") private var episodeSortOrder: String = "Ascending"
     
     @StateObject private var jsController = JSController()
     @EnvironmentObject var moduleManager: ModuleManager
@@ -595,6 +596,13 @@ struct MediaInfoView: View {
         return groups
     }
     
+    private func sortEpisodes(_ episodes: [EpisodeLink]) -> [EpisodeLink] {
+        if episodeSortOrder == "Descending" {
+            return episodes.sorted(by: { $0.number > $1.number })
+        } else {
+            return episodes.sorted(by: { $0.number < $1.number })
+        }
+    }
     
     func fetchDetails() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -609,7 +617,7 @@ struct MediaInfoView: View {
                                 self.aliases = item.aliases
                                 self.airdate = item.airdate
                             }
-                            self.episodeLinks = episodes
+                            self.episodeLinks = self.sortEpisodes(episodes)
                             self.isLoading = false
                             self.isRefetching = false
                         }
@@ -620,7 +628,7 @@ struct MediaInfoView: View {
                                 self.aliases = item.aliases
                                 self.airdate = item.airdate
                             }
-                            self.episodeLinks = episodes
+                            self.episodeLinks = self.sortEpisodes(episodes)
                             self.isLoading = false
                             self.isRefetching = false
                         }

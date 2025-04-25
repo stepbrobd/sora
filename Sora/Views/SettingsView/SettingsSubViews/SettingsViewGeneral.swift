@@ -16,8 +16,10 @@ struct SettingsViewGeneral: View {
     @AppStorage("metadataProviders") private var metadataProviders: String = "AniList"
     @AppStorage("mediaColumnsPortrait") private var mediaColumnsPortrait: Int = 2
     @AppStorage("mediaColumnsLandscape") private var mediaColumnsLandscape: Int = 4
+    @AppStorage("episodeSortOrder") private var episodeSortOrder: String = "Ascending"
     
     private let metadataProvidersList = ["AniList"]
+    private let sortOrderOptions = ["Ascending", "Descending"]
     @EnvironmentObject var settings: Settings
     
     var body: some View {
@@ -36,6 +38,7 @@ struct SettingsViewGeneral: View {
             }
             
             Section(header: Text("Media View"), footer: Text("The episode range controls how many episodes appear on each page. Episodes are grouped into sets (like 1-25, 26-50, and so on), allowing you to navigate through them more easily.\n\nFor episode metadata it is refering to the episode thumbnail and title, since sometimes it can contain spoilers.")) {
+                
                 HStack {
                     Text("Episodes Range")
                     Spacer()
@@ -48,8 +51,23 @@ struct SettingsViewGeneral: View {
                         Text("\(episodeChunkSize)")
                     }
                 }
+                
+                HStack {
+                    Text("Episode Sort Order")
+                    Spacer()
+                    Menu(episodeSortOrder) {
+                        Button(action: { episodeSortOrder = "Ascending" }) {
+                            Text("Ascending (1-100)")
+                        }
+                        Button(action: { episodeSortOrder = "Descending" }) {
+                            Text("Descending (100-1)")
+                        }
+                    }
+                }
+                
                 Toggle("Fetch Episode metadata", isOn: $fetchEpisodeMetadata)
                     .tint(.accentColor)
+                
                 HStack {
                     Text("Metadata Provider")
                     Spacer()
