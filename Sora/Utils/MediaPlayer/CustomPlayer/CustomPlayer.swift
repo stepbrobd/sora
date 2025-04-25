@@ -995,74 +995,69 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     func setupSkipButtons() {
-        skipIntroButton = UIButton(type: .system)
         let introConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
         let introImage = UIImage(systemName: "forward.frame", withConfiguration: introConfig)
-        skipIntroButton.setImage(introImage, for: .normal)
+        skipIntroButton = UIButton(type: .system)
         skipIntroButton.setTitle(" Skip Intro", for: .normal)
-        skipIntroButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
-        skipIntroButton.backgroundColor = UIColor(red: 51/255, green: 51/255, blue: 51/255, alpha: 0.8)
+        skipIntroButton.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .bold)
+        skipIntroButton.setImage(introImage, for: .normal)
+        
+        skipIntroButton.backgroundColor = UIColor(red: 51/255.0, green: 51/255.0, blue: 51/255.0, alpha: 0.8)
         skipIntroButton.tintColor = .white
         skipIntroButton.setTitleColor(.white, for: .normal)
-        skipIntroButton.layer.cornerRadius = 15
+        skipIntroButton.layer.cornerRadius = 21
         skipIntroButton.alpha = skipButtonBaseAlpha
+        
         skipIntroButton.layer.shadowColor = UIColor.black.cgColor
         skipIntroButton.layer.shadowOffset = CGSize(width: 0, height: 2)
         skipIntroButton.layer.shadowOpacity = 0.6
         skipIntroButton.layer.shadowRadius = 4
         skipIntroButton.layer.masksToBounds = false
-        skipIntroButton.isUserInteractionEnabled = true
         
-        view.addSubview(skipIntroButton)
-        skipIntroButton.translatesAutoresizingMaskIntoConstraints = false
-        skipIntroLeading = skipIntroButton.leadingAnchor.constraint(
-            equalTo: sliderHostingController!.view.leadingAnchor
-        )
-        let skipIntroBottom = skipIntroButton.bottomAnchor.constraint(
-            equalTo: sliderHostingController!.view.topAnchor,
-            constant: -5
-        )
-        NSLayoutConstraint.activate([ skipIntroLeading, skipIntroBottom ])
         skipIntroButton.addTarget(self, action: #selector(skipIntro), for: .touchUpInside)
         skipIntroButton.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(handleIntroPan(_:))))
         
-        skipOutroButton = UIButton(type: .system)
+        view.addSubview(skipIntroButton)
+        skipIntroButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            skipIntroButton.trailingAnchor.constraint(equalTo: sliderHostingController!.view.trailingAnchor),
+            skipIntroButton.bottomAnchor.constraint(equalTo: sliderHostingController!.view.topAnchor, constant: -5),
+            skipIntroButton.heightAnchor.constraint(equalToConstant: 40),
+            skipIntroButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 104)
+        ])
+        
         let outroConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
         let outroImage = UIImage(systemName: "forward.frame", withConfiguration: outroConfig)
-        skipOutroButton.setImage(outroImage, for: .normal)
+        skipOutroButton = UIButton(type: .system)
         skipOutroButton.setTitle(" Skip Outro", for: .normal)
-        skipOutroButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
+        skipOutroButton.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .bold)
+        skipOutroButton.setImage(outroImage, for: .normal)
         
-        skipOutroButton.backgroundColor = skipIntroButton.backgroundColor
-        skipOutroButton.tintColor = skipIntroButton.tintColor
+        skipOutroButton.backgroundColor = UIColor(red: 51/255.0, green: 51/255.0, blue: 51/255.0, alpha: 0.8)
+        skipOutroButton.tintColor = .white
         skipOutroButton.setTitleColor(.white, for: .normal)
-        skipOutroButton.layer.cornerRadius = skipIntroButton.layer.cornerRadius
-        skipOutroButton.alpha = skipIntroButton.alpha
-        skipOutroButton.layer.shadowColor = skipIntroButton.layer.shadowColor
-        skipOutroButton.layer.shadowOffset = skipIntroButton.layer.shadowOffset
-        skipOutroButton.layer.shadowOpacity = skipIntroButton.layer.shadowOpacity
-        skipOutroButton.layer.shadowRadius = skipIntroButton.layer.shadowRadius
+        skipOutroButton.layer.cornerRadius = 21
+        skipOutroButton.alpha = skipButtonBaseAlpha
+        
+        skipOutroButton.layer.shadowColor = UIColor.black.cgColor
+        skipOutroButton.layer.shadowOffset = CGSize(width: 0, height: 2)
+        skipOutroButton.layer.shadowOpacity = 0.6
+        skipOutroButton.layer.shadowRadius = 4
         skipOutroButton.layer.masksToBounds = false
-        skipOutroButton.isUserInteractionEnabled = true
+        
+        skipOutroButton.addTarget(self, action: #selector(skipOutro), for: .touchUpInside)
+        skipOutroButton.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(handleOutroPan(_:))))
         
         view.addSubview(skipOutroButton)
         skipOutroButton.translatesAutoresizingMaskIntoConstraints = false
         
-        skipOutroLeading = skipOutroButton.leadingAnchor.constraint(
-            equalTo: sliderHostingController!.view.leadingAnchor
-        )
-        let skipOutroBottom = skipOutroButton.bottomAnchor.constraint(
-            equalTo: sliderHostingController!.view.topAnchor,
-            constant: -5
-        )
-        NSLayoutConstraint.activate([ skipOutroLeading, skipOutroBottom ])
-        
-        skipOutroButton.addTarget(self, action: #selector(skipOutro), for: .touchUpInside)
-        skipOutroButton.addGestureRecognizer(
-            UIPanGestureRecognizer(target: self, action: #selector(handleOutroPan(_:)))
-        )
-        
-        view.bringSubviewToFront(skipOutroButton)
+        NSLayoutConstraint.activate([
+            skipOutroButton.trailingAnchor.constraint(equalTo: sliderHostingController!.view.trailingAnchor),
+            skipOutroButton.bottomAnchor.constraint(equalTo: sliderHostingController!.view.topAnchor, constant: -5),
+            skipOutroButton.heightAnchor.constraint(equalToConstant: 40),
+            skipOutroButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 104)
+        ])
     }
     
     private func setupDimButton() {
