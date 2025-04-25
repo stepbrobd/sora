@@ -38,7 +38,6 @@ struct SettingsViewGeneral: View {
             }
             
             Section(header: Text("Media View"), footer: Text("The episode range controls how many episodes appear on each page. Episodes are grouped into sets (like 1-25, 26-50, and so on), allowing you to navigate through them more easily.\n\nFor episode metadata it is refering to the episode thumbnail and title, since sometimes it can contain spoilers.")) {
-                
                 HStack {
                     Text("Episodes Range")
                     Spacer()
@@ -51,6 +50,8 @@ struct SettingsViewGeneral: View {
                         Text("\(episodeChunkSize)")
                     }
                 }
+                Toggle("Fetch Episode metadata", isOn: $fetchEpisodeMetadata)
+                    .tint(.accentColor)
                 
                 HStack {
                     Text("Episode Sort Order")
@@ -64,9 +65,6 @@ struct SettingsViewGeneral: View {
                         }
                     }
                 }
-                
-                Toggle("Fetch Episode metadata", isOn: $fetchEpisodeMetadata)
-                    .tint(.accentColor)
                 
                 HStack {
                     Text("Metadata Provider")
