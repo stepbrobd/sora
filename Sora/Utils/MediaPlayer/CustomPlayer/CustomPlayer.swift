@@ -280,7 +280,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             }
         }
         
-        
         if #available(iOS 16.0, *) {
             playerViewController.allowsVideoFrameAnalysis = false
         }
