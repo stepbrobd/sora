@@ -385,14 +385,11 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             if self.qualityButton.isHidden && self.isHLSStream {
-                // 1) reveal the quality button
                 self.qualityButton.isHidden = false
                 self.qualityButton.menu = self.qualitySelectionMenu()
                 
-                // 2) update the trailing constraint for the menuButton
                 self.updateMenuButtonConstraints()
                 
-                // 3) animate the shift
                 UIView.animate(withDuration: 0.25, delay: 0, options: .curveEaseInOut) {
                     self.view.layoutIfNeeded()
                 }
@@ -533,33 +530,33 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             height: 33,
             onEditingChanged: { editing in
                 if editing {
-                  self.isSliderEditing = true
-
-                  self.wasPlayingBeforeSeek = (self.player.timeControlStatus == .playing)
-                  self.originalRate = self.player.rate
-
-                  self.player.pause()
+                    self.isSliderEditing = true
+                    
+                    self.wasPlayingBeforeSeek = (self.player.timeControlStatus == .playing)
+                    self.originalRate = self.player.rate
+                    
+                    self.player.pause()
                 } else {
-                  let target = CMTime(seconds: self.sliderViewModel.sliderValue,
-                                      preferredTimescale: 600)
-                  self.player.seek(
-                    to: target,
-                    toleranceBefore: .zero,
-                    toleranceAfter: .zero
-                  ) { [weak self] _ in
-                    guard let self = self else { return }
-
-                    let final = self.player.currentTime().seconds
-                    self.sliderViewModel.sliderValue = final
-                    self.currentTimeVal = final
-                    self.isSliderEditing = false
-
-                    if self.wasPlayingBeforeSeek {
-                      self.player.playImmediately(atRate: self.originalRate)
+                    let target = CMTime(seconds: self.sliderViewModel.sliderValue,
+                                        preferredTimescale: 600)
+                    self.player.seek(
+                        to: target,
+                        toleranceBefore: .zero,
+                        toleranceAfter: .zero
+                    ) { [weak self] _ in
+                        guard let self = self else { return }
+                        
+                        let final = self.player.currentTime().seconds
+                        self.sliderViewModel.sliderValue = final
+                        self.currentTimeVal = final
+                        self.isSliderEditing = false
+                        
+                        if self.wasPlayingBeforeSeek {
+                            self.player.playImmediately(atRate: self.originalRate)
+                        }
                     }
-                  }
                 }
-              },
+            },
             introSegments: sliderViewModel.introSegments,
             outroSegments: sliderViewModel.outroSegments,
             introColor: segmentsColor,
@@ -633,19 +630,17 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             }
         }
         
-        let panGesture = UIPanGestureRecognizer(target: self,
-                                                action: #selector(handlePanGesture(_:)))
-        // find the skip-swipe recognizers AFTER you’ve created them
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
         if let introSwipe = skipIntroButton.gestureRecognizers?.first(
-              where: { $0 is UISwipeGestureRecognizer && ($0 as! UISwipeGestureRecognizer).direction == .left }
-           ),
+            where: { $0 is UISwipeGestureRecognizer && ($0 as! UISwipeGestureRecognizer).direction == .left }
+        ),
            let outroSwipe = skipOutroButton.gestureRecognizers?.first(
-              where: { $0 is UISwipeGestureRecognizer && ($0 as! UISwipeGestureRecognizer).direction == .left }
+            where: { $0 is UISwipeGestureRecognizer && ($0 as! UISwipeGestureRecognizer).direction == .left }
            ) {
-          panGesture.require(toFail: introSwipe)
-          panGesture.require(toFail: outroSwipe)
+            panGesture.require(toFail: introSwipe)
+            panGesture.require(toFail: outroSwipe)
         }
-
+        
         view.addGestureRecognizer(panGesture)
     }
     
@@ -724,46 +719,50 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     func setupSubtitleLabel() {
         subtitleLabel = UILabel()
-        subtitleLabel.textAlignment = .center
-        subtitleLabel.numberOfLines = 0
-        subtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
-        view.addSubview(subtitleLabel)
-        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        subtitleBottomToSliderConstraint = subtitleLabel.bottomAnchor.constraint(
-            equalTo: sliderHostingController!.view.topAnchor,
-            constant: -20
-        )
-        
-        subtitleBottomToSafeAreaConstraint = subtitleLabel.bottomAnchor.constraint(
-            equalTo: view.safeAreaLayoutGuide.bottomAnchor,
-            constant: -subtitleBottomPadding
-        )
-        
-        NSLayoutConstraint.activate([
-            subtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            subtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 36),
-            subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -36)
-        ])
-        
-        subtitleBottomToSafeAreaConstraint?.isActive = true
+        subtitleLabel?.textAlignment = .center
+        subtitleLabel?.numberOfLines = 0
+        subtitleLabel?.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
+        if let subtitleLabel = subtitleLabel {
+            view.addSubview(subtitleLabel)
+            subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+            
+            subtitleBottomToSliderConstraint = subtitleLabel.bottomAnchor.constraint(
+                equalTo: sliderHostingController?.view.topAnchor ?? view.bottomAnchor,
+                constant: -20
+            )
+            
+            subtitleBottomToSafeAreaConstraint = subtitleLabel.bottomAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.bottomAnchor,
+                constant: -subtitleBottomPadding
+            )
+            
+            NSLayoutConstraint.activate([
+                subtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                subtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 36),
+                subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -36)
+            ])
+            
+            subtitleBottomToSafeAreaConstraint?.isActive = true
+        }
         
         topSubtitleLabel = UILabel()
-        topSubtitleLabel.textAlignment = .center
-        topSubtitleLabel.numberOfLines = 0
-        topSubtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
-        topSubtitleLabel.isHidden = true
-        view.addSubview(topSubtitleLabel)
-        topSubtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        topSubtitleLabel?.textAlignment = .center
+        topSubtitleLabel?.numberOfLines = 0
+        topSubtitleLabel?.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
+        topSubtitleLabel?.isHidden = true
+        if let topSubtitleLabel = topSubtitleLabel {
+            view.addSubview(topSubtitleLabel)
+            topSubtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+            
+            NSLayoutConstraint.activate([
+                topSubtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                topSubtitleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 30),
+                topSubtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 36),
+                topSubtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -36)
+            ])
+        }
         
         updateSubtitleLabelAppearance()
-        
-        NSLayoutConstraint.activate([
-            topSubtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            topSubtitleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 30),
-            topSubtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 36),
-            topSubtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -36)
-        ])
     }
     
     func updateSubtitleLabelConstraints() {
@@ -935,34 +934,34 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                 height: 33,
                 onEditingChanged: { editing in
                     if editing {
-                      self.isSliderEditing = true
-
-                      self.wasPlayingBeforeSeek = (self.player.timeControlStatus == .playing)
-                      self.originalRate = self.player.rate
-
-                      self.player.pause()
+                        self.isSliderEditing = true
+                        
+                        self.wasPlayingBeforeSeek = (self.player.timeControlStatus == .playing)
+                        self.originalRate = self.player.rate
+                        
+                        self.player.pause()
                     } else {
-
-                      let target = CMTime(seconds: self.sliderViewModel.sliderValue,
-                                          preferredTimescale: 600)
-                      self.player.seek(
-                        to: target,
-                        toleranceBefore: .zero,
-                        toleranceAfter: .zero
-                      ) { [weak self] _ in
-                        guard let self = self else { return }
                         
-                        let final = self.player.currentTime().seconds
-                        self.sliderViewModel.sliderValue = final
-                        self.currentTimeVal = final
-                        self.isSliderEditing = false
-                        
-                        if self.wasPlayingBeforeSeek {
-                          self.player.playImmediately(atRate: self.originalRate)
+                        let target = CMTime(seconds: self.sliderViewModel.sliderValue,
+                                            preferredTimescale: 600)
+                        self.player.seek(
+                            to: target,
+                            toleranceBefore: .zero,
+                            toleranceAfter: .zero
+                        ) { [weak self] _ in
+                            guard let self = self else { return }
+                            
+                            let final = self.player.currentTime().seconds
+                            self.sliderViewModel.sliderValue = final
+                            self.currentTimeVal = final
+                            self.isSliderEditing = false
+                            
+                            if self.wasPlayingBeforeSeek {
+                                self.player.playImmediately(atRate: self.originalRate)
+                            }
                         }
-                      }
                     }
-                  },
+                },
                 introSegments: self.sliderViewModel.introSegments,
                 outroSegments: self.sliderViewModel.outroSegments,
                 introColor: segmentsColor,
@@ -990,7 +989,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                 } else {
                     self.skipIntervals.ed = range
                 }
-                // Update segments only if duration is available
                 if self.duration > 0 {
                     self.updateSegments()
                 }
@@ -1018,21 +1016,21 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         skipIntroButton.layer.shadowRadius = 4
         skipIntroButton.layer.masksToBounds = false
         skipIntroButton.isUserInteractionEnabled = true
-
+        
         view.addSubview(skipIntroButton)
-            skipIntroButton.translatesAutoresizingMaskIntoConstraints = false
-            skipIntroLeading = skipIntroButton.leadingAnchor.constraint(
-              equalTo: sliderHostingController!.view.leadingAnchor
-            )
-            let skipIntroBottom = skipIntroButton.bottomAnchor.constraint(
-              equalTo: sliderHostingController!.view.topAnchor,
-              constant: -5
-            )
-            NSLayoutConstraint.activate([ skipIntroLeading, skipIntroBottom ])
-            skipIntroButton.addTarget(self, action: #selector(skipIntro), for: .touchUpInside)
-            skipIntroButton.addGestureRecognizer(UIPanGestureRecognizer(target: self,
-                                                                         action: #selector(handleIntroPan(_:))))
-
+        skipIntroButton.translatesAutoresizingMaskIntoConstraints = false
+        skipIntroLeading = skipIntroButton.leadingAnchor.constraint(
+            equalTo: sliderHostingController!.view.leadingAnchor
+        )
+        let skipIntroBottom = skipIntroButton.bottomAnchor.constraint(
+            equalTo: sliderHostingController!.view.topAnchor,
+            constant: -5
+        )
+        NSLayoutConstraint.activate([ skipIntroLeading, skipIntroBottom ])
+        skipIntroButton.addTarget(self, action: #selector(skipIntro), for: .touchUpInside)
+        skipIntroButton.addGestureRecognizer(UIPanGestureRecognizer(target: self,
+                                                                    action: #selector(handleIntroPan(_:))))
+        
         // MARK: – Skip Outro Button
         skipOutroButton = UIButton(type: .system)
         let outroConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
@@ -1053,10 +1051,10 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         skipOutroButton.layer.shadowRadius = skipIntroButton.layer.shadowRadius
         skipOutroButton.layer.masksToBounds = false
         skipOutroButton.isUserInteractionEnabled = true
-
+        
         view.addSubview(skipOutroButton)
         skipOutroButton.translatesAutoresizingMaskIntoConstraints = false
-
+        
         skipOutroLeading = skipOutroButton.leadingAnchor.constraint(
             equalTo: sliderHostingController!.view.leadingAnchor
         )
@@ -1065,13 +1063,12 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             constant: -5
         )
         NSLayoutConstraint.activate([ skipOutroLeading, skipOutroBottom ])
-
+        
         skipOutroButton.addTarget(self, action: #selector(skipOutro), for: .touchUpInside)
         skipOutroButton.addGestureRecognizer(
             UIPanGestureRecognizer(target: self, action: #selector(handleOutroPan(_:)))
         )
-
-        // ensure Outro sits above Intro so its pan-gesture catches first
+        
         view.bringSubviewToFront(skipOutroButton)
     }
     
@@ -1109,8 +1106,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             let leftSpacing: CGFloat = 2
             let rightSpacing: CGFloat = 6
             let trailingAnchor: NSLayoutXAxisAnchor = (volumeSliderHostingView?.isHidden == false)
-                            ? volumeSliderHostingView!.leadingAnchor
-                            : view.safeAreaLayoutGuide.trailingAnchor
+            ? volumeSliderHostingView!.leadingAnchor
+            : view.safeAreaLayoutGuide.trailingAnchor
             
             currentMarqueeConstraints = [
                 marqueeLabel.leadingAnchor.constraint(
@@ -1282,42 +1279,32 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     func updateSubtitleLabelAppearance() {
-        // subtitleLabel always exists here:
-        subtitleLabel.font            = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
-        subtitleLabel.textColor       = subtitleUIColor()
-        subtitleLabel.backgroundColor = subtitleBackgroundEnabled
-        ? UIColor.black.withAlphaComponent(0.6)
-        : .clear
-        subtitleLabel.layer.cornerRadius   = 5
-        subtitleLabel.clipsToBounds        = true
-        subtitleLabel.layer.shadowColor    = UIColor.black.cgColor
-        subtitleLabel.layer.shadowRadius   = CGFloat(subtitleShadowRadius)
-        subtitleLabel.layer.shadowOpacity  = 1.0
-        subtitleLabel.layer.shadowOffset   = .zero
+        if let subtitleLabel = subtitleLabel {
+            subtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
+            subtitleLabel.textColor = subtitleUIColor()
+            subtitleLabel.backgroundColor = subtitleBackgroundEnabled
+            ? UIColor.black.withAlphaComponent(0.6)
+            : .clear
+            subtitleLabel.layer.cornerRadius = 5
+            subtitleLabel.clipsToBounds = true
+            subtitleLabel.layer.shadowColor = UIColor.black.cgColor
+            subtitleLabel.layer.shadowRadius = CGFloat(subtitleShadowRadius)
+            subtitleLabel.layer.shadowOpacity = 1.0
+            subtitleLabel.layer.shadowOffset = .zero
+        }
         
-        // only style it if it’s been created already
-        topSubtitleLabel?.font            = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
-        topSubtitleLabel?.textColor       = subtitleUIColor()
-        topSubtitleLabel?.backgroundColor = subtitleBackgroundEnabled
-        ? UIColor.black.withAlphaComponent(0.6)
-        : .clear
-        topSubtitleLabel?.layer.cornerRadius   = 5
-        topSubtitleLabel?.clipsToBounds        = true
-        topSubtitleLabel?.layer.shadowColor    = UIColor.black.cgColor
-        topSubtitleLabel?.layer.shadowRadius   = CGFloat(subtitleShadowRadius)
-        topSubtitleLabel?.layer.shadowOpacity  = 1.0
-        topSubtitleLabel?.layer.shadowOffset   = .zero
-    }
-    
-    func subtitleUIColor() -> UIColor {
-        switch subtitleForegroundColor {
-        case "white": return .white
-        case "yellow": return .yellow
-        case "green": return .green
-        case "purple": return .purple
-        case "blue": return .blue
-        case "red": return .red
-        default: return .white
+        if let topSubtitleLabel = topSubtitleLabel {
+            topSubtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
+            topSubtitleLabel.textColor = subtitleUIColor()
+            topSubtitleLabel.backgroundColor = subtitleBackgroundEnabled
+            ? UIColor.black.withAlphaComponent(0.6)
+            : .clear
+            topSubtitleLabel.layer.cornerRadius = 5
+            topSubtitleLabel.clipsToBounds = true
+            topSubtitleLabel.layer.shadowColor = UIColor.black.cgColor
+            topSubtitleLabel.layer.shadowRadius = CGFloat(subtitleShadowRadius)
+            topSubtitleLabel.layer.shadowOpacity = 1.0
+            topSubtitleLabel.layer.shadowOffset = .zero
         }
     }
     
@@ -1341,7 +1328,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                 self.sliderViewModel.sliderValue = max(0, min(self.currentTimeVal, self.duration))
             }
             
-            updateSkipButtonsVisibility()
+            self.updateSkipButtonsVisibility()
             
             UserDefaults.standard.set(self.currentTimeVal, forKey: "lastPlayedTime_\(self.fullUrl)")
             UserDefaults.standard.set(self.duration, forKey: "totalTime_\(self.fullUrl)")
@@ -1418,42 +1405,36 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                     height: 33,
                     onEditingChanged: { editing in
                         if editing {
-                          // 1) start of scrub
-                          self.isSliderEditing = true
-                          
-                          // remember if we were playing, and at what rate
-                          self.wasPlayingBeforeSeek = (self.player.timeControlStatus == .playing)
-                          self.originalRate = self.player.rate
-                          
-                          // pause the player immediately
-                          self.player.pause()
+                            self.isSliderEditing = true
+                            
+                            self.wasPlayingBeforeSeek = (self.player.timeControlStatus == .playing)
+                            self.originalRate = self.player.rate
+                            
+                            self.player.pause()
                         } else {
-                          // 2) end of scrub — seek exactly to the new spot
-                          let target = CMTime(seconds: self.sliderViewModel.sliderValue,
-                                              preferredTimescale: 600)
-                          self.player.seek(
-                            to: target,
-                            toleranceBefore: .zero,
-                            toleranceAfter: .zero
-                          ) { [weak self] _ in
-                            guard let self = self else { return }
-                            
-                            // update our UI‑model
-                            let final = self.player.currentTime().seconds
-                            self.sliderViewModel.sliderValue = final
-                            self.currentTimeVal = final
-                            self.isSliderEditing = false
-                            
-                            // 3) resume at exactly the same rate
-                            if self.wasPlayingBeforeSeek {
-                              self.player.playImmediately(atRate: self.originalRate)
+                            let target = CMTime(seconds: self.sliderViewModel.sliderValue,
+                                                preferredTimescale: 600)
+                            self.player.seek(
+                                to: target,
+                                toleranceBefore: .zero,
+                                toleranceAfter: .zero
+                            ) { [weak self] _ in
+                                guard let self = self else { return }
+                                
+                                let final = self.player.currentTime().seconds
+                                self.sliderViewModel.sliderValue = final
+                                self.currentTimeVal = final
+                                self.isSliderEditing = false
+                                
+                                if self.wasPlayingBeforeSeek {
+                                    self.player.playImmediately(atRate: self.originalRate)
+                                }
                             }
-                          }
                         }
-                      },
+                    },
                     introSegments: self.sliderViewModel.introSegments,
                     outroSegments: self.sliderViewModel.outroSegments,
-                    introColor: segmentsColor,  // Match your color choices
+                    introColor: segmentsColor,
                     outroColor: segmentsColor
                 )
             }
@@ -1498,7 +1479,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         default: break
         }
     }
-
+    
     @objc private func handleOutroPan(_ g: UIPanGestureRecognizer) {
         let translation = g.translation(in: view).x
         switch g.state {
