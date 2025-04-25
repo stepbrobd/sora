@@ -93,6 +93,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     var speedButton: UIButton!
     var skip85Button: UIButton!
     var qualityButton: UIButton!
+    var holdSpeedIndicator: UIButton!
     
     var isHLSStream: Bool = false
     var qualities: [(String, String)] = []
@@ -238,7 +239,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         startUpdateTimer()
         setupAudioSession()
         updateSkipButtonsVisibility()
-        
+        setupHoldSpeedIndicator()
         
         view.bringSubviewToFront(subtitleLabel)
         view.bringSubviewToFront(topSubtitleLabel)
@@ -808,10 +809,10 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         marqueeLabel.textColor = .white
         marqueeLabel.font = UIFont.systemFont(ofSize: 14, weight: .heavy)
         
-        marqueeLabel.speed = .rate(35)         // Adjust scrolling speed as needed
-        marqueeLabel.fadeLength = 10.0         // Fading at the label’s edges
-        marqueeLabel.leadingBuffer = 1.0      // Left inset for scrolling
-        marqueeLabel.trailingBuffer = 16.0     // Right inset for scrolling
+        marqueeLabel.speed = .rate(35)
+        marqueeLabel.fadeLength = 10.0
+        marqueeLabel.leadingBuffer = 1.0
+        marqueeLabel.trailingBuffer = 16.0
         marqueeLabel.animationDelay = 2.5
         
         marqueeLabel.layer.shadowColor = UIColor.black.cgColor
@@ -826,7 +827,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         controlsContainerView.addSubview(marqueeLabel)
         marqueeLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        //Fully manages contsraints
         updateMarqueeConstraints()
     }
     
@@ -855,8 +855,43 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         ])
     }
     
+    private func setupHoldSpeedIndicator() {
+        let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
+        let image = UIImage(systemName: "forward.fill", withConfiguration: config)
+        let speed = UserDefaults.standard.float(forKey: "holdSpeedPlayer")
+        
+        holdSpeedIndicator = UIButton(type: .system)
+        holdSpeedIndicator.setTitle(" \(speed)", for: .normal)
+        holdSpeedIndicator.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .bold)
+        holdSpeedIndicator.setImage(image, for: .normal)
+        
+        holdSpeedIndicator.backgroundColor = UIColor(red: 51/255.0, green: 51/255.0, blue: 51/255.0, alpha: 0.8)
+        holdSpeedIndicator.tintColor = .white
+        holdSpeedIndicator.setTitleColor(.white, for: .normal)
+        holdSpeedIndicator.layer.cornerRadius = 21
+        holdSpeedIndicator.alpha = 0
+        
+        holdSpeedIndicator.layer.shadowColor = UIColor.black.cgColor
+        holdSpeedIndicator.layer.shadowOffset = CGSize(width: 0, height: 2)
+        holdSpeedIndicator.layer.shadowOpacity = 0.6
+        holdSpeedIndicator.layer.shadowRadius = 4
+        holdSpeedIndicator.layer.masksToBounds = false
+        
+        view.addSubview(holdSpeedIndicator)
+        holdSpeedIndicator.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            holdSpeedIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            holdSpeedIndicator.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            holdSpeedIndicator.heightAnchor.constraint(equalToConstant: 40),
+            holdSpeedIndicator.widthAnchor.constraint(greaterThanOrEqualToConstant: 85)
+        ])
+        
+        holdSpeedIndicator.isUserInteractionEnabled = false
+    }
+    
     private func updateSkipButtonsVisibility() {
-        let t               = currentTimeVal
+        let t = currentTimeVal
         let controlsShowing = isControlsVisible
         
         func handle(_ button: UIButton, range: CMTimeRange?) {
@@ -2129,11 +2164,20 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         guard let player = player else { return }
         originalRate = player.rate
         let holdSpeed = UserDefaults.standard.float(forKey: "holdSpeedPlayer")
-        player.rate = holdSpeed > 0 ? holdSpeed : 2.0
+        let speed = holdSpeed > 0 ? holdSpeed : 2.0
+        player.rate = speed
+        
+        UIView.animate(withDuration: 0.1) {
+            self.holdSpeedIndicator.alpha = 0.8
+        }
     }
-    
+
     private func endHoldSpeed() {
         player?.rate = originalRate
+        
+        UIView.animate(withDuration: 0.2) {
+            self.holdSpeedIndicator.alpha = 0
+        }
     }
     
     private func setInitialPlayerRate() {
