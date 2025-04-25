@@ -95,20 +95,23 @@ class iCloudSyncManager {
         }
     }
     
-    private func syncToiCloud() {
-        let iCloud = NSUbiquitousKeyValueStore.default
-        let defaults = UserDefaults.standard
+    func syncToiCloud(item: SyncItem) {
+        let queue = DispatchQueue(label: "me.cranci.sora.icloud-sync")
         
-        do {
-            for key in allKeysToSync() {
-                if let value = defaults.object(forKey: key) {
-                    if isValidValueType(value) {
-                        iCloud.set(value, forKey: key)
-                    }
+        queue.async {
+            do {
+                let container = NSUbiquitousKeyValueStore.default
+                
+                let encoder = JSONEncoder()
+                let data = try encoder.encode(item)
+                
+                if let dict = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    container.set(dict, forKey: "syncedItems")
+                    container.synchronize()
                 }
+            } catch {
+                Logger.shared.log("Failed to sync to iCloud: \(error.localizedDescription)", type: "Error")
             }
-            
-            iCloud.synchronize()
         }
     }
     
