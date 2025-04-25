@@ -96,40 +96,80 @@ class iCloudSyncManager {
     }
     
     func syncToiCloud() {
-        syncQueue.async {
-            do {
-                let container = NSUbiquitousKeyValueStore.default
-                let defaults = UserDefaults.standard
+        syncQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            let container = NSUbiquitousKeyValueStore.default
+            let defaults = UserDefaults.standard
+            
+            var syncedKeys = 0
+            let keysToSync = self.allKeysToSync()
+            
+            for key in keysToSync {
+                guard let value = defaults.object(forKey: key) else { continue }
                 
-                for key in self.allKeysToSync() {
-                    if let value = defaults.object(forKey: key), self.isValidValueType(value) {
-                        let data = try JSONSerialization.data(withJSONObject: value)
-                        try JSONSerialization.jsonObject(with: data)
+                if !key.isEmpty && self.isValidValueType(value) {
+                    autoreleasepool {
                         container.set(value, forKey: key)
+                        syncedKeys += 1
                     }
+                } else {
+                    Logger.shared.log("Skipping invalid key/value: \(key)", type: "Warning")
                 }
-                
-                container.synchronize()
-            } catch {
-                Logger.shared.log("Failed to sync to iCloud: \(error.localizedDescription)", type: "Error")
+            }
+            
+            let success = container.synchronize()
+            if !success {
+                Logger.shared.log("Failed to synchronize with iCloud", type: "Error")
+            } else {
+                Logger.shared.log("Successfully synced \(syncedKeys) keys to iCloud", type: "Info")
             }
         }
     }
     
     private func syncFromiCloud() {
-        let iCloud = NSUbiquitousKeyValueStore.default
-        let defaults = UserDefaults.standard
-        
-        for key in allKeysToSync() {
-            if let value = iCloud.object(forKey: key) {
-                if isValidValueType(value) {
-                    defaults.set(value, forKey: key)
+        syncQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            let iCloud = NSUbiquitousKeyValueStore.default
+            let defaults = UserDefaults.standard
+            
+            var syncedKeys = 0
+            var failedKeys = 0
+            
+            let keysToSync = self.allKeysToSync()
+            
+            for key in keysToSync {
+                autoreleasepool {
+                    if let value = iCloud.object(forKey: key) {
+                        if !key.isEmpty && self.isValidValueType(value) {
+                            defaults.set(value, forKey: key)
+                            syncedKeys += 1
+                        } else {
+                            Logger.shared.log("Invalid value type for key: \(key)", type: "Warning")
+                            defaults.removeObject(forKey: key)
+                            failedKeys += 1
+                        }
+                    }
+                }
+            }
+            
+            let success = defaults.synchronize()
+            
+            DispatchQueue.main.async { [weak self] in
+                guard self != nil else { return }
+                
+                if !success || failedKeys > 0 {
+                    let error = NSError(domain: "iCloudSync", code: -1, userInfo: [ NSLocalizedDescriptionKey: "Sync partially failed", "syncedKeys": syncedKeys, "failedKeys": failedKeys]
+                    )
+                    NotificationCenter.default.post(name: .iCloudSyncDidFail, object: error)
+                    Logger.shared.log("Sync completed with errors: \(syncedKeys) succeeded, \(failedKeys) failed", type: "Warning")
+                } else {
+                    NotificationCenter.default.post(name: .iCloudSyncDidComplete, object: ["syncedKeys": syncedKeys])
+                    Logger.shared.log("Successfully synced \(syncedKeys) keys from iCloud", type: "Info")
                 }
             }
         }
-        
-        defaults.synchronize()
-        NotificationCenter.default.post(name: .iCloudSyncDidComplete, object: nil)
     }
     
     private func isValidValueType(_ value: Any) -> Bool {
