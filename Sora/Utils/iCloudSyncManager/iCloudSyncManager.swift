@@ -163,12 +163,27 @@ class iCloudSyncManager {
             
             do {
                 if self.isValidValueType(value) {
-                    if value is [Any] || value is [String: Any] {
-                        // Validate JSON serialization
-                        _ = try JSONSerialization.data(withJSONObject: value)
+                    if let arrayValue = value as? [Any] {
+                        if !isValidPropertyListArray(arrayValue) {
+                            Logger.shared.log("Skipping key \(key): contains invalid array elements", type: "Warning")
+                            continue
+                        }
+                        _ = try JSONSerialization.data(withJSONObject: arrayValue)
+                    } else if let dictValue = value as? [String: Any] {
+                        if !isValidPropertyListDictionary(dictValue) {
+                            Logger.shared.log("Skipping key \(key): contains invalid dictionary elements", type: "Warning")
+                            continue
+                        }
+                        _ = try JSONSerialization.data(withJSONObject: dictValue)
                     }
-                    container.set(value, forKey: key)
-                    syncedKeys += 1
+                    
+                    do {
+                        container.set(value, forKey: key)
+                        syncedKeys += 1
+                    } catch {
+                        Logger.shared.log("Failed to store key \(key) in iCloud: \(error.localizedDescription)", type: "Error")
+                        continue
+                    }
                 }
             } catch {
                 Logger.shared.log("Failed to sync key \(key): \(error.localizedDescription)", type: "Warning")
@@ -393,5 +408,34 @@ class iCloudSyncManager {
     private func getLocalModulesFileURL() -> URL {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         return docs.appendingPathComponent("modules.json")
+    }
+    
+    private func isValidPropertyListArray(_ array: [Any]) -> Bool {
+        for item in array {
+            if !isValidPropertyListType(item) {
+                return false
+            }
+        }
+        return true
+    }
+    
+    private func isValidPropertyListDictionary(_ dict: [String: Any]) -> Bool {
+        for (_, value) in dict {
+            if !isValidPropertyListType(value) {
+                return false
+            }
+        }
+        return true
+    }
+    
+    private func isValidPropertyListType(_ value: Any) -> Bool {
+        if value is String || value is Bool || value is Int || value is Float || value is Double || value is Data || value is Date {
+            return true
+        } else if let array = value as? [Any] {
+            return isValidPropertyListArray(array)
+        } else if let dict = value as? [String: Any] {
+            return isValidPropertyListDictionary(dict)
+        }
+        return false
     }
 }
