@@ -1015,7 +1015,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         skipIntroButton.layer.masksToBounds = false
         
         skipIntroButton.addTarget(self, action: #selector(skipIntro), for: .touchUpInside)
-        skipIntroButton.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(handleIntroPan(_:))))
         
         view.addSubview(skipIntroButton)
         skipIntroButton.translatesAutoresizingMaskIntoConstraints = false
@@ -1047,7 +1046,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         skipOutroButton.layer.masksToBounds = false
         
         skipOutroButton.addTarget(self, action: #selector(skipOutro), for: .touchUpInside)
-        skipOutroButton.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(handleOutroPan(_:))))
         
         view.addSubview(skipOutroButton)
         skipOutroButton.translatesAutoresizingMaskIntoConstraints = false
@@ -1425,87 +1423,9 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         }
     }
     
-    @objc private func handleIntroPan(_ g: UIPanGestureRecognizer) {
-        let translation = g.translation(in: view).x
-        switch g.state {
-        case .began:
-            originalIntroLeading = skipIntroLeading.constant
-        case .changed:
-            skipIntroLeading.constant = originalIntroLeading + min(0, translation)
-            view.layoutIfNeeded()
-        case .ended, .cancelled:
-            let threshold = -skipIntroButton.bounds.width * 0.4
-            if skipIntroLeading.constant < originalIntroLeading + threshold {
-                // animate all the way off to the left
-                let offscreen = -skipIntroButton.bounds.width - 100
-                UIView.animate(
-                    withDuration: 0.25,
-                    animations: {
-                        self.skipIntroLeading.constant = offscreen
-                        self.view.layoutIfNeeded()
-                    }, completion: { _ in
-                        self.skipIntroDismissedInSession = true
-                        self.skipIntroButton.isHidden = true
-                    })
-            } else {
-                // bounce back
-                UIView.animate(
-                    withDuration: 0.3,
-                    delay: 0,
-                    usingSpringWithDamping: 0.6,
-                    initialSpringVelocity: 1,
-                    options: [],
-                    animations: {
-                        self.skipIntroLeading.constant = self.originalIntroLeading
-                        self.view.layoutIfNeeded()
-                    })
-            }
-        default: break
-        }
-    }
-    
-    @objc private func handleOutroPan(_ g: UIPanGestureRecognizer) {
-        let translation = g.translation(in: view).x
-        switch g.state {
-        case .began:
-            originalOutroLeading = skipOutroLeading.constant
-        case .changed:
-            skipOutroLeading.constant = originalOutroLeading + min(0, translation)
-            view.layoutIfNeeded()
-        case .ended, .cancelled:
-            let threshold = -skipOutroButton.bounds.width * 0.4
-            if skipOutroLeading.constant < originalOutroLeading + threshold {
-                // animate off to the left
-                let offscreen = -skipOutroButton.bounds.width - 100
-                UIView.animate(
-                    withDuration: 0.25,
-                    animations: {
-                        self.skipOutroLeading.constant = offscreen
-                        self.view.layoutIfNeeded()
-                    }, completion: { _ in
-                        self.skipOutroDismissedInSession = true
-                        self.skipOutroButton.isHidden = true
-                    })
-            } else {
-                UIView.animate(
-                    withDuration: 0.3,
-                    delay: 0,
-                    usingSpringWithDamping: 0.6,
-                    initialSpringVelocity: 1,
-                    options: [],
-                    animations: {
-                        self.skipOutroLeading.constant = self.originalOutroLeading
-                        self.view.layoutIfNeeded()
-                    })
-            }
-        default: break
-        }
-    }
-    
     @objc private func skipIntro() {
         if let range = skipIntervals.op {
             player.seek(to: range.end)
-            // optionally hide button immediately:
             skipIntroButton.isHidden = true
         }
     }
@@ -1526,10 +1446,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     func updateMenuButtonConstraints() {
-        // tear down last one
         currentMenuButtonTrailing.isActive = false
         
-        // pick the “next” visible control
         let anchor: NSLayoutXAxisAnchor
         if !qualityButton.isHidden {
             anchor = qualityButton.leadingAnchor
