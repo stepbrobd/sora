@@ -14,7 +14,22 @@ struct SoraApp: App {
     @StateObject private var librarykManager = LibraryManager()
     
     init() {
-        _ = iCloudSyncManager.shared
+        setupManagers()
+    }
+    
+    private func setupManagers() {
+        _ = settings
+        _ = moduleManager
+        _ = librarykManager
+        
+        let cloudManager = iCloudSyncManager.shared
+        cloudManager.syncQueue.async {
+            do {
+                try cloudManager.initializeICloudSync()
+            } catch {
+                Logger.shared.log("Failed to initialize iCloud sync: \(error.localizedDescription)", type: "Error")
+            }
+        }
         
         TraktToken.checkAuthenticationStatus { isAuthenticated in
             if isAuthenticated {
@@ -34,7 +49,10 @@ struct SoraApp: App {
                 .accentColor(settings.accentColor)
                 .onAppear {
                     settings.updateAppearance()
+                    
+                    iCloudSyncManager.shared.syncFromiCloud(retry: true)
                     iCloudSyncManager.shared.syncModulesFromiCloud()
+                    
                     Task {
                         if UserDefaults.standard.bool(forKey: "refreshModulesOnLaunch") {
                             await moduleManager.refreshModules()

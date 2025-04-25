@@ -10,8 +10,15 @@ import UIKit
 class iCloudSyncManager {
     static let shared = iCloudSyncManager()
     
-    private let syncQueue = DispatchQueue(label: "me.cranci.sora.icloud-sync", qos: .utility)
-    private let defaultsToSync: [String] = [
+    let syncQueue = DispatchQueue(label: "me.cranci.sora.icloud-sync", qos: .utility)
+    let retryAttempts = 3
+    let retryDelay: TimeInterval = 2.0
+    
+    var isSyncing = false
+    var lastSyncAttempt: Date?
+    var syncErrors: Int = 0
+    
+    let defaultsToSync: [String] = [
         "externalPlayer",
         "alwaysLandscape",
         "rememberPlaySpeed",
@@ -35,31 +42,141 @@ class iCloudSyncManager {
         "metadataProviders"
     ]
     
-    private let modulesFileName = "modules.json"
-    
-    private var ubiquityContainerURL: URL? {
-        FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents")
+    var ubiquityContainerURL: URL? {
+        get {
+            let semaphore = DispatchSemaphore(value: 0)
+            var containerURL: URL?
+            
+            DispatchQueue.global(qos: .userInitiated).async {
+                containerURL = FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents")
+                semaphore.signal()
+            }
+            
+            _ = semaphore.wait(timeout: .now() + 5.0)
+            return containerURL
+        }
     }
     
     private init() {
         setupSync()
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(willEnterBackground), name: UIApplication.willResignActiveNotification, object: nil)
     }
     
     private func setupSync() {
+        guard FileManager.default.ubiquityIdentityToken != nil else {
+            Logger.shared.log("iCloud is not available", type: "Error")
+            return
+        }
+        
         syncQueue.async { [weak self] in
             guard let self = self else { return }
             
-            NSUbiquitousKeyValueStore.default.synchronize()
-            self.syncFromiCloud()
-            self.syncModulesFromiCloud()
-            
-            DispatchQueue.main.async {
-                NotificationCenter.default.addObserver(self, selector: #selector(self.iCloudDidChangeExternally), name: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: NSUbiquitousKeyValueStore.default)
-                NotificationCenter.default.addObserver(self, selector: #selector(self.userDefaultsDidChange), name: UserDefaults.didChangeNotification, object: nil)
+            do {
+                try self.initializeICloudSync()
+            } catch {
+                Logger.shared.log("Failed to initialize iCloud sync: \(error.localizedDescription)", type: "Error")
             }
         }
+        
+        setupNotifications()
+    }
+    
+    private func setupNotifications() {
+        NotificationCenter.default.addObserver(self, selector: #selector(willEnterBackground), name: UIApplication.willResignActiveNotification, object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(iCloudDidChangeExternally), name: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: NSUbiquitousKeyValueStore.default )
+        
+        NotificationCenter.default.addObserver( self, selector: #selector(userDefaultsDidChange), name: UserDefaults.didChangeNotification, object: nil)
+    }
+    
+    func initializeICloudSync() throws {
+        guard !isSyncing else { return }
+        isSyncing = true
+        
+        defer { isSyncing = false }
+        guard NSUbiquitousKeyValueStore.default.synchronize() else {
+            throw NSError(domain: "iCloudSync", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to initialize iCloud store"])
+        }
+        
+        syncFromiCloud(retry: true)
+        syncModulesFromiCloud()
+    }
+    
+    func syncToiCloud(completion: ((Bool) -> Void)? = nil) {
+        guard !isSyncing else {
+            completion?(false)
+            return
+        }
+        
+        syncQueue.async { [weak self] in
+            guard let self = self else {
+                completion?(false)
+                return
+            }
+            
+            self.isSyncing = true
+            var success = false
+            
+            defer {
+                self.isSyncing = false
+                DispatchQueue.main.async {
+                    completion?(success)
+                }
+            }
+            
+            let container = NSUbiquitousKeyValueStore.default
+            let defaults = UserDefaults.standard
+            
+            do {
+                try self.performSync(from: defaults, to: container)
+                success = container.synchronize()
+                
+                if success {
+                    self.syncErrors = 0
+                    Logger.shared.log("Successfully synced to iCloud", type: "Info")
+                } else {
+                    self.syncErrors += 1
+                    throw NSError(
+                        domain: "iCloudSync",
+                        code: -1,
+                        userInfo: [NSLocalizedDescriptionKey: "Failed to synchronize with iCloud"]
+                    )
+                }
+            } catch {
+                Logger.shared.log("Sync to iCloud failed: \(error.localizedDescription)", type: "Error")
+                
+                if self.syncErrors < self.retryAttempts {
+                    let delay = TimeInterval(pow(2.0, Double(self.syncErrors))) * self.retryDelay
+                    DispatchQueue.global().asyncAfter(deadline: .now() + delay) {
+                        self.syncToiCloud(completion: completion)
+                    }
+                }
+            }
+        }
+    }
+    
+    private func performSync(from defaults: UserDefaults, to container: NSUbiquitousKeyValueStore) throws {
+        var syncedKeys = 0
+        let keysToSync = allKeysToSync()
+        
+        for key in keysToSync {
+            guard let value = defaults.object(forKey: key) else { continue }
+            
+            do {
+                if self.isValidValueType(value) {
+                    if value is [Any] || value is [String: Any] {
+                        // Validate JSON serialization
+                        _ = try JSONSerialization.data(withJSONObject: value)
+                    }
+                    container.set(value, forKey: key)
+                    syncedKeys += 1
+                }
+            } catch {
+                Logger.shared.log("Failed to sync key \(key): \(error.localizedDescription)", type: "Warning")
+                continue
+            }
+        }
+        
+        Logger.shared.log("Synced \(syncedKeys) keys", type: "Info")
     }
     
     @objc private func iCloudDidChangeExternally(_ notification: NSNotification) {
@@ -95,39 +212,7 @@ class iCloudSyncManager {
         }
     }
     
-    func syncToiCloud() {
-        syncQueue.async { [weak self] in
-            guard let self = self else { return }
-            
-            let container = NSUbiquitousKeyValueStore.default
-            let defaults = UserDefaults.standard
-            
-            var syncedKeys = 0
-            let keysToSync = self.allKeysToSync()
-            
-            for key in keysToSync {
-                guard let value = defaults.object(forKey: key) else { continue }
-                
-                if !key.isEmpty && self.isValidValueType(value) {
-                    autoreleasepool {
-                        container.set(value, forKey: key)
-                        syncedKeys += 1
-                    }
-                } else {
-                    Logger.shared.log("Skipping invalid key/value: \(key)", type: "Warning")
-                }
-            }
-            
-            let success = container.synchronize()
-            if !success {
-                Logger.shared.log("Failed to synchronize with iCloud", type: "Error")
-            } else {
-                Logger.shared.log("Successfully synced \(syncedKeys) keys to iCloud", type: "Info")
-            }
-        }
-    }
-    
-    private func syncFromiCloud() {
+    func syncFromiCloud(retry: Bool = false) {
         syncQueue.async { [weak self] in
             guard let self = self else { return }
             
@@ -230,7 +315,7 @@ class iCloudSyncManager {
             guard let self = self, let iCloudURL = self.ubiquityContainerURL else { return }
             
             let localModulesURL = self.getLocalModulesFileURL()
-            let iCloudModulesURL = iCloudURL.appendingPathComponent(self.modulesFileName)
+            let iCloudModulesURL = iCloudURL.appendingPathComponent("modules.json")
             
             do {
                 guard FileManager.default.fileExists(atPath: localModulesURL.path) else { return }
@@ -256,7 +341,7 @@ class iCloudSyncManager {
         }
         
         let localModulesURL = self.getLocalModulesFileURL()
-        let iCloudModulesURL = iCloudURL.appendingPathComponent(self.modulesFileName)
+        let iCloudModulesURL = iCloudURL.appendingPathComponent("modules.json")
         
         do {
             if !FileManager.default.fileExists(atPath: iCloudModulesURL.path) {
@@ -307,6 +392,6 @@ class iCloudSyncManager {
     
     private func getLocalModulesFileURL() -> URL {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        return docs.appendingPathComponent(modulesFileName)
+        return docs.appendingPathComponent("modules.json")
     }
 }
