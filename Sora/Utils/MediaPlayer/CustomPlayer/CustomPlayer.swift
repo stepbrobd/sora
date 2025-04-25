@@ -858,7 +858,11 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     private func setupHoldSpeedIndicator() {
         let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
         let image = UIImage(systemName: "forward.fill", withConfiguration: config)
-        let speed = UserDefaults.standard.float(forKey: "holdSpeedPlayer")
+        var speed = UserDefaults.standard.float(forKey: "holdSpeedPlayer")
+        
+        if speed == 0.0 {
+            speed = 2.0
+        }
         
         holdSpeedIndicator = UIButton(type: .system)
         holdSpeedIndicator.setTitle(" \(speed)", for: .normal)
