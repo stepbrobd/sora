@@ -599,7 +599,6 @@ struct MediaInfoView: View {
         return groups
     }
     
-    
     func fetchDetails() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             Task {
