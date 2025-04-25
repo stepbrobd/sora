@@ -1089,7 +1089,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             skipOutroButton.trailingAnchor.constraint(equalTo: sliderHostingController!.view.trailingAnchor),
             skipOutroButton.bottomAnchor.constraint(equalTo: sliderHostingController!.view.topAnchor, constant: -5),
             skipOutroButton.heightAnchor.constraint(equalToConstant: 40),
-            skipOutroButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 104)
+            skipOutroButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 108)
         ])
     }
     
