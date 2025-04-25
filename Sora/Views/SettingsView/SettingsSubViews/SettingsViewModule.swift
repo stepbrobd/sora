@@ -205,5 +205,4 @@ struct SettingsViewModule: View {
             }
         }
     }
-
 }
