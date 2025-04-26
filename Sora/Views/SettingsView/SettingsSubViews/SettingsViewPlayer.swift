@@ -117,6 +117,7 @@ struct SubtitleSettingsSection: View {
     @State private var shadowRadius: Double = SubtitleSettingsManager.shared.settings.shadowRadius
     @State private var backgroundEnabled: Bool = SubtitleSettingsManager.shared.settings.backgroundEnabled
     @State private var bottomPadding: CGFloat = SubtitleSettingsManager.shared.settings.bottomPadding
+    @State private var subtitleDelay: Double = SubtitleSettingsManager.shared.settings.subtitleDelay
 
     private let colors = ["white", "yellow", "green", "blue", "red", "purple"]
     private let shadowOptions = [0, 1, 3, 6]
@@ -186,6 +187,36 @@ struct SubtitleSettingsSection: View {
                         }
                     }
             }
+            
+            VStack(alignment: .leading) {
+                Text("Subtitle Timing Adjustment: \(String(format: "%.1fs", subtitleDelay))")
+                    .padding(.bottom, 1)
+                
+                HStack {
+                    Text("-10s")
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                    
+                    Slider(value: $subtitleDelay, in: -10...10, step: 0.1)
+                        .onChange(of: subtitleDelay) { newValue in
+                            SubtitleSettingsManager.shared.update { settings in
+                                settings.subtitleDelay = newValue
+                            }
+                        }
+                    
+                    Text("+10s")
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                }
+            }
+            
+            Button("Reset Subtitle Timing") {
+                subtitleDelay = 0.0
+                SubtitleSettingsManager.shared.update { settings in
+                    settings.subtitleDelay = 0.0
+                }
+            }
+            .foregroundColor(.accentColor)
         }
     }
 }

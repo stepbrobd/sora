@@ -167,6 +167,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     private var volumeValue: Double = 0.0
     private var volumeViewModel = VolumeViewModel()
     var volumeSliderHostingView: UIView?
+    private var subtitleDelay: Double = 0.0
     
     init(module: ScrapingModule,
          urlString: String,
@@ -1340,7 +1341,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             UserDefaults.standard.set(self.duration, forKey: "totalTime_\(self.fullUrl)")
             
             if self.subtitlesEnabled {
-                let cues = self.subtitlesLoader.cues.filter { self.currentTimeVal >= $0.startTime && self.currentTimeVal <= $0.endTime }
+                let adjustedTime = self.currentTimeVal - self.subtitleDelay
+                let cues = self.subtitlesLoader.cues.filter { adjustedTime >= $0.startTime && adjustedTime <= $0.endTime }
                 if cues.count > 0 {
                     self.subtitleLabels[0].text = cues[0].text.strippedHTML
                     self.subtitleLabels[0].isHidden = false
@@ -1876,7 +1878,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                     self.switchToQuality(urlString: last)
                 }
                 
-                // reveal + animate
                 self.qualityButton.isHidden = false
                 self.qualityButton.menu = self.qualitySelectionMenu()
                 self.updateMenuButtonConstraints()
@@ -2014,14 +2015,73 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             ]
             let paddingMenu = UIMenu(title: "Bottom Padding", children: paddingActions)
             
+            let delayActions = [
+                UIAction(title: "-0.5s") { [weak self] _ in
+                    guard let self = self else { return }
+                    self.adjustSubtitleDelay(by: -0.5)
+                },
+                UIAction(title: "-0.2s") { [weak self] _ in
+                    guard let self = self else { return }
+                    self.adjustSubtitleDelay(by: -0.2)
+                },
+                UIAction(title: "+0.2s") { [weak self] _ in
+                    guard let self = self else { return }
+                    self.adjustSubtitleDelay(by: 0.2)
+                },
+                UIAction(title: "+0.5s") { [weak self] _ in
+                    guard let self = self else { return }
+                    self.adjustSubtitleDelay(by: 0.5)
+                },
+                UIAction(title: "Custom...") { [weak self] _ in
+                    guard let self = self else { return }
+                    self.presentCustomDelayAlert()
+                }
+            ]
+            
+            let resetDelayAction = UIAction(title: "Reset Timing") { [weak self] _ in
+                guard let self = self else { return }
+                SubtitleSettingsManager.shared.update { settings in settings.subtitleDelay = 0.0 }
+                self.subtitleDelay = 0.0
+                self.loadSubtitleSettings()
+                DropManager.shared.showDrop(title: "Subtitle Timing Reset", subtitle: "", duration: 0.5, icon: UIImage(systemName: "clock.arrow.circlepath"))
+            }
+            
+            let delayMenu = UIMenu(title: "Subtitle Timing", children: delayActions + [resetDelayAction])
+            
             let subtitleOptionsMenu = UIMenu(title: "Subtitle Options", children: [
-                subtitlesToggleAction, colorMenu, fontSizeMenu, shadowMenu, backgroundMenu, paddingMenu
+                subtitlesToggleAction, colorMenu, fontSizeMenu, shadowMenu, backgroundMenu, paddingMenu, delayMenu
             ])
             
             menuElements = [subtitleOptionsMenu]
         }
         
         return UIMenu(title: "", children: menuElements)
+    }
+    
+    func adjustSubtitleDelay(by amount: Double) {
+        let newValue = subtitleDelay + amount
+        let roundedValue = Double(round(newValue * 10) / 10)
+        SubtitleSettingsManager.shared.update { settings in settings.subtitleDelay = roundedValue }
+        self.subtitleDelay = roundedValue
+        self.loadSubtitleSettings()
+    }
+    
+    func presentCustomDelayAlert() {
+        let alert = UIAlertController(title: "Enter Custom Delay", message: nil, preferredStyle: .alert)
+        alert.addTextField { textField in
+            textField.placeholder = "Delay in seconds"
+            textField.keyboardType = .decimalPad
+            textField.text = String(format: "%.1f", self.subtitleDelay)
+        }
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Done", style: .default) { _ in
+            if let text = alert.textFields?.first?.text, let newDelay = Double(text) {
+                SubtitleSettingsManager.shared.update { settings in settings.subtitleDelay = newDelay }
+                self.subtitleDelay = newDelay
+                self.loadSubtitleSettings()
+            }
+        })
+        present(alert, animated: true)
     }
     
     func presentCustomPaddingAlert() {
@@ -2071,6 +2131,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         self.subtitleShadowRadius = settings.shadowRadius
         self.subtitleBackgroundEnabled = settings.backgroundEnabled
         self.subtitleBottomPadding = settings.bottomPadding
+        self.subtitleDelay = settings.subtitleDelay
     }
     
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
