@@ -6,11 +6,11 @@
 //
 
 import UIKit
-import MarqueeLabel
 import AVKit
 import SwiftUI
-import AVFoundation
 import MediaPlayer
+import AVFoundation
+import MarqueeLabel
 
 class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDelegate {
     let module: ScrapingModule
@@ -71,9 +71,11 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     var subtitleFontSize: Double = 20.0
     var subtitleShadowRadius: Double = 1.0
     var subtitlesLoader = VTTSubtitlesLoader()
+    var subtitleStackView: UIStackView!
+    var subtitleLabels: [UILabel] = []
     var subtitlesEnabled: Bool = true {
         didSet {
-            subtitleLabel.isHidden = !subtitlesEnabled
+            subtitleStackView.isHidden = !subtitlesEnabled
         }
     }
     
@@ -83,7 +85,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     var playPauseButton: UIImageView!
     var backwardButton: UIImageView!
     var forwardButton: UIImageView!
-    var subtitleLabel: UILabel!
     var topSubtitleLabel: UILabel!
     var dismissButton: UIButton!
     var menuButton: UIButton!
@@ -241,8 +242,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         updateSkipButtonsVisibility()
         setupHoldSpeedIndicator()
         
-        view.bringSubviewToFront(subtitleLabel)
-        view.bringSubviewToFront(topSubtitleLabel)
+        view.bringSubviewToFront(subtitleStackView)
         
         AniListMutation().fetchMalID(animeId: aniListID) { [weak self] result in
             switch result {
@@ -717,48 +717,42 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     func setupSubtitleLabel() {
-        subtitleLabel = UILabel()
-        subtitleLabel?.textAlignment = .center
-        subtitleLabel?.numberOfLines = 0
-        subtitleLabel?.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
-        if let subtitleLabel = subtitleLabel {
-            view.addSubview(subtitleLabel)
-            subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        subtitleStackView = UIStackView()
+        subtitleStackView.axis = .vertical
+        subtitleStackView.alignment = .center
+        subtitleStackView.distribution = .fill
+        subtitleStackView.spacing = 2
+        
+        if let subtitleStackView = subtitleStackView {
+            view.addSubview(subtitleStackView)
+            subtitleStackView.translatesAutoresizingMaskIntoConstraints = false
             
-            subtitleBottomToSliderConstraint = subtitleLabel.bottomAnchor.constraint(
+            subtitleBottomToSliderConstraint = subtitleStackView.bottomAnchor.constraint(
                 equalTo: sliderHostingController?.view.topAnchor ?? view.bottomAnchor,
                 constant: -20
             )
             
-            subtitleBottomToSafeAreaConstraint = subtitleLabel.bottomAnchor.constraint(
+            subtitleBottomToSafeAreaConstraint = subtitleStackView.bottomAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.bottomAnchor,
                 constant: -subtitleBottomPadding
             )
             
             NSLayoutConstraint.activate([
-                subtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-                subtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 36),
-                subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -36)
+                subtitleStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                subtitleStackView.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 36),
+                subtitleStackView.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -36)
             ])
             
             subtitleBottomToSafeAreaConstraint?.isActive = true
         }
         
-        topSubtitleLabel = UILabel()
-        topSubtitleLabel?.textAlignment = .center
-        topSubtitleLabel?.numberOfLines = 0
-        topSubtitleLabel?.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
-        topSubtitleLabel?.isHidden = true
-        if let topSubtitleLabel = topSubtitleLabel {
-            view.addSubview(topSubtitleLabel)
-            topSubtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-            
-            NSLayoutConstraint.activate([
-                topSubtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-                topSubtitleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 30),
-                topSubtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 36),
-                topSubtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -36)
-            ])
+        for _ in 0..<2 {
+            let label = UILabel()
+            label.textAlignment = .center
+            label.numberOfLines = 0
+            label.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
+            subtitleLabels.append(label)
+            subtitleStackView.addArrangedSubview(label)
         }
         
         updateSubtitleLabelAppearance()
@@ -1305,7 +1299,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     func updateSubtitleLabelAppearance() {
-        if let subtitleLabel = subtitleLabel {
+        for subtitleLabel in subtitleLabels {
             subtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
             subtitleLabel.textColor = subtitleUIColor()
             subtitleLabel.backgroundColor = subtitleBackgroundEnabled
@@ -1317,20 +1311,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             subtitleLabel.layer.shadowRadius = CGFloat(subtitleShadowRadius)
             subtitleLabel.layer.shadowOpacity = 1.0
             subtitleLabel.layer.shadowOffset = .zero
-        }
-        
-        if let topSubtitleLabel = topSubtitleLabel {
-            topSubtitleLabel.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
-            topSubtitleLabel.textColor = subtitleUIColor()
-            topSubtitleLabel.backgroundColor = subtitleBackgroundEnabled
-            ? UIColor.black.withAlphaComponent(0.6)
-            : .clear
-            topSubtitleLabel.layer.cornerRadius = 5
-            topSubtitleLabel.clipsToBounds = true
-            topSubtitleLabel.layer.shadowColor = UIColor.black.cgColor
-            topSubtitleLabel.layer.shadowRadius = CGFloat(subtitleShadowRadius)
-            topSubtitleLabel.layer.shadowOpacity = 1.0
-            topSubtitleLabel.layer.shadowOffset = .zero
         }
     }
     
@@ -1362,24 +1342,24 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             if self.subtitlesEnabled {
                 let cues = self.subtitlesLoader.cues.filter { self.currentTimeVal >= $0.startTime && self.currentTimeVal <= $0.endTime }
                 if cues.count > 0 {
-                    self.subtitleLabel.text = cues[0].text.strippedHTML
-                    self.subtitleLabel.isHidden = false
+                    self.subtitleLabels[0].text = cues[0].text.strippedHTML
+                    self.subtitleLabels[0].isHidden = false
                 } else {
-                    self.subtitleLabel.text = ""
-                    self.subtitleLabel.isHidden = !self.subtitlesEnabled
+                    self.subtitleLabels[0].text = ""
+                    self.subtitleLabels[0].isHidden = !self.subtitlesEnabled
                 }
                 if cues.count > 1 {
-                    self.topSubtitleLabel.text = cues[1].text.strippedHTML
-                    self.topSubtitleLabel.isHidden = false
+                    self.subtitleLabels[1].text = cues[1].text.strippedHTML
+                    self.subtitleLabels[1].isHidden = false
                 } else {
-                    self.topSubtitleLabel.text = ""
-                    self.topSubtitleLabel.isHidden = true
+                    self.subtitleLabels[1].text = ""
+                    self.subtitleLabels[1].isHidden = true
                 }
             } else {
-                self.subtitleLabel.text = ""
-                self.subtitleLabel.isHidden = true
-                self.topSubtitleLabel.text = ""
-                self.topSubtitleLabel.isHidden = true
+                self.subtitleLabels[0].text = ""
+                self.subtitleLabels[0].isHidden = true
+                self.subtitleLabels[1].text = ""
+                self.subtitleLabels[1].isHidden = true
             }
             
             let segmentsColor = self.getSegmentsColor()
@@ -2174,7 +2154,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             self.holdSpeedIndicator.alpha = 0.8
         }
     }
-
+    
     private func endHoldSpeed() {
         player?.rate = originalRate
         
