@@ -1639,21 +1639,17 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         isDimmed.toggle()
         dimButtonTimer?.invalidate()
         
-        // animate black overlay
         UIView.animate(withDuration: 0.25) {
             self.blackCoverView.alpha = self.isDimmed ? 1.0 : 0.4
         }
         
-        // fade controls instead of hiding
         UIView.animate(withDuration: 0.25) {
             for view in self.controlsToHide {
                 view.alpha = self.isDimmed ? 0 : 1
             }
-            // keep the dim button visible/in front
             self.dimButton.alpha = self.isDimmed ? 0 : 1
         }
         
-        // swap your trailing constraints on the dim‑button
         dimButtonToSlider.isActive = !isDimmed
         dimButtonToRight.isActive  = isDimmed
         UIView.animate(withDuration: 0.25) { self.view.layoutIfNeeded() }
