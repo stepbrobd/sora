@@ -195,7 +195,7 @@ struct SubtitleSettingsSection: View {
                 HStack {
                     Text("-10s")
                         .font(.system(size: 12))
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                     
                     Slider(value: $subtitleDelay, in: -10...10, step: 0.1)
                         .onChange(of: subtitleDelay) { newValue in
@@ -206,17 +206,9 @@ struct SubtitleSettingsSection: View {
                     
                     Text("+10s")
                         .font(.system(size: 12))
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                 }
             }
-            
-            Button("Reset Subtitle Timing") {
-                subtitleDelay = 0.0
-                SubtitleSettingsManager.shared.update { settings in
-                    settings.subtitleDelay = 0.0
-                }
-            }
-            .foregroundColor(.accentColor)
         }
     }
 }
