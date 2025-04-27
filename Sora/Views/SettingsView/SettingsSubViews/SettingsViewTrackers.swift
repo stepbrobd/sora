@@ -25,7 +25,7 @@ struct SettingsViewTrackers: View {
     
     var body: some View {
         Form {
-            Section(header: Text("AniList"), footer: Text("Sora and cranci1 are not affiliated with AniList in any way.\n\nNote that progresses update may not be 100% acurate.")) {
+            Section(header: Text("AniList")) {
                 HStack() {
                     KFImage(URL(string: "https://raw.githubusercontent.com/cranci1/Ryu/2f10226aa087154974a70c1ec78aa83a47daced9/Ryu/Assets.xcassets/Listing/Anilist.imageset/anilist.png"))
                         .placeholder {
@@ -74,7 +74,7 @@ struct SettingsViewTrackers: View {
                 .font(.body)
             }
             
-            Section(header: Text("Trakt"), footer: Text("Sora and cranci1 are not affiliated with Trakt in any way.\n\nNote that progress updates may not be 100% accurate.")) {
+            Section(header: Text("Trakt")) {
                 HStack() {
                     KFImage(URL(string: "https://static-00.iconduck.com/assets.00/trakt-icon-2048x2048-2633ksxg.png"))
                         .placeholder {
@@ -107,11 +107,6 @@ struct SettingsViewTrackers: View {
                     }
                 }
                 
-                if isTraktLoggedIn {
-                    Toggle("Sync watch progress", isOn: $isSendTraktUpdates)
-                        .tint(.accentColor)
-                }
-                
                 Button(isTraktLoggedIn ? "Log Out from Trakt" : "Log In with Trakt") {
                     if isTraktLoggedIn {
                         logoutTrakt()
@@ -121,6 +116,8 @@ struct SettingsViewTrackers: View {
                 }
                 .font(.body)
             }
+            
+            Section(footer: Text("Sora and cranci1 are not affiliated with AniList nor Trakt in any way.\n\nAlso note that progresses update may not be 100% accurate.")) {}
         }
         .navigationTitle("Trackers")
         .onAppear {

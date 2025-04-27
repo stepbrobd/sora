@@ -14,7 +14,48 @@ class ModuleManager: ObservableObject {
     private let modulesFileName = "modules.json"
     
     init() {
+        let url = getModulesFilePath()
+        if (!FileManager.default.fileExists(atPath: url.path)) {
+            do {
+                try "[]".write(to: url, atomically: true, encoding: .utf8)
+                Logger.shared.log("Created empty modules file", type: "Info")
+            } catch {
+                Logger.shared.log("Failed to create modules file: \(error.localizedDescription)", type: "Error")
+            }
+        }
         loadModules()
+        NotificationCenter.default.addObserver(self, selector: #selector(handleModulesSyncCompleted), name: .modulesSyncDidComplete, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func handleModulesSyncCompleted() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            let url = self.getModulesFilePath()
+            guard FileManager.default.fileExists(atPath: url.path) else {
+                Logger.shared.log("No modules file found after sync", type: "Error")
+                self.modules = []
+                return
+            }
+            
+            do {
+                let data = try Data(contentsOf: url)
+                let decodedModules = try JSONDecoder().decode([ScrapingModule].self, from: data)
+                self.modules = decodedModules
+                
+                Task {
+                    await self.checkJSModuleFiles()
+                }
+                Logger.shared.log("Reloaded modules after iCloud sync")
+            } catch {
+                Logger.shared.log("Error handling modules sync: \(error.localizedDescription)", type: "Error")
+                self.modules = []
+            }
+        }
     }
     
     private func getDocumentsDirectory() -> URL {
@@ -27,14 +68,82 @@ class ModuleManager: ObservableObject {
     
     func loadModules() {
         let url = getModulesFilePath()
-        guard let data = try? Data(contentsOf: url) else { return }
-        modules = (try? JSONDecoder().decode([ScrapingModule].self, from: data)) ?? []
+        
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            Logger.shared.log("Modules file does not exist, creating empty one", type: "Info")
+            do {
+                try "[]".write(to: url, atomically: true, encoding: .utf8)
+                modules = []
+            } catch {
+                Logger.shared.log("Failed to create modules file: \(error.localizedDescription)", type: "Error")
+                modules = []
+            }
+            return
+        }
+        
+        do {
+            let data = try Data(contentsOf: url)
+            do {
+                let decodedModules = try JSONDecoder().decode([ScrapingModule].self, from: data)
+                modules = decodedModules
+                
+                Task {
+                    await checkJSModuleFiles()
+                }
+            } catch {
+                Logger.shared.log("Failed to decode modules: \(error.localizedDescription)", type: "Error")
+                try "[]".write(to: url, atomically: true, encoding: .utf8)
+                modules = []
+            }
+        } catch {
+            Logger.shared.log("Failed to load modules file: \(error.localizedDescription)", type: "Error")
+            modules = []
+        }
+    }
+    
+    func checkJSModuleFiles() async {
+        Logger.shared.log("Checking JS module files...", type: "Info")
+        var missingCount = 0
+        
+        for module in modules {
+            let localUrl = getDocumentsDirectory().appendingPathComponent(module.localPath)
+            if !fileManager.fileExists(atPath: localUrl.path) {
+                missingCount += 1
+                do {
+                    guard let scriptUrl = URL(string: module.metadata.scriptUrl) else {
+                        Logger.shared.log("Invalid script URL for module: \(module.metadata.sourceName)", type: "Error")
+                        continue
+                    }
+                    
+                    Logger.shared.log("Downloading missing JS file for: \(module.metadata.sourceName)", type: "Info")
+                    
+                    let (scriptData, _) = try await URLSession.custom.data(from: scriptUrl)
+                    guard let jsContent = String(data: scriptData, encoding: .utf8) else {
+                        Logger.shared.log("Invalid script encoding for module: \(module.metadata.sourceName)", type: "Error")
+                        continue
+                    }
+                    
+                    try jsContent.write(to: localUrl, atomically: true, encoding: .utf8)
+                    Logger.shared.log("Successfully downloaded JS file for module: \(module.metadata.sourceName)")
+                } catch {
+                    Logger.shared.log("Failed to download JS file for module: \(module.metadata.sourceName) - \(error.localizedDescription)", type: "Error")
+                }
+            }
+        }
+        
+        if missingCount > 0 {
+            Logger.shared.log("Downloaded \(missingCount) missing module JS files", type: "Info")
+        } else {
+            Logger.shared.log("All module JS files are present", type: "Info")
+        }
     }
     
     private func saveModules() {
-        let url = getModulesFilePath()
-        guard let data = try? JSONEncoder().encode(modules) else { return }
-        try? data.write(to: url)
+        DispatchQueue.main.async {
+            let url = self.getModulesFilePath()
+            guard let data = try? JSONEncoder().encode(self.modules) else { return }
+            try? data.write(to: url)
+        }
     }
     
     func addModule(metadataUrl: String) async throws -> ScrapingModule {

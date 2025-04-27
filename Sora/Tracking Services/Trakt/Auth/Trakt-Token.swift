@@ -164,5 +164,83 @@ class TraktToken {
         
         return token
     }
+    
+    static func getAccessToken() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: serviceName,
+            kSecAttrAccount as String: accessTokenKey,
+            kSecReturnData as String: true
+        ]
+        
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        
+        guard status == errSecSuccess,
+              let tokenData = result as? Data,
+              let token = String(data: tokenData, encoding: .utf8) else {
+                  return nil
+              }
+        
+        return token
+    }
+    
+    static func validateToken(completion: @escaping (Bool) -> Void) {
+        guard let token = getAccessToken() else {
+            completion(false)
+            return
+        }
+        
+        guard let url = URL(string: "https://api.trakt.tv/users/settings") else {
+            completion(false)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("2", forHTTPHeaderField: "trakt-api-version")
+        request.setValue(clientID, forHTTPHeaderField: "trakt-api-key")
+        
+        let task = URLSession.shared.dataTask(with: request) { _, response, _ in
+            DispatchQueue.main.async {
+                if let httpResponse = response as? HTTPURLResponse {
+                    let isValid = httpResponse.statusCode == 200
+                    completion(isValid)
+                } else {
+                    completion(false)
+                }
+            }
+        }
+        
+        task.resume()
+    }
+    
+    static func validateAndRefreshTokenIfNeeded(completion: @escaping (Bool) -> Void) {
+        if getAccessToken() == nil {
+            if getRefreshToken() != nil {
+                refreshAccessToken(completion: completion)
+            } else {
+                completion(false)
+            }
+            return
+        }
+        
+        validateToken { isValid in
+            if isValid {
+                completion(true)
+            } else {
+                if getRefreshToken() != nil {
+                    refreshAccessToken(completion: completion)
+                } else {
+                    completion(false)
+                }
+            }
+        }
+    }
+    
+    static func checkAuthenticationStatus(completion: @escaping (Bool) -> Void) {
+        validateAndRefreshTokenIfNeeded(completion: completion)
+    }
 }
-

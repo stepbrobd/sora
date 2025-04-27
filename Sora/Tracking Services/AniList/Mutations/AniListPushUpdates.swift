@@ -45,17 +45,19 @@ class AniListMutation {
         }
         
         let query = """
-        mutation ($mediaId: Int, $progress: Int) {
-          SaveMediaListEntry (mediaId: $mediaId, progress: $progress) {
+        mutation ($mediaId: Int, $progress: Int, $status: MediaListStatus) {
+          SaveMediaListEntry (mediaId: $mediaId, progress: $progress, status: $status) {
             id
             progress
+            status
           }
         }
         """
         
         let variables: [String: Any] = [
             "mediaId": animeId,
-            "progress": episodeNumber
+            "progress": episodeNumber,
+            "status": "CURRENT"
         ]
         
         let requestBody: [String: Any] = [
@@ -100,5 +102,51 @@ class AniListMutation {
         }
         
         task.resume()
+    }
+    
+    func fetchMalID(animeId: Int, completion: @escaping (Result<Int, Error>) -> Void) {
+        let query = """
+        query ($id: Int) {
+          Media(id: $id) {
+            idMal
+          }
+        }
+        """
+        let variables: [String: Any] = ["id": animeId]
+        let requestBody: [String: Any] = [
+            "query": query,
+            "variables": variables
+        ]
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: requestBody, options: []) else {
+            completion(.failure(NSError(domain: "", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to serialize GraphQL request"])))
+            return
+        }
+
+        var request = URLRequest(url: apiURL)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = jsonData
+
+        URLSession.shared.dataTask(with: request) { data, resp, error in
+            if let e = error {
+                return completion(.failure(e))
+            }
+            guard let data = data,
+                  let json = try? JSONDecoder().decode(AniListMediaResponse.self, from: data),
+                  let mal = json.data.Media?.idMal else {
+                return completion(.failure(NSError(domain: "", code: -1,
+                    userInfo: [NSLocalizedDescriptionKey: "Failed to decode AniList response or idMal missing"])))
+            }
+            completion(.success(mal))
+        }.resume()
+    }
+    
+    private struct AniListMediaResponse: Decodable {
+        struct DataField: Decodable {
+            struct Media: Decodable { let idMal: Int? }
+            let Media: Media?
+        }
+        let data: DataField
     }
 }

@@ -16,8 +16,8 @@ struct SettingsViewPlayer: View {
     @AppStorage("skipIncrementHold") private var skipIncrementHold: Double = 30.0
     @AppStorage("holdForPauseEnabled") private var holdForPauseEnabled = false
     @AppStorage("skip85Visible") private var skip85Visible: Bool = true
-    @AppStorage("doubleTapSeekEnabled") private var doubleTapSeekEnabled: Bool = true
-
+    @AppStorage("doubleTapSeekEnabled") private var doubleTapSeekEnabled: Bool = false
+    @AppStorage("skipIntroOutroVisible") private var skipIntroOutroVisible: Bool = true
     
     private let mediaPlayers = ["Default", "VLC", "OutPlayer", "Infuse", "nPlayer", "Sora"]
     
@@ -54,13 +54,35 @@ struct SettingsViewPlayer: View {
                     Spacer()
                     Stepper(
                         value: $holdSpeedPlayer,
-                        in: 0.25...2.0,
+                        in: 0.25...2.5,
                         step: 0.25
                     ) {
                         Text(String(format: "%.2f", holdSpeedPlayer))
                     }
                 }
             }
+            
+            Section(header: Text("Progress bar Marker Color")) {
+                ColorPicker("Segments Color", selection: Binding(
+                    get: {
+                        if let data = UserDefaults.standard.data(forKey: "segmentsColorData"),
+                           let uiColor = try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? UIColor {
+                            return Color(uiColor)
+                        }
+                        return .yellow
+                    },
+                    set: { newColor in
+                        let uiColor = UIColor(newColor)
+                        if let data = try? NSKeyedArchiver.archivedData(
+                            withRootObject: uiColor,
+                            requiringSecureCoding: false
+                        ) {
+                            UserDefaults.standard.set(data, forKey: "segmentsColorData")
+                        }
+                    }
+                ))
+            }
+            
             Section(header: Text("Skip Settings"), footer : Text("Double tapping the screen on it's sides will skip with the short tap setting.")) {
                 HStack {
                     Text("Tap Skip:")
@@ -79,6 +101,9 @@ struct SettingsViewPlayer: View {
                 
                 Toggle("Show Skip 85s Button", isOn: $skip85Visible)
                     .tint(.accentColor)
+                
+                Toggle("Show Skip Intro / Outro Buttons", isOn: $skipIntroOutroVisible)
+                    .tint(.accentColor)
             }
             SubtitleSettingsSection()
         }
@@ -92,6 +117,7 @@ struct SubtitleSettingsSection: View {
     @State private var shadowRadius: Double = SubtitleSettingsManager.shared.settings.shadowRadius
     @State private var backgroundEnabled: Bool = SubtitleSettingsManager.shared.settings.backgroundEnabled
     @State private var bottomPadding: CGFloat = SubtitleSettingsManager.shared.settings.bottomPadding
+    @State private var subtitleDelay: Double = SubtitleSettingsManager.shared.settings.subtitleDelay
 
     private let colors = ["white", "yellow", "green", "blue", "red", "purple"]
     private let shadowOptions = [0, 1, 3, 6]
@@ -160,6 +186,28 @@ struct SubtitleSettingsSection: View {
                             settings.bottomPadding = newValue
                         }
                     }
+            }
+            
+            VStack(alignment: .leading) {
+                Text("Subtitle Delay: \(String(format: "%.1fs", subtitleDelay))")
+                    .padding(.bottom, 1)
+                
+                HStack {
+                    Text("-10s")
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                    
+                    Slider(value: $subtitleDelay, in: -10...10, step: 0.1)
+                        .onChange(of: subtitleDelay) { newValue in
+                            SubtitleSettingsManager.shared.update { settings in
+                                settings.subtitleDelay = newValue
+                            }
+                        }
+                    
+                    Text("+10s")
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                }
             }
         }
     }
