@@ -59,7 +59,8 @@ struct MediaInfoView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var orientationChanged: Bool = false
-    
+    @StateObject private var downloadManager = DownloadManager()
+
     private var isGroupedBySeasons: Bool {
         return groupedEpisodes().count > 1
     }
@@ -329,6 +330,9 @@ struct MediaInfoView: View {
                                                         
                                                         refreshTrigger.toggle()
                                                         Logger.shared.log("Marked episodes watched within season \(selectedSeason + 1) of \"\(title)\".", type: "General")
+                                                    },
+                                                    onDownload: {
+                                                        self.downloadEpisode(href: ep.href, episodeNumber: ep.number)
                                                     }
                                                 )
                                                 .id(refreshTrigger)
@@ -379,6 +383,9 @@ struct MediaInfoView: View {
                                                     
                                                     refreshTrigger.toggle()
                                                     Logger.shared.log("Marked \(ep.number - 1) episodes watched within series \"\(title)\".", type: "General")
+                                                },
+                                                onDownload: {
+                                                    self.downloadEpisode(href: ep.href, episodeNumber: ep.number)
                                                 }
                                             )
                                             .id(refreshTrigger)
@@ -1024,6 +1031,74 @@ struct MediaInfoView: View {
                 Logger.shared.log("Set custom AniList ID: \(id)", type: "General")
             }
         })
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first,
+           let rootVC = window.rootViewController {
+            findTopViewController.findViewController(rootVC).present(alert, animated: true)
+        }
+    }
+    
+    private func downloadEpisode(href: String, episodeNumber: Int) {
+        let downloadID = UUID()
+        activeFetchID = downloadID
+        currentStreamTitle = "Episode \(episodeNumber)"
+        showStreamLoadingView = true
+        
+        Task {
+            do {
+                let jsContent = try moduleManager.getModuleContent(module)
+                jsController.loadScript(jsContent)
+                
+                jsController.fetchStreamUrl(episodeUrl: href, module: module) { result in
+                    guard self.activeFetchID == downloadID else { return }
+                    
+                    if let streams = result.streams, !streams.isEmpty {
+                        // If there are multiple streams, show selection dialog
+                        if streams.count > 1 {
+                            DispatchQueue.main.async {
+                                self.showDownloadStreamSelection(streams: streams)
+                            }
+                        } else {
+                            // If there's only one stream, download it directly
+                            if let url = URL(string: streams[0]) {
+                                DispatchQueue.main.async {
+                                    self.downloadManager.downloadAsset(from: url, module: self.module)
+                                }
+                            }
+                        }
+                    }
+                    
+                    DispatchQueue.main.async {
+                        self.showStreamLoadingView = false
+                        self.activeFetchID = nil
+                    }
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.showStreamLoadingView = false
+                    self.activeFetchID = nil
+                    Logger.shared.log("Download error: \(error)", type: "Error")
+                }
+            }
+        }
+    }
+    
+    private func showDownloadStreamSelection(streams: [String]) {
+        let alert = UIAlertController(title: "Select Stream to Download",
+                                      message: "Choose a stream quality",
+                                      preferredStyle: .actionSheet)
+        
+        for (index, stream) in streams.enumerated() {
+            let action = UIAlertAction(title: "Stream \(index + 1)", style: .default) { _ in
+                if let url = URL(string: stream) {
+                    self.downloadManager.downloadAsset(from: url, module: self.module)
+                }
+            }
+            alert.addAction(action)
+        }
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let window = windowScene.windows.first,

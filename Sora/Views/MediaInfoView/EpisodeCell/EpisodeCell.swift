@@ -23,6 +23,7 @@ struct EpisodeCell: View {
     
     let onTap: (String) -> Void
     let onMarkAllPrevious: () -> Void
+    let onDownload: () -> Void
     
     @State private var episodeTitle: String = ""
     @State private var episodeImageUrl: String = ""
@@ -35,12 +36,12 @@ struct EpisodeCell: View {
     var defaultBannerImage: String {
         let isLightMode = selectedAppearance == .light || (selectedAppearance == .system && colorScheme == .light)
         return isLightMode
-            ? "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/dev/assets/banner1.png"
-            : "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/dev/assets/banner2.png"
+        ? "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/dev/assets/banner1.png"
+        : "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/dev/assets/banner2.png"
     }
     
     init(episodeIndex: Int, episode: String, episodeID: Int, progress: Double,
-         itemID: Int, onTap: @escaping (String) -> Void, onMarkAllPrevious: @escaping () -> Void) {
+         itemID: Int, onTap: @escaping (String) -> Void, onMarkAllPrevious: @escaping () -> Void, onDownload: @escaping () -> Void) {  // Add the new parameter
         self.episodeIndex = episodeIndex
         self.episode = episode
         self.episodeID = episodeID
@@ -48,6 +49,7 @@ struct EpisodeCell: View {
         self.itemID = itemID
         self.onTap = onTap
         self.onMarkAllPrevious = onMarkAllPrevious
+        self.onDownload = onDownload
     }
     
     var body: some View {
@@ -98,6 +100,10 @@ struct EpisodeCell: View {
                 Button(action: onMarkAllPrevious) {
                     Label("Mark All Previous Watched", systemImage: "checkmark.circle.fill")
                 }
+            }
+            
+            Button(action: onDownload) {
+                Label("Download Episode", systemImage: "arrow.down.circle")
             }
         }
         .onAppear {
