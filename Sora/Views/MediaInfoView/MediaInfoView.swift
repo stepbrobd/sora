@@ -643,119 +643,41 @@ struct MediaInfoView: View {
         currentStreamTitle = "Episode \(selectedEpisodeNumber)"
         showStreamLoadingView = true
         isFetchingEpisode = true
+        let completion: ((streams: [String]?, subtitles: [String]?, sources: [[String: Any]]?)) -> Void = { result in
+            guard self.activeFetchID == fetchID else { return }
+            if let streams = result.sources, !streams.isEmpty{
+                if streams.count > 1 {
+                    self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first)
+                } else {
+                    self.playStream(url: streams[0]["streamUrl"] as? String ?? "", fullURL: href, subtitles: streams[0]["subtitle"] as? String ?? "",headers: streams[0]["headers"] as! [String : String])
+                }
+            }
+            else if let streams = result.streams, !streams.isEmpty {
+                if streams.count > 1 {
+                    self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first)
+                } else {
+                    self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
+                }
+            } else {
+                self.handleStreamFailure(error: nil)
+            }
+            DispatchQueue.main.async {
+                self.isFetchingEpisode = false
+            }
+        }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             Task {
                 do {
                     let jsContent = try moduleManager.getModuleContent(module)
                     jsController.loadScript(jsContent)
-                    
-                    if module.metadata.softsub == true {
-                        if module.metadata.asyncJS == true {
-                            jsController.fetchStreamUrlJS(episodeUrl: href, softsub: true, module: module) { result in
-                                guard self.activeFetchID == fetchID else { return }
-                                
-                                if let streams = result.streams, !streams.isEmpty {
-                                    if streams.count > 1 {
-                                        self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first)
-                                    } else {
-                                        self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
-                                    }
-                                } else {
-                                    self.handleStreamFailure(error: nil)
-                                }
-                                DispatchQueue.main.async {
-                                    self.isFetchingEpisode = false
-                                }
-                            }
-                        } else if module.metadata.streamAsyncJS == true {
-                            jsController.fetchStreamUrlJSSecond(episodeUrl: href, softsub: true, module: module) { result in
-                                guard self.activeFetchID == fetchID else { return }
-                                
-                                if let streams = result.streams, !streams.isEmpty {
-                                    if streams.count > 1 {
-                                        self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first)
-                                    } else {
-                                        self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
-                                    }
-                                } else {
-                                    self.handleStreamFailure(error: nil)
-                                }
-                                DispatchQueue.main.async {
-                                    self.isFetchingEpisode = false
-                                }
-                            }
-                        } else {
-                            jsController.fetchStreamUrl(episodeUrl: href, softsub: true, module: module) { result in
-                                guard self.activeFetchID == fetchID else { return }
-                                
-                                if let streams = result.streams, !streams.isEmpty {
-                                    if streams.count > 1 {
-                                        self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first)
-                                    } else {
-                                        self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
-                                    }
-                                } else {
-                                    self.handleStreamFailure(error: nil)
-                                }
-                                DispatchQueue.main.async {
-                                    self.isFetchingEpisode = false
-                                }
-                            }
-                        }
+                    if module.metadata.asyncJS == true {
+                        jsController.fetchStreamUrlJS(episodeUrl: href, softsub: module.metadata.softsub == true, module: module, completion: completion)
+                    } else if module.metadata.streamAsyncJS == true {
+                        jsController.fetchStreamUrlJSSecond(episodeUrl: href, softsub: module.metadata.softsub == true, module: module, completion: completion)
                     } else {
-                        if module.metadata.asyncJS == true {
-                            jsController.fetchStreamUrlJS(episodeUrl: href, module: module) { result in
-                                guard self.activeFetchID == fetchID else { return }
-                                
-                                if let streams = result.streams, !streams.isEmpty {
-                                    if streams.count > 1 {
-                                        self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first)
-                                    } else {
-                                        self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
-                                    }
-                                } else {
-                                    self.handleStreamFailure(error: nil)
-                                }
-                                DispatchQueue.main.async {
-                                    self.isFetchingEpisode = false
-                                }
-                            }
-                        } else if module.metadata.streamAsyncJS == true {
-                            jsController.fetchStreamUrlJSSecond(episodeUrl: href, module: module) { result in
-                                guard self.activeFetchID == fetchID else { return }
-                                
-                                if let streams = result.streams, !streams.isEmpty {
-                                    if streams.count > 1 {
-                                        self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first)
-                                    } else {
-                                        self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
-                                    }
-                                } else {
-                                    self.handleStreamFailure(error: nil)
-                                }
-                                DispatchQueue.main.async {
-                                    self.isFetchingEpisode = false
-                                }
-                            }
-                        } else {
-                            jsController.fetchStreamUrl(episodeUrl: href, module: module) { result in
-                                guard self.activeFetchID == fetchID else { return }
-                                
-                                if let streams = result.streams, !streams.isEmpty {
-                                    if streams.count > 1 {
-                                        self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first)
-                                    } else {
-                                        self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first)
-                                    }
-                                } else {
-                                    self.handleStreamFailure(error: nil)
-                                }
-                                DispatchQueue.main.async {
-                                    self.isFetchingEpisode = false
-                                }
-                            }
-                        }
+                        jsController.fetchStreamUrl(episodeUrl: href, softsub: module.metadata.softsub == true, module: module, completion: completion)
                     }
+
                 } catch {
                     self.handleStreamFailure(error: error)
                     DispatchQueue.main.async {
@@ -779,9 +701,10 @@ struct MediaInfoView: View {
         self.isLoading = false
     }
     
-    func showStreamSelectionAlert(streams: [String], fullURL: String, subtitles: String? = nil) {
+    func showStreamSelectionAlert(streams: [Any], fullURL: String, subtitles: String? = nil) {
         self.isFetchingEpisode = false
         self.showStreamLoadingView = false
+        print("MULTIPLE STREAMS \(streams)")
         DispatchQueue.main.async {
             let alert = UIAlertController(title: "Select Server", message: "Choose a server to play from", preferredStyle: .actionSheet)
             
@@ -789,27 +712,46 @@ struct MediaInfoView: View {
             var streamIndex = 1
             
             while index < streams.count {
-                let title: String
-                let streamUrl: String
-                
-                if index + 1 < streams.count {
-                    if !streams[index].lowercased().contains("http") {
-                        title = streams[index]
-                        streamUrl = streams[index + 1]
-                        index += 2
+                var title: String = ""
+                var streamUrl: String = ""
+                var headers: [String:String]? = nil
+                if let streams = streams as? [String]
+                {
+                    if index + 1 < streams.count {
+                        if !streams[index].lowercased().contains("http") {
+                            title = streams[index]
+                            streamUrl = streams[index + 1]
+                            index += 2
+                        } else {
+                            title = "Stream \(streamIndex)"
+                            streamUrl = streams[index]
+                            index += 1
+                        }
                     } else {
                         title = "Stream \(streamIndex)"
                         streamUrl = streams[index]
                         index += 1
                     }
-                } else {
-                    title = "Stream \(streamIndex)"
-                    streamUrl = streams[index]
+                }
+                else if let streams = streams as? [[String: Any]]
+                {
+                    if let currTitle = streams[index]["title"] as? String
+                    {
+                        title = currTitle
+                        streamUrl = (streams[index]["streamUrl"] as? String)!
+                    }
+                    else
+                    {
+                        title = "Stream \(streamIndex)"
+                        streamUrl = (streams[index]["streamUrl"] as? String)!
+                    }
+                    headers = streams[index]["headers"] as? [String:String] ?? [:]
                     index += 1
                 }
+
                 
                 alert.addAction(UIAlertAction(title: title, style: .default) { _ in
-                    self.playStream(url: streamUrl, fullURL: fullURL, subtitles: subtitles)
+                    self.playStream(url: streamUrl, fullURL: fullURL, subtitles: subtitles,headers: headers)
                 })
                 
                 streamIndex += 1
@@ -843,7 +785,7 @@ struct MediaInfoView: View {
         }
     }
     
-    func playStream(url: String, fullURL: String, subtitles: String? = nil) {
+    func playStream(url: String, fullURL: String, subtitles: String? = nil,headers: [String:String]? = nil) {
         self.isFetchingEpisode = false
         self.showStreamLoadingView = false
         DispatchQueue.main.async {
@@ -861,6 +803,7 @@ struct MediaInfoView: View {
                 scheme = "nplayer-\(url)"
             case "Default":
                 let videoPlayerViewController = VideoPlayerViewController(module: module)
+                videoPlayerViewController.headers = headers
                 videoPlayerViewController.streamUrl = url
                 videoPlayerViewController.fullUrl = fullURL
                 videoPlayerViewController.episodeNumber = selectedEpisodeNumber
@@ -890,6 +833,7 @@ struct MediaInfoView: View {
                 }
                 
                 let customMediaPlayer = CustomMediaPlayerViewController(
+                    
                     module: module,
                     urlString: url.absoluteString,
                     fullUrl: fullURL,
@@ -900,7 +844,8 @@ struct MediaInfoView: View {
                     },
                     subtitlesURL: subtitles,
                     aniListID: itemID ?? 0,
-                    episodeImageUrl: selectedEpisodeImage
+                    episodeImageUrl: selectedEpisodeImage,
+                    headers: headers ?? nil
                 )
                 customMediaPlayer.modalPresentationStyle = .fullScreen
                 Logger.shared.log("Opening custom media player with url: \(url)")
