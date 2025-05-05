@@ -738,7 +738,7 @@ struct MediaInfoView: View {
                     if let currTitle = streams[index]["title"] as? String
                     {
                         title = currTitle
-                        streamUrl = (streams[index]["streamUrl"] as? String)!
+                        streamUrl = (streams[index]["streamUrl"] as? String) ?? ""
                     }
                     else
                     {
