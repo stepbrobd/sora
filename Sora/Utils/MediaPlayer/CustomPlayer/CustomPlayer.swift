@@ -22,6 +22,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     let subtitlesURL: String?
     let onWatchNext: () -> Void
     let aniListID: Int
+    var headers: [String:String]? = nil
     
     private var aniListUpdatedSuccessfully = false
     private var aniListUpdateImpossible: Bool = false
@@ -177,7 +178,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
          onWatchNext: @escaping () -> Void,
          subtitlesURL: String?,
          aniListID: Int,
-         episodeImageUrl: String) {
+         episodeImageUrl: String,headers:[String:String]?) {
         
         self.module = module
         self.streamURL = urlString
@@ -188,6 +189,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         self.onWatchNext = onWatchNext
         self.subtitlesURL = subtitlesURL
         self.aniListID = aniListID
+        self.headers = headers
         
         super.init(nibName: nil, bundle: nil)
         
@@ -196,8 +198,18 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         }
         
         var request = URLRequest(url: url)
-        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
-        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
+        if let mydict = headers, !mydict.isEmpty
+        {
+            for (key,value) in mydict
+            {
+                request.addValue(value, forHTTPHeaderField: key)
+            }
+        }
+        else
+        {
+            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
+            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
+        }
         request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
                          forHTTPHeaderField: "User-Agent")
         
@@ -1380,7 +1392,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                         fullUrl: self.fullUrl,
                         subtitles: self.subtitlesURL,
                         aniListID: self.aniListID,
-                        module: self.module
+                        module: self.module,
+                        headers: self.headers
                     )
                     ContinueWatchingManager.shared.save(item: item)
                 }
@@ -1712,8 +1725,18 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     private func parseM3U8(url: URL, completion: @escaping () -> Void) {
         var request = URLRequest(url: url)
-        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
-        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
+        if let mydict = headers, !mydict.isEmpty
+        {
+            for (key,value) in mydict
+            {
+                request.addValue(value, forHTTPHeaderField: key)
+            }
+        }
+        else
+        {
+            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
+            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
+        }
         request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
                          forHTTPHeaderField: "User-Agent")
         
@@ -1799,8 +1822,18 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         let wasPlaying = player.rate > 0
         
         var request = URLRequest(url: url)
-        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
-        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
+        if let mydict = headers, !mydict.isEmpty
+        {
+            for (key,value) in mydict
+            {
+                request.addValue(value, forHTTPHeaderField: key)
+            }
+        }
+        else
+        {
+            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
+            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
+        }
         request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
                          forHTTPHeaderField: "User-Agent")
         
