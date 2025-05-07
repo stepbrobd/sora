@@ -61,9 +61,12 @@ Sora does not include any modules by default. You will need to find and add the 
 
 ## Acknowledgements
 
+FrameWorks:
 - [KingFisher](https://github.com/onevcat/Kingfisher) - MIT License
 - [Drops](https://github.com/omaralbeik/Drops) - MIT License
+- [MarqueeLabel](https://github.com/cbpowell/MarqueeLabel) - MIT License
 
+Misc:
 - [50/50](https://github.com/50n50) for the app icon
 
 ## License
