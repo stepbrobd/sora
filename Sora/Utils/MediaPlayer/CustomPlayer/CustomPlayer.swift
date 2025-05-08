@@ -169,6 +169,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     private var volumeViewModel = VolumeViewModel()
     var volumeSliderHostingView: UIView?
     private var subtitleDelay: Double = 0.0
+    var currentPlaybackSpeed: Float = 1.0
     
     init(module: ScrapingModule,
          urlString: String,
@@ -1486,9 +1487,9 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         currentMenuButtonTrailing.isActive = false
         
         let anchor: NSLayoutXAxisAnchor
-        if !qualityButton.isHidden {
+        if (!qualityButton.isHidden) {
             anchor = qualityButton.leadingAnchor
-        } else if !speedButton.isHidden {
+        } else if (!speedButton.isHidden) {
             anchor = speedButton.leadingAnchor
         } else {
             anchor = controlsContainerView.trailingAnchor
@@ -1585,6 +1586,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     @objc func togglePlayPause() {
         if isPlaying {
+            currentPlaybackSpeed = player.rate
             player.pause()
             isPlaying = false
             playPauseButton.image = UIImage(systemName: "play.fill")
@@ -1601,6 +1603,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             }
         } else {
             player.play()
+            player.rate = currentPlaybackSpeed
             isPlaying = true
             playPauseButton.image = UIImage(systemName: "pause.fill")
         }
