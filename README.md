@@ -24,11 +24,12 @@
 
 - [x] iOS/iPadOS 15.0+ support
 - [x] macOS support 12.0+
-- [x] JavaScript module support
+- [x] JavaScript app Core
+- [ ] Download support (HLS & mp4)
 - [x] Tracking Services (AniList, Trakt)
 - [x] Apple KeyChain support for auth Tokens
 - [x] Streams support (Jellyfin/Plex like servers)
-- [x] External Media players (VLC, infuse, Outplayer, nPlayer, SenPlayer)
+- [x] External Media players (VLC, infuse, Outplayer, nPlayer, SenPlayer, IINA)
 - [x] Background playback and Picture-in-Picture (PiP) support
 
 ## Installation
