@@ -1,5 +1,5 @@
 # Sora
-> Also known as Sulfur, for copyright issues.
+> Also known as Sulfur due to copyright considerations.
 
 <div align="center"> 
 
@@ -7,13 +7,14 @@
 
 [![Build and Release IPA](https://github.com/cranci1/Sora/actions/workflows/build.yml/badge.svg)](https://github.com/cranci1/Sora/actions/workflows/build.yml) [![Discord](https://img.shields.io/discord/1293430817841741899.svg?logo=discord&color=blue)](https://discord.gg/XR3SrmUbpd) [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2015.0%2B%20%26%20macOS%2012.0%2B-red?logo=apple&logoColor=white)](https://img.shields.io/badge/Platform-iOS%20%7C%20iPadOS%2015.0%2B%20%26%20macOS%2012.0%2B-red?logo=apple&logoColor=white)
 
-An iOS and macOS modular web scraping app, under the GPLv3.0 License.
+**An iOS and macOS modular web scraping app, under the GPLv3.0 License.**
 
 </div>
 
 ## Table of Contents
 
 - [Features](#features)
+- [Installation](#installation)
 - [Frequently Asked Questions](#frequently-asked-questions)
 - [Acknowledgements](#acknowledgements)
 - [License](#license)
@@ -22,13 +23,28 @@ An iOS and macOS modular web scraping app, under the GPLv3.0 License.
 ## Features
 
 - [x] iOS/iPadOS 15.0+ support
-- [x] macOS support 12.0+
-- [x] JavaScript module support
+- [x] macOS 12.0+ support
+- [x] JavaScript Main Core
+- [ ] Download support (HLS & MP4)
 - [x] Tracking Services (AniList, Trakt)
 - [x] Apple KeyChain support for auth Tokens
 - [x] Streams support (Jellyfin/Plex like servers)
-- [x] External Media players (VLC, infuse, Outplayer, nPlayer)
+- [x] External media player support (VLC, Infuse, Outplayer, nPlayer, SenPlayer, IINA)
 - [x] Background playback and Picture-in-Picture (PiP) support
+
+## Installation
+
+You can download Sora on the App Store for stable updates or on Testflight for more updates but maybe some instability. (Testflight is recommended):
+
+<a href="https://apps.apple.com/us/app/sulfur/id6742741043">
+  <img src="https://askyourself.app/assets/appstore.png" width="170" alt="Build and Release IPA">
+</a>
+
+<a href="https://testflight.apple.com/join/qMUCpNaS">
+  <img src="https://askyourself.app/assets/testflight.png" width="170" alt="Build and Release IPA">
+</a>
+
+Additionally, you can install the app using Xcode or using the .ipa file, which you can find in the [Releases](https://github.com/cranci1/Sora/releases) tab or the [nightly](https://nightly.link/cranci1/Sora/workflows/build/dev/Sulfur-IPA.zip) build page.
 
 ## Frequently Asked Questions
 
@@ -41,14 +57,17 @@ Yes, Sora is open-source and prioritizes user privacy. It does not store user da
 3. **Will Sora ever be paid?**
 No, Sora will always remain free without subscriptions, paid content, or any type of login.
 
-4. **How can i get module?**
-Sora does not include any modules by default. You will need to find and add the necessary modules yourself, or make them.
+4. **How can I get modules?**
+Sora does not include any modules by default. You will need to find and add the necessary modules yourself, or create your own.
 
 ## Acknowledgements
 
+Frameworks:
 - [KingFisher](https://github.com/onevcat/Kingfisher) - MIT License
 - [Drops](https://github.com/omaralbeik/Drops) - MIT License
+- [MarqueeLabel](https://github.com/cbpowell/MarqueeLabel) - MIT License
 
+Misc:
 - [50/50](https://github.com/50n50) for the app icon
 
 ## License
@@ -86,4 +105,4 @@ This software is not affiliated with or endorsed by any third-party entity. Any 
 
 ### DMCA
 
-The developer(s) is not responsible for the misuse of any content inside or outside the app and shall not be responsible for the dissemination of any content within the app. Any violations should be send to the source website or module creator. The developer is not legally responsible for any module used inside the app.
+The developer(s) are not responsible for the misuse of any content inside or outside the app and shall not be responsible for the dissemination of any content within the app. Any violations should be sent to the source website or module creator. The developer is not legally responsible for any module used inside the app.

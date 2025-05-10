@@ -22,6 +22,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     let subtitlesURL: String?
     let onWatchNext: () -> Void
     let aniListID: Int
+    var headers: [String:String]? = nil
     
     private var aniListUpdatedSuccessfully = false
     private var aniListUpdateImpossible: Bool = false
@@ -168,6 +169,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     private var volumeViewModel = VolumeViewModel()
     var volumeSliderHostingView: UIView?
     private var subtitleDelay: Double = 0.0
+    var currentPlaybackSpeed: Float = 1.0
     
     init(module: ScrapingModule,
          urlString: String,
@@ -177,7 +179,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
          onWatchNext: @escaping () -> Void,
          subtitlesURL: String?,
          aniListID: Int,
-         episodeImageUrl: String) {
+         episodeImageUrl: String,headers:[String:String]?) {
         
         self.module = module
         self.streamURL = urlString
@@ -188,6 +190,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         self.onWatchNext = onWatchNext
         self.subtitlesURL = subtitlesURL
         self.aniListID = aniListID
+        self.headers = headers
         
         super.init(nibName: nil, bundle: nil)
         
@@ -196,8 +199,18 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         }
         
         var request = URLRequest(url: url)
-        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
-        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
+        if let mydict = headers, !mydict.isEmpty
+        {
+            for (key,value) in mydict
+            {
+                request.addValue(value, forHTTPHeaderField: key)
+            }
+        }
+        else
+        {
+            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
+            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
+        }
         request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
                          forHTTPHeaderField: "User-Agent")
         
@@ -939,26 +952,36 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         sliderViewModel.outroSegments.removeAll()
         
         if let op = skipIntervals.op {
-            let start = max(0, op.start.seconds / duration)
-            let end = min(1, op.end.seconds / duration)
-            sliderViewModel.introSegments.append(start...end)
+            let start = max(0, op.start.seconds / max(duration, 0.01))
+            let end = min(1, op.end.seconds / max(duration, 0.01))
+            
+            if start <= end {
+                sliderViewModel.introSegments.append(start...end)
+            }
         }
         
         if let ed = skipIntervals.ed {
-            let start = max(0, ed.start.seconds / duration)
-            let end = min(1, ed.end.seconds / duration)
-            sliderViewModel.outroSegments.append(start...end)
+            let start = max(0, ed.start.seconds / max(duration, 0.01))
+            let end = min(1, ed.end.seconds / max(duration, 0.01))
+            
+            if start <= end {
+                sliderViewModel.outroSegments.append(start...end)
+            }
         }
         
         let segmentsColor = self.getSegmentsColor()
         
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            let validDuration = max(self.duration, 0.01)
+            
             self.sliderHostingController?.rootView = MusicProgressSlider(
                 value: Binding(
-                    get: { max(0, min(self.sliderViewModel.sliderValue, self.duration)) }, // Remove extra ')'
-                    set: { self.sliderViewModel.sliderValue = max(0, min($0, self.duration)) } // Remove extra ')'
+                    get: { max(0, min(self.sliderViewModel.sliderValue, validDuration)) },
+                    set: { self.sliderViewModel.sliderValue = max(0, min($0, validDuration)) }
                 ),
-                inRange: 0...(self.duration > 0 ? self.duration : 1.0),
+                inRange: 0...validDuration,
                 activeFillColor: .white,
                 fillColor: .white.opacity(0.6),
                 textColor: .white.opacity(0.7),
@@ -967,22 +990,13 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                 onEditingChanged: { editing in
                     if editing {
                         self.isSliderEditing = true
-                        
                         self.wasPlayingBeforeSeek = (self.player.timeControlStatus == .playing)
                         self.originalRate = self.player.rate
-                        
                         self.player.pause()
                     } else {
-                        
-                        let target = CMTime(seconds: self.sliderViewModel.sliderValue,
-                                            preferredTimescale: 600)
-                        self.player.seek(
-                            to: target,
-                            toleranceBefore: .zero,
-                            toleranceAfter: .zero
-                        ) { [weak self] _ in
+                        let target = CMTime(seconds: self.sliderViewModel.sliderValue, preferredTimescale: 600)
+                        self.player.seek(to: target, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
                             guard let self = self else { return }
-                            
                             let final = self.player.currentTime().seconds
                             self.sliderViewModel.sliderValue = final
                             self.currentTimeVal = final
@@ -1380,7 +1394,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                         fullUrl: self.fullUrl,
                         subtitles: self.subtitlesURL,
                         aniListID: self.aniListID,
-                        module: self.module
+                        module: self.module,
+                        headers: self.headers
                     )
                     ContinueWatchingManager.shared.save(item: item)
                 }
@@ -1473,9 +1488,9 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         currentMenuButtonTrailing.isActive = false
         
         let anchor: NSLayoutXAxisAnchor
-        if !qualityButton.isHidden {
+        if (!qualityButton.isHidden) {
             anchor = qualityButton.leadingAnchor
-        } else if !speedButton.isHidden {
+        } else if (!speedButton.isHidden) {
             anchor = speedButton.leadingAnchor
         } else {
             anchor = controlsContainerView.trailingAnchor
@@ -1572,6 +1587,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     @objc func togglePlayPause() {
         if isPlaying {
+            currentPlaybackSpeed = player.rate
             player.pause()
             isPlaying = false
             playPauseButton.image = UIImage(systemName: "play.fill")
@@ -1588,6 +1604,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             }
         } else {
             player.play()
+            player.rate = currentPlaybackSpeed
             isPlaying = true
             playPauseButton.image = UIImage(systemName: "pause.fill")
         }
@@ -1712,8 +1729,18 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     private func parseM3U8(url: URL, completion: @escaping () -> Void) {
         var request = URLRequest(url: url)
-        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
-        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
+        if let mydict = headers, !mydict.isEmpty
+        {
+            for (key,value) in mydict
+            {
+                request.addValue(value, forHTTPHeaderField: key)
+            }
+        }
+        else
+        {
+            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
+            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
+        }
         request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
                          forHTTPHeaderField: "User-Agent")
         
@@ -1799,8 +1826,18 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         let wasPlaying = player.rate > 0
         
         var request = URLRequest(url: url)
-        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
-        request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
+        if let mydict = headers, !mydict.isEmpty
+        {
+            for (key,value) in mydict
+            {
+                request.addValue(value, forHTTPHeaderField: key)
+            }
+        }
+        else
+        {
+            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
+            request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
+        }
         request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
                          forHTTPHeaderField: "User-Agent")
         
