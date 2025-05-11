@@ -467,7 +467,7 @@ struct MediaInfoView: View {
                 showStreamLoadingView = false
             }
         } message: {
-            VStack {
+            HStack {
                 Text("Loading Episode \(selectedEpisodeNumber)...")
                 ProgressView()
                     .padding(.top, 8)

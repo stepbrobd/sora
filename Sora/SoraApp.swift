@@ -14,6 +14,10 @@ struct SoraApp: App {
     @StateObject private var librarykManager = LibraryManager()
 
     init() {
+        if let userAccentColor = UserDefaults.standard.color(forKey: "accentColor") {
+            UIView.appearance(whenContainedInInstancesOf: [UIAlertController.self]).tintColor = userAccentColor
+        }
+        
         TraktToken.checkAuthenticationStatus { isAuthenticated in
             if isAuthenticated {
                 Logger.shared.log("Trakt authentication is valid")
