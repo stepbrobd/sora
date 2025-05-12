@@ -300,9 +300,11 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             }
         }
         
+#if os(iOS)
         if #available(iOS 16.0, *) {
             playerViewController.allowsVideoFrameAnalysis = false
         }
+#endif
         
         if let url = subtitlesURL, !url.isEmpty {
             subtitlesLoader.load(from: url)
