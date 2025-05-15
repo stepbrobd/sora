@@ -74,27 +74,6 @@ struct SettingsViewPlayer: View {
                 }
             }
             
-            Section(header: Text("Progress bar Marker Color")) {
-                ColorPicker("Segments Color", selection: Binding(
-                    get: {
-                        if let data = UserDefaults.standard.data(forKey: "segmentsColorData"),
-                           let uiColor = try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? UIColor {
-                            return Color(uiColor)
-                        }
-                        return .yellow
-                    },
-                    set: { newColor in
-                        let uiColor = UIColor(newColor)
-                        if let data = try? NSKeyedArchiver.archivedData(
-                            withRootObject: uiColor,
-                            requiringSecureCoding: false
-                        ) {
-                            UserDefaults.standard.set(data, forKey: "segmentsColorData")
-                        }
-                    }
-                ))
-            }
-            
             Section(header: Text("Skip Settings"), footer : Text("Double tapping the screen on it's sides will skip with the short tap setting.")) {
                 HStack {
                     Text("Tap Skip:")

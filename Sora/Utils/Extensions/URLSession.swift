@@ -7,26 +7,21 @@
 
 import Foundation
 
-class FetchDelegate: NSObject, URLSessionTaskDelegate
-{
+class FetchDelegate: NSObject, URLSessionTaskDelegate {
     private let allowRedirects: Bool
     init(allowRedirects: Bool) {
         self.allowRedirects = allowRedirects
     }
     
     func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
-        if(allowRedirects)
-        {
+        if(allowRedirects) {
             completionHandler(request)
-        }
-        else
-        {
+        } else {
             completionHandler(nil)
         }
-         
     }
-    
 }
+
 extension URLSession {
     static let userAgents = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",

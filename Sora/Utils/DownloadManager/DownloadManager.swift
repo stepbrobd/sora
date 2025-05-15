@@ -222,10 +222,3 @@ struct ActiveDownload: Identifiable {
     var progress: Double
     let task: URLSessionTask
 }
-
-extension URL {
-    static func isValidHLSURL(string: String) -> Bool {
-        guard let url = URL(string: string), url.pathExtension == "m3u8" else { return false }
-        return true
-    }
-}

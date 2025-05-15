@@ -647,7 +647,6 @@ struct MediaInfoView: View {
                     } else {
                         jsController.fetchStreamUrl(episodeUrl: href, softsub: module.metadata.softsub == true, module: module, completion: completion)
                     }
-
                 } catch {
                     self.handleStreamFailure(error: error)
                     DispatchQueue.main.async {
@@ -718,7 +717,7 @@ struct MediaInfoView: View {
                     headers = streams[index]["headers"] as? [String:String] ?? [:]
                     index += 1
                 }
-
+                
                 
                 alert.addAction(UIAlertAction(title: title, style: .default) { _ in
                     self.playStream(url: streamUrl, fullURL: fullURL, subtitles: subtitles,headers: headers)
