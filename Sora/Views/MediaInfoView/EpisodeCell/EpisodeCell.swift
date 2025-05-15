@@ -20,6 +20,7 @@ struct EpisodeCell: View {
     let episodeID: Int
     let progress: Double
     let itemID: Int
+    let module: ScrapingModule
     
     let onTap: (String) -> Void
     let onMarkAllPrevious: () -> Void
@@ -28,6 +29,11 @@ struct EpisodeCell: View {
     @State private var episodeImageUrl: String = ""
     @State private var isLoading: Bool = true
     @State private var currentProgress: Double = 0.0
+    @State private var isFetchingEpisode: Bool = false
+    
+    @StateObject private var jsController = JSController()
+    @EnvironmentObject private var moduleManager: ModuleManager
+    @EnvironmentObject private var downloadManager: DownloadManager
     
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("selectedAppearance") private var selectedAppearance: Appearance = .system
@@ -35,17 +41,19 @@ struct EpisodeCell: View {
     var defaultBannerImage: String {
         let isLightMode = selectedAppearance == .light || (selectedAppearance == .system && colorScheme == .light)
         return isLightMode
-            ? "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/dev/assets/banner1.png"
-            : "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/dev/assets/banner2.png"
+        ? "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/dev/assets/banner1.png"
+        : "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/dev/assets/banner2.png"
     }
     
     init(episodeIndex: Int, episode: String, episodeID: Int, progress: Double,
-         itemID: Int, onTap: @escaping (String) -> Void, onMarkAllPrevious: @escaping () -> Void) {
+         itemID: Int, module: ScrapingModule, onTap: @escaping (String) -> Void,
+         onMarkAllPrevious: @escaping () -> Void) {
         self.episodeIndex = episodeIndex
         self.episode = episode
         self.episodeID = episodeID
         self.progress = progress
         self.itemID = itemID
+        self.module = module
         self.onTap = onTap
         self.onMarkAllPrevious = onMarkAllPrevious
     }
@@ -98,6 +106,10 @@ struct EpisodeCell: View {
                 Button(action: onMarkAllPrevious) {
                     Label("Mark All Previous Watched", systemImage: "checkmark.circle.fill")
                 }
+            }
+            
+            Button(action: downloadEpisode) {
+                Label("Download Episode", systemImage: "arrow.down.circle")
             }
         }
         .onAppear {
@@ -186,5 +198,71 @@ struct EpisodeCell: View {
                 DispatchQueue.main.async { self.isLoading = false }
             }
         }.resume()
+    }
+    
+    private func downloadEpisode() {
+        isFetchingEpisode = true
+        
+        Task {
+            do {
+                let jsContent = try moduleManager.getModuleContent(module)
+                jsController.loadScript(jsContent)
+                
+                if module.metadata.asyncJS == true {
+                    jsController.fetchStreamUrlJS(episodeUrl: episode, softsub: module.metadata.softsub == true, module: module) { result in
+                        if let sources = result.sources, !sources.isEmpty {
+                            let streamUrl = sources[0]["streamUrl"] as? String ?? ""
+                            let headers = sources[0]["headers"] as? [String: String] ?? [:]
+                            self.startDownload(url: streamUrl, headers: headers)
+                        }
+                        else if let streams = result.streams, !streams.isEmpty {
+                            self.startDownload(url: streams[0])
+                        }
+                        DispatchQueue.main.async {
+                            self.isFetchingEpisode = false
+                        }
+                    }
+                } else {
+                    jsController.fetchStreamUrl(episodeUrl: episode, softsub: module.metadata.softsub == true, module: module) { result in
+                        if let sources = result.sources, !sources.isEmpty {
+                            let streamUrl = sources[0]["streamUrl"] as? String ?? ""
+                            let headers = sources[0]["headers"] as? [String: String] ?? [:]
+                            self.startDownload(url: streamUrl, headers: headers)
+                        }
+                        else if let streams = result.streams, !streams.isEmpty {
+                            self.startDownload(url: streams[0])
+                        }
+                        DispatchQueue.main.async {
+                            self.isFetchingEpisode = false
+                        }
+                    }
+                }
+            } catch {
+                Logger.shared.log("Error starting download: \(error)", type: "Error")
+                DispatchQueue.main.async {
+                    self.isFetchingEpisode = false
+                }
+            }
+        }
+    }
+    
+    private func startDownload(url: String, headers: [String: String]? = nil) {
+        guard let streamUrl = URL(string: url) else {
+            Logger.shared.log("Invalid stream URL for download", type: "Error")
+            return
+        }
+        
+        downloadManager.downloadAsset(
+            from: streamUrl,
+            module: module,
+            headers: headers
+        )
+        
+        DropManager.shared.showDrop(
+            title: "Download Started",
+            subtitle: "Episode \(episodeID + 1)",
+            duration: 1.0,
+            icon: UIImage(systemName: "arrow.down.circle.fill")
+        )
     }
 }

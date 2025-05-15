@@ -38,14 +38,6 @@ struct SearchView: View {
         return moduleManager.modules.first { $0.id.uuidString == id }
     }
     
-    private var loadingMessages: [String] = [
-        "Searching the depths...",
-        "Looking for results...",
-        "Fetching data...",
-        "Please wait...",
-        "Almost there..."
-    ]
-    
     private var columnsCount: Int {
         if UIDevice.current.userInterfaceIdiom == .pad {
             let isLandscape = UIScreen.main.bounds.width > UIScreen.main.bounds.height

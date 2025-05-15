@@ -6,22 +6,22 @@
 //
 
 import Foundation
-// URL DELEGATE CLASS FOR FETCH API
+
 class FetchDelegate: NSObject, URLSessionTaskDelegate
 {
     private let allowRedirects: Bool
     init(allowRedirects: Bool) {
         self.allowRedirects = allowRedirects
     }
-    // This handles the redirection and prevents it.
+    
     func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
         if(allowRedirects)
         {
-            completionHandler(request) // Allow Redirect
+            completionHandler(request)
         }
         else
         {
-            completionHandler(nil) // Block Redirect
+            completionHandler(nil)
         }
          
     }
@@ -63,7 +63,7 @@ extension URLSession {
         configuration.httpAdditionalHeaders = ["User-Agent": randomUserAgent]
         return URLSession(configuration: configuration)
     }()
-    // return url session that redirects based on input
+    
     static func fetchData(allowRedirects:Bool) -> URLSession
     {
         let delegate = FetchDelegate(allowRedirects:allowRedirects)
@@ -72,4 +72,3 @@ extension URLSession {
         return URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
     }
 }
-
