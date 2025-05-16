@@ -70,7 +70,7 @@ class DownloadManager: NSObject, ObservableObject {
             for (key, value) in headers {
                 urlRequest.addValue(value, forHTTPHeaderField: key)
             }
-        } else if headers == nil {
+        } else {
             urlRequest.addValue(module.metadata.baseUrl, forHTTPHeaderField: "Origin")
             urlRequest.addValue(module.metadata.baseUrl, forHTTPHeaderField: "Referer")
         }
@@ -171,8 +171,7 @@ extension DownloadManager: AVAssetDownloadDelegate {
     }
     
     func urlSession(_ session: URLSession, assetDownloadTask: AVAssetDownloadTask, didLoad timeRange: CMTimeRange, totalTimeRangesLoaded loadedTimeRanges: [NSValue], timeRangeExpectedToLoad: CMTimeRange) {
-        guard let (originalURL, _) = activeDownloadTasks[assetDownloadTask],
-              let downloadIndex = activeDownloads.firstIndex(where: { $0.originalURL == originalURL }) else { return }
+        guard let (originalURL, _) = activeDownloadTasks[assetDownloadTask], let downloadIndex = activeDownloads.firstIndex(where: { $0.originalURL == originalURL }) else { return }
         
         let progress = loadedTimeRanges
             .map { $0.timeRangeValue.duration.seconds / timeRangeExpectedToLoad.duration.seconds }

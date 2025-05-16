@@ -313,23 +313,24 @@ struct MediaInfoView: View {
                                                     }
                                                 },
                                                 onMarkAllPrevious: {
-                                                    let userDefaults = UserDefaults.standard
-                                                    var updates = [String: Double]()
-                                                    
-                                                    for ep2 in seasons[selectedSeason] where ep2.number < ep.number {
-                                                        let href = ep2.href
-                                                        updates["lastPlayedTime_\(href)"] = 99999999.0
-                                                        updates["totalTime_\(href)"] = 99999999.0
+                                                    DispatchQueue.main.async {
+                                                        let userDefaults = UserDefaults.standard
+                                                        let updates = NSMutableDictionary()
+                                                        
+                                                        for ep2 in seasons[selectedSeason] where ep2.number < ep.number {
+                                                            let href = ep2.href
+                                                            updates.setValue(1000.0, forKey: "lastPlayedTime_\(href)")
+                                                            updates.setValue(1000.0, forKey: "totalTime_\(href)")
+                                                        }
+                                                        
+                                                        userDefaults.setValuesForKeys(updates as! [String: Any])
+                                                        userDefaults.synchronize()
+                                                        
+                                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                                            refreshTrigger.toggle()
+                                                            Logger.shared.log("Marked episodes watched within season \(selectedSeason + 1) of \"\(title)\".", type: "General")
+                                                        }
                                                     }
-                                                    
-                                                    for (key, value) in updates {
-                                                        userDefaults.set(value, forKey: key)
-                                                    }
-                                                    
-                                                    userDefaults.synchronize()
-                                                    
-                                                    refreshTrigger.toggle()
-                                                    Logger.shared.log("Marked episodes watched within season \(selectedSeason + 1) of \"\(title)\".", type: "General")
                                                 }
                                             )
                                                 .id(refreshTrigger)
@@ -364,23 +365,26 @@ struct MediaInfoView: View {
                                                 }
                                             },
                                             onMarkAllPrevious: {
-                                                let userDefaults = UserDefaults.standard
-                                                var updates = [String: Double]()
-                                                
-                                                for idx in 0..<i {
-                                                    if idx < episodeLinks.count {
-                                                        let href = episodeLinks[idx].href
-                                                        updates["lastPlayedTime_\(href)"] = 1000.0
-                                                        updates["totalTime_\(href)"] = 1000.0
+                                                DispatchQueue.main.async {
+                                                    let userDefaults = UserDefaults.standard
+                                                    let updates = NSMutableDictionary()
+                                                    
+                                                    for idx in 0..<i {
+                                                        if idx < episodeLinks.count {
+                                                            let href = episodeLinks[idx].href
+                                                            updates.setValue(1000.0, forKey: "lastPlayedTime_\(href)")
+                                                            updates.setValue(1000.0, forKey: "totalTime_\(href)")
+                                                        }
+                                                    }
+                                                    
+                                                    userDefaults.setValuesForKeys(updates as! [String: Any])
+                                                    userDefaults.synchronize()
+                                                    
+                                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                                        refreshTrigger.toggle()
+                                                        Logger.shared.log("Marked \(ep.number - 1) episodes watched within series \"\(title)\".", type: "General")
                                                     }
                                                 }
-                                                
-                                                for (key, value) in updates {
-                                                    userDefaults.set(value, forKey: key)
-                                                }
-                                                
-                                                refreshTrigger.toggle()
-                                                Logger.shared.log("Marked \(ep.number - 1) episodes watched within series \"\(title)\".", type: "General")
                                             }
                                         )
                                             .id(refreshTrigger)
@@ -454,10 +458,11 @@ struct MediaInfoView: View {
                     }
                 }
                 
+                selectedRange = 0..<episodeChunkSize
+                
                 hasFetched = true
                 AnalyticsManager.shared.sendEvent(event: "search", additionalData: ["title": title])
             }
-            selectedRange = 0..<episodeChunkSize
         }
         .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
             orientationChanged.toggle()
