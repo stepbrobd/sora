@@ -58,7 +58,6 @@ struct MediaInfoView: View {
     @State private var activeFetchID: UUID? = nil
     @Environment(\.dismiss) private var dismiss
     
-    @State private var orientationChanged: Bool = false
     @State private var showLoadingAlert: Bool = false
     
     private var isGroupedBySeasons: Bool {
@@ -426,13 +425,13 @@ struct MediaInfoView: View {
                     .padding()
                     .navigationBarTitleDisplayMode(.inline)
                     .navigationBarTitle("")
-                    .navigationViewStyle(StackNavigationViewStyle())
                 }
                 .onDisappear {
                     activeFetchID = nil
                     isFetchingEpisode = false
                     showStreamLoadingView = false
                 }
+                .navigationViewStyle(StackNavigationViewStyle())
             }
         }
         .onAppear {
@@ -463,9 +462,6 @@ struct MediaInfoView: View {
                 hasFetched = true
                 AnalyticsManager.shared.sendEvent(event: "search", additionalData: ["title": title])
             }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-            orientationChanged.toggle()
         }
         .alert("Loading Stream", isPresented: $showLoadingAlert) {
             Button("Cancel", role: .cancel) {
