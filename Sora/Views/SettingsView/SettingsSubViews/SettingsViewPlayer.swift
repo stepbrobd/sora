@@ -126,13 +126,13 @@ struct SettingsViewPlayer: View {
 struct SubtitleSettingsSection: View {
     @State private var foregroundColor: String = SubtitleSettingsManager.shared.settings.foregroundColor
     @State private var fontSize: Double = SubtitleSettingsManager.shared.settings.fontSize
-    @State private var shadowRadius: Double = SubtitleSettingsManager.shared.settings.shadowRadius
+    @State private var outlineWidth: Double = SubtitleSettingsManager.shared.settings.outlineWidth
+    @State private var outlineColor: String = SubtitleSettingsManager.shared.settings.outlineColor
     @State private var backgroundEnabled: Bool = SubtitleSettingsManager.shared.settings.backgroundEnabled
     @State private var bottomPadding: CGFloat = SubtitleSettingsManager.shared.settings.bottomPadding
     @State private var subtitleDelay: Double = SubtitleSettingsManager.shared.settings.subtitleDelay
 
     private let colors = ["white", "yellow", "green", "blue", "red", "purple"]
-    private let shadowOptions = [0, 1, 3, 6]
 
     var body: some View {
         Section(header: Text("Subtitle Settings")) {
@@ -148,23 +148,6 @@ struct SubtitleSettingsSection: View {
                             }
                         }) {
                             Text(color.capitalized)
-                        }
-                    }
-                }
-            }
-            
-            HStack {
-                Text("Shadow")
-                Spacer()
-                Menu("\(Int(shadowRadius))") {
-                    ForEach(shadowOptions, id: \.self) { option in
-                        Button(action: {
-                            shadowRadius = Double(option)
-                            SubtitleSettingsManager.shared.update { settings in
-                                settings.shadowRadius = Double(option)
-                            }
-                        }) {
-                            Text("\(option)")
                         }
                     }
                 }
@@ -187,6 +170,23 @@ struct SubtitleSettingsSection: View {
                             settings.fontSize = newValue
                         }
                     }
+            }
+            
+            HStack {
+                Text("Outline Color")
+                Spacer()
+                Menu(outlineColor) {
+                    ForEach(colors, id: \.self) { color in
+                        Button(action: {
+                            outlineColor = color
+                            SubtitleSettingsManager.shared.update { settings in
+                                settings.outlineColor = color
+                            }
+                        }) {
+                            Text(color.capitalized)
+                        }
+                    }
+                }
             }
             
             HStack {

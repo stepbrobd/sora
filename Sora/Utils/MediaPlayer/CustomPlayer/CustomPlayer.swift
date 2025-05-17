@@ -70,7 +70,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     var subtitleForegroundColor: String = "white"
     var subtitleBackgroundEnabled: Bool = true
     var subtitleFontSize: Double = 20.0
-    var subtitleShadowRadius: Double = 1.0
+    var subtitleOutlineWidth: Double = 1.0
+    var subtitleOutlineColor: String = "black"
     var subtitlesLoader = VTTSubtitlesLoader()
     var subtitleStackView: UIStackView!
     var subtitleLabels: [UILabel] = []
@@ -1352,10 +1353,33 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             : .clear
             subtitleLabel.layer.cornerRadius = 5
             subtitleLabel.clipsToBounds = true
-            subtitleLabel.layer.shadowColor = UIColor.black.cgColor
-            subtitleLabel.layer.shadowRadius = CGFloat(subtitleShadowRadius)
-            subtitleLabel.layer.shadowOpacity = 1.0
-            subtitleLabel.layer.shadowOffset = .zero
+            
+            if subtitleOutlineWidth > 0 {
+                let textColor = subtitleUIColor()
+                let outlineColor = outlineUIColor()
+                let strokeTextAttributes = [
+                    NSAttributedString.Key.strokeColor: outlineColor,
+                    NSAttributedString.Key.foregroundColor: textColor,
+                    NSAttributedString.Key.strokeWidth: -CGFloat(subtitleOutlineWidth),
+                    NSAttributedString.Key.font: UIFont.systemFont(ofSize: CGFloat(subtitleFontSize), weight: .bold)
+                ] as [NSAttributedString.Key : Any]
+                
+                if let text = subtitleLabel.text {
+                    subtitleLabel.attributedText = NSAttributedString(string: text, attributes: strokeTextAttributes)
+                }
+            }
+        }
+    }
+    
+    private func outlineUIColor() -> UIColor {
+        switch subtitleOutlineColor {
+        case "black": return .black
+        case "white": return .white
+        case "yellow": return .yellow
+        case "green": return .green
+        case "blue": return .blue
+        case "red": return .red
+        default: return .black
         }
     }
     
@@ -1729,19 +1753,16 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         
         UIView.animate(withDuration: 0.25) {
             self.blackCoverView.alpha = self.isDimmed ? 1.0 : 0.4
-            // fade all controls (and lock button) in or out
             for v in self.controlsToHide { v.alpha = self.isDimmed ? 0 : 1 }
             self.dimButton.alpha  = self.isDimmed ? 0 : 1
             self.lockButton.alpha = self.isDimmed ? 0 : 1
-
-            // switch subtitle constraints just like toggleControls()
+            
             self.subtitleBottomToSafeAreaConstraint?.isActive = !self.isControlsVisible
             self.subtitleBottomToSliderConstraint?.isActive    =  self.isControlsVisible
-
+            
             self.view.layoutIfNeeded()
         }
-
-        // slide the dim-icon over
+        
         dimButtonToSlider.isActive = !isDimmed
         dimButtonToRight.isActive  =  isDimmed
     }
@@ -2094,30 +2115,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             ]
             let fontSizeMenu = UIMenu(title: "Font Size", children: fontSizeActions)
             
-            let shadowActions = [
-                UIAction(title: "None") { _ in
-                    SubtitleSettingsManager.shared.update { settings in settings.shadowRadius = 0 }
-                    self.loadSubtitleSettings()
-                    self.updateSubtitleLabelAppearance()
-                },
-                UIAction(title: "Low") { _ in
-                    SubtitleSettingsManager.shared.update { settings in settings.shadowRadius = 1 }
-                    self.loadSubtitleSettings()
-                    self.updateSubtitleLabelAppearance()
-                },
-                UIAction(title: "Medium") { _ in
-                    SubtitleSettingsManager.shared.update { settings in settings.shadowRadius = 3 }
-                    self.loadSubtitleSettings()
-                    self.updateSubtitleLabelAppearance()
-                },
-                UIAction(title: "High") { _ in
-                    SubtitleSettingsManager.shared.update { settings in settings.shadowRadius = 6 }
-                    self.loadSubtitleSettings()
-                    self.updateSubtitleLabelAppearance()
-                }
-            ]
-            let shadowMenu = UIMenu(title: "Shadow Intensity", children: shadowActions)
-            
             let backgroundActions = [
                 UIAction(title: "Toggle") { _ in
                     SubtitleSettingsManager.shared.update { settings in settings.backgroundEnabled.toggle() }
@@ -2177,7 +2174,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             let delayMenu = UIMenu(title: "Subtitle Delay", children: delayActions + [resetDelayAction])
             
             let subtitleOptionsMenu = UIMenu(title: "Subtitle Options", children: [
-                subtitlesToggleAction, colorMenu, fontSizeMenu, shadowMenu, backgroundMenu, paddingMenu, delayMenu
+                subtitlesToggleAction, colorMenu, fontSizeMenu, backgroundMenu, paddingMenu, delayMenu
             ])
             
             menuElements = [subtitleOptionsMenu]
@@ -2256,7 +2253,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         let settings = SubtitleSettingsManager.shared.settings
         self.subtitleForegroundColor = settings.foregroundColor
         self.subtitleFontSize = settings.fontSize
-        self.subtitleShadowRadius = settings.shadowRadius
+        self.subtitleOutlineColor = settings.outlineColor
+        self.subtitleOutlineWidth = settings.outlineWidth
         self.subtitleBackgroundEnabled = settings.backgroundEnabled
         self.subtitleBottomPadding = settings.bottomPadding
         self.subtitleDelay = settings.subtitleDelay
