@@ -431,7 +431,6 @@ struct MediaInfoView: View {
                     isFetchingEpisode = false
                     showStreamLoadingView = false
                 }
-                .navigationViewStyle(StackNavigationViewStyle())
             }
         }
         .onAppear {
