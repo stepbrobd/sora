@@ -15,6 +15,15 @@ struct SearchItem: Identifiable {
     let href: String
 }
 
+struct SearchHistoryItem: Identifiable, Codable, Equatable {
+    let id = UUID()
+    let query: String
+    let timestamp: Date
+    
+    static func == (lhs: SearchHistoryItem, rhs: SearchHistoryItem) -> Bool {
+        return lhs.query == rhs.query
+    }
+}
 
 struct SearchView: View {
     @AppStorage("selectedModuleId") private var selectedModuleId: String?
@@ -32,6 +41,11 @@ struct SearchView: View {
     @State private var hasNoResults = false
     @State private var isLandscape: Bool = UIDevice.current.orientation.isLandscape
     @State private var isModuleSelectorPresented = false
+    @State private var searchHistory: [SearchHistoryItem] = []
+    @State private var isShowingResults = false
+    
+    private let userDefaults = UserDefaults.standard
+    private let searchHistoryKey = "searchHistory"
     
     private var selectedModule: ScrapingModule? {
         guard let id = selectedModuleId else { return nil }
@@ -59,12 +73,17 @@ struct SearchView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 let columnsCount = determineColumns()
                 VStack(spacing: 0) {
                     HStack {
-                        SearchBar(text: $searchText, onSearchButtonClicked: performSearch)
+                        SearchBar(text: $searchText, onSearchButtonClicked: {
+                            performSearch()
+                            if !searchText.isEmpty {
+                                isShowingResults = true
+                            }
+                        })
                             .padding(.leading)
                             .padding(.trailing, searchText.isEmpty ? 16 : 0)
                             .disabled(selectedModule == nil)
@@ -97,58 +116,50 @@ struct SearchView: View {
                         .shadow(color: Color.black.opacity(0.1), radius: 2, y: 1)
                     }
                     
-                    if !searchText.isEmpty {
-                        if isSearching {
-                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: columnsCount), spacing: 16) {
-                                ForEach(0..<columnsCount*4, id: \.self) { _ in
-                                    SearchSkeletonCell(cellWidth: cellWidth)
-                                }
-                            }
-                            .padding(.top)
-                            .padding()
-                        } else if hasNoResults {
-                            VStack(spacing: 8) {
-                                Image(systemName: "magnifyingglass")
-                                    .font(.largeTitle)
-                                    .foregroundColor(.secondary)
-                                Text("No Results Found")
+                    if searchText.isEmpty && !searchHistory.isEmpty {
+                        VStack(alignment: .leading) {
+                            HStack {
+                                Text("Recent Searches")
                                     .font(.headline)
-                                Text("Try different keywords")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .padding(.leading)
+                                
+                                Spacer()
+                                
+                                Button(action: clearSearchHistory) {
+                                    Text("Clear")
+                                        .foregroundColor(.accentColor)
+                                }
+                                .padding(.trailing)
                             }
-                            .padding()
-                            .frame(maxWidth: .infinity)
                             .padding(.top)
-                        } else {
-                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: columnsCount), spacing: 16) {
-                                ForEach(searchItems) { item in
-                                    NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: selectedModule!)) {
-                                        VStack {
-                                            KFImage(URL(string: item.imageUrl))
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                                .frame(height: cellWidth * 3 / 2)
-                                                .frame(maxWidth: cellWidth)
-                                                .cornerRadius(10)
-                                                .clipped()
-                                            Text(item.title)
-                                                .font(.subheadline)
-                                                .foregroundColor(Color.primary)
-                                                .padding([.leading, .bottom], 8)
-                                                .lineLimit(1)
+                            
+                            ScrollView {
+                                LazyVStack(alignment: .leading) {
+                                    ForEach(searchHistory.sorted(by: { $0.timestamp > $1.timestamp })) { item in
+                                        Button(action: {
+                                            searchText = item.query
+                                            performSearch()
+                                            isShowingResults = true
+                                        }) {
+                                            HStack {
+                                                Image(systemName: "clock")
+                                                    .foregroundColor(.secondary)
+                                                Text(item.query)
+                                                    .foregroundColor(.primary)
+                                                Spacer()
+                                                Image(systemName: "arrow.up.left")
+                                                    .foregroundColor(.secondary)
+                                                    .font(.caption)
+                                            }
+                                            .padding(.vertical, 8)
+                                            .padding(.horizontal)
                                         }
+                                        Divider()
+                                            .padding(.leading)
                                     }
                                 }
-                                .onAppear {
-                                    updateOrientation()
-                                }
-                                .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-                                    updateOrientation()
-                                }
                             }
-                            .padding(.top)
-                            .padding()
+                            .frame(maxHeight: 300)
                         }
                     }
                 }
@@ -219,8 +230,21 @@ struct SearchView: View {
                     .fixedSize()
                 }
             }
+            .navigationDestination(isPresented: $isShowingResults) {
+                SearchResultsView(
+                    searchText: searchText,
+                    searchItems: searchItems,
+                    isSearching: isSearching,
+                    hasNoResults: hasNoResults,
+                    columnsCount: columnsCount,
+                    cellWidth: cellWidth,
+                    module: selectedModule
+                )
+            }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
+        .onAppear {
+            loadSearchHistory()
+        }
         .onChange(of: selectedModuleId) { _ in
             if !searchText.isEmpty {
                 performSearch()
@@ -250,6 +274,7 @@ struct SearchView: View {
             hasNoResults = false
             return
         }
+        addToSearchHistory(query: searchText)
         
         isSearching = true
         hasNoResults = false
@@ -279,6 +304,32 @@ struct SearchView: View {
                     hasNoResults = true
                 }
             }
+        }
+    }
+    
+    private func addToSearchHistory(query: String) {
+        let newItem = SearchHistoryItem(query: query, timestamp: Date())
+        searchHistory.removeAll(where: { $0.query == query })
+        searchHistory.insert(newItem, at: 0)
+        
+        saveSearchHistory()
+    }
+    
+    private func clearSearchHistory() {
+        searchHistory = []
+        saveSearchHistory()
+    }
+    
+    private func saveSearchHistory() {
+        if let encoded = try? JSONEncoder().encode(searchHistory) {
+            userDefaults.set(encoded, forKey: searchHistoryKey)
+        }
+    }
+    
+    private func loadSearchHistory() {
+        if let data = userDefaults.data(forKey: searchHistoryKey),
+           let decoded = try? JSONDecoder().decode([SearchHistoryItem].self, from: data) {
+            searchHistory = decoded
         }
     }
     
@@ -369,5 +420,69 @@ struct SearchBar: View {
                     }
                 )
         }
+    }
+}
+
+struct SearchResultsView: View {
+    let searchText: String
+    let searchItems: [SearchItem]
+    let isSearching: Bool
+    let hasNoResults: Bool
+    let columnsCount: Int
+    let cellWidth: CGFloat
+    let module: ScrapingModule?
+    
+    var body: some View {
+        ScrollView {
+            if isSearching {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: columnsCount), spacing: 16) {
+                    ForEach(0..<columnsCount*4, id: \.self) { _ in
+                        SearchSkeletonCell(cellWidth: cellWidth)
+                    }
+                }
+                .padding(.top)
+                .padding()
+            } else if hasNoResults {
+                VStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.largeTitle)
+                        .foregroundColor(.secondary)
+                    Text("No Results Found")
+                        .font(.headline)
+                    Text("Try different keywords")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding()
+                .frame(maxWidth: .infinity)
+                .padding(.top)
+            } else {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: columnsCount), spacing: 16) {
+                    ForEach(searchItems) { item in
+                        NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: module!)) {
+                            VStack {
+                                KFImage(URL(string: item.imageUrl))
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(height: cellWidth * 3 / 2)
+                                    .frame(maxWidth: cellWidth)
+                                    .cornerRadius(10)
+                                    .clipped()
+                                Text(item.title)
+                                    .font(.subheadline)
+                                    .foregroundColor(Color.primary)
+                                    .padding([.leading, .bottom], 8)
+                                    .lineLimit(1)
+                            }
+                        }
+                    }
+                }
+                .padding(.top)
+                .padding()
+            }
+        }
+        .navigationTitle(searchText)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationViewStyle(StackNavigationViewStyle())
     }
 }
