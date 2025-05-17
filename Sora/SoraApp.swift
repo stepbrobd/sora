@@ -64,22 +64,12 @@ struct SoraApp: App {
                 UserDefaults.standard.set(libraryURL, forKey: "lastCommunityURL")
                 UserDefaults.standard.set(true, forKey: "didReceiveDefaultPageLink")
                 
-                let communityView = CommunityLibraryView().environmentObject(moduleManager)
-                let hostingController = UIHostingController(rootView: communityView)
-                DispatchQueue.main.async {
-                    if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                       let window = scene.windows.first,
-                       let root = window.rootViewController {
-                        root.present(hostingController, animated: true) {
-                            DropManager.shared.showDrop(
-                                title: "Module Library Added",
-                                subtitle: "You can browse the community library in settings.",
-                                duration: 2,
-                                icon: UIImage(systemName: "books.vertical.circle.fill")
-                            )
-                        }
-                    }
-                }
+                DropManager.shared.showDrop(
+                    title: "Module Library Added",
+                    subtitle: "You can browse the community library in settings.",
+                    duration: 2,
+                    icon: UIImage(systemName: "books.vertical.circle.fill")
+                )
             }
             
         case "module":
