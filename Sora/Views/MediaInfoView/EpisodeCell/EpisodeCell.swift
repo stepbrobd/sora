@@ -114,7 +114,10 @@ struct EpisodeCell: View {
         }
         .onAppear {
             updateProgress()
-            fetchEpisodeDetails()
+            
+            if let type = module.metadata.type?.lowercased(), type == "anime" {
+                fetchAnimeEpisodeDetails()
+            }
         }
         .onChange(of: progress) { _ in
             updateProgress()
@@ -150,10 +153,6 @@ struct EpisodeCell: View {
         let lastPlayedTime = userDefaults.double(forKey: "lastPlayedTime_\(episode)")
         let totalTime = userDefaults.double(forKey: "totalTime_\(episode)")
         currentProgress = totalTime > 0 ? min(lastPlayedTime / totalTime, 1.0) : 0
-    }
-    
-    private func fetchEpisodeDetails() {
-        fetchAnimeEpisodeDetails()
     }
     
     private func fetchAnimeEpisodeDetails() {
