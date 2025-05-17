@@ -21,7 +21,7 @@ class Logger {
     private let logFileURL: URL
     private let logFilterViewModel = LogFilterViewModel.shared
     
-    private let maxFileSize = 1024 * 1024
+    private let maxFileSize = 1024 * 512
     
     private init() {
         let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
