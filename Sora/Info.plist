@@ -38,7 +38,5 @@
 		<string>audio</string>
 		<string>processing</string>
 	</array>
-	<key>UISupportsDocumentBrowser</key>
-	<true/>
 </dict>
 </plist>
