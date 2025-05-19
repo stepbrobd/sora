@@ -23,18 +23,8 @@ class JSController: ObservableObject {
         context = JSContext()
         setupContext()
         context.evaluateScript(script)
-        
-        let appInfoBridge = AppInfo()
-        context.setObject(appInfoBridge, forKeyedSubscript: "AppInfo" as NSString)
-        
         if let exception = context.exception {
             Logger.shared.log("Error loading script: \(exception)", type: "Error")
         }
-    }
-}
-
-class AppInfo: NSObject {
-    @objc func getBundleIdentifier() -> String {
-        return Bundle.main.bundleIdentifier ?? "me.cranci.sulfur"
     }
 }

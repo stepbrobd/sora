@@ -130,3 +130,9 @@ struct SoraApp: App {
         }
     }
 }
+
+class AppInfo: NSObject {
+    @objc func getBundleIdentifier() -> String {
+        return Bundle.main.bundleIdentifier ?? "me.cranci.sulfur"
+    }
+}
