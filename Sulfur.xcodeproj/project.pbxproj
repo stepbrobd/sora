@@ -67,7 +67,7 @@
 		1E9FF1D32D403E49008AC100 /* SettingsViewLoggerFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E9FF1D22D403E42008AC100 /* SettingsViewLoggerFilter.swift */; };
 		1EAC7A322D888BC50083984D /* MusicProgressSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EAC7A312D888BC50083984D /* MusicProgressSlider.swift */; };
 		1EF5C3A92DB988E40032BF07 /* CommunityLib.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EF5C3A82DB988D70032BF07 /* CommunityLib.swift */; };
-		73D164D52D8B5B470011A360 /* JavaScriptCore+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73D164D42D8B5B340011A360 /* JavaScriptCore+Extensions.swift */; };
+		73D164D52D8B5B470011A360 /* JavaScriptCore-Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73D164D42D8B5B340011A360 /* JavaScriptCore-Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -131,7 +131,7 @@
 		1E9FF1D22D403E42008AC100 /* SettingsViewLoggerFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewLoggerFilter.swift; sourceTree = "<group>"; };
 		1EAC7A312D888BC50083984D /* MusicProgressSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicProgressSlider.swift; sourceTree = "<group>"; };
 		1EF5C3A82DB988D70032BF07 /* CommunityLib.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityLib.swift; sourceTree = "<group>"; };
-		73D164D42D8B5B340011A360 /* JavaScriptCore+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JavaScriptCore+Extensions.swift"; sourceTree = "<group>"; };
+		73D164D42D8B5B340011A360 /* JavaScriptCore-Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JavaScriptCore-Extensions.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -286,7 +286,6 @@
 		133D7C862D2BE2640075467E /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
-				73D164D42D8B5B340011A360 /* JavaScriptCore+Extensions.swift */,
 				136BBE7F2DB1038000906B5E /* Notification+Name.swift */,
 				1327FBA82D758DEA00FC6689 /* UIDevice+Model.swift */,
 				1314D0AD2DD0F4BB00759A3F /* UserDefaults.swift */,
@@ -314,6 +313,7 @@
 			isa = PBXGroup;
 			children = (
 				133D7C8B2D2BE2640075467E /* JSController.swift */,
+				73D164D42D8B5B340011A360 /* JavaScriptCore-Extensions.swift */,
 				132AF1202D99951700A0140B /* JSController-Streams.swift */,
 				132AF1222D9995C300A0140B /* JSController-Details.swift */,
 				132AF1242D9995F900A0140B /* JSController-Search.swift */,
@@ -583,7 +583,7 @@
 				133D7C6E2D2BE2500075467E /* SoraApp.swift in Sources */,
 				138AA1B92D2D66FD0021F9DF /* CircularProgressBar.swift in Sources */,
 				13DB468D2D90093A008CBC03 /* Anilist-Login.swift in Sources */,
-				73D164D52D8B5B470011A360 /* JavaScriptCore+Extensions.swift in Sources */,
+				73D164D52D8B5B470011A360 /* JavaScriptCore-Extensions.swift in Sources */,
 				132AF1232D9995C300A0140B /* JSController-Details.swift in Sources */,
 				13B77E202DA457AA00126FDF /* AniListPushUpdates.swift in Sources */,
 				13EA2BD52D32D97400C1EBD7 /* CustomPlayer.swift in Sources */,
