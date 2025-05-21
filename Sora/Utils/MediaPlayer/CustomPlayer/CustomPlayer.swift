@@ -1872,7 +1872,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                         if let heightStr = resolutionPart.components(separatedBy: "x").last,
                            let height = Int(heightStr) {
                             
-                            let nextLine = lines[index + 1].trimmingCharacters(in: .whitespacesAndNewline)
+                            let nextLine = lines[index + 1].trimmingCharacters(in: .whitespacesAndNewlines)
                             let qualityName = getQualityName(for: height)
                             
                             var qualityURL = nextLine

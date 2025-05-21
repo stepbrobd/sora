@@ -702,28 +702,25 @@ struct MediaInfoView: View {
                         index += 1
                     }
                 }
-                else if let streams = streams as? [[String: Any]] {
-                    if let currTitle = streams[index]["title"] as? String {
+                else if let streams = streams as? [[String: Any]]
+                {
+                    if let currTitle = streams[index]["title"] as? String
+                    {
                         title = currTitle
                         streamUrl = (streams[index]["streamUrl"] as? String) ?? ""
-                    } else {
+                    }
+                    else
+                    {
                         title = "Stream \(streamIndex)"
                         streamUrl = (streams[index]["streamUrl"] as? String)!
                     }
-                    
-                    if let rawHeaders = streams[index]["headers"] {
-                        if let headerDict = rawHeaders as? [String: String] {
-                            headers = headerDict
-                        } else {
-                            Logger.shared.log("Headers found but not in expected format", type: "Warning")
-                        }
-                    }
+                    headers = streams[index]["headers"] as? [String:String] ?? [:]
                     index += 1
                 }
                 
                 
                 alert.addAction(UIAlertAction(title: title, style: .default) { _ in
-                    self.playStream(url: streamUrl, fullURL: fullURL, subtitles: subtitles, headers: headers)
+                    self.playStream(url: streamUrl, fullURL: fullURL, subtitles: subtitles,headers: headers)
                 })
                 
                 streamIndex += 1
@@ -808,7 +805,6 @@ struct MediaInfoView: View {
                     DropManager.shared.showDrop(title: "Error", subtitle: "Invalid stream URL", duration: 2.0, icon: UIImage(systemName: "xmark.circle"))
                     return
                 }
-                let safeHeaders: [String: String]? = headers
                 
                 let customMediaPlayer = CustomMediaPlayerViewController(
                     module: module,
@@ -822,7 +818,7 @@ struct MediaInfoView: View {
                     subtitlesURL: subtitles,
                     aniListID: itemID ?? 0,
                     episodeImageUrl: selectedEpisodeImage,
-                    headers: safeHeaders
+                    headers: headers ?? nil
                 )
                 customMediaPlayer.modalPresentationStyle = .fullScreen
                 Logger.shared.log("Opening custom media player with url: \(url)")
