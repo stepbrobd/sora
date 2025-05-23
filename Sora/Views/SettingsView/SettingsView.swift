@@ -18,6 +18,9 @@ struct SettingsView: View {
                     NavigationLink(destination: SettingsViewPlayer()) {
                         Text("Media Player")
                     }
+                    NavigationLink(destination: SettingsViewDownloads().environmentObject(JSController.shared)) {
+                        Text("Downloads")
+                    }
                     NavigationLink(destination: SettingsViewModule()) {
                         Text("Modules")
                     }
@@ -32,6 +35,9 @@ struct SettingsView: View {
                     }
                     NavigationLink(destination: SettingsViewLogger()) {
                         Text("Logs")
+                    }
+                    NavigationLink(destination: SettingsViewPerformance()) {
+                        Text("Performance")
                     }
                 }
                 
@@ -89,7 +95,7 @@ struct SettingsView: View {
                         }
                     }
                 }
-                Section(footer: Text("Running Sora 0.2.2 - cranci1")) {}
+                Section(footer: Text("Running Sora 0.3.0 - cranci1")) {}
             }
             .navigationTitle("Settings")
         }

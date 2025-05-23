@@ -36,7 +36,6 @@ extension JSController {
                 if let data = resultString.data(using: .utf8) {
                     do {
                         if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                            print("JSON DATA IS \(json) 2")
                             var streamUrls: [String]? = nil
                             var subtitleUrls: [String]? = nil
                             var streamUrlsAndHeaders : [[String:Any]]? = nil
@@ -81,11 +80,22 @@ extension JSController {
                     }
                 }
                 
+                // Check if the result is a Promise object and handle it properly
+                if resultString == "[object Promise]" {
+                    Logger.shared.log("Received Promise object instead of resolved value, waiting for proper resolution", type: "Stream")
+                    // Skip this result - other methods will provide the resolved URL
+                    let workItem = DispatchWorkItem { completion((nil, nil, nil)) }
+                    DispatchQueue.main.async(execute: workItem)
+                    return
+                }
+                
                 Logger.shared.log("Starting stream from: \(resultString)", type: "Stream")
-                DispatchQueue.main.async { completion(([resultString], nil,nil)) }
+                let workItem = DispatchWorkItem { completion(([resultString], nil, nil)) }
+                DispatchQueue.main.async(execute: workItem)
             } else {
                 Logger.shared.log("Failed to extract stream URL", type: "Error")
-                DispatchQueue.main.async { completion((nil, nil,nil)) }
+                let workItem = DispatchWorkItem { completion((nil, nil, nil)) }
+                DispatchQueue.main.async(execute: workItem)
             }
         }.resume()
     }
@@ -117,7 +127,6 @@ extension JSController {
                let data = jsonString.data(using: .utf8) {
                 do {
                     if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                        print("JSON object is \(json) 1")
                         var streamUrls: [String]? = nil
                         var subtitleUrls: [String]? = nil
                         var streamUrlsAndHeaders : [[String:Any]]? = nil
@@ -164,6 +173,14 @@ extension JSController {
             
             let streamUrl = result.toString()
             Logger.shared.log("Starting stream from: \(streamUrl ?? "nil")", type: "Stream")
+            
+            // Check if the result is a Promise object and handle it properly
+            if streamUrl == "[object Promise]" {
+                Logger.shared.log("Received Promise object instead of resolved value, waiting for proper resolution", type: "Stream")
+                // Skip this result - other methods will provide the resolved URL
+                return
+            }
+            
             DispatchQueue.main.async {
                 completion((streamUrl != nil ? [streamUrl!] : nil, nil,nil))
             }
@@ -227,7 +244,6 @@ extension JSController {
                        let data = jsonString.data(using: .utf8) {
                         do {
                             if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                                print("JSON object is \(json) 3 ")
                                 var streamUrls: [String]? = nil
                                 var subtitleUrls: [String]? = nil
                                 var streamUrlsAndHeaders : [[String:Any]]? = nil
@@ -274,6 +290,14 @@ extension JSController {
                     
                     let streamUrl = result.toString()
                     Logger.shared.log("Starting stream from: \(streamUrl ?? "nil")", type: "Stream")
+                    
+                    // Check if the result is a Promise object and handle it properly
+                    if streamUrl == "[object Promise]" {
+                        Logger.shared.log("Received Promise object instead of resolved value, waiting for proper resolution", type: "Stream")
+                        // Skip this result - other methods will provide the resolved URL
+                        return
+                    }
+                    
                     DispatchQueue.main.async {
                         completion((streamUrl != nil ? [streamUrl!] : nil, nil, nil))
                     }

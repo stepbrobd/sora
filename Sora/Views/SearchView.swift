@@ -21,7 +21,7 @@ struct SearchView: View {
     @AppStorage("mediaColumnsPortrait") private var mediaColumnsPortrait: Int = 2
     @AppStorage("mediaColumnsLandscape") private var mediaColumnsLandscape: Int = 4
     
-    @StateObject private var jsController = JSController()
+    @StateObject private var jsController = JSController.shared
     @EnvironmentObject var moduleManager: ModuleManager
     @Environment(\.verticalSizeClass) var verticalSizeClass
     
@@ -37,14 +37,6 @@ struct SearchView: View {
         guard let id = selectedModuleId else { return nil }
         return moduleManager.modules.first { $0.id.uuidString == id }
     }
-    
-    private var loadingMessages: [String] = [
-        "Searching the depths...",
-        "Looking for results...",
-        "Fetching data...",
-        "Please wait...",
-        "Almost there..."
-    ]
     
     private var columnsCount: Int {
         if UIDevice.current.userInterfaceIdiom == .pad {
@@ -166,22 +158,43 @@ struct SearchView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
-                        ForEach(getModuleLanguageGroups(), id: \.self) { language in
-                            Menu(language) {
-                                ForEach(getModulesForLanguage(language), id: \.id) { module in
-                                    Button {
-                                        selectedModuleId = module.id.uuidString
-                                    } label: {
-                                        HStack {
-                                            KFImage(URL(string: module.metadata.iconUrl))
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fit)
-                                                .frame(width: 20, height: 20)
-                                                .cornerRadius(4)
-                                            Text(module.metadata.sourceName)
-                                            if module.id.uuidString == selectedModuleId {
-                                                Image(systemName: "checkmark")
-                                                    .foregroundColor(.accentColor)
+                        if getModuleLanguageGroups().count == 1 {
+                            ForEach(moduleManager.modules, id: \.id) { module in
+                                Button {
+                                    selectedModuleId = module.id.uuidString
+                                } label: {
+                                    HStack {
+                                        KFImage(URL(string: module.metadata.iconUrl))
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(width: 20, height: 20)
+                                            .cornerRadius(4)
+                                        Text(module.metadata.sourceName)
+                                        if module.id.uuidString == selectedModuleId {
+                                            Image(systemName: "checkmark")
+                                                .foregroundColor(.accentColor)
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            ForEach(getModuleLanguageGroups(), id: \.self) { language in
+                                Menu(language) {
+                                    ForEach(getModulesForLanguage(language), id: \.id) { module in
+                                        Button {
+                                            selectedModuleId = module.id.uuidString
+                                        } label: {
+                                            HStack {
+                                                KFImage(URL(string: module.metadata.iconUrl))
+                                                    .resizable()
+                                                    .aspectRatio(contentMode: .fit)
+                                                    .frame(width: 20, height: 20)
+                                                    .cornerRadius(4)
+                                                Text(module.metadata.sourceName)
+                                                if module.id.uuidString == selectedModuleId {
+                                                    Image(systemName: "checkmark")
+                                                        .foregroundColor(.accentColor)
+                                                }
                                             }
                                         }
                                     }
@@ -211,6 +224,14 @@ struct SearchView: View {
         .onChange(of: selectedModuleId) { _ in
             if !searchText.isEmpty {
                 performSearch()
+            }
+        }
+        .onChange(of: moduleManager.selectedModuleChanged) { _ in
+            if moduleManager.selectedModuleChanged {
+                if selectedModuleId == nil && !moduleManager.modules.isEmpty {
+                    selectedModuleId = moduleManager.modules[0].id.uuidString
+                }
+                moduleManager.selectedModuleChanged = false
             }
         }
         .onChange(of: searchText) { newValue in
@@ -324,13 +345,11 @@ struct SearchBar: View {
                 .background(Color(.systemGray6))
                 .cornerRadius(8)
                 .onChange(of: text){newValue in
-                                    debounceTimer?.invalidate()
-                                    // Start a new timer to wait before performing the action
+                    debounceTimer?.invalidate()
                     debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
-                                        // Perform the action after the delay (debouncing)
-                                        onSearchButtonClicked()
-                                    }
-                                }
+                        onSearchButtonClicked()
+                    }
+                }
                 .overlay(
                     HStack {
                         Image(systemName: "magnifyingglass")
