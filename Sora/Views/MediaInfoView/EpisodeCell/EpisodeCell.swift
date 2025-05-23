@@ -25,9 +25,8 @@ struct EpisodeCell: View {
     var defaultBannerImage: String
     var module: ScrapingModule
     var parentTitle: String
-    var showPosterURL: String? // Add show poster URL for downloads
+    var showPosterURL: String?
     
-    // Multi-select support (Task MD-3)
     var isMultiSelectMode: Bool = false
     var isSelected: Bool = false
     var onSelectionChanged: ((Bool) -> Void)?
@@ -51,7 +50,6 @@ struct EpisodeCell: View {
     @State private var lastLoggedStatus: EpisodeDownloadStatus?
     @State private var downloadAnimationScale: CGFloat = 1.0
     
-    // Add retry configuration
     @State private var retryAttempts: Int = 0
     private let maxRetryAttempts: Int = 3
     private let initialBackoffDelay: TimeInterval = 1.0
@@ -62,7 +60,6 @@ struct EpisodeCell: View {
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("selectedAppearance") private var selectedAppearance: Appearance = .system
     
-    // Simple download status for UI updates
     private var downloadStatusString: String {
         switch downloadStatus {
         case .notDownloaded:
@@ -87,15 +84,14 @@ struct EpisodeCell: View {
         self.itemID = itemID
         self.totalEpisodes = totalEpisodes
         
-        // Initialize banner image based on appearance
-        let isLightMode = (UserDefaults.standard.string(forKey: "selectedAppearance") == "light") || 
-                         ((UserDefaults.standard.string(forKey: "selectedAppearance") == "system") && 
-                          UITraitCollection.current.userInterfaceStyle == .light)
+        let isLightMode = (UserDefaults.standard.string(forKey: "selectedAppearance") == "light") ||
+        ((UserDefaults.standard.string(forKey: "selectedAppearance") == "system") &&
+         UITraitCollection.current.userInterfaceStyle == .light)
         let defaultLightBanner = "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/dev/assets/banner1.png"
         let defaultDarkBanner = "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/dev/assets/banner2.png"
         
-        self.defaultBannerImage = defaultBannerImage.isEmpty ? 
-            (isLightMode ? defaultLightBanner : defaultDarkBanner) : defaultBannerImage
+        self.defaultBannerImage = defaultBannerImage.isEmpty ?
+        (isLightMode ? defaultLightBanner : defaultDarkBanner) : defaultBannerImage
         
         self.module = module
         self.parentTitle = parentTitle
@@ -109,7 +105,6 @@ struct EpisodeCell: View {
     
     var body: some View {
         HStack {
-            // Multi-select checkbox (Task MD-3)
             if isMultiSelectMode {
                 Button(action: {
                     onSelectionChanged?(!isSelected)
@@ -135,30 +130,15 @@ struct EpisodeCell: View {
             contextMenuContent
         }
         .onAppear {
-            // Stagger operations for better scroll performance
             updateProgress()
-            
-            // Check download status when cell appears (less frequently)
             updateDownloadStatus()
-            
-            // Slightly delay loading episode details to prioritize smooth scrolling
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 fetchEpisodeDetails()
             }
             
-            // Prefetch next episodes when this one becomes visible
             if let totalEpisodes = totalEpisodes, episodeID + 1 < totalEpisodes {
-                // Prefetch the next 5 episodes when this one appears
                 let nextEpisodeStart = episodeID + 1
                 let count = min(5, totalEpisodes - episodeID - 1)
-                
-                // Also prefetch images for the next few episodes
-                // Commented out prefetching until ImagePrefetchManager is ready
-                // ImagePrefetchManager.shared.prefetchEpisodeImages(
-                //     anilistId: itemID,
-                //     startEpisode: nextEpisodeStart,
-                //     count: count
-                // )
             }
         }
         .onDisappear {
@@ -168,7 +148,6 @@ struct EpisodeCell: View {
             updateProgress()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("downloadProgressChanged"))) { _ in
-            // Update download status less frequently to reduce jitter
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 updateDownloadStatus()
                 updateProgress()
@@ -198,17 +177,14 @@ struct EpisodeCell: View {
         }
     }
     
-    // MARK: - View Components
-    
     private var episodeThumbnail: some View {
         ZStack {
             if let url = URL(string: episodeImageUrl.isEmpty ? defaultBannerImage : episodeImageUrl) {
                 KFImage.optimizedEpisodeThumbnail(url: url)
-                    // Convert back to the regular KFImage since the extension isn't available yet
                     .setProcessor(DownsamplingImageProcessor(size: CGSize(width: 100, height: 56)))
-                    .memoryCacheExpiration(.seconds(600)) // Increase cache duration to reduce loading
+                    .memoryCacheExpiration(.seconds(600))
                     .cacheOriginalImage()
-                    .fade(duration: 0.1) // Shorter fade for better performance
+                    .fade(duration: 0.1)
                     .onFailure { error in
                         Logger.shared.log("Failed to load episode image: \(error)", type: "Error")
                     }
@@ -217,9 +193,6 @@ struct EpisodeCell: View {
                     .aspectRatio(16/9, contentMode: .fill)
                     .frame(width: 100, height: 56)
                     .cornerRadius(8)
-                    .onAppear {
-                        // Image loading logic if needed
-                    }
             } else {
                 Rectangle()
                     .fill(Color.gray.opacity(0.3))
@@ -299,9 +272,7 @@ struct EpisodeCell: View {
             .foregroundColor(.green)
             .font(.title3)
             .padding(.horizontal, 8)
-            // Add animation to stand out more
             .scaleEffect(1.1)
-            // Use more straightforward animation
             .animation(.default, value: downloadStatusString)
     }
     
@@ -354,36 +325,29 @@ struct EpisodeCell: View {
     }
     
     private func updateDownloadStatus() {
-        // Check the current download status with JSController
         let newStatus = jsController.isEpisodeDownloadedOrInProgress(
             showTitle: parentTitle,
             episodeNumber: episodeID + 1
         )
         
-        // Only update if status actually changed to reduce unnecessary UI updates
         if downloadStatus != newStatus {
             downloadStatus = newStatus
         }
     }
     
     private func downloadEpisode() {
-        // Check the current download status
         updateDownloadStatus()
         
-        // Don't proceed if the episode is already downloaded or being downloaded
         if case .notDownloaded = downloadStatus, !isDownloading {
             isDownloading = true
             let downloadID = UUID()
             
-            // Use the new consolidated download notification
             DropManager.shared.downloadStarted(episodeNumber: episodeID + 1)
             
             Task {
                 do {
                     let jsContent = try moduleManager.getModuleContent(module)
                     jsController.loadScript(jsContent)
-                    
-                    // Try download methods sequentially instead of in parallel
                     tryNextDownloadMethod(methodIndex: 0, downloadID: downloadID, softsub: module.metadata.softsub == true)
                 } catch {
                     DropManager.shared.error("Failed to start download: \(error.localizedDescription)")
@@ -391,7 +355,6 @@ struct EpisodeCell: View {
                 }
             }
         } else {
-            // Handle case where download is already in progress or completed
             if case .downloaded = downloadStatus {
                 DropManager.shared.info("Episode \(episodeID + 1) is already downloaded")
             } else if case .downloading = downloadStatus {
@@ -400,7 +363,6 @@ struct EpisodeCell: View {
         }
     }
     
-    // Try each download method sequentially
     private func tryNextDownloadMethod(methodIndex: Int, downloadID: UUID, softsub: Bool) {
         if !isDownloading {
             return
@@ -410,73 +372,60 @@ struct EpisodeCell: View {
         
         switch methodIndex {
         case 0:
-            // First try fetchStreamUrlJS if asyncJS is true
             if module.metadata.asyncJS == true {
                 jsController.fetchStreamUrlJS(episodeUrl: episode, softsub: softsub, module: module) { result in
                     self.handleSequentialDownloadResult(result, downloadID: downloadID, methodIndex: methodIndex, softsub: softsub)
                 }
             } else {
-                // Skip to next method if not applicable
                 tryNextDownloadMethod(methodIndex: methodIndex + 1, downloadID: downloadID, softsub: softsub)
             }
             
         case 1:
-            // Then try fetchStreamUrlJSSecond if streamAsyncJS is true
             if module.metadata.streamAsyncJS == true {
                 jsController.fetchStreamUrlJSSecond(episodeUrl: episode, softsub: softsub, module: module) { result in
                     self.handleSequentialDownloadResult(result, downloadID: downloadID, methodIndex: methodIndex, softsub: softsub)
                 }
             } else {
-                // Skip to next method if not applicable
                 tryNextDownloadMethod(methodIndex: methodIndex + 1, downloadID: downloadID, softsub: softsub)
             }
             
         case 2:
-            // Finally try fetchStreamUrl (most reliable method)
             jsController.fetchStreamUrl(episodeUrl: episode, softsub: softsub, module: module) { result in
                 self.handleSequentialDownloadResult(result, downloadID: downloadID, methodIndex: methodIndex, softsub: softsub)
             }
             
         default:
-            // We've tried all methods and none worked
             DropManager.shared.error("Failed to find a valid stream for download after trying all methods")
             isDownloading = false
         }
     }
     
-    // Handle result from sequential download attempts
     private func handleSequentialDownloadResult(_ result: (streams: [String]?, subtitles: [String]?, sources: [[String:Any]]?), downloadID: UUID, methodIndex: Int, softsub: Bool) {
-        // Skip if we're no longer downloading
         if !isDownloading {
             return
         }
         
-        // Check if we have valid streams
         if let streams = result.streams, !streams.isEmpty, let url = URL(string: streams[0]) {
-            // Check if it's a Promise object
             if streams[0] == "[object Promise]" {
                 print("[Download] Method #\(methodIndex+1) returned a Promise object, trying next method")
                 tryNextDownloadMethod(methodIndex: methodIndex + 1, downloadID: downloadID, softsub: softsub)
                 return
             }
             
-            // We found a valid stream URL, proceed with download
             print("[Download] Method #\(methodIndex+1) returned valid stream URL: \(streams[0])")
             
-            // Get subtitle URL if available
             let subtitleURL = result.subtitles?.first.flatMap { URL(string: $0) }
             if let subtitleURL = subtitleURL {
                 print("[Download] Found subtitle URL: \(subtitleURL.absoluteString)")
             }
             
             startActualDownload(url: url, streamUrl: streams[0], downloadID: downloadID, subtitleURL: subtitleURL)
-        } else if let sources = result.sources, !sources.isEmpty, 
-                  let streamUrl = sources[0]["streamUrl"] as? String, 
-                  let url = URL(string: streamUrl) {
+        } else if let sources = result.sources, !sources.isEmpty,
+                    let streamUrl = sources[0]["streamUrl"] as? String,
+                    let url = URL(string: streamUrl) {
             
             print("[Download] Method #\(methodIndex+1) returned valid stream URL with headers: \(streamUrl)")
             
-            // Get subtitle URL if available
             let subtitleURLString = sources[0]["subtitle"] as? String
             let subtitleURL = subtitleURLString.flatMap { URL(string: $0) }
             if let subtitleURL = subtitleURL {
@@ -485,22 +434,17 @@ struct EpisodeCell: View {
             
             startActualDownload(url: url, streamUrl: streamUrl, downloadID: downloadID, subtitleURL: subtitleURL)
         } else {
-            // No valid streams from this method, try the next one
             print("[Download] Method #\(methodIndex+1) did not return valid streams, trying next method")
             tryNextDownloadMethod(methodIndex: methodIndex + 1, downloadID: downloadID, softsub: softsub)
         }
     }
     
-    // Start the actual download process once we have a valid URL
     private func startActualDownload(url: URL, streamUrl: String, downloadID: UUID, subtitleURL: URL? = nil) {
-        // Extract base URL for headers
         var headers: [String: String] = [:]
         
-        // Always use the module's baseUrl for Origin and Referer
         if !module.metadata.baseUrl.isEmpty && !module.metadata.baseUrl.contains("undefined") {
             print("Using module baseUrl: \(module.metadata.baseUrl)")
             
-            // Create comprehensive headers prioritizing the module's baseUrl
             headers = [
                 "Origin": module.metadata.baseUrl,
                 "Referer": module.metadata.baseUrl,
@@ -512,7 +456,6 @@ struct EpisodeCell: View {
                 "Sec-Fetch-Site": "same-origin"
             ]
         } else {
-            // Fallback to using the stream URL's domain if module.baseUrl isn't available
             if let scheme = url.scheme, let host = url.host {
                 let baseUrl = scheme + "://" + host
                 
@@ -527,7 +470,6 @@ struct EpisodeCell: View {
                     "Sec-Fetch-Site": "same-origin"
                 ]
             } else {
-                // Missing URL components
                 DropManager.shared.error("Invalid stream URL - missing scheme or host")
                 isDownloading = false
                 return
@@ -536,18 +478,14 @@ struct EpisodeCell: View {
         
         print("Download headers: \(headers)")
         
-        // Use episode thumbnail for the individual episode, show poster for grouping
         let episodeThumbnailURL = URL(string: episodeImageUrl.isEmpty ? defaultBannerImage : episodeImageUrl)
         let showPosterImageURL = URL(string: showPosterURL ?? defaultBannerImage)
         
-        // Get the episode title and information
         let episodeName = episodeTitle.isEmpty ? "Episode \(episodeID + 1)" : episodeTitle
         let fullEpisodeTitle = "Episode \(episodeID + 1): \(episodeName)"
         
-        // Extract show title from the parent view
         let animeTitle = parentTitle.isEmpty ? "Unknown Anime" : parentTitle
         
-        // Use streamType-aware download method instead of M3U8-specific method
         jsController.downloadWithStreamTypeSupport(
             url: url,
             headers: headers,
@@ -556,13 +494,12 @@ struct EpisodeCell: View {
             module: module,
             isEpisode: true,
             showTitle: animeTitle,
-            season: 1, // Default to season 1 if not known
+            season: 1,
             episode: episodeID + 1,
             subtitleURL: subtitleURL,
             showPosterURL: showPosterImageURL,
             completionHandler: { success, message in
                 if success {
-                    // Log the download for analytics
                     Logger.shared.log("Started download for Episode \(self.episodeID + 1): \(self.episode)", type: "Download")
                     AnalyticsManager.shared.sendEvent(
                         event: "download",
@@ -571,8 +508,6 @@ struct EpisodeCell: View {
                 } else {
                     DropManager.shared.error(message)
                 }
-                
-                // Mark that we've handled this download
                 self.isDownloading = false
             }
         )
@@ -606,19 +541,15 @@ struct EpisodeCell: View {
     }
     
     private func fetchEpisodeDetails() {
-        // Check if metadata caching is enabled
-        if MetadataCacheManager.shared.isCachingEnabled && 
-           (UserDefaults.standard.object(forKey: "fetchEpisodeMetadata") == nil || 
-           UserDefaults.standard.bool(forKey: "fetchEpisodeMetadata")) {
+        if MetadataCacheManager.shared.isCachingEnabled &&
+            (UserDefaults.standard.object(forKey: "fetchEpisodeMetadata") == nil ||
+             UserDefaults.standard.bool(forKey: "fetchEpisodeMetadata")) {
             
-            // Create a cache key using the anilist ID and episode number
             let cacheKey = "anilist_\(itemID)_episode_\(episodeID + 1)"
             
-            // Try to get from cache first
             if let cachedData = MetadataCacheManager.shared.getMetadata(forKey: cacheKey),
                let metadata = EpisodeMetadata.fromData(cachedData) {
                 
-                // Successfully loaded from cache
                 DispatchQueue.main.async {
                     self.episodeTitle = metadata.title["en"] ?? ""
                     self.episodeImageUrl = metadata.imageUrl
@@ -629,7 +560,6 @@ struct EpisodeCell: View {
             }
         }
         
-        // Cache miss or caching disabled, fetch from network
         fetchAnimeEpisodeDetails()
     }
     
@@ -640,7 +570,6 @@ struct EpisodeCell: View {
             return
         }
         
-        // For debugging
         if retryAttempts > 0 {
             Logger.shared.log("Retrying episode details fetch (attempt \(retryAttempts)/\(maxRetryAttempts))", type: "Debug")
         }
@@ -664,10 +593,8 @@ struct EpisodeCell: View {
                     return
                 }
                 
-                // Check if episodes object exists
                 guard let episodes = json["episodes"] as? [String: Any] else {
                     Logger.shared.log("Missing 'episodes' object in response", type: "Error")
-                    // Still proceed with empty data rather than failing
                     DispatchQueue.main.async {
                         self.isLoading = false
                         self.retryAttempts = 0
@@ -675,11 +602,9 @@ struct EpisodeCell: View {
                     return
                 }
                 
-                // Check if this specific episode exists in the response
                 let episodeKey = "\(episodeID + 1)"
                 guard let episodeDetails = episodes[episodeKey] as? [String: Any] else {
                     Logger.shared.log("Episode \(episodeKey) not found in response", type: "Error")
-                    // Still proceed with empty data rather than failing
                     DispatchQueue.main.async {
                         self.isLoading = false
                         self.retryAttempts = 0
@@ -687,7 +612,6 @@ struct EpisodeCell: View {
                     return
                 }
                 
-                // Extract available fields, log if they're missing but continue anyway
                 var title: [String: String] = [:]
                 var image: String = ""
                 var missingFields: [String] = []
@@ -695,7 +619,6 @@ struct EpisodeCell: View {
                 if let titleData = episodeDetails["title"] as? [String: String], !titleData.isEmpty {
                     title = titleData
                     
-                    // Check if we have any non-empty title values
                     if title.values.allSatisfy({ $0.isEmpty }) {
                         missingFields.append("title (all values empty)")
                     }
@@ -709,12 +632,10 @@ struct EpisodeCell: View {
                     missingFields.append("image")
                 }
                 
-                // Log missing fields but continue processing
                 if !missingFields.isEmpty {
                     Logger.shared.log("Episode \(episodeKey) missing fields: \(missingFields.joined(separator: ", "))", type: "Warning")
                 }
                 
-                // Cache whatever metadata we have if caching is enabled
                 if MetadataCacheManager.shared.isCachingEnabled && (!title.isEmpty || !image.isEmpty) {
                     let metadata = EpisodeMetadata(
                         title: title,
@@ -731,17 +652,14 @@ struct EpisodeCell: View {
                     }
                 }
                 
-                // Update UI with whatever data we have
                 DispatchQueue.main.async {
                     self.isLoading = false
-                    self.retryAttempts = 0 // Reset retry counter on success (even partial)
+                    self.retryAttempts = 0
                     
                     if UserDefaults.standard.object(forKey: "fetchEpisodeMetadata") == nil
                         || UserDefaults.standard.bool(forKey: "fetchEpisodeMetadata") {
-                        // Use whatever title we have, or leave as empty string
                         self.episodeTitle = title["en"] ?? title.values.first ?? ""
                         
-                        // Use image if available, otherwise leave current value
                         if !image.isEmpty {
                             self.episodeImageUrl = image
                         }
@@ -749,7 +667,6 @@ struct EpisodeCell: View {
                 }
             } catch {
                 Logger.shared.log("JSON parsing error: \(error.localizedDescription)", type: "Error")
-                // Still continue with empty data rather than failing
                 DispatchQueue.main.async {
                     self.isLoading = false
                     self.retryAttempts = 0
@@ -762,22 +679,17 @@ struct EpisodeCell: View {
         Logger.shared.log("Episode details fetch error: \(error.localizedDescription)", type: "Error")
         
         DispatchQueue.main.async {
-            // Check if we should retry
             if self.retryAttempts < self.maxRetryAttempts {
-                // Increment retry counter
                 self.retryAttempts += 1
                 
-                // Calculate backoff delay with exponential backoff
                 let backoffDelay = self.initialBackoffDelay * pow(2.0, Double(self.retryAttempts - 1))
                 
                 Logger.shared.log("Will retry episode details fetch in \(backoffDelay) seconds", type: "Debug")
                 
-                // Schedule retry after backoff delay
                 DispatchQueue.main.asyncAfter(deadline: .now() + backoffDelay) {
                     self.fetchAnimeEpisodeDetails()
                 }
             } else {
-                // Max retries reached, give up but still update UI with what we have
                 Logger.shared.log("Failed to fetch episode details after \(self.maxRetryAttempts) attempts", type: "Error")
                 self.isLoading = false
                 self.retryAttempts = 0

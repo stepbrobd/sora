@@ -8,11 +8,9 @@
 import SwiftUI
 import Drops
 
-// No need to import DownloadQualityPreference as it's in the same module
-
 struct SettingsViewDownloads: View {
     @EnvironmentObject private var jsController: JSController
-    @AppStorage(DownloadQualityPreference.userDefaultsKey) 
+    @AppStorage(DownloadQualityPreference.userDefaultsKey)
     private var downloadQuality = DownloadQualityPreference.defaultPreference.rawValue
     @AppStorage("allowCellularDownloads") private var allowCellularDownloads: Bool = true
     @AppStorage("maxConcurrentDownloads") private var maxConcurrentDownloads: Int = 3
@@ -39,7 +37,6 @@ struct SettingsViewDownloads: View {
                     Spacer()
                     Stepper("\(maxConcurrentDownloads)", value: $maxConcurrentDownloads, in: 1...10)
                         .onChange(of: maxConcurrentDownloads) { newValue in
-                            // Update JSController when the setting changes
                             jsController.updateMaxConcurrentDownloads(newValue)
                         }
                 }
@@ -79,7 +76,6 @@ struct SettingsViewDownloads: View {
                 }
                 
                 Button(action: {
-                    // Recalculate sizes in case files were externally modified
                     calculateTotalStorage()
                 }) {
                     HStack {
@@ -114,7 +110,6 @@ struct SettingsViewDownloads: View {
         .navigationTitle("Downloads")
         .onAppear {
             calculateTotalStorage()
-            // Sync the max concurrent downloads setting with JSController
             jsController.updateMaxConcurrentDownloads(maxConcurrentDownloads)
         }
     }
@@ -128,11 +123,9 @@ struct SettingsViewDownloads: View {
         
         isCalculating = true
         
-        // Clear any cached file sizes before recalculating
         DownloadedAsset.clearFileSizeCache()
         DownloadGroup.clearFileSizeCache()
         
-        // Use background task to avoid UI freezes with many files
         DispatchQueue.global(qos: .userInitiated).async {
             let total = jsController.savedAssets.reduce(0) { $0 + $1.fileSize }
             let existing = jsController.savedAssets.filter { $0.fileExists }.count
@@ -149,22 +142,17 @@ struct SettingsViewDownloads: View {
         let assetsToDelete = jsController.savedAssets
         for asset in assetsToDelete {
             if preservePersistentDownloads {
-                // Only remove from library without deleting files
                 jsController.removeAssetFromLibrary(asset)
             } else {
-                // Delete both library entry and files
                 jsController.deleteAsset(asset)
             }
         }
         
-        // Reset calculated values
         totalStorageSize = 0
         existingDownloadCount = 0
         
-        // Post a notification so all views can update - use libraryChange since assets were deleted
         NotificationCenter.default.post(name: NSNotification.Name("downloadLibraryChanged"), object: nil)
         
-        // Show confirmation message
         DispatchQueue.main.async {
             if preservePersistentDownloads {
                 DropManager.shared.success("Library cleared successfully")

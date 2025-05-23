@@ -67,7 +67,6 @@ struct MediaInfoView: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @AppStorage("selectedAppearance") private var selectedAppearance: Appearance = .system
     
-    // MARK: - Multi-Download State Management (Task MD-1)
     @State private var isMultiSelectMode: Bool = false
     @State private var selectedEpisodes: Set<Int> = []
     @State private var showRangeInput: Bool = false
@@ -78,16 +77,15 @@ struct MediaInfoView: View {
         return groupedEpisodes().count > 1
     }
     
-    // MARK: - Responsive Layout Properties
     private var isCompactLayout: Bool {
         return verticalSizeClass == .compact
     }
     
     private var useIconOnlyButtons: Bool {
         if UIDevice.current.userInterfaceIdiom == .pad {
-            return false // iPad has more space
+            return false
         }
-        return verticalSizeClass == .regular // Portrait mode on iPhone
+        return verticalSizeClass == .regular
     }
     
     private var multiselectButtonSpacing: CGFloat {
@@ -404,7 +402,6 @@ struct MediaInfoView: View {
                 episodeNavigationSection
             }
             
-            // Multi-select action bar
             if isMultiSelectMode && !selectedEpisodes.isEmpty {
                 multiSelectActionBar
             }
@@ -416,11 +413,8 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var multiSelectControls: some View {
         if isMultiSelectMode {
-            // Responsive multiselect toolbar
             if useIconOnlyButtons {
-                // Compact layout for portrait mode
                 HStack(spacing: multiselectButtonSpacing) {
-                    // Secondary actions menu
                     Menu {
                         Button(action: {
                             selectedEpisodes.removeAll()
@@ -444,7 +438,6 @@ struct MediaInfoView: View {
                     
                     Spacer()
                     
-                    // Select All button (icon only)
                     Button(action: {
                         selectAllVisibleEpisodes()
                     }) {
@@ -456,7 +449,6 @@ struct MediaInfoView: View {
                             .clipShape(Circle())
                     }
                     
-                    // Done button
                     Button(action: {
                         isMultiSelectMode = false
                         selectedEpisodes.removeAll()
@@ -473,9 +465,7 @@ struct MediaInfoView: View {
                 .padding(.horizontal, multiselectPadding)
                 .padding(.vertical, 8)
             } else {
-                // Expanded layout for landscape mode or iPad
                 HStack(spacing: multiselectButtonSpacing) {
-                    // Clear All button
                     Button(action: {
                         selectedEpisodes.removeAll()
                     }) {
@@ -491,7 +481,6 @@ struct MediaInfoView: View {
                         .cornerRadius(8)
                     }
                     
-                    // Range button
                     Button(action: {
                         showRangeInput = true
                     }) {
@@ -509,7 +498,6 @@ struct MediaInfoView: View {
                     
                     Spacer()
                     
-                    // Select All button
                     Button(action: {
                         selectAllVisibleEpisodes()
                     }) {
@@ -525,7 +513,6 @@ struct MediaInfoView: View {
                         .cornerRadius(8)
                     }
                     
-                    // Done button
                     Button(action: {
                         isMultiSelectMode = false
                         selectedEpisodes.removeAll()
@@ -545,7 +532,6 @@ struct MediaInfoView: View {
                 .cornerRadius(12)
             }
         } else {
-            // Select button to enter multi-select mode
             HStack {
                 Spacer()
                 Button(action: {
@@ -570,13 +556,11 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var multiSelectActionBar: some View {
         VStack(spacing: 0) {
-            // Divider
             Rectangle()
                 .fill(Color(UIColor.separator))
                 .frame(height: 0.5)
             
             HStack(spacing: 12) {
-                // Selection count
                 HStack(spacing: 6) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.accentColor)
@@ -588,7 +572,6 @@ struct MediaInfoView: View {
                 Spacer()
                 
                 if isBulkDownloading {
-                    // Progress indicator
                     HStack(spacing: 8) {
                         ProgressView()
                             .scaleEffect(0.8)
@@ -597,7 +580,6 @@ struct MediaInfoView: View {
                             .foregroundColor(.secondary)
                     }
                 } else {
-                    // Download button
                     Button(action: {
                         startBulkDownload()
                     }) {
@@ -705,7 +687,7 @@ struct MediaInfoView: View {
                         markAllPreviousEpisodesAsWatched(ep: ep, inSeason: true)
                     }
                 )
-                .disabled(isFetchingEpisode)
+                    .disabled(isFetchingEpisode)
             }
         } else {
             Text("No episodes available")
@@ -715,8 +697,8 @@ struct MediaInfoView: View {
     private func getBannerImageBasedOnAppearance() -> String {
         let isLightMode = selectedAppearance == .light || (selectedAppearance == .system && colorScheme == .light)
         return isLightMode
-            ? "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/dev/assets/banner1.png"
-            : "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/dev/assets/banner2.png"
+        ? "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/dev/assets/banner1.png"
+        : "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/dev/assets/banner2.png"
     }
     
     private func episodeTapAction(ep: EpisodeLink, imageUrl: String) {
@@ -787,7 +769,7 @@ struct MediaInfoView: View {
                     markAllPreviousEpisodesInFlatList(ep: ep, index: i)
                 }
             )
-            .disabled(isFetchingEpisode)
+                .disabled(isFetchingEpisode)
         }
     }
     
@@ -850,7 +832,7 @@ struct MediaInfoView: View {
         if let finishedIndex = finished, finishedIndex < episodeLinks.count - 1 {
             let nextEp = episodeLinks[finishedIndex + 1]
             return "Start Watching Episode \(nextEp.number)"
-        } 
+        }
         
         if let unfinishedIndex = unfinished {
             let currentEp = episodeLinks[unfinishedIndex]
@@ -870,7 +852,7 @@ struct MediaInfoView: View {
             selectedEpisodeNumber = nextEp.number
             fetchStream(href: nextEp.href)
             return
-        } 
+        }
         
         if let unfinishedIndex = unfinished {
             let ep = episodeLinks[unfinishedIndex]
@@ -1322,8 +1304,6 @@ struct MediaInfoView: View {
         }
     }
     
-    // MARK: - Multi-Download Helper Functions (Task MD-1 & MD-4)
-    
     private func selectEpisodeRange(start: Int, end: Int) {
         selectedEpisodes.removeAll()
         for episodeNumber in start...end {
@@ -1352,11 +1332,8 @@ struct MediaInfoView: View {
         
         isBulkDownloading = true
         bulkDownloadProgress = "Starting downloads..."
-        
-        // Convert selected episode numbers to EpisodeLink objects
         let episodesToDownload = episodeLinks.filter { selectedEpisodes.contains($0.number) }
         
-        // Start bulk download process
         Task {
             await processBulkDownload(episodes: episodesToDownload)
         }
@@ -1371,7 +1348,6 @@ struct MediaInfoView: View {
         for (index, episode) in episodes.enumerated() {
             bulkDownloadProgress = "Downloading episode \(episode.number) (\(index + 1)/\(totalCount))"
             
-            // Check if episode is already downloaded or queued
             let downloadStatus = jsController.isEpisodeDownloadedOrInProgress(
                 showTitle: title,
                 episodeNumber: episode.number,
@@ -1384,7 +1360,6 @@ struct MediaInfoView: View {
             case .downloading:
                 Logger.shared.log("Episode \(episode.number) already downloading, skipping", type: "Info")
             case .notDownloaded:
-                // Start download for this episode
                 let downloadSuccess = await downloadSingleEpisode(episode: episode)
                 if downloadSuccess {
                     successCount += 1
@@ -1393,17 +1368,14 @@ struct MediaInfoView: View {
             
             completedCount += 1
             
-            // Small delay between downloads to avoid overwhelming the system
-            try? await Task.sleep(nanoseconds: 500_000_000) // 500 milliseconds = 500,000,000 nanoseconds
+            try? await Task.sleep(nanoseconds: 500_000_000)
         }
         
-        // Update UI and provide feedback
         isBulkDownloading = false
         bulkDownloadProgress = ""
         isMultiSelectMode = false
         selectedEpisodes.removeAll()
         
-        // Show completion notification
         DropManager.shared.showDrop(
             title: "Bulk Download Complete",
             subtitle: "\(successCount)/\(totalCount) episodes queued for download",
@@ -1419,7 +1391,6 @@ struct MediaInfoView: View {
                     let jsContent = try moduleManager.getModuleContent(module)
                     jsController.loadScript(jsContent)
                     
-                    // Use the same comprehensive stream fetching approach as manual downloads
                     self.tryNextDownloadMethodForBulk(
                         episode: episode,
                         methodIndex: 0,
@@ -1434,7 +1405,6 @@ struct MediaInfoView: View {
         }
     }
     
-    // Replicate the same multi-method approach used in EpisodeCell for bulk downloads
     private func tryNextDownloadMethodForBulk(
         episode: EpisodeLink,
         methodIndex: Int,
@@ -1445,61 +1415,44 @@ struct MediaInfoView: View {
         
         switch methodIndex {
         case 0:
-            // First try fetchStreamUrlJS if asyncJS is true
             if module.metadata.asyncJS == true {
                 jsController.fetchStreamUrlJS(episodeUrl: episode.href, softsub: softsub, module: module) { result in
                     self.handleBulkDownloadResult(result, episode: episode, methodIndex: methodIndex, softsub: softsub, continuation: continuation)
                 }
             } else {
-                // Skip to next method if not applicable
                 tryNextDownloadMethodForBulk(episode: episode, methodIndex: methodIndex + 1, softsub: softsub, continuation: continuation)
             }
             
         case 1:
-            // Then try fetchStreamUrlJSSecond if streamAsyncJS is true
             if module.metadata.streamAsyncJS == true {
                 jsController.fetchStreamUrlJSSecond(episodeUrl: episode.href, softsub: softsub, module: module) { result in
                     self.handleBulkDownloadResult(result, episode: episode, methodIndex: methodIndex, softsub: softsub, continuation: continuation)
                 }
             } else {
-                // Skip to next method if not applicable
                 tryNextDownloadMethodForBulk(episode: episode, methodIndex: methodIndex + 1, softsub: softsub, continuation: continuation)
             }
             
         case 2:
-            // Finally try fetchStreamUrl (most reliable method)
             jsController.fetchStreamUrl(episodeUrl: episode.href, softsub: softsub, module: module) { result in
                 self.handleBulkDownloadResult(result, episode: episode, methodIndex: methodIndex, softsub: softsub, continuation: continuation)
             }
             
         default:
-            // We've tried all methods and none worked
             Logger.shared.log("Failed to find a valid stream for bulk download after trying all methods", type: "Error")
             continuation.resume(returning: false)
         }
     }
     
-    // Handle result from sequential download attempts (same logic as EpisodeCell)
-    private func handleBulkDownloadResult(
-        _ result: (streams: [String]?, subtitles: [String]?, sources: [[String:Any]]?),
-        episode: EpisodeLink,
-        methodIndex: Int,
-        softsub: Bool,
-        continuation: CheckedContinuation<Bool, Never>
-    ) {
-        // Check if we have valid streams
+    private func handleBulkDownloadResult(_ result: (streams: [String]?, subtitles: [String]?, sources: [[String:Any]]?), episode: EpisodeLink, methodIndex: Int, softsub: Bool, continuation: CheckedContinuation<Bool, Never>) {
         if let streams = result.streams, !streams.isEmpty, let url = URL(string: streams[0]) {
-            // Check if it's a Promise object
             if streams[0] == "[object Promise]" {
                 print("[Bulk Download] Method #\(methodIndex+1) returned a Promise object, trying next method")
                 tryNextDownloadMethodForBulk(episode: episode, methodIndex: methodIndex + 1, softsub: softsub, continuation: continuation)
                 return
             }
             
-            // We found a valid stream URL, proceed with download
             print("[Bulk Download] Method #\(methodIndex+1) returned valid stream URL: \(streams[0])")
             
-            // Get subtitle URL if available
             let subtitleURL = result.subtitles?.first.flatMap { URL(string: $0) }
             if let subtitleURL = subtitleURL {
                 print("[Bulk Download] Found subtitle URL: \(subtitleURL.absoluteString)")
@@ -1508,13 +1461,12 @@ struct MediaInfoView: View {
             startEpisodeDownloadWithProcessedStream(episode: episode, url: url, streamUrl: streams[0], subtitleURL: subtitleURL)
             continuation.resume(returning: true)
             
-        } else if let sources = result.sources, !sources.isEmpty, 
-                  let streamUrl = sources[0]["streamUrl"] as? String, 
-                  let url = URL(string: streamUrl) {
+        } else if let sources = result.sources, !sources.isEmpty,
+                    let streamUrl = sources[0]["streamUrl"] as? String,
+                    let url = URL(string: streamUrl) {
             
             print("[Bulk Download] Method #\(methodIndex+1) returned valid stream URL with headers: \(streamUrl)")
             
-            // Get subtitle URL if available
             let subtitleURLString = sources[0]["subtitle"] as? String
             let subtitleURL = subtitleURLString.flatMap { URL(string: $0) }
             if let subtitleURL = subtitleURL {
@@ -1525,27 +1477,17 @@ struct MediaInfoView: View {
             continuation.resume(returning: true)
             
         } else {
-            // No valid streams from this method, try the next one
             print("[Bulk Download] Method #\(methodIndex+1) did not return valid streams, trying next method")
             tryNextDownloadMethodForBulk(episode: episode, methodIndex: methodIndex + 1, softsub: softsub, continuation: continuation)
         }
     }
     
-    // Start download with processed stream URL and proper headers (same logic as EpisodeCell)
-    private func startEpisodeDownloadWithProcessedStream(
-        episode: EpisodeLink, 
-        url: URL, 
-        streamUrl: String, 
-        subtitleURL: URL? = nil
-    ) {
-        // Generate comprehensive headers using the same logic as EpisodeCell
+    private func startEpisodeDownloadWithProcessedStream(episode: EpisodeLink, url: URL, streamUrl: String, subtitleURL: URL? = nil) {
         var headers: [String: String] = [:]
         
-        // Always use the module's baseUrl for Origin and Referer
         if !module.metadata.baseUrl.isEmpty && !module.metadata.baseUrl.contains("undefined") {
             print("Using module baseUrl: \(module.metadata.baseUrl)")
             
-            // Create comprehensive headers prioritizing the module's baseUrl
             headers = [
                 "Origin": module.metadata.baseUrl,
                 "Referer": module.metadata.baseUrl,
@@ -1557,7 +1499,6 @@ struct MediaInfoView: View {
                 "Sec-Fetch-Site": "same-origin"
             ]
         } else {
-            // Fallback to using the stream URL's domain if module.baseUrl isn't available
             if let scheme = url.scheme, let host = url.host {
                 let baseUrl = scheme + "://" + host
                 
@@ -1572,7 +1513,6 @@ struct MediaInfoView: View {
                     "Sec-Fetch-Site": "same-origin"
                 ]
             } else {
-                // Missing URL components - use minimal headers
                 headers = [
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
                 ]
@@ -1581,17 +1521,13 @@ struct MediaInfoView: View {
         }
         
         print("Bulk download headers: \(headers)")
-        
-        // Fetch episode metadata first (same as EpisodeCell does)
         fetchEpisodeMetadataForDownload(episode: episode) { metadata in
             let episodeTitle = metadata?.title["en"] ?? metadata?.title.values.first ?? ""
             let episodeImageUrl = metadata?.imageUrl ?? ""
             
-            // Create episode title using same logic as EpisodeCell
             let episodeName = episodeTitle.isEmpty ? "Episode \(episode.number)" : episodeTitle
             let fullEpisodeTitle = "Episode \(episode.number): \(episodeName)"
             
-            // Use episode-specific thumbnail if available, otherwise use default banner
             let episodeThumbnailURL: URL?
             if !episodeImageUrl.isEmpty {
                 episodeThumbnailURL = URL(string: episodeImageUrl)
@@ -1626,16 +1562,13 @@ struct MediaInfoView: View {
         }
     }
     
-    // Fetch episode metadata for downloads (same logic as EpisodeCell.fetchEpisodeDetails)
     private func fetchEpisodeMetadataForDownload(episode: EpisodeLink, completion: @escaping (EpisodeMetadataInfo?) -> Void) {
-        // Check if we have an itemID for metadata fetching
         guard let anilistId = itemID else {
             Logger.shared.log("No AniList ID available for episode metadata", type: "Warning")
             completion(nil)
             return
         }
         
-        // Check if metadata caching is enabled and try cache first
         if MetadataCacheManager.shared.isCachingEnabled {
             let cacheKey = "anilist_\(anilistId)_episode_\(episode.number)"
             
@@ -1654,11 +1587,9 @@ struct MediaInfoView: View {
             }
         }
         
-        // Cache miss or caching disabled, fetch from network
         fetchEpisodeMetadataFromNetwork(anilistId: anilistId, episodeNumber: episode.number, completion: completion)
     }
     
-    // Fetch episode metadata from ani.zip API (same logic as EpisodeCell.fetchAnimeEpisodeDetails)
     private func fetchEpisodeMetadataFromNetwork(anilistId: Int, episodeNumber: Int, completion: @escaping (EpisodeMetadataInfo?) -> Void) {
         guard let url = URL(string: "https://api.ani.zip/mappings?anilist_id=\(anilistId)") else {
             Logger.shared.log("Invalid URL for anilistId: \(anilistId)", type: "Error")
@@ -1689,14 +1620,12 @@ struct MediaInfoView: View {
                     return
                 }
                 
-                // Check if episodes object exists
                 guard let episodes = json["episodes"] as? [String: Any] else {
                     Logger.shared.log("Missing 'episodes' object in metadata response", type: "Error")
                     completion(nil)
                     return
                 }
                 
-                // Check if this specific episode exists in the response
                 let episodeKey = "\(episodeNumber)"
                 guard let episodeDetails = episodes[episodeKey] as? [String: Any] else {
                     Logger.shared.log("Episode \(episodeKey) not found in metadata response", type: "Warning")
@@ -1704,23 +1633,18 @@ struct MediaInfoView: View {
                     return
                 }
                 
-                // Extract available fields
                 var title: [String: String] = [:]
                 var image: String = ""
                 
                 if let titleData = episodeDetails["title"] as? [String: String], !titleData.isEmpty {
                     title = titleData
                 } else {
-                    // Use default title if none available
                     title = ["en": "Episode \(episodeNumber)"]
                 }
                 
                 if let imageUrl = episodeDetails["image"] as? String, !imageUrl.isEmpty {
                     image = imageUrl
                 }
-                // If no image, leave empty and let the caller use default banner
-                
-                // Cache whatever metadata we have if caching is enabled
                 if MetadataCacheManager.shared.isCachingEnabled {
                     let metadata = EpisodeMetadata(
                         title: title,
@@ -1738,7 +1662,6 @@ struct MediaInfoView: View {
                     }
                 }
                 
-                // Create metadata info object
                 let metadataInfo = EpisodeMetadataInfo(
                     title: title,
                     imageUrl: image,
@@ -1757,7 +1680,6 @@ struct MediaInfoView: View {
     }
 }
 
-// MARK: - Range Selection Sheet (Task MD-5)
 struct RangeSelectionSheet: View {
     let totalEpisodes: Int
     let onSelectionComplete: (Int, Int) -> Void
@@ -1871,10 +1793,10 @@ struct RangeSelectionSheet: View {
     private func validateAndSelect() {
         guard let start = Int(startEpisode),
               let end = Int(endEpisode) else {
-            errorMessage = "Please enter valid episode numbers"
-            showError = true
-            return
-        }
+                  errorMessage = "Please enter valid episode numbers"
+                  showError = true
+                  return
+              }
         
         guard start >= 1 && end <= totalEpisodes else {
             errorMessage = "Episode numbers must be between 1 and \(totalEpisodes)"
