@@ -120,8 +120,11 @@ struct EpisodeCell: View {
         .onAppear {
             updateProgress()
             updateDownloadStatus()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                fetchEpisodeDetails()
+            
+            if let type = module.metadata.type?.lowercased(), type == "anime" {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    fetchAnimeEpisodeDetails()
+                }
             }
             
             if let totalEpisodes = totalEpisodes, episodeID + 1 < totalEpisodes {
