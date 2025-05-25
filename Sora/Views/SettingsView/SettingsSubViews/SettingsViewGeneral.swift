@@ -130,6 +130,5 @@ struct SettingsViewGeneral: View {
                     SettingsViewAlternateAppIconPicker(isPresented: $showAppIconPicker)
                 }
         }
-        .modifier(HideToolbarModifier())
     }
 }
