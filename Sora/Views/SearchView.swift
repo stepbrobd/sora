@@ -83,51 +83,59 @@ struct SearchView: View {
                         }
                     }
                     
-                    if !searchHistory.isEmpty && searchText.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
+                    if isSearchFieldFocused && !searchHistory.isEmpty && searchText.isEmpty {
+                        VStack(alignment: .leading, spacing: 0) {
                             HStack {
-                                Text("Recent")
-                                    .font(.caption)
+                                Text("Recent Searches")
+                                    .font(.subheadline)
                                     .foregroundColor(.secondary)
                                 Spacer()
                                 Button("Clear") {
                                     clearSearchHistory()
                                 }
-                                .font(.caption2)
+                                .font(.caption)
                                 .foregroundColor(.accentColor)
                             }
                             .padding(.horizontal)
+                            .padding(.top, 8)
                             
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 8) {
-                                    ForEach(Array(searchHistory.prefix(5).enumerated()), id: \.offset) { index, searchTerm in
+                            ForEach(Array(searchHistory.enumerated()), id: \.offset) { index, searchTerm in
+                                Button(action: {
+                                    searchText = searchTerm
+                                    isSearchFieldFocused = false
+                                    performSearch()
+                                }) {
+                                    HStack {
+                                        Image(systemName: "clock")
+                                            .foregroundColor(.secondary)
+                                            .font(.caption)
+                                        Text(searchTerm)
+                                            .foregroundColor(.primary)
+                                        Spacer()
                                         Button(action: {
-                                            searchText = searchTerm
-                                            performSearch()
+                                            removeFromHistory(at: index)
                                         }) {
-                                            HStack(spacing: 4) {
-                                                Text(searchTerm)
-                                                    .font(.caption)
-                                                    .lineLimit(1)
-                                                Button(action: {
-                                                    removeFromHistory(at: index)
-                                                }) {
-                                                    Image(systemName: "xmark")
-                                                        .font(.caption2)
-                                                }
-                                            }
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 6)
-                                            .background(Color(.systemGray5))
-                                            .cornerRadius(16)
+                                            Image(systemName: "xmark.circle.fill")
+                                                .foregroundColor(.secondary)
+                                                .font(.caption)
                                         }
-                                        .buttonStyle(PlainButtonStyle())
                                     }
+                                    .padding(.horizontal)
+                                    .padding(.vertical, 8)
                                 }
-                                .padding(.horizontal)
+                                .buttonStyle(PlainButtonStyle())
+                                
+                                if index < searchHistory.count - 1 {
+                                    Divider()
+                                        .padding(.leading, 40)
+                                }
                             }
                         }
-                        .padding(.top, 8)
+                        .background(Color(.systemBackground))
+                        .cornerRadius(8)
+                        .shadow(color: Color.black.opacity(0.1), radius: 2, y: 1)
+                        .padding(.horizontal)
+                        .padding(.top, 4)
                     }
                     
                     if selectedModule == nil {
@@ -353,9 +361,8 @@ struct SearchView: View {
         searchHistory.removeAll { $0.lowercased() == trimmedTerm.lowercased() }
         searchHistory.insert(trimmedTerm, at: 0)
         
-        // Keep only last 5 searches for more practical display
-        if searchHistory.count > 5 {
-            searchHistory = Array(searchHistory.prefix(5))
+        if searchHistory.count > 10 {
+            searchHistory = Array(searchHistory.prefix(10))
         }
         
         saveSearchHistory()
