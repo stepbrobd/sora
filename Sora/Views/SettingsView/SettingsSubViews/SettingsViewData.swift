@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import UniformTypeIdentifiers
 
 struct SettingsViewData: View {
     @State private var showEraseAppDataAlert = false
@@ -19,41 +18,14 @@ struct SettingsViewData: View {
     @State private var movPkgSize: Int64 = 0
     @State private var showRemoveMovPkgAlert = false
     
+    // State bindings for cache settings
     @State private var isMetadataCachingEnabled: Bool = true
     @State private var isImageCachingEnabled: Bool = true
     @State private var isMemoryOnlyMode: Bool = false
     
-    @StateObject private var backupManager = BackupManager.shared
-    @State private var showingExportSuccess = false
-    @State private var showingImportSuccess = false
-    @State private var showingError = false
-    @State private var errorMessage = ""
-    @State private var showingFilePicker = false
-    @State private var showingShareSheet = false
-    @State private var backupURL: URL?
-    
     var body: some View {
         Form {
-            Section(header: Text("Backup & Restore"), footer: Text("Create backups to transfer your data to another device or restore from a previous backup.")) {
-                Button(action: exportBackup) {
-                    HStack {
-                        Image(systemName: "square.and.arrow.up")
-                            .foregroundColor(.blue)
-                        Text("Create Backup")
-                        Spacer()
-                    }
-                }
-                
-                Button(action: { showingFilePicker = true }) {
-                    HStack {
-                        Image(systemName: "square.and.arrow.down")
-                            .foregroundColor(.green)
-                        Text("Restore from Backup")
-                        Spacer()
-                    }
-                }
-            }
-            
+            // New section for cache settings
             Section(header: Text("Cache Settings"), footer: Text("Caching helps reduce network usage and load content faster. You can disable it to save storage space.")) {
                 Toggle("Enable Metadata Caching", isOn: $isMetadataCachingEnabled)
                     .onChange(of: isMetadataCachingEnabled) { newValue in
@@ -76,6 +48,7 @@ struct SettingsViewData: View {
                         .onChange(of: isMemoryOnlyMode) { newValue in
                             MetadataCacheManager.shared.isMemoryOnlyMode = newValue
                             if newValue {
+                                // Clear disk cache when switching to memory-only
                                 MetadataCacheManager.shared.clearAllCache()
                                 calculateCacheSize()
                             }
@@ -145,41 +118,12 @@ struct SettingsViewData: View {
         .navigationTitle("App Data")
         .navigationViewStyle(StackNavigationViewStyle())
         .onAppear {
+            // Initialize state with current values
             isMetadataCachingEnabled = MetadataCacheManager.shared.isCachingEnabled
             isImageCachingEnabled = KingfisherCacheManager.shared.isCachingEnabled
             isMemoryOnlyMode = MetadataCacheManager.shared.isMemoryOnlyMode
             calculateCacheSize()
             updateSizes()
-        }
-        .fileImporter(
-            isPresented: $showingFilePicker,
-            allowedContentTypes: [UTType.json],
-            allowsMultipleSelection: false
-        ) { result in
-            handleFileImport(result)
-        }
-        .sheet(isPresented: $showingShareSheet) {
-            if let url = backupURL {
-                ShareSheet(items: [url])
-            }
-        }
-        .alert("Backup Created", isPresented: $showingExportSuccess) {
-            Button("Share") {
-                showingShareSheet = true
-            }
-            Button("OK") { }
-        } message: {
-            Text("Your backup has been created successfully. You can share it or find it in your Files app.")
-        }
-        .alert("Backup Restored", isPresented: $showingImportSuccess) {
-            Button("OK") { }
-        } message: {
-            Text("Your data has been restored successfully. The app will refresh with your restored settings.")
-        }
-        .alert("Error", isPresented: $showingError) {
-            Button("OK") { }
-        } message: {
-            Text(errorMessage)
         }
         .alert(isPresented: $showEraseAppDataAlert) {
             Alert(
@@ -213,51 +157,24 @@ struct SettingsViewData: View {
         }
     }
     
-    private func exportBackup() {
-        guard let url = backupManager.exportBackup() else {
-            errorMessage = "Failed to create backup file"
-            showingError = true
-            return
-        }
-        
-        backupURL = url
-        showingExportSuccess = true
-    }
-    
-    private func handleFileImport(_ result: Result<[URL], Error>) {
-        switch result {
-        case .success(let urls):
-            guard let url = urls.first else { return }
-            
-            if backupManager.importBackup(from: url) {
-                showingImportSuccess = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    isMetadataCachingEnabled = MetadataCacheManager.shared.isCachingEnabled
-                    isImageCachingEnabled = KingfisherCacheManager.shared.isCachingEnabled
-                    isMemoryOnlyMode = MetadataCacheManager.shared.isMemoryOnlyMode
-                }
-            } else {
-                errorMessage = "Failed to restore backup. Please check if the file is a valid Sora backup."
-                showingError = true
-            }
-            
-        case .failure(let error):
-            errorMessage = "Failed to read backup file: \(error.localizedDescription)"
-            showingError = true
-        }
-    }
+    // Calculate and update the combined cache size
     func calculateCacheSize() {
         isCalculatingSize = true
         cacheSizeText = "Calculating..."
         
+        // Group all cache size calculations
         DispatchQueue.global(qos: .background).async {
             var totalSize: Int64 = 0
+            
+            // Get metadata cache size
             let metadataSize = MetadataCacheManager.shared.getCacheSize()
             totalSize += metadataSize
             
+            // Get image cache size asynchronously
             KingfisherCacheManager.shared.calculateCacheSize { imageSize in
                 totalSize += Int64(imageSize)
                 
+                // Update the UI on the main thread
                 DispatchQueue.main.async {
                     self.cacheSizeText = KingfisherCacheManager.formatCacheSize(UInt(totalSize))
                     self.isCalculatingSize = false
@@ -266,9 +183,14 @@ struct SettingsViewData: View {
         }
     }
     
+    // Clear all caches (both metadata and images)
     func clearAllCaches() {
+        // Clear metadata cache
         MetadataCacheManager.shared.clearAllCache()
+        
+        // Clear image cache
         KingfisherCacheManager.shared.clearCache {
+            // Update cache size after clearing
             calculateCacheSize()
         }
         
@@ -391,14 +313,4 @@ struct SettingsViewData: View {
         
         return totalSize
     }
-}
-
-struct ShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-    
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
-    }
-    
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

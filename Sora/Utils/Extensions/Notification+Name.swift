@@ -13,5 +13,4 @@ extension Notification.Name {
     static let ContinueWatchingDidUpdate = Notification.Name("ContinueWatchingDidUpdate")
     static let DownloadManagerStatusUpdate = Notification.Name("DownloadManagerStatusUpdate")
     static let modulesSyncDidComplete = Notification.Name("modulesSyncDidComplete")
-    static let backupRestored = Notification.Name("backupRestored")
 }

@@ -18,9 +18,6 @@
 		132AF1232D9995C300A0140B /* JSController-Details.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132AF1222D9995C300A0140B /* JSController-Details.swift */; };
 		132AF1252D9995F900A0140B /* JSController-Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132AF1242D9995F900A0140B /* JSController-Search.swift */; };
 		132FC5B32DE31DAE009A80F7 /* SettingsViewAlternateAppIconPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132FC5B22DE31DAD009A80F7 /* SettingsViewAlternateAppIconPicker.swift */; };
-		132FC5BB2DE333D3009A80F7 /* BackupData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132FC5BA2DE333D3009A80F7 /* BackupData.swift */; };
-		132FC5BD2DE333F4009A80F7 /* DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132FC5BC2DE333F4009A80F7 /* DateFormatter.swift */; };
-		132FC5BF2DE33410009A80F7 /* BackupManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132FC5BE2DE33410009A80F7 /* BackupManager.swift */; };
 		133D7C6E2D2BE2500075467E /* SoraApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C6D2D2BE2500075467E /* SoraApp.swift */; };
 		133D7C702D2BE2500075467E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C6F2D2BE2500075467E /* ContentView.swift */; };
 		133D7C722D2BE2520075467E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 133D7C712D2BE2520075467E /* Assets.xcassets */; };
@@ -101,9 +98,6 @@
 		132AF1222D9995C300A0140B /* JSController-Details.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JSController-Details.swift"; sourceTree = "<group>"; };
 		132AF1242D9995F900A0140B /* JSController-Search.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JSController-Search.swift"; sourceTree = "<group>"; };
 		132FC5B22DE31DAD009A80F7 /* SettingsViewAlternateAppIconPicker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewAlternateAppIconPicker.swift; sourceTree = "<group>"; };
-		132FC5BA2DE333D3009A80F7 /* BackupData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupData.swift; sourceTree = "<group>"; };
-		132FC5BC2DE333F4009A80F7 /* DateFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatter.swift; sourceTree = "<group>"; };
-		132FC5BE2DE33410009A80F7 /* BackupManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupManager.swift; sourceTree = "<group>"; };
 		133D7C6A2D2BE2500075467E /* Sulfur.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sulfur.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		133D7C6D2D2BE2500075467E /* SoraApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoraApp.swift; sourceTree = "<group>"; };
 		133D7C6F2D2BE2500075467E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -219,15 +213,6 @@
 			path = Analytics;
 			sourceTree = "<group>";
 		};
-		132FC5B92DE333BD009A80F7 /* Backups */ = {
-			isa = PBXGroup;
-			children = (
-				132FC5BA2DE333D3009A80F7 /* BackupData.swift */,
-				132FC5BE2DE33410009A80F7 /* BackupManager.swift */,
-			);
-			path = Backups;
-			sourceTree = "<group>";
-		};
 		133D7C612D2BE2500075467E = {
 			isa = PBXGroup;
 			children = (
@@ -309,10 +294,9 @@
 		133D7C852D2BE2640075467E /* Utils */ = {
 			isa = PBXGroup;
 			children = (
-				13D842532D45266900EBBFA6 /* Drops */,
 				7205AEDA2DCCEF9500943F3F /* Cache */,
+				13D842532D45266900EBBFA6 /* Drops */,
 				1399FAD12D3AB33D00E97C31 /* Logger */,
-				132FC5B92DE333BD009A80F7 /* Backups */,
 				133D7C882D2BE2640075467E /* Modules */,
 				133D7C8A2D2BE2640075467E /* JSLoader */,
 				1327FBA52D758CEA00FC6689 /* Analytics */,
@@ -331,7 +315,6 @@
 				73D164D42D8B5B340011A360 /* JavaScriptCore+Extensions.swift */,
 				136BBE7F2DB1038000906B5E /* Notification+Name.swift */,
 				1327FBA82D758DEA00FC6689 /* UIDevice+Model.swift */,
-				132FC5BC2DE333F4009A80F7 /* DateFormatter.swift */,
 				13637B892DE0EA1100BDA2FC /* UserDefaults.swift */,
 				133D7C872D2BE2640075467E /* URLSession.swift */,
 				1359ED132D76F49900C13034 /* finTopView.swift */,
@@ -637,7 +620,6 @@
 				13DB7CC32D7D99C0004371D3 /* SubtitleSettingsManager.swift in Sources */,
 				133D7C702D2BE2500075467E /* ContentView.swift in Sources */,
 				13D99CF72D4E73C300250A86 /* ModuleAdditionSettingsView.swift in Sources */,
-				132FC5BF2DE33410009A80F7 /* BackupManager.swift in Sources */,
 				13C0E5EC2D5F85F800E7F619 /* ContinueWatchingItem.swift in Sources */,
 				13CBA0882D60F19C00EFE70A /* VTTSubtitlesLoader.swift in Sources */,
 				13EA2BD62D32D97400C1EBD7 /* Double+Extension.swift in Sources */,
@@ -680,8 +662,6 @@
 				72AC3A032DD4DAEB00C60B96 /* PerformanceMonitor.swift in Sources */,
 				72443C7F2DC8038300A61321 /* SettingsViewDownloads.swift in Sources */,
 				13DB46922D900BCE008CBC03 /* SettingsViewTrackers.swift in Sources */,
-				132FC5BB2DE333D3009A80F7 /* BackupData.swift in Sources */,
-				132FC5BD2DE333F4009A80F7 /* DateFormatter.swift in Sources */,
 				7222485F2DCBAA2C00CABE2D /* DownloadModels.swift in Sources */,
 				722248602DCBAA2C00CABE2D /* M3U8StreamExtractor.swift in Sources */,
 				13C0E5EA2D5F85EA00E7F619 /* ContinueWatchingManager.swift in Sources */,
