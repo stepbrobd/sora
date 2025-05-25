@@ -353,7 +353,6 @@ struct SearchView: View {
         searchHistory.removeAll { $0.lowercased() == trimmedTerm.lowercased() }
         searchHistory.insert(trimmedTerm, at: 0)
         
-        // Keep only last 5 searches for more practical display
         if searchHistory.count > 5 {
             searchHistory = Array(searchHistory.prefix(5))
         }
