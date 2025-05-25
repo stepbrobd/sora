@@ -102,7 +102,7 @@ extension JSController {
         // Enhanced session configuration
         let sessionConfig = URLSessionConfiguration.default
         sessionConfig.timeoutIntervalForRequest = 60.0
-        sessionConfig.timeoutIntervalForResource = 1800.0 // 30 minutes for large files
+        sessionConfig.timeoutIntervalForResource = 1800.0
         sessionConfig.httpMaximumConnectionsPerHost = 1
         sessionConfig.allowsCellularAccess = true
         
