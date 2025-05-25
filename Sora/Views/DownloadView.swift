@@ -447,6 +447,8 @@ struct DownloadGroupCard: View {
                     .foregroundColor(.gray)
                     .font(.caption)
             }
+            .contentShape(Rectangle())
+            .background(Color.clear)
         }
         .buttonStyle(PlainButtonStyle())
     }

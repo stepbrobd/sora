@@ -113,7 +113,7 @@ struct EpisodeCell: View {
                 .padding(.trailing, 4)
         }
         .contentShape(Rectangle())
-        .background(isMultiSelectMode && isSelected ? Color.accentColor.opacity(0.1) : Color.clear)
+        .background(Color.clear)
         .cornerRadius(8)
         .contextMenu {
             contextMenuContent
