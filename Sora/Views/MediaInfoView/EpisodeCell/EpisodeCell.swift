@@ -126,6 +126,8 @@ struct EpisodeCell: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     fetchAnimeEpisodeDetails()
                 }
+            } else {
+                isLoading = false
             }
             
             if let totalEpisodes = totalEpisodes, episodeID + 1 < totalEpisodes {
