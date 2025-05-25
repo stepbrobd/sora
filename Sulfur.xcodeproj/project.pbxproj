@@ -197,8 +197,8 @@
 		13103E8C2D58E037000F0673 /* SkeletonCells */ = {
 			isa = PBXGroup;
 			children = (
-				13103E8D2D58E04A000F0673 /* SkeletonCell.swift */,
 				13B7F4C02D58FFDD0045714A /* Shimmer.swift */,
+				13103E8D2D58E04A000F0673 /* SkeletonCell.swift */,
 			);
 			path = SkeletonCells;
 			sourceTree = "<group>";
