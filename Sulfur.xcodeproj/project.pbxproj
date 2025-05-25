@@ -18,6 +18,7 @@
 		132AF1232D9995C300A0140B /* JSController-Details.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132AF1222D9995C300A0140B /* JSController-Details.swift */; };
 		132AF1252D9995F900A0140B /* JSController-Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132AF1242D9995F900A0140B /* JSController-Search.swift */; };
 		132FC5B32DE31DAE009A80F7 /* SettingsViewAlternateAppIconPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132FC5B22DE31DAD009A80F7 /* SettingsViewAlternateAppIconPicker.swift */; };
+		132FC5B82DE33051009A80F7 /* TMDBEpisodeMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132FC5B72DE33051009A80F7 /* TMDBEpisodeMetadata.swift */; };
 		133D7C6E2D2BE2500075467E /* SoraApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C6D2D2BE2500075467E /* SoraApp.swift */; };
 		133D7C702D2BE2500075467E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C6F2D2BE2500075467E /* ContentView.swift */; };
 		133D7C722D2BE2520075467E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 133D7C712D2BE2520075467E /* Assets.xcassets */; };
@@ -98,6 +99,7 @@
 		132AF1222D9995C300A0140B /* JSController-Details.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JSController-Details.swift"; sourceTree = "<group>"; };
 		132AF1242D9995F900A0140B /* JSController-Search.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JSController-Search.swift"; sourceTree = "<group>"; };
 		132FC5B22DE31DAD009A80F7 /* SettingsViewAlternateAppIconPicker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewAlternateAppIconPicker.swift; sourceTree = "<group>"; };
+		132FC5B72DE33051009A80F7 /* TMDBEpisodeMetadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TMDBEpisodeMetadata.swift; sourceTree = "<group>"; };
 		133D7C6A2D2BE2500075467E /* Sulfur.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sulfur.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		133D7C6D2D2BE2500075467E /* SoraApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoraApp.swift; sourceTree = "<group>"; };
 		133D7C6F2D2BE2500075467E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -181,6 +183,7 @@
 		13103E802D589D6C000F0673 /* Tracking Services */ = {
 			isa = PBXGroup;
 			children = (
+				132FC5B42DE33042009A80F7 /* TMDB */,
 				13E62FBF2DABC3A20007E259 /* Trakt */,
 				13103E812D589D77000F0673 /* AniList */,
 			);
@@ -211,6 +214,14 @@
 				1327FBA62D758CEA00FC6689 /* Analytics.swift */,
 			);
 			path = Analytics;
+			sourceTree = "<group>";
+		};
+		132FC5B42DE33042009A80F7 /* TMDB */ = {
+			isa = PBXGroup;
+			children = (
+				132FC5B72DE33051009A80F7 /* TMDBEpisodeMetadata.swift */,
+			);
+			path = TMDB;
 			sourceTree = "<group>";
 		};
 		133D7C612D2BE2500075467E = {
@@ -616,6 +627,7 @@
 				130C6BFA2D53AB1F00DC1432 /* SettingsViewData.swift in Sources */,
 				1E9FF1D32D403E49008AC100 /* SettingsViewLoggerFilter.swift in Sources */,
 				13EA2BD92D32D98400C1EBD7 /* NormalPlayer.swift in Sources */,
+				132FC5B82DE33051009A80F7 /* TMDBEpisodeMetadata.swift in Sources */,
 				133D7C932D2BE2640075467E /* Modules.swift in Sources */,
 				13DB7CC32D7D99C0004371D3 /* SubtitleSettingsManager.swift in Sources */,
 				133D7C702D2BE2500075467E /* ContentView.swift in Sources */,

@@ -26,6 +26,7 @@ struct EpisodeCell: View {
     var module: ScrapingModule
     var parentTitle: String
     var showPosterURL: String?
+    var tmdbID: Int?
     
     var isMultiSelectMode: Bool = false
     var isSelected: Bool = false
@@ -74,6 +75,7 @@ struct EpisodeCell: View {
     init(episodeIndex: Int, episode: String, episodeID: Int, progress: Double,
          itemID: Int, totalEpisodes: Int? = nil, defaultBannerImage: String = "",
          module: ScrapingModule, parentTitle: String, showPosterURL: String? = nil,
+         tmdbID: Int? = nil,
          isMultiSelectMode: Bool = false, isSelected: Bool = false,
          onSelectionChanged: ((Bool) -> Void)? = nil,
          onTap: @escaping (String) -> Void, onMarkAllPrevious: @escaping () -> Void) {
@@ -83,6 +85,7 @@ struct EpisodeCell: View {
         self.progress = progress
         self.itemID = itemID
         self.totalEpisodes = totalEpisodes
+        self.tmdbID = tmdbID
         
         let isLightMode = (UserDefaults.standard.string(forKey: "selectedAppearance") == "light") ||
         ((UserDefaults.standard.string(forKey: "selectedAppearance") == "system") &&
@@ -125,6 +128,10 @@ struct EpisodeCell: View {
             if let type = module.metadata.type?.lowercased(), type == "anime" {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     fetchAnimeEpisodeDetails()
+                }
+            } else if tmdbID != nil {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    fetchTMDBEpisodeDetails()
                 }
             } else {
                 isLoading = false
@@ -525,6 +532,28 @@ struct EpisodeCell: View {
     }
     
     private func fetchEpisodeDetails() {
+        if let tmdbID = tmdbID,
+           MetadataCacheManager.shared.isCachingEnabled &&
+            (UserDefaults.standard.object(forKey: "fetchEpisodeMetadata") == nil ||
+             UserDefaults.standard.bool(forKey: "fetchEpisodeMetadata")) {
+            
+            let seasonNumber = 1
+            let episodeNumber = episodeID + 1
+            let cacheKey = "tmdb_\(tmdbID)_s\(seasonNumber)_e\(episodeNumber)"
+            
+            if let cachedData = MetadataCacheManager.shared.getMetadata(forKey: cacheKey),
+               let metadata = TMDBEpisodeMetadata.fromData(cachedData) {
+                
+                DispatchQueue.main.async {
+                    self.episodeTitle = metadata.title
+                    self.episodeImageUrl = metadata.imageUrl
+                    self.isLoading = false
+                    self.loadedFromCache = true
+                }
+                return
+            }
+        }
+        
         if MetadataCacheManager.shared.isCachingEnabled &&
             (UserDefaults.standard.object(forKey: "fetchEpisodeMetadata") == nil ||
              UserDefaults.standard.bool(forKey: "fetchEpisodeMetadata")) {
@@ -544,7 +573,13 @@ struct EpisodeCell: View {
             }
         }
         
-        fetchAnimeEpisodeDetails()
+        if let type = module.metadata.type?.lowercased(), type == "anime" {
+            fetchAnimeEpisodeDetails()
+        } else if tmdbID != nil {
+            fetchTMDBEpisodeDetails()
+        } else {
+            isLoading = false
+        }
     }
     
     private func fetchAnimeEpisodeDetails() {
@@ -651,6 +686,103 @@ struct EpisodeCell: View {
                 }
             } catch {
                 Logger.shared.log("JSON parsing error: \(error.localizedDescription)", type: "Error")
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                    self.retryAttempts = 0
+                }
+            }
+        }.resume()
+    }
+    
+    private func fetchTMDBEpisodeDetails() {
+        guard let tmdbID = tmdbID else {
+            isLoading = false
+            return
+        }
+        let seasonNumber = 1
+        let episodeNumber = episodeID + 1
+        
+        guard let url = URL(string: "https://api.themoviedb.org/3/tv/\(tmdbID)/season/\(seasonNumber)/episode/\(episodeNumber)?api_key=eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI3MzhiNGVkZDBhMTU2Y2MxMjZkYzRhNGI4YWVhNGFjYSIsIm5iZiI6MTc0MTE3MzcwMi43ODcwMDAyLCJzdWIiOiI2N2M4MzNjNmQ3NDE5Y2RmZDg2ZTJkZGYiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.Gfe7F-8CWJXgONv34mg3jHXfL6Bxbj-hAYf9fYi9CkE") else {
+            isLoading = false
+            Logger.shared.log("Invalid TMDB URL for show ID: \(tmdbID)", type: "Error")
+            return
+        }
+        
+        if retryAttempts > 0 {
+            Logger.shared.log("Retrying TMDB episode details fetch (attempt \(retryAttempts)/\(maxRetryAttempts))", type: "Debug")
+        }
+        
+        URLSession.custom.dataTask(with: url) { data, response, error in
+            if let error = error {
+                Logger.shared.log("Failed to fetch TMDB episode details: \(error)", type: "Error")
+                self.handleFetchFailure(error: error)
+                return
+            }
+            
+            guard let data = data else {
+                self.handleFetchFailure(error: NSError(domain: "com.sora.episode", code: 1, userInfo: [NSLocalizedDescriptionKey: "No data received"]))
+                return
+            }
+            
+            do {
+                guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
+                    self.handleFetchFailure(error: NSError(domain: "com.sora.episode", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"]))
+                    return
+                }
+                
+                var title = ""
+                var image = ""
+                var missingFields: [String] = []
+                
+                if let episodeTitle = json["name"] as? String, !episodeTitle.isEmpty {
+                    title = episodeTitle
+                } else {
+                    missingFields.append("name")
+                }
+                
+                if let stillPath = json["still_path"] as? String, !stillPath.isEmpty {
+                    image = "https://image.tmdb.org/t/p/w500\(stillPath)"
+                } else {
+                    missingFields.append("still_path")
+                }
+                
+                if !missingFields.isEmpty {
+                    Logger.shared.log("TMDB Episode \(episodeNumber) missing fields: \(missingFields.joined(separator: ", "))", type: "Warning")
+                }
+                
+                // Cache TMDB episode metadata
+                if MetadataCacheManager.shared.isCachingEnabled && (!title.isEmpty || !image.isEmpty) {
+                    let metadata = TMDBEpisodeMetadata(
+                        title: title,
+                        imageUrl: image,
+                        tmdbId: tmdbID,
+                        seasonNumber: seasonNumber,
+                        episodeNumber: episodeNumber
+                    )
+                    
+                    if let metadataData = metadata.toData() {
+                        MetadataCacheManager.shared.storeMetadata(
+                            metadataData,
+                            forKey: metadata.cacheKey
+                        )
+                    }
+                }
+                
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                    self.retryAttempts = 0
+                    
+                    if UserDefaults.standard.object(forKey: "fetchEpisodeMetadata") == nil
+                        || UserDefaults.standard.bool(forKey: "fetchEpisodeMetadata") {
+                        self.episodeTitle = title
+                        
+                        if !image.isEmpty {
+                            self.episodeImageUrl = image
+                        }
+                    }
+                }
+            } catch {
+                Logger.shared.log("TMDB JSON parsing error: \(error.localizedDescription)", type: "Error")
                 DispatchQueue.main.async {
                     self.isLoading = false
                     self.retryAttempts = 0

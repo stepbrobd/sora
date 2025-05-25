@@ -122,6 +122,7 @@ struct MediaInfoView: View {
                     itemID = savedID
                     Logger.shared.log("Using custom AniList ID: \(savedID)", type: "Debug")
                 } else {
+                    // Try AniList first for anime
                     fetchItemID(byTitle: cleanTitle(title)) { result in
                         switch result {
                         case .success(let id):
@@ -129,6 +130,16 @@ struct MediaInfoView: View {
                         case .failure(let error):
                             Logger.shared.log("Failed to fetch AniList ID: \(error)")
                             AnalyticsManager.shared.sendEvent(event: "error", additionalData: ["error": error, "message": "Failed to fetch AniList ID"])
+                        }
+                    }
+                    
+                    // Also try TMDB for series/movies
+                    fetchTMDBID(byTitle: cleanTitle(title)) { result in
+                        switch result {
+                        case .success(let id):
+                            tmdbID = id
+                        case .failure(let error):
+                            Logger.shared.log("Failed to fetch TMDB ID: \(error)")
                         }
                     }
                 }
@@ -276,6 +287,12 @@ struct MediaInfoView: View {
                 Label("Set Custom AniList ID", systemImage: "number")
             }
             
+            Button(action: {
+                showCustomTMDBIDAlert()
+            }) {
+                Label("Set Custom TMDB ID", systemImage: "tv")
+            }
+            
             if let customID = customAniListID {
                 Button(action: {
                     customAniListID = nil
@@ -300,6 +317,16 @@ struct MediaInfoView: View {
                     }
                 }) {
                     Label("Open in AniList", systemImage: "link")
+                }
+            }
+            
+            if let id = tmdbID {
+                Button(action: {
+                    if let url = URL(string: "https://www.themoviedb.org/tv/\(id)") {
+                        openSafariViewController(with: url.absoluteString)
+                    }
+                }) {
+                    Label("Open in TMDB", systemImage: "tv")
                 }
             }
             
@@ -463,6 +490,7 @@ struct MediaInfoView: View {
                     module: module,
                     parentTitle: title,
                     showPosterURL: imageUrl,
+                    tmdbID: tmdbID,
                     isMultiSelectMode: isMultiSelectMode,
                     isSelected: selectedEpisodes.contains(ep.number),
                     onSelectionChanged: { isSelected in
@@ -543,6 +571,7 @@ struct MediaInfoView: View {
                 module: module,
                 parentTitle: title,
                 showPosterURL: imageUrl,
+                tmdbID: tmdbID,
                 isMultiSelectMode: isMultiSelectMode,
                 isSelected: selectedEpisodes.contains(ep.number),
                 onSelectionChanged: { isSelected in
@@ -1094,6 +1123,40 @@ struct MediaInfoView: View {
         }.resume()
     }
     
+    private func fetchTMDBID(byTitle title: String, completion: @escaping (Result<Int, Error>) -> Void) {
+        guard let encodedTitle = title.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let url = URL(string: "https://api.themoviedb.org/3/search/tv?api_key=eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI3MzhiNGVkZDBhMTU2Y2MxMjZkYzRhNGI4YWVhNGFjYSIsIm5iZiI6MTc0MTE3MzcwMi43ODcwMDAyLCJzdWIiOiI2N2M4MzNjNmQ3NDE5Y2RmZDg2ZTJkZGYiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.Gfe7F-8CWJXgONv34mg3jHXfL6Bxbj-hAYf9fYi9CkE&query=\(encodedTitle)") else {
+            completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
+            return
+        }
+        
+        URLSession.custom.dataTask(with: url) { data, _, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let data = data else {
+                completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                return
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                   let results = json["results"] as? [[String: Any]],
+                   let firstResult = results.first,
+                   let id = firstResult["id"] as? Int {
+                    completion(.success(id))
+                } else {
+                    let error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No TMDB results found"])
+                    completion(.failure(error))
+                }
+            } catch {
+                completion(.failure(error))
+            }
+        }.resume()
+    }
+    
     private func showCustomIDAlert() {
         let alert = UIAlertController(title: "Set Custom AniList ID", message: "Enter the AniList ID for this media", preferredStyle: .alert)
         
@@ -1113,6 +1176,34 @@ struct MediaInfoView: View {
                 itemID = id
                 UserDefaults.standard.set(id, forKey: "custom_anilist_id_\(href)")
                 Logger.shared.log("Set custom AniList ID: \(id)", type: "General")
+            }
+        })
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first,
+           let rootVC = window.rootViewController {
+            findTopViewController.findViewController(rootVC).present(alert, animated: true)
+        }
+    }
+    
+    private func showCustomTMDBIDAlert() {
+        let alert = UIAlertController(title: "Set Custom TMDB ID", message: "Enter the TMDB ID for this TV show", preferredStyle: .alert)
+        
+        alert.addTextField { textField in
+            textField.placeholder = "TMDB ID"
+            textField.keyboardType = .numberPad
+            if let tmdbID = tmdbID {
+                textField.text = "\(tmdbID)"
+            }
+        }
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Save", style: .default) { _ in
+            if let text = alert.textFields?.first?.text,
+               let id = Int(text) {
+                tmdbID = id
+                UserDefaults.standard.set(id, forKey: "custom_tmdb_id_\(href)")
+                Logger.shared.log("Set custom TMDB ID: \(id)", type: "General")
             }
         })
         
