@@ -66,7 +66,7 @@ struct SearchView: View {
                 let columnsCount = determineColumns()
                 VStack(spacing: 0) {
                     HStack {
-                        SearchBar(text: $searchText, onSearchButtonClicked: performSearch, isFocused: $isSearchFieldFocused)
+                        SearchBar(text: $searchText, isFocused: $isSearchFieldFocused, onSearchButtonClicked: performSearch)
                             .padding(.leading)
                             .padding(.trailing, searchText.isEmpty ? 16 : 0)
                             .disabled(selectedModule == nil)
