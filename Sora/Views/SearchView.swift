@@ -83,6 +83,7 @@ struct SearchView: View {
                         }
                     }
                     
+                    if isSearchFieldFocused && !searchHistory.isEmpty && searchText.isEmpty {
                         VStack(alignment: .leading, spacing: 0) {
                             HStack {
                                 Text("Recent Searches")
