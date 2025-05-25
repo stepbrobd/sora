@@ -14,8 +14,7 @@ struct SettingsViewAlternateAppIconPicker: View {
     let icons: [(name: String, icon: String)] = [
         ("Default", "Default"),
         ("Original", "Original"),
-        ("Pixel", "Pixel"),
-        ("Pride", "Pride")
+        ("Pixel", "Pixel")
     ]
 
     var body: some View {
