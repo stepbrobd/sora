@@ -754,10 +754,12 @@ struct MediaInfoView: View {
         currentStreamTitle = "Episode \(selectedEpisodeNumber)"
         showLoadingAlert = true
         isFetchingEpisode = true
+        
         let completion: ((streams: [String]?, subtitles: [String]?, sources: [[String: Any]]?)) -> Void = { result in
             guard self.activeFetchID == fetchID else {
-                return 
+                return
             }
+            
             self.showLoadingAlert = false
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -765,14 +767,16 @@ struct MediaInfoView: View {
                     return 
                 }
                 
-                if let streams = result.sources, !streams.isEmpty {
-                    if streams.count > 1 {
-                        self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first, fetchID: fetchID)
+                if let sources = result.sources, !sources.isEmpty {
+                    if sources.count > 1 {
+                        self.showStreamSelectionAlert(streams: sources, fullURL: href, subtitles: result.subtitles?.first, fetchID: fetchID)
+                    } else if let streamUrl = sources[0]["streamUrl"] as? String {
+                        let headers = sources[0]["headers"] as? [String: String]
+                        self.playStream(url: streamUrl, fullURL: href, subtitles: result.subtitles?.first, headers: headers, fetchID: fetchID)
                     } else {
-                        self.playStream(url: streams[0]["streamUrl"] as? String ?? "", fullURL: href, subtitles: result.subtitles?.first, headers: (streams[0]["headers"] as! [String : String]), fetchID: fetchID)
+                        self.handleStreamFailure(error: nil)
                     }
-                }
-                else if let streams = result.streams, !streams.isEmpty {
+                } else if let streams = result.streams, !streams.isEmpty {
                     if streams.count > 1 {
                         self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first, fetchID: fetchID)
                     } else {
@@ -787,39 +791,40 @@ struct MediaInfoView: View {
                 }
             }
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            Task {
-                do {
-                    let jsContent = try moduleManager.getModuleContent(module)
-                    jsController.loadScript(jsContent)
-                    if module.metadata.asyncJS == true {
-                        jsController.fetchStreamUrlJS(episodeUrl: href, softsub: module.metadata.softsub == true, module: module, completion: completion)
-                    } else if module.metadata.streamAsyncJS == true {
-                        jsController.fetchStreamUrlJSSecond(episodeUrl: href, softsub: module.metadata.softsub == true, module: module, completion: completion)
-                    } else {
-                        jsController.fetchStreamUrl(episodeUrl: href, softsub: module.metadata.softsub == true, module: module, completion: completion)
-                    }
-                } catch {
-                    self.handleStreamFailure(error: error)
-                    DispatchQueue.main.async {
-                        self.isFetchingEpisode = false
-                    }
+        
+        Task {
+            do {
+                let jsContent = try moduleManager.getModuleContent(module)
+                jsController.loadScript(jsContent)
+                
+                if module.metadata.asyncJS == true {
+                    jsController.fetchStreamUrlJS(episodeUrl: href, softsub: module.metadata.softsub == true, module: module, completion: completion)
+                } else if module.metadata.streamAsyncJS == true {
+                    jsController.fetchStreamUrlJSSecond(episodeUrl: href, softsub: module.metadata.softsub == true, module: module, completion: completion)
+                } else {
+                    jsController.fetchStreamUrl(episodeUrl: href, softsub: module.metadata.softsub == true, module: module, completion: completion)
+                }
+            } catch {
+                self.handleStreamFailure(error: error)
+                DispatchQueue.main.async {
+                    self.isFetchingEpisode = false
                 }
             }
         }
     }
     
-    func handleStreamFailure(error: Error? = nil) {
-        self.isFetchingEpisode = false
-        self.showLoadingAlert = false
-        if let error = error {
-            Logger.shared.log("Error loading module: \(error)", type: "Error")
-            AnalyticsManager.shared.sendEvent(event: "error", additionalData: ["error": error, "message": "Failed to fetch stream"])
+    private func handleStreamFailure(error: Error?) {
+        DispatchQueue.main.async {
+            self.showLoadingAlert = false
+            if let error = error {
+                Logger.shared.log("Error loading module: \(error)", type: "Error")
+                AnalyticsManager.shared.sendEvent(event: "error", additionalData: ["error": error, "message": "Failed to fetch stream"])
+            }
+            DropManager.shared.showDrop(title: "Stream not Found", subtitle: "", duration: 0.5, icon: UIImage(systemName: "xmark"))
+            
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            self.isLoading = false
         }
-        DropManager.shared.showDrop(title: "Stream not Found", subtitle: "", duration: 0.5, icon: UIImage(systemName: "xmark"))
-        
-        UINotificationFeedbackGenerator().notificationOccurred(.error)
-        self.isLoading = false
     }
     
     func showStreamSelectionAlert(streams: [Any], fullURL: String, subtitles: String? = nil, fetchID: UUID) {
@@ -1280,9 +1285,7 @@ struct MediaInfoView: View {
             startEpisodeDownloadWithProcessedStream(episode: episode, url: url, streamUrl: streams[0], subtitleURL: subtitleURL)
             continuation.resume(returning: true)
             
-        } else if let sources = result.sources, !sources.isEmpty,
-                    let streamUrl = sources[0]["streamUrl"] as? String,
-                    let url = URL(string: streamUrl) {
+        } else if let sources = result.sources, !sources.isEmpty, let streamUrl = sources[0]["streamUrl"] as? String, let url = URL(string: streamUrl) {
             
             print("[Bulk Download] Method #\(methodIndex+1) returned valid stream URL with headers: \(streamUrl)")
             
