@@ -61,7 +61,7 @@ struct SettingsViewData: View {
                 }
                 
                 HStack {
-                    Text("Current Cache Size")
+                    Text("Current Metadata Cache Size")
                     Spacer()
                     if isCalculatingSize {
                         ProgressView()
@@ -73,7 +73,7 @@ struct SettingsViewData: View {
                 }
                 
                 Button(action: clearAllCaches) {
-                    Text("Clear All Caches")
+                    Text("Clear All Metadata Caches")
                         .foregroundColor(.red)
                 }
             }
@@ -101,7 +101,7 @@ struct SettingsViewData: View {
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
-                
+                 
                 HStack {
                     Button(action: {
                         showRemoveMovPkgAlert = true
