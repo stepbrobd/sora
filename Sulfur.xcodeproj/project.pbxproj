@@ -339,11 +339,7 @@
 		133D7C8A2D2BE2640075467E /* JSLoader */ = {
 			isa = PBXGroup;
 			children = (
-				7272206F2DD642B100C2A4A2 /* JSController-StreamTypeDownload.swift */,
-				727220702DD642B100C2A4A2 /* JSController+MP4Download.swift */,
-				722248652DCBC13E00CABE2D /* JSController-Downloads.swift */,
-				722248612DCBAA4700CABE2D /* JSController-HeaderManager.swift */,
-				722248622DCBAA4700CABE2D /* JSController+M3U8Download.swift */,
+				134A387B2DE4B5B90041B687 /* Downloads */,
 				133D7C8B2D2BE2640075467E /* JSController.swift */,
 				132AF1202D99951700A0140B /* JSController-Streams.swift */,
 				132AF1222D9995C300A0140B /* JSController-Details.swift */,
@@ -359,6 +355,18 @@
 				133D7C7E2D2BE2630075467E /* LibraryView.swift */,
 			);
 			path = LibraryView;
+			sourceTree = "<group>";
+		};
+		134A387B2DE4B5B90041B687 /* Downloads */ = {
+			isa = PBXGroup;
+			children = (
+				7272206F2DD642B100C2A4A2 /* JSController-StreamTypeDownload.swift */,
+				727220702DD642B100C2A4A2 /* JSController+MP4Download.swift */,
+				722248652DCBC13E00CABE2D /* JSController-Downloads.swift */,
+				722248612DCBAA4700CABE2D /* JSController-HeaderManager.swift */,
+				722248622DCBAA4700CABE2D /* JSController+M3U8Download.swift */,
+			);
+			path = Downloads;
 			sourceTree = "<group>";
 		};
 		1384DCDF2D89BE870094797A /* Helpers */ = {
