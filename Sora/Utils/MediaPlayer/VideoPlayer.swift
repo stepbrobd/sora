@@ -26,6 +26,8 @@ class VideoPlayerViewController: UIViewController {
     var episodeImageUrl: String = ""
     var mediaTitle: String = ""
     
+    private var currentArtwork: MPMediaItemArtwork?
+    
     init(module: ScrapingModule) {
         self.module = module
         super.init(nibName: nil, bundle: nil)
@@ -97,24 +99,34 @@ class VideoPlayerViewController: UIViewController {
     }
     
     private func setupNowPlaying() {
-        let nowPlayingInfoCenter = MPNowPlayingInfoCenter.default()
-        var nowPlayingInfo = [String: Any]()
-        
-        nowPlayingInfo[MPMediaItemPropertyTitle] = mediaTitle
-        nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = "Episode \(episodeNumber)"
-        
         if let imageUrl = URL(string: episodeImageUrl) {
-            URLSession.shared.dataTask(with: imageUrl) { [weak self] data, _, _ in
-                guard let data = data, let image = UIImage(data: data) else { return }
+            URLSession.custom.dataTask(with: imageUrl) { [weak self] data, _, _ in
+                guard let self = self,
+                      let data = data,
+                      let image = UIImage(data: data) else { return }
+                
                 DispatchQueue.main.async {
-                    let artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
-                    nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
+                    self.currentArtwork = MPMediaItemArtwork(boundsSize: image.size) { _ in
+                        return image
+                    }
+                    
+                    let nowPlayingInfo: [String: Any] = [
+                        MPMediaItemPropertyTitle: self.mediaTitle,
+                        MPMediaItemPropertyArtist: "Episode \(self.episodeNumber)",
+                        MPMediaItemPropertyArtwork: self.currentArtwork as Any
+                    ]
+                    
                     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
                 }
             }.resume()
+        } else {
+            let nowPlayingInfo: [String: Any] = [
+                MPMediaItemPropertyTitle: mediaTitle,
+                MPMediaItemPropertyArtist: "Episode \(episodeNumber)"
+            ]
+            
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
         }
-        
-        nowPlayingInfoCenter.nowPlayingInfo = nowPlayingInfo
     }
     
     private func setupRemoteTransportControls() {
