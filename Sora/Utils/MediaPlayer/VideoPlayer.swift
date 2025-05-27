@@ -174,6 +174,19 @@ class VideoPlayerViewController: UIViewController {
     }
     
     private func setupNowPlaying() {
+        var nowPlayingInfo: [String: Any] = [
+            MPMediaItemPropertyTitle: mediaTitle,
+            MPMediaItemPropertyArtist: "Episode \(episodeNumber)",
+            MPNowPlayingInfoPropertyPlaybackRate: player?.rate ?? 1.0
+        ]
+        
+        if let player = player, let currentItem = player.currentItem {
+            nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentItem.currentTime().seconds
+            nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = currentItem.duration.seconds
+        }
+        
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+        
         if let imageUrl = URL(string: episodeImageUrl) {
             URLSession.custom.dataTask(with: imageUrl) { [weak self] data, _, _ in
                 guard let self = self,
@@ -184,41 +197,34 @@ class VideoPlayerViewController: UIViewController {
                     self.currentArtwork = MPMediaItemArtwork(boundsSize: image.size) { _ in
                         return image
                     }
-                    
-                    var nowPlayingInfo: [String: Any] = [
-                        MPMediaItemPropertyTitle: self.mediaTitle,
-                        MPMediaItemPropertyArtist: "Episode \(self.episodeNumber)",
-                        MPMediaItemPropertyArtwork: self.currentArtwork as Any,
-                        MPNowPlayingInfoPropertyPlaybackRate: self.player?.rate ?? 1.0
-                    ]
-                    
-                    if let player = self.player, let currentItem = player.currentItem {
-                        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentItem.currentTime().seconds
-                        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = currentItem.duration.seconds
-                    }
-                    
-                    MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+                    self.updateNowPlayingInfo()
                 }
             }.resume()
-        } else {
-            var nowPlayingInfo: [String: Any] = [
-                MPMediaItemPropertyTitle: mediaTitle,
-                MPMediaItemPropertyArtist: "Episode \(episodeNumber)",
-                MPNowPlayingInfoPropertyPlaybackRate: player?.rate ?? 1.0
-            ]
-            
-            if let player = player, let currentItem = player.currentItem {
-                nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentItem.currentTime().seconds
-                nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = currentItem.duration.seconds
-            }
-            
-            MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
         }
         
-        let interval = CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        let interval = CMTime(seconds: 0.5, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
         player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] _ in
             self?.updateNowPlayingInfo()
         }
+    }
+    
+    func updateNowPlayingInfo() {
+        guard let player = player,
+              let currentItem = player.currentItem else { return }
+        
+        var nowPlayingInfo: [String: Any] = [
+            MPMediaItemPropertyTitle: mediaTitle,
+            MPMediaItemPropertyArtist: "Episode \(episodeNumber)",
+            MPNowPlayingInfoPropertyElapsedPlaybackTime: currentItem.currentTime().seconds,
+            MPMediaItemPropertyPlaybackDuration: currentItem.duration.seconds,
+            MPNowPlayingInfoPropertyPlaybackRate: player.rate
+        ]
+        
+        if let artwork = currentArtwork {
+            nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
+        }
+        
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
     
     private func setupRemoteTransportControls() {
@@ -317,18 +323,6 @@ class VideoPlayerViewController: UIViewController {
                 }
             }
         }
-    }
-    
-    func updateNowPlayingInfo() {
-        guard let player = player,
-              let currentItem = player.currentItem else { return }
-        
-        var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
-        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentItem.currentTime().seconds
-        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = currentItem.duration.seconds
-        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = player.rate
-        
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
     
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
