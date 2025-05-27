@@ -100,15 +100,17 @@ class VideoPlayerViewController: UIViewController {
         let nowPlayingInfoCenter = MPNowPlayingInfoCenter.default()
         var nowPlayingInfo = [String: Any]()
         
-        nowPlayingInfo[MPMediaItemPropertyTitle] = "Episode \(episodeNumber)"
-        nowPlayingInfo[MPMediaItemPropertyArtist] = mediaTitle
+        nowPlayingInfo[MPMediaItemPropertyTitle] = mediaTitle
+        nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = "Episode \(episodeNumber)"
         
         if let imageUrl = URL(string: episodeImageUrl) {
             URLSession.shared.dataTask(with: imageUrl) { [weak self] data, _, _ in
                 guard let data = data, let image = UIImage(data: data) else { return }
-                let artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
-                nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
-                MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+                DispatchQueue.main.async {
+                    let artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+                    nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
+                    MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+                }
             }.resume()
         }
         
