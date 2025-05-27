@@ -48,18 +48,15 @@ class VideoPlayerViewController: UIViewController {
         }
         
         var request = URLRequest(url: url)
-        if let mydict = headers, !mydict.isEmpty
-        {
-            for (key,value) in mydict
-            {
+        if let mydict = headers, !mydict.isEmpty {
+            for (key,value) in mydict {
                 request.addValue(value, forHTTPHeaderField: key)
             }
-        }
-        else
-        {
+        } else {
             request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
             request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
         }
+        
         request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
         
         let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])
@@ -110,22 +107,39 @@ class VideoPlayerViewController: UIViewController {
                         return image
                     }
                     
-                    let nowPlayingInfo: [String: Any] = [
+                    var nowPlayingInfo: [String: Any] = [
                         MPMediaItemPropertyTitle: self.mediaTitle,
                         MPMediaItemPropertyArtist: "Episode \(self.episodeNumber)",
-                        MPMediaItemPropertyArtwork: self.currentArtwork as Any
+                        MPMediaItemPropertyArtwork: self.currentArtwork as Any,
+                        MPNowPlayingInfoPropertyPlaybackRate: self.player?.rate ?? 1.0
                     ]
+                    
+                    if let player = self.player, let currentItem = player.currentItem {
+                        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentItem.currentTime().seconds
+                        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = currentItem.duration.seconds
+                    }
                     
                     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
                 }
             }.resume()
         } else {
-            let nowPlayingInfo: [String: Any] = [
+            var nowPlayingInfo: [String: Any] = [
                 MPMediaItemPropertyTitle: mediaTitle,
-                MPMediaItemPropertyArtist: "Episode \(episodeNumber)"
+                MPMediaItemPropertyArtist: "Episode \(episodeNumber)",
+                MPNowPlayingInfoPropertyPlaybackRate: player?.rate ?? 1.0
             ]
             
+            if let player = player, let currentItem = player.currentItem {
+                nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentItem.currentTime().seconds
+                nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = currentItem.duration.seconds
+            }
+            
             MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+        }
+
+        let interval = CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] _ in
+            self?.updateNowPlayingInfo()
         }
     }
     
@@ -134,11 +148,13 @@ class VideoPlayerViewController: UIViewController {
         
         commandCenter.playCommand.addTarget { [weak self] _ in
             self?.player?.play()
+            self?.updateNowPlayingInfo()
             return .success
         }
         
         commandCenter.pauseCommand.addTarget { [weak self] _ in
             self?.player?.pause()
+            self?.updateNowPlayingInfo()
             return .success
         }
         
