@@ -7,6 +7,7 @@
 
 import UIKit
 import AVKit
+import MediaPlayer
 
 class VideoPlayerViewController: UIViewController {
     let module: ScrapingModule
@@ -37,6 +38,9 @@ class VideoPlayerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        setupNowPlaying()
+        setupRemoteTransportControls()
+        
         guard let streamUrl = streamUrl, let url = URL(string: streamUrl) else {
             return
         }
@@ -60,6 +64,14 @@ class VideoPlayerViewController: UIViewController {
         let playerItem = AVPlayerItem(asset: asset)
         
         player = AVPlayer(playerItem: playerItem)
+        player?.allowsExternalPlayback = false
+        
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Failed to set audio session category: \(error)")
+        }
         
         playerViewController = NormalPlayer()
         playerViewController?.player = player
@@ -82,6 +94,42 @@ class VideoPlayerViewController: UIViewController {
         } else {
             self.player?.play()
         }
+    }
+    
+    private func setupNowPlaying() {
+        let nowPlayingInfoCenter = MPNowPlayingInfoCenter.default()
+        var nowPlayingInfo = [String: Any]()
+        
+        nowPlayingInfo[MPMediaItemPropertyTitle] = "Episode \(episodeNumber)"
+        nowPlayingInfo[MPMediaItemPropertyArtist] = mediaTitle
+        
+        if let imageUrl = URL(string: episodeImageUrl) {
+            URLSession.shared.dataTask(with: imageUrl) { [weak self] data, _, _ in
+                guard let data = data, let image = UIImage(data: data) else { return }
+                let artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+                nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
+                MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+            }.resume()
+        }
+        
+        nowPlayingInfoCenter.nowPlayingInfo = nowPlayingInfo
+    }
+    
+    private func setupRemoteTransportControls() {
+        let commandCenter = MPRemoteCommandCenter.shared()
+        
+        commandCenter.playCommand.addTarget { [weak self] _ in
+            self?.player?.play()
+            return .success
+        }
+        
+        commandCenter.pauseCommand.addTarget { [weak self] _ in
+            self?.player?.pause()
+            return .success
+        }
+        
+        commandCenter.seekForwardCommand.isEnabled = false
+        commandCenter.seekBackwardCommand.isEnabled = false
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -162,6 +210,18 @@ class VideoPlayerViewController: UIViewController {
         }
     }
     
+    func updateNowPlayingInfo() {
+        guard let player = player,
+              let currentItem = player.currentItem else { return }
+        
+        var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentItem.currentTime().seconds
+        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = currentItem.duration.seconds
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = player.rate
+        
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         if UserDefaults.standard.bool(forKey: "alwaysLandscape") {
             return .landscape
@@ -183,5 +243,6 @@ class VideoPlayerViewController: UIViewController {
         if let timeObserverToken = timeObserverToken {
             player?.removeTimeObserver(timeObserverToken)
         }
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
 }
