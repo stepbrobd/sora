@@ -8,6 +8,7 @@
 import UIKit
 import AVKit
 import MediaPlayer
+import GroupActivities
 
 class VideoPlayerViewController: UIViewController {
     let module: ScrapingModule
@@ -27,6 +28,8 @@ class VideoPlayerViewController: UIViewController {
     var mediaTitle: String = ""
     
     private var currentArtwork: MPMediaItemArtwork?
+    private var groupSession: GroupSession<WatchTogetherActivity>?
+    private var messenger: GroupSessionMessenger?
     
     init(module: ScrapingModule) {
         self.module = module
@@ -40,6 +43,7 @@ class VideoPlayerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        setupSharePlay()
         setupNowPlaying()
         setupRemoteTransportControls()
         
@@ -95,6 +99,80 @@ class VideoPlayerViewController: UIViewController {
         }
     }
     
+    private func setupSharePlay() {
+        guard let streamUrl = streamUrl else { return }
+        
+        let activity = WatchTogetherActivity(
+            streamUrl: streamUrl,
+            mediaTitle: mediaTitle,
+            episodeNumber: episodeNumber
+        )
+        
+        Task {
+            switch await activity.prepareForActivation() {
+            case .activationPreferred:
+                do {
+                    _ = try await activity.activate()
+                    Logger.shared.log("SharePlay session activated successfully", type: "General")
+                } catch {
+                    Logger.shared.log("Failed to activate SharePlay: \(error)", type: "Error")
+                }
+            case .activationDisabled:
+                Logger.shared.log("SharePlay activation disabled", type: "General")
+            case .cancelled:
+                Logger.shared.log("SharePlay activation cancelled", type: "General")
+            @unknown default:
+                Logger.shared.log("SharePlay activation unknown state", type: "Info")
+            }
+        }
+        
+        Task {
+            for await session in WatchTogetherActivity.sessions() {
+                configureGroupSession(session)
+            }
+        }
+    }
+    
+    private func configureGroupSession(_ session: GroupSession<WatchTogetherActivity>) {
+        groupSession = session
+        messenger = GroupSessionMessenger(session: session)
+        
+        session.join()
+        
+        Task {
+            guard let messenger = messenger else { return }
+            for await (timeString, _) in messenger.messages(of: String.self) {
+                if let seconds = Double(timeString) {
+                    let time = CMTime(seconds: seconds, preferredTimescale: 600)
+                    await handlePlaybackMessage(time)
+                }
+            }
+        }
+        
+        player?.addPeriodicTimeObserver(
+            forInterval: CMTime(seconds: 1, preferredTimescale: 600),
+            queue: .main
+        ) { [weak self] time in
+            guard let self = self else { return }
+            Task {
+                let timeString = String(time.seconds)
+                try? await self.messenger?.send(timeString)
+            }
+        }
+    }
+    
+    private func handlePlaybackMessage(_ time: CMTime) async {
+        await MainActor.run {
+            guard let player = player else { return }
+            let currentTime = player.currentTime()
+            let difference = abs(CMTimeSubtract(time, currentTime).seconds)
+            
+            if difference > 1.0 {
+                player.seek(to: time)
+            }
+        }
+    }
+    
     private func setupNowPlaying() {
         if let imageUrl = URL(string: episodeImageUrl) {
             URLSession.custom.dataTask(with: imageUrl) { [weak self] data, _, _ in
@@ -136,7 +214,7 @@ class VideoPlayerViewController: UIViewController {
             
             MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
         }
-
+        
         let interval = CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
         player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] _ in
             self?.updateNowPlayingInfo()
@@ -170,6 +248,7 @@ class VideoPlayerViewController: UIViewController {
     
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
+        groupSession?.leave()
         if let playbackSpeed = player?.rate {
             UserDefaults.standard.set(playbackSpeed, forKey: "lastPlaybackSpeed")
         }
@@ -269,6 +348,7 @@ class VideoPlayerViewController: UIViewController {
     }
     
     deinit {
+        groupSession?.leave()
         player?.pause()
         if let timeObserverToken = timeObserverToken {
             player?.removeTimeObserver(timeObserverToken)

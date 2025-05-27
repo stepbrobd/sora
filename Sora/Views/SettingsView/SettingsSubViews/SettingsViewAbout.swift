@@ -28,8 +28,8 @@ struct SettingsViewAbout: View {
                         Text("Sora")
                             .font(.title)
                             .bold()
-                        Text("Version \(version)")
-                            .font(.subheadline)
+                        Text("AKA Sulfur")
+                            .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
