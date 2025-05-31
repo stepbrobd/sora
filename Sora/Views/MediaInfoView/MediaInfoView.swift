@@ -779,6 +779,8 @@ struct MediaInfoView: View {
             userDefaults.set(value, forKey: key)
         }
         userDefaults.synchronize()
+        NotificationCenter.default.post(name: NSNotification.Name("episodeProgressChanged"), object: nil)
+        
         Logger.shared.log(
             "Marked \(ep.number - 1) episodes watched within series \"\(title)\".",
             type: "General"
