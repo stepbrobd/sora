@@ -1124,9 +1124,32 @@ extension JSController {
             print("Cancelled active download: \(downloadTitle)")
         }
     }
+
+    var mp4CustomSessions: [UUID: URLSession]? {
+        get {
+            return objc_getAssociatedObject(self, &AssociatedKeys.mp4CustomSessions) as? [UUID: URLSession]
+        }
+        set {
+            objc_setAssociatedObject(self, &AssociatedKeys.mp4CustomSessions, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        }
+    }
+    
+    var mp4ProgressObservations: [UUID: NSKeyValueObservation]? {
+        get {
+            return objc_getAssociatedObject(self, &AssociatedKeys.mp4ProgressObservations) as? [UUID: NSKeyValueObservation]
+        }
+        set {
+            objc_setAssociatedObject(self, &AssociatedKeys.mp4ProgressObservations, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        }
+    }
 }
 
-// MARK: - AVAssetDownloadDelegate
+private struct AssociatedKeys {
+    static var mp4CustomSessions = "mp4CustomSessions"
+    static var mp4ProgressObservations = "mp4ProgressObservations"
+}
+
+
 extension JSController: AVAssetDownloadDelegate {
     
     /// Called when a download task finishes downloading the asset
@@ -1552,4 +1575,4 @@ enum DownloadQueueStatus: Equatable {
     case downloading
     /// Download has been completed
     case completed
-} 
+}

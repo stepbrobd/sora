@@ -729,6 +729,7 @@ struct EnhancedActiveDownloadCard: View {
     let download: JSActiveDownload
     @State private var currentProgress: Double
     @State private var taskState: URLSessionTask.State
+    @State private var progressUpdateTimer: Timer?
     
     init(download: JSActiveDownload) {
         self.download = download
@@ -842,6 +843,17 @@ struct EnhancedActiveDownloadCard: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("downloadProgressChanged"))) { _ in
             updateProgress()
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("downloadStatusChanged"))) { _ in
+            updateStatus()
+        }
+        .onAppear {
+            updateProgress()
+            updateStatus()
+            startProgressTimer()
+        }
+        .onDisappear {
+            stopProgressTimer()
+        }
     }
     
     private var statusColor: Color {
@@ -849,8 +861,10 @@ struct EnhancedActiveDownloadCard: View {
             return .orange
         } else if taskState == .running {
             return .green
-        } else {
+        } else if taskState == .suspended {
             return .orange
+        } else {
+            return .red
         }
     }
     
@@ -859,30 +873,54 @@ struct EnhancedActiveDownloadCard: View {
             return "Queued"
         } else if taskState == .running {
             return "Downloading"
-        } else {
+        } else if taskState == .suspended {
             return "Paused"
+        } else {
+            return "Stopped"
         }
+    }
+    
+    private func startProgressTimer() {
+        progressUpdateTimer?.invalidate()
+        progressUpdateTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+            updateProgress()
+            updateStatus()
+        }
+    }
+    
+    private func stopProgressTimer() {
+        progressUpdateTimer?.invalidate()
+        progressUpdateTimer = nil
     }
     
     private func updateProgress() {
         if let currentDownload = JSController.shared.activeDownloads.first(where: { $0.id == download.id }) {
-            withAnimation(.easeInOut(duration: 0.1)) {
+            withAnimation(.easeInOut(duration: 0.2)) {
                 currentProgress = currentDownload.progress
-            }
-            if let task = currentDownload.task {
-                taskState = task.state
             }
         }
     }
     
+    private func updateStatus() {
+        if let currentDownload = JSController.shared.activeDownloads.first(where: { $0.id == download.id }),
+           let task = currentDownload.task {
+            taskState = task.state
+        }
+    }
+    
     private func toggleDownload() {
+        guard let task = download.task else { return }
+        
         if taskState == .running {
-            download.task?.suspend()
+            task.suspend()
             taskState = .suspended
         } else if taskState == .suspended {
-            download.task?.resume()
+            task.resume()
             taskState = .running
         }
+        
+        // Post status change notification
+        NotificationCenter.default.post(name: NSNotification.Name("downloadStatusChanged"), object: nil)
     }
     
     private func cancelDownload() {
