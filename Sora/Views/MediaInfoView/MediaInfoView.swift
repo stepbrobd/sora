@@ -821,7 +821,6 @@ struct MediaInfoView: View {
             
             Text("Episodes might not be available yet or there could be an issue with the source.")
                 .font(.body)
-                .lineLimit(2)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
