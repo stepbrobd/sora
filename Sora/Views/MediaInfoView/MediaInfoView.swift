@@ -217,7 +217,7 @@ struct MediaInfoView: View {
                     .aspectRatio(contentMode: .fill)
                     .frame(width: UIScreen.main.bounds.width, height: 600)
                     .clipped()
-
+                
                 KFImage(URL(string: imageUrl))
                     .placeholder { EmptyView() }
                     .setProcessor(ImageUpscaler.lanczosProcessor(scale: 3, sharpeningIntensity: 1, sharpeningRadius: 1))
@@ -249,12 +249,12 @@ struct MediaInfoView: View {
                             endPoint: .bottom
                         )
                     )
-
+                
                 VStack(spacing: 0) {
                     Rectangle()
                         .fill(Color.clear)
                         .frame(height: 400)
-
+                    
                     VStack(alignment: .leading, spacing: 16) {
                         headerSection
                         if !episodeLinks.isEmpty {
@@ -275,13 +275,8 @@ struct MediaInfoView: View {
                             startPoint: .top,
                             endPoint: .bottom
                         )
-                        .clipShape(RoundedRectangle(cornerRadius: 0))
-                        .shadow(
-                            color: (colorScheme == .dark ? Color.black : Color.white).opacity(1),
-                            radius: 10,
-                            x: 0,
-                            y: 10
-                        )
+                            .clipShape(RoundedRectangle(cornerRadius: 0))
+                            .shadow(color: (colorScheme == .dark ? Color.black : Color.white).opacity(1), radius: 10, x: 0, y: 10)
                     )
                 }
                 .deviceScaled()
@@ -289,7 +284,7 @@ struct MediaInfoView: View {
         }
         .onAppear {
             UIScrollView.appearance().bounces = false
-        } 
+        }
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarTitle("")
         .navigationViewStyle(StackNavigationViewStyle())
@@ -578,7 +573,6 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var episodesSection: some View {
         if episodeLinks.count == 1 {
-            // Don't show episodes list for single-episode media
             EmptyView()
         } else {
             VStack(alignment: .leading, spacing: 16) {
@@ -791,7 +785,7 @@ struct MediaInfoView: View {
             "Marked \(ep.number - 1) episodes watched within series \"\(title)\".",
             type: "General"
         )
-
+        
         guard let listID = itemID, listID > 0 else { return }
         let watchedCount = ep.number - 1
         let statusToSend = (watchedCount == episodeLinks.count) ? "COMPLETED" : "CURRENT"

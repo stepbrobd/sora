@@ -160,11 +160,11 @@ struct SearchView: View {
     private func lockOrientation() {
         OrientationManager.shared.lockOrientation()
     }
-
-    private func unlockOrientation(after delay: TimeInterval = 1.0) {
+    
+    private func unlockOrientation(after delay: TimeInterval = 0.2) {
         OrientationManager.shared.unlockOrientation(after: delay)
     }
-
+    
     private func performSearch() {
         Logger.shared.log("Searching for: \(searchQuery)", type: "General")
         guard !searchQuery.isEmpty, let module = selectedModule else {
