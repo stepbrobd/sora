@@ -399,67 +399,6 @@ struct ActiveDownload: Identifiable, Equatable {
     }
 }
 
-// MARK: - JS Active Download Model
-struct JSActiveDownload: Identifiable, Equatable {
-    let id: UUID
-    let originalURL: URL
-    var progress: Double
-    let task: AVAssetDownloadTask? // For HLS downloads
-    let mp4Task: URLSessionDownloadTask? // For MP4 downloads
-    let type: DownloadType
-    var metadata: AssetMetadata?
-    var title: String?
-    var imageURL: URL?
-    var subtitleURL: URL?
-    var queueStatus: DownloadQueueStatus
-    var asset: AVURLAsset?
-    var headers: [String: String]
-    var module: ScrapingModule?
-
-    static func == (lhs: JSActiveDownload, rhs: JSActiveDownload) -> Bool {
-        return lhs.id == rhs.id &&
-               lhs.originalURL == rhs.originalURL &&
-               lhs.progress == rhs.progress &&
-               lhs.type == rhs.type &&
-               lhs.title == rhs.title &&
-               lhs.imageURL == rhs.imageURL &&
-               lhs.subtitleURL == rhs.subtitleURL &&
-               lhs.queueStatus == rhs.queueStatus
-    }
-
-    init(
-        id: UUID = UUID(),
-        originalURL: URL,
-        progress: Double = 0,
-        task: AVAssetDownloadTask? = nil,
-        mp4Task: URLSessionDownloadTask? = nil,
-        queueStatus: DownloadQueueStatus = .queued,
-        type: DownloadType = .movie,
-        metadata: AssetMetadata? = nil,
-        title: String? = nil,
-        imageURL: URL? = nil,
-        subtitleURL: URL? = nil,
-        asset: AVURLAsset? = nil,
-        headers: [String: String] = [:],
-        module: ScrapingModule? = nil
-    ) {
-        self.id = id
-        self.originalURL = originalURL
-        self.progress = progress
-        self.task = task
-        self.mp4Task = mp4Task
-        self.type = type
-        self.metadata = metadata
-        self.title = title
-        self.imageURL = imageURL
-        self.subtitleURL = subtitleURL
-        self.queueStatus = queueStatus
-        self.asset = asset
-        self.headers = headers
-        self.module = module
-    }
-}
-
 // MARK: - Asset Metadata
 struct AssetMetadata: Codable {
     let title: String

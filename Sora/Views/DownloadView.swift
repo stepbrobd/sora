@@ -555,7 +555,7 @@ struct DownloadSectionView: View {
 
 struct DownloadSummaryCard: View {
     let totalShows: Int
-    let totalEpisodes: Int64
+    let totalEpisodes: Int
     let totalSize: Int64
 
     var body: some View {
@@ -733,7 +733,7 @@ struct EnhancedActiveDownloadCard: View {
     init(download: JSActiveDownload) {
         self.download = download
         _currentProgress = State(initialValue: download.progress)
-        _taskState = State(initialValue: download.mp4Task?.state ?? download.task?.state ?? .suspended)
+        _taskState = State(initialValue: download.task?.state ?? .suspended)
     }
     
     var body: some View {
@@ -877,21 +877,11 @@ struct EnhancedActiveDownloadCard: View {
     
     private func toggleDownload() {
         if taskState == .running {
-            if let hlsTask = download.task {
-                hlsTask.suspend()
-                taskState = .suspended
-            } else if let mp4Task = download.mp4Task {
-                mp4Task.suspend()
-                taskState = .suspended
-            }
+            download.task?.suspend()
+            taskState = .suspended
         } else if taskState == .suspended {
-            if let hlsTask = download.task {
-                hlsTask.resume()
-                taskState = .running
-            } else if let mp4Task = download.mp4Task {
-                mp4Task.resume()
-                taskState = .running
-            }
+            download.task?.resume()
+            taskState = .running
         }
     }
     
