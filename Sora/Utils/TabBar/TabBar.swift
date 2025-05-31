@@ -76,9 +76,9 @@ struct TabBar: View {
                     }
                 }) {
                     Image(systemName: "x.circle")
-                        .font(.system(size: 30))
+                        .font(.system(size: 25))
                         .foregroundStyle(.gray)
-                        .frame(width: 24, height: 24)
+                        .frame(width: 20, height: 20)
                         .matchedGeometryEffect(id: "x.circle", in: animation)
                         .padding(16)
                         .background(

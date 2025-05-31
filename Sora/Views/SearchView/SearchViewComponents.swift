@@ -188,5 +188,6 @@ struct SearchContent: View {
                 }
             }
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
 } 

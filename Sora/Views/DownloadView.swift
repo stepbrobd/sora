@@ -71,6 +71,7 @@ struct DownloadView: View {
             }
         }
         .deviceScaled()
+        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     private var activeDownloadsView: some View {
