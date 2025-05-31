@@ -39,7 +39,9 @@ struct SearchView: View {
     @State private var saveDebounceTimer: Timer?
     @State private var searchDebounceTimer: Timer?
     
-    private let columns = [GridItem(.adaptive(minimum: 150))]
+    private var columns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 16), count: columnsCount)
+    }
     
     init(searchQuery: Binding<String>) {
         self._searchQuery = searchQuery
@@ -122,7 +124,6 @@ struct SearchView: View {
             }
             .navigationBarHidden(true)
         }
-        .navigationViewStyle(StackNavigationViewStyle())
         .onAppear {
             loadSearchHistory()
             if !searchQuery.isEmpty {
@@ -161,6 +162,7 @@ struct SearchView: View {
                 }
             }
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     private func lockOrientation() {
