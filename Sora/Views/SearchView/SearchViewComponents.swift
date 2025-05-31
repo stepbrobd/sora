@@ -120,70 +120,72 @@ struct SearchContent: View {
     let onClearHistory: () -> Void
     
     var body: some View {
-        VStack(spacing: 0) {
-            if selectedModule == nil {
-                VStack(spacing: 8) {
-                    Image(systemName: "questionmark.app")
-                        .font(.largeTitle)
-                        .foregroundColor(.secondary)
-                    Text("No Module Selected")
-                        .font(.headline)
-                    Text("Please select a module from settings")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+        NavigationView {
+            VStack(spacing: 0) {
+                if selectedModule == nil {
+                    VStack(spacing: 8) {
+                        Image(systemName: "questionmark.app")
+                            .font(.largeTitle)
+                            .foregroundColor(.secondary)
+                        Text("No Module Selected")
+                            .font(.headline)
+                        Text("Please select a module from settings")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color(.systemBackground))
+                    .shadow(color: Color.black.opacity(0.1), radius: 2, y: 1)
                 }
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(Color(.systemBackground))
-                .shadow(color: Color.black.opacity(0.1), radius: 2, y: 1)
-            }
-            
-            if searchQuery.isEmpty {
-                if !searchHistory.isEmpty {
-                    SearchHistorySection(title: "Recent Searches") {
-                        VStack(spacing: 0) {
-                            Divider()
-                                .padding(.horizontal, 16)
-                            
-                            ForEach(searchHistory.indices, id: \.self) { index in
-                                SearchHistoryRow(
-                                    text: searchHistory[index],
-                                    onTap: {
-                                        onHistoryItemSelected(searchHistory[index])
-                                    },
-                                    onDelete: {
-                                        onHistoryItemDeleted(index)
-                                    },
-                                    showDivider: index < searchHistory.count - 1
-                                )
-                            }
-                            HStack {
-                                Button(action: onClearHistory) {
-                                    Text("Clear")
-                                        .foregroundColor(.accentColor)
+                
+                if searchQuery.isEmpty {
+                    if !searchHistory.isEmpty {
+                        SearchHistorySection(title: "Recent Searches") {
+                            VStack(spacing: 0) {
+                                Divider()
+                                    .padding(.horizontal, 16)
+                                
+                                ForEach(searchHistory.indices, id: \.self) { index in
+                                    SearchHistoryRow(
+                                        text: searchHistory[index],
+                                        onTap: {
+                                            onHistoryItemSelected(searchHistory[index])
+                                        },
+                                        onDelete: {
+                                            onHistoryItemDeleted(index)
+                                        },
+                                        showDivider: index < searchHistory.count - 1
+                                    )
                                 }
-                                .frame(maxWidth: .infinity, alignment: .center)
+                                HStack {
+                                    Button(action: onClearHistory) {
+                                        Text("Clear")
+                                            .foregroundColor(.accentColor)
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                }
                             }
                         }
+                        .padding(.vertical)
                     }
-                    .padding(.vertical)
-                }
-            } else {
-                if let module = selectedModule {
-                    if !searchItems.isEmpty {
-                        SearchResultsGrid(
-                            items: searchItems,
-                            columns: columns,
-                            selectedModule: module,
-                            cellWidth: cellWidth
-                        )
-                    } else {
-                        SearchStateView(
-                            isSearching: isSearching,
-                            hasNoResults: hasNoResults,
-                            columnsCount: columnsCount,
-                            cellWidth: cellWidth
-                        )
+                } else {
+                    if let module = selectedModule {
+                        if !searchItems.isEmpty {
+                            SearchResultsGrid(
+                                items: searchItems,
+                                columns: columns,
+                                selectedModule: module,
+                                cellWidth: cellWidth
+                            )
+                        } else {
+                            SearchStateView(
+                                isSearching: isSearching,
+                                hasNoResults: hasNoResults,
+                                columnsCount: columnsCount,
+                                cellWidth: cellWidth
+                            )
+                        }
                     }
                 }
             }

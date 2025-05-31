@@ -72,6 +72,5 @@ struct SearchResultsGrid: View {
             .padding(.top)
             .padding()
         }
-        .navigationViewStyle(StackNavigationViewStyle())
     }
 }
