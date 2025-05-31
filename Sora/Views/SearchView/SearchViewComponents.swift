@@ -135,8 +135,7 @@ struct SearchContentView: View {
                 onHistoryItemDeleted: onHistoryItemDeleted,
                 onClearHistory: onClearHistory
             )
-            .navigationTitle("Search")
-            .navigationBarTitleDisplayMode(.large)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .navigationViewStyle(.stack)
     }
@@ -170,7 +169,7 @@ struct SearchContent: View {
                         .foregroundColor(.secondary)
                 }
                 .padding()
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(.systemBackground))
                 .shadow(color: Color.black.opacity(0.1), radius: 2, y: 1)
             }
@@ -204,6 +203,18 @@ struct SearchContent: View {
                         }
                     }
                     .padding(.vertical)
+                } else {
+                    VStack(spacing: 8) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.largeTitle)
+                            .foregroundColor(.secondary)
+                        Text("Start Searching")
+                            .font(.headline)
+                        Text("Enter a search term to begin")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             } else {
                 if let module = selectedModule {
@@ -225,5 +236,6 @@ struct SearchContent: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
