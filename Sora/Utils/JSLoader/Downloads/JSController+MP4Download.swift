@@ -234,7 +234,7 @@ extension JSController {
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 self.updateDownloadProgress(downloadID: downloadID, progress: progress.fractionCompleted)
-                NotificationCenter.default.post(name: NSNotification.Name("downloadProgressUpdated"), object: nil)
+                NotificationCenter.default.post(name: NSNotification.Name("downloadProgressChanged"), object: nil)
             }
         }
         
