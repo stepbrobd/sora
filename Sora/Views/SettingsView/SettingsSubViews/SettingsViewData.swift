@@ -203,11 +203,6 @@ struct SettingsViewData: View {
                     }
                     
                     VStack {
-                        Spacer()
-                        Spacer()
-                        Text("Current Metadata Cache Size")
-                        Spacer()
-                        
                         if isCalculatingSize {
                             ProgressView()
                                 .scaleEffect(0.7)

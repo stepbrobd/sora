@@ -174,7 +174,8 @@ struct SearchContent: View {
                         SearchResultsGrid(
                             items: searchItems,
                             columns: columns,
-                            selectedModule: module
+                            selectedModule: module,
+                            cellWidth: cellWidth
                         )
                     } else {
                         SearchStateView(

@@ -39,10 +39,6 @@ struct SearchView: View {
     @State private var saveDebounceTimer: Timer?
     @State private var searchDebounceTimer: Timer?
     
-    private var columns: [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: 16), count: columnsCount)
-    }
-    
     init(searchQuery: Binding<String>) {
         self._searchQuery = searchQuery
     }
@@ -51,6 +47,10 @@ struct SearchView: View {
         guard let id = selectedModuleId else { return nil }
         return moduleManager.modules.first { $0.id.uuidString == id }
     }
+    
+    private let columns = [
+        GridItem(.adaptive(minimum: 150), spacing: 12)
+    ]
     
     private var columnsCount: Int {
         if UIDevice.current.userInterfaceIdiom == .pad {
