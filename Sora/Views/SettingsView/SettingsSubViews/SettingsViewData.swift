@@ -287,7 +287,6 @@ struct SettingsViewData: View {
             }
             .scrollViewBottomPadding()
             .navigationTitle("App Data")
-            .navigationViewStyle(StackNavigationViewStyle())
             .onAppear {
                 isMetadataCachingEnabled = MetadataCacheManager.shared.isCachingEnabled
                 isImageCachingEnabled = KingfisherCacheManager.shared.isCachingEnabled
