@@ -51,6 +51,7 @@ struct MediaInfoView: View {
     @StateObject private var jsController = JSController.shared
     @EnvironmentObject var moduleManager: ModuleManager
     @EnvironmentObject private var libraryManager: LibraryManager
+    @EnvironmentObject var tabBarController: TabBarController
     
     @State private var selectedRange: Range<Int> = 0..<100
     @State private var showSettingsMenu = false
@@ -97,7 +98,43 @@ struct MediaInfoView: View {
     }
     
     var body: some View {
-        bodyContent
+        ZStack {
+            bodyContent
+                .navigationBarHidden(true)
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationBarTitle("")
+                .navigationViewStyle(StackNavigationViewStyle())
+                .ignoresSafeArea(.container, edges: .top)
+                .onAppear {
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let window = windowScene.windows.first,
+                       let navigationController = window.rootViewController?.children.first as? UINavigationController {
+                        navigationController.interactivePopGestureRecognizer?.isEnabled = true
+                        navigationController.interactivePopGestureRecognizer?.delegate = nil
+                    }
+                }
+            
+            VStack {
+                HStack {
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 24))
+                            .foregroundColor(.primary)
+                            .padding(12)
+                            .background(Color.gray.opacity(0.2))
+                            .clipShape(Circle())
+                            .circularGradientOutline()
+                    }
+                    .padding(.top, 8)
+                    .padding(.leading, 16)
+                    
+                    Spacer()
+                }
+                Spacer()
+            }
+        }
     }
     
     @ViewBuilder
@@ -112,6 +149,8 @@ struct MediaInfoView: View {
         }
         .onAppear {
             buttonRefreshTrigger.toggle()
+            
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             
             if !hasFetched {
                 DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching.", duration: 0.5, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
@@ -138,6 +177,10 @@ struct MediaInfoView: View {
                 hasFetched = true
                 AnalyticsManager.shared.sendEvent(event: "search", additionalData: ["title": title])
             }
+            tabBarController.hideTabBar()
+        }
+        .onDisappear(){
+            tabBarController.showTabBar()
         }
         .alert("Loading Stream", isPresented: $showLoadingAlert) {
             Button("Cancel", role: .cancel) {
@@ -162,89 +205,250 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var mainScrollView: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                mediaHeaderSection
-                
-                if !synopsis.isEmpty {
-                    synopsisSection
+            ZStack(alignment: .top) {
+                KFImage(URL(string: imageUrl))
+                    .placeholder {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .shimmering()
+                    }
+                    .setProcessor(ImageUpscaler.lanczosProcessor(scale: 3, sharpeningIntensity: 1, sharpeningRadius: 1))
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: UIScreen.main.bounds.width, height: 600)
+                    .clipped()
+
+                KFImage(URL(string: imageUrl))
+                    .placeholder { EmptyView() }
+                    .setProcessor(ImageUpscaler.lanczosProcessor(scale: 3, sharpeningIntensity: 1, sharpeningRadius: 1))
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: UIScreen.main.bounds.width, height: 600)
+                    .clipped()
+                    .blur(radius: 30)
+                    .mask(
+                        LinearGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: .clear, location: 0.0),
+                                .init(color: .clear, location: 0.6),
+                                .init(color: .black, location: 0.8),
+                                .init(color: .black, location: 1.0)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .overlay(
+                        LinearGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: .clear, location: 0.0),
+                                .init(color: .clear, location: 0.7),
+                                .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.9), location: 1.0)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+
+                VStack(spacing: 0) {
+                    Rectangle()
+                        .fill(Color.clear)
+                        .frame(height: 400)
+
+                    VStack(alignment: .leading, spacing: 16) {
+                        headerSection
+                        if !episodeLinks.isEmpty {
+                            episodesSection
+                        } else {
+                            noEpisodesSection
+                        }
+                    }
+                    .padding()
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.0), location: 0.0),
+                                .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.5), location: 0.2),
+                                .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.8), location: 0.5),
+                                .init(color: (colorScheme == .dark ? Color.black : Color.white), location: 1.0)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 0))
+                        .shadow(
+                            color: (colorScheme == .dark ? Color.black : Color.white).opacity(1),
+                            radius: 10,
+                            x: 0,
+                            y: 10
+                        )
+                    )
                 }
-                
-                playAndBookmarkSection
-                
-                if !episodeLinks.isEmpty {
-                    episodesSection
-                } else {
-                    noEpisodesSection
-                }
+                .deviceScaled()
             }
-            .padding()
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarTitle("")
-            .navigationViewStyle(StackNavigationViewStyle())
         }
+        .onAppear {
+            UIScrollView.appearance().bounces = false
+        } 
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitle("")
+        .navigationViewStyle(StackNavigationViewStyle())
+        .ignoresSafeArea(.container, edges: .top)
     }
     
     @ViewBuilder
-    private var mediaHeaderSection: some View {
-        HStack(alignment: .top, spacing: 10) {
-            KFImage(URL(string: imageUrl))
-                .placeholder {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(width: 150, height: 225)
-                        .shimmering()
-                }
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 150, height: 225)
-                .clipped()
-                .cornerRadius(10)
-            
-            mediaInfoSection
-        }
-    }
-    
-    @ViewBuilder
-    private var mediaInfoSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
+    private var headerSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.system(size: 17))
-                .fontWeight(.bold)
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(.primary)
+                .lineLimit(3)
                 .onLongPressGesture {
                     UIPasteboard.general.string = title
                     DropManager.shared.showDrop(title: "Copied to Clipboard", subtitle: "", duration: 1.0, icon: UIImage(systemName: "doc.on.clipboard.fill"))
                 }
             
-            if !aliases.isEmpty && aliases != title && aliases != "N/A" && aliases != "No Data" {
-                Text(aliases)
-                    .font(.system(size: 13))
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            if !airdate.isEmpty && airdate != "N/A" && airdate != "No Data" {
-                HStack(alignment: .center, spacing: 12) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "calendar")
-                            .resizable()
-                            .frame(width: 15, height: 15)
-                            .foregroundColor(.secondary)
-                        
-                        Text(airdate)
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
+            if !synopsis.isEmpty {
+                HStack(alignment: .bottom) {
+                    Text(synopsis)
+                        .font(.system(size: 16))
+                        .foregroundColor(.secondary)
+                        .lineLimit(showFullSynopsis ? nil : 3)
+                    
+                    Text(showFullSynopsis ? "LESS" : "MORE")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.accentColor)
+                }
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        showFullSynopsis.toggle()
                     }
-                    .padding(4)
                 }
             }
             
-            HStack(alignment: .center, spacing: 12) {
+            playAndBookmarkSection
+            
+            // Metadata row
+            HStack(spacing: 16) {
                 sourceButton
+                
+                if !airdate.isEmpty && airdate != "N/A" && airdate != "No Data" {
+                    HStack(spacing: 4) {
+                        Image(systemName: "calendar")
+                            .foregroundColor(.secondary)
+                        
+                        Text(airdate)
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                Spacer()
                 
                 menuButton
             }
+            
+            // Single episode action buttons
+            if episodeLinks.count == 1 {
+                VStack(spacing: 12) {
+                    HStack(spacing: 12) {
+                        Button(action: {
+                            if let ep = episodeLinks.first {
+                                let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+                                let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+                                let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
+                                
+                                if progress <= 0.9 {
+                                    UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(ep.href)")
+                                    UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(ep.href)")
+                                    DropManager.shared.showDrop(title: "Marked as Watched", subtitle: "", duration: 1.0, icon: UIImage(systemName: "checkmark.circle.fill"))
+                                }
+                            }
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "checkmark.circle")
+                                    .foregroundColor(.primary)
+                                Text("Mark as Watched")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.primary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 6)
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(15)
+                            .gradientOutline()
+                        }
+                        
+                        Button(action: {
+                            if let ep = episodeLinks.first {
+                                let downloadStatus = jsController.isEpisodeDownloadedOrInProgress(
+                                    showTitle: title,
+                                    episodeNumber: ep.number,
+                                    season: 1
+                                )
+                                
+                                if downloadStatus == .notDownloaded {
+                                    selectedEpisodeNumber = ep.number
+                                    fetchStream(href: ep.href)
+                                    DropManager.shared.showDrop(title: "Starting Download", subtitle: "", duration: 1.0, icon: UIImage(systemName: "arrow.down.circle"))
+                                } else {
+                                    DropManager.shared.showDrop(title: "Already Downloaded", subtitle: "", duration: 1.0, icon: UIImage(systemName: "checkmark.circle"))
+                                }
+                            }
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.down.circle")
+                                    .foregroundColor(.primary)
+                                Text("Download")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.primary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 6)
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(15)
+                            .gradientOutline()
+                        }
+                    }
+                    Text("Why am I not seeing any episodes?")
+                        .font(.caption)
+                        .bold()
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 4)
+                        .padding(.leading, 2.8)
+                    Text("The module provided only a single episode, this is most likely a movie, so we decided to make separate screens for these cases.")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.top, 4)
+                }
+            }
         }
+    }
+    
+    @ViewBuilder
+    private var contentSection: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            playAndBookmarkSection
+            
+            if !episodeLinks.isEmpty {
+                episodesSection
+            } else {
+                noEpisodesSection
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 20)
+        .background(
+            Rectangle()
+                .fill(colorScheme == .dark ? Color.black : Color.white)
+        )
     }
     
     @ViewBuilder
@@ -254,16 +458,20 @@ struct MediaInfoView: View {
         }) {
             HStack(spacing: 4) {
                 Text(module.metadata.sourceName)
-                    .font(.system(size: 13))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.primary)
+                    .lineLimit(1)
                 
                 Image(systemName: "safari")
                     .resizable()
-                    .frame(width: 20, height: 20)
+                    .frame(width: 14, height: 14)
                     .foregroundColor(.primary)
             }
-            .padding(4)
-            .background(Capsule().fill(Color.accentColor.opacity(0.4)))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(Color.gray.opacity(0.2))
+            .cornerRadius(15)
+            .gradientOutline()
         }
     }
     
@@ -312,54 +520,37 @@ struct MediaInfoView: View {
                 Label("Log Debug Info", systemImage: "terminal")
             }
         } label: {
-            Image(systemName: "ellipsis.circle")
+            Image(systemName: "ellipsis")
                 .resizable()
-                .frame(width: 20, height: 20)
+                .frame(width: 16, height: 4)
                 .foregroundColor(.primary)
-        }
-    }
-    
-    @ViewBuilder
-    private var synopsisSection: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack(alignment: .center) {
-                Text("Synopsis")
-                    .font(.system(size: 18))
-                    .fontWeight(.bold)
-                
-                Spacer()
-                
-                Button(action: {
-                    showFullSynopsis.toggle()
-                }) {
-                    Text(showFullSynopsis ? "Less" : "More")
-                        .font(.system(size: 14))
-                }
-            }
-            
-            Text(synopsis)
-                .lineLimit(showFullSynopsis ? nil : 4)
-                .font(.system(size: 14))
+                .padding(12)
+                .background(Color.gray.opacity(0.2))
+                .clipShape(Circle())
+                .circularGradientOutline()
         }
     }
     
     @ViewBuilder
     private var playAndBookmarkSection: some View {
-        HStack {
+        HStack(spacing: 12) {
             Button(action: {
                 playFirstUnwatchedEpisode()
             }) {
-                HStack {
+                HStack(spacing: 8) {
                     Image(systemName: "play.fill")
-                        .foregroundColor(.primary)
+                        .foregroundColor(colorScheme == .dark ? .black : .white)
                     Text(startWatchingText)
-                        .font(.headline)
-                        .foregroundColor(.primary)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(colorScheme == .dark ? .black : .white)
                 }
-                .padding()
                 .frame(maxWidth: .infinity)
-                .background(Color.accentColor)
-                .cornerRadius(10)
+                .padding(.vertical, 12)
+                .padding(.horizontal, 20)
+                .background(
+                    RoundedRectangle(cornerRadius: 25)
+                        .fill(Color.accentColor)
+                )
             }
             .disabled(isFetchingEpisode)
             
@@ -374,25 +565,43 @@ struct MediaInfoView: View {
             }) {
                 Image(systemName: libraryManager.isBookmarked(href: href, moduleName: module.metadata.sourceName) ? "bookmark.fill" : "bookmark")
                     .resizable()
-                    .frame(width: 20, height: 27)
-                    .foregroundColor(Color.accentColor)
+                    .frame(width: 16, height: 22)
+                    .foregroundColor(.primary)
+                    .padding(12)
+                    .background(Color.gray.opacity(0.2))
+                    .clipShape(Circle())
+                    .circularGradientOutline()
             }
         }
     }
     
     @ViewBuilder
     private var episodesSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text("Episodes")
-                    .font(.system(size: 18))
-                    .fontWeight(.bold)
+        if episodeLinks.count == 1 {
+            // Don't show episodes list for single-episode media
+            EmptyView()
+        } else {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    Text("Episodes")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                    
+                    Group {
+                        if !isGroupedBySeasons && episodeLinks.count <= episodeChunkSize {
+                            Text("All episodes already shown")
+                                .font(.system(size: 14))
+                                .foregroundColor(.secondary)
+                        } else {
+                            episodeNavigationSection
+                        }
+                    }
+                }
                 
-                Spacer()
-                episodeNavigationSection
+                episodeListSection
             }
-            
-            episodeListSection
         }
     }
     
@@ -540,6 +749,8 @@ struct MediaInfoView: View {
                 episodeID: ep.number - 1,
                 progress: progress,
                 itemID: itemID ?? 0,
+                totalEpisodes: episodeLinks.count,
+                defaultBannerImage: getBannerImageBasedOnAppearance(),
                 module: module,
                 parentTitle: title,
                 showPosterURL: imageUrl,
@@ -606,40 +817,36 @@ struct MediaInfoView: View {
     
     @ViewBuilder
     private var noEpisodesSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Episodes")
-                .font(.system(size: 18))
-                .fontWeight(.bold)
+        VStack(spacing: 16) {
+            Image(systemName: "tv.slash")
+                .font(.system(size: 48))
+                .foregroundColor(.secondary)
+            
+            Text("No Episodes Available")
+                .font(.title2)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
+            
+            Text("Episodes might not be available yet or there could be an issue with the source.")
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
         }
-        VStack(spacing: 8) {
-            if isRefetching {
-                ProgressView()
-                    .padding()
-            } else {
-                Image(systemName: "exclamationmark.triangle")
-                    .font(.largeTitle)
-                    .foregroundColor(.secondary)
-                HStack(spacing: 2) {
-                    Text("No episodes Found:")
-                        .foregroundColor(.secondary)
-                    Button(action: {
-                        isRefetching = true
-                        fetchDetails()
-                    }) {
-                        Text("Retry")
-                            .foregroundColor(.accentColor)
-                    }
-                }
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
     }
     
     private var startWatchingText: String {
         let indices = finishedAndUnfinishedIndices()
         let finished = indices.finished
         let unfinished = indices.unfinished
+        
+        if episodeLinks.count == 1 {
+            if let unfinishedIndex = unfinished {
+                return "Continue Watching"
+            }
+            return "Start Watching"
+        }
         
         if let finishedIndex = finished, finishedIndex < episodeLinks.count - 1 {
             let nextEp = episodeLinks[finishedIndex + 1]
@@ -785,8 +992,8 @@ struct MediaInfoView: View {
             self.showLoadingAlert = false
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                guard self.activeFetchID == fetchID else { 
-                    return 
+                guard self.activeFetchID == fetchID else {
+                    return
                 }
                 
                 if let sources = result.sources, !sources.isEmpty {

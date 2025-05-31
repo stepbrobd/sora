@@ -8,13 +8,14 @@
 import SwiftUI
 import Kingfisher
 
-struct SearchItem: Identifiable {
-    let id = UUID()
-    let title: String
-    let imageUrl: String
-    let href: String
+struct ModuleButtonModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .buttonStyle(PlainButtonStyle())
+            .offset(y: 45)
+            .zIndex(999)
+    }
 }
-
 
 struct SearchView: View {
     @AppStorage("selectedModuleId") private var selectedModuleId: String?
@@ -25,15 +26,23 @@ struct SearchView: View {
     @EnvironmentObject var moduleManager: ModuleManager
     @Environment(\.verticalSizeClass) var verticalSizeClass
     
+    @Binding public var searchQuery: String
+    
     @State private var searchItems: [SearchItem] = []
     @State private var selectedSearchItem: SearchItem?
     @State private var isSearching = false
-    @State private var searchText = ""
     @State private var hasNoResults = false
     @State private var isLandscape: Bool = UIDevice.current.orientation.isLandscape
     @State private var isModuleSelectorPresented = false
     @State private var searchHistory: [String] = []
     @State private var isSearchFieldFocused = false
+    @State private var saveDebounceTimer: Timer?
+    
+    private let columns = [GridItem(.adaptive(minimum: 150))]
+    
+    init(searchQuery: Binding<String>) {
+        self._searchQuery = searchQuery
+    }
     
     private var selectedModule: ScrapingModule? {
         guard let id = selectedModuleId else { return nil }
@@ -62,228 +71,65 @@ struct SearchView: View {
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                let columnsCount = determineColumns()
-                VStack(spacing: 0) {
-                    HStack {
-                        SearchBar(text: $searchText, isFocused: $isSearchFieldFocused, onSearchButtonClicked: performSearch)
-                            .padding(.leading)
-                            .padding(.trailing, searchText.isEmpty ? 16 : 0)
-                            .disabled(selectedModule == nil)
-                            .padding(.top)
-                        
-                        if !searchText.isEmpty {
-                            Button("Cancel") {
-                                searchText = ""
-                                isSearchFieldFocused = false
-                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            }
-                            .padding(.trailing)
-                            .padding(.top)
-                        }
-                    }
+            VStack(alignment: .leading) {
+                HStack {
+                    Text("Search")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
                     
-                    if isSearchFieldFocused && !searchHistory.isEmpty && searchText.isEmpty {
-                        VStack(alignment: .leading, spacing: 0) {
-                            HStack {
-                                Text("Recent Searches")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                Button("Clear") {
-                                    clearSearchHistory()
-                                }
-                                .font(.caption)
-                                .foregroundColor(.accentColor)
-                            }
-                            .padding(.horizontal)
-                            .padding(.top, 8)
-                            
-                            ForEach(Array(searchHistory.enumerated()), id: \.offset) { index, searchTerm in
-                                Button(action: {
-                                    searchText = searchTerm
-                                    isSearchFieldFocused = false
-                                    performSearch()
-                                }) {
-                                    HStack {
-                                        Image(systemName: "clock")
-                                            .foregroundColor(.secondary)
-                                            .font(.caption)
-                                        Text(searchTerm)
-                                            .foregroundColor(.primary)
-                                        Spacer()
-                                        Button(action: {
-                                            removeFromHistory(at: index)
-                                        }) {
-                                            Image(systemName: "xmark.circle.fill")
-                                                .foregroundColor(.secondary)
-                                                .font(.caption)
-                                        }
-                                    }
-                                    .padding(.horizontal)
-                                    .padding(.vertical, 8)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                
-                                if index < searchHistory.count - 1 {
-                                    Divider()
-                                        .padding(.leading, 40)
-                                }
-                            }
-                        }
-                        .background(Color(.systemBackground))
-                        .cornerRadius(8)
-                        .shadow(color: Color.black.opacity(0.1), radius: 2, y: 1)
-                        .padding(.horizontal)
-                        .padding(.top, 4)
-                    }
+                    Spacer()
                     
-                    if selectedModule == nil {
-                        VStack(spacing: 8) {
-                            Image(systemName: "questionmark.app")
-                                .font(.largeTitle)
-                                .foregroundColor(.secondary)
-                            Text("No Module Selected")
-                                .font(.headline)
-                            Text("Please select a module from settings")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                    ModuleSelectorMenu(
+                        selectedModule: selectedModule,
+                        moduleGroups: getModuleLanguageGroups(),
+                        modulesByLanguage: getModulesByLanguage(),
+                        selectedModuleId: selectedModuleId,
+                        onModuleSelected: { moduleId in
+                            selectedModuleId = moduleId
                         }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color(.systemBackground))
-                        .shadow(color: Color.black.opacity(0.1), radius: 2, y: 1)
-                    }
-                    
-                    if !searchText.isEmpty {
-                        if isSearching {
-                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: columnsCount), spacing: 16) {
-                                ForEach(0..<columnsCount*4, id: \.self) { _ in
-                                    SearchSkeletonCell(cellWidth: cellWidth)
-                                }
-                            }
-                            .padding(.top)
-                            .padding()
-                        } else if hasNoResults {
-                            VStack(spacing: 8) {
-                                Image(systemName: "magnifyingglass")
-                                    .font(.largeTitle)
-                                    .foregroundColor(.secondary)
-                                Text("No Results Found")
-                                    .font(.headline)
-                                Text("Try different keywords")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .padding(.top)
-                        } else {
-                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: columnsCount), spacing: 16) {
-                                ForEach(searchItems) { item in
-                                    NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: selectedModule!)) {
-                                        VStack {
-                                            KFImage(URL(string: item.imageUrl))
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                                .frame(height: cellWidth * 3 / 2)
-                                                .frame(maxWidth: cellWidth)
-                                                .cornerRadius(10)
-                                                .clipped()
-                                            Text(item.title)
-                                                .font(.subheadline)
-                                                .foregroundColor(Color.primary)
-                                                .padding([.leading, .bottom], 8)
-                                                .lineLimit(1)
-                                        }
-                                    }
-                                }
-                                .onAppear {
-                                    updateOrientation()
-                                }
-                                .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-                                    updateOrientation()
-                                }
-                            }
-                            .padding(.top)
-                            .padding()
-                        }
-                    }
+                    )
                 }
-            }
-            .navigationTitle("Search")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        if getModuleLanguageGroups().count == 1 {
-                            ForEach(moduleManager.modules, id: \.id) { module in
-                                Button {
-                                    selectedModuleId = module.id.uuidString
-                                } label: {
-                                    HStack {
-                                        KFImage(URL(string: module.metadata.iconUrl))
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .frame(width: 20, height: 20)
-                                            .cornerRadius(4)
-                                        Text(module.metadata.sourceName)
-                                        if module.id.uuidString == selectedModuleId {
-                                            Image(systemName: "checkmark")
-                                                .foregroundColor(.accentColor)
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-                            ForEach(getModuleLanguageGroups(), id: \.self) { language in
-                                Menu(language) {
-                                    ForEach(getModulesForLanguage(language), id: \.id) { module in
-                                        Button {
-                                            selectedModuleId = module.id.uuidString
-                                        } label: {
-                                            HStack {
-                                                KFImage(URL(string: module.metadata.iconUrl))
-                                                    .resizable()
-                                                    .aspectRatio(contentMode: .fit)
-                                                    .frame(width: 20, height: 20)
-                                                    .cornerRadius(4)
-                                                Text(module.metadata.sourceName)
-                                                if module.id.uuidString == selectedModuleId {
-                                                    Image(systemName: "checkmark")
-                                                        .foregroundColor(.accentColor)
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } label: {
-                        HStack(spacing: 4) {
-                            if let selectedModule = selectedModule {
-                                Text(selectedModule.metadata.sourceName)
-                                    .font(.headline)
-                                    .foregroundColor(.secondary)
-                            } else {
-                                Text("Select Module")
-                                    .font(.headline)
-                                    .foregroundColor(.accentColor)
-                            }
-                            Image(systemName: "chevron.down")
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .fixedSize()
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                
+                ScrollView {
+                    SearchContent(
+                        selectedModule: selectedModule,
+                        searchQuery: searchQuery,
+                        searchHistory: searchHistory,
+                        searchItems: searchItems,
+                        isSearching: isSearching,
+                        hasNoResults: hasNoResults,
+                        columns: columns,
+                        columnsCount: columnsCount,
+                        cellWidth: cellWidth,
+                        onHistoryItemSelected: { query in
+                            searchQuery = query
+                        },
+                        onHistoryItemDeleted: { index in
+                            removeFromHistory(at: index)
+                        },
+                        onClearHistory: clearSearchHistory
+                    )
                 }
+                .scrollViewBottomPadding()
+                .simultaneousGesture(
+                    DragGesture().onChanged { _ in
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
+                )
             }
+            .navigationBarHidden(true)
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .onAppear {
             loadSearchHistory()
+            if !searchQuery.isEmpty {
+                performSearch()
+            }
         }
         .onChange(of: selectedModuleId) { _ in
-            if !searchText.isEmpty {
+            if !searchQuery.isEmpty {
                 performSearch()
             }
         }
@@ -295,29 +141,45 @@ struct SearchView: View {
                 moduleManager.selectedModuleChanged = false
             }
         }
-        .onChange(of: searchText) { newValue in
+        .onChange(of: searchQuery) { newValue in
             if newValue.isEmpty {
+                saveDebounceTimer?.invalidate()
                 searchItems = []
                 hasNoResults = false
                 isSearching = false
+            } else {
+                performSearch()
+                
+                saveDebounceTimer?.invalidate()
+                saveDebounceTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
+                    self.addToSearchHistory(newValue)}
             }
         }
     }
     
+    private func lockOrientation() {
+        OrientationManager.shared.lockOrientation()
+    }
+
+    private func unlockOrientation(after delay: TimeInterval = 1.0) {
+        OrientationManager.shared.unlockOrientation(after: delay)
+    }
+
     private func performSearch() {
-        Logger.shared.log("Searching for: \(searchText)", type: "General")
-        guard !searchText.isEmpty, let module = selectedModule else {
+        Logger.shared.log("Searching for: \(searchQuery)", type: "General")
+        guard !searchQuery.isEmpty, let module = selectedModule else {
             searchItems = []
             hasNoResults = false
             return
         }
         
-        addToSearchHistory(searchText)
         isSearchFieldFocused = false
         
         isSearching = true
         hasNoResults = false
         searchItems = []
+        
+        lockOrientation()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             Task {
@@ -325,22 +187,31 @@ struct SearchView: View {
                     let jsContent = try moduleManager.getModuleContent(module)
                     jsController.loadScript(jsContent)
                     if module.metadata.asyncJS == true {
-                        jsController.fetchJsSearchResults(keyword: searchText, module: module) { items in
-                            searchItems = items
-                            hasNoResults = items.isEmpty
-                            isSearching = false
+                        jsController.fetchJsSearchResults(keyword: searchQuery, module: module) { items in
+                            DispatchQueue.main.async {
+                                searchItems = items
+                                hasNoResults = items.isEmpty
+                                isSearching = false
+                                unlockOrientation(after: 3.0)
+                            }
                         }
                     } else {
-                        jsController.fetchSearchResults(keyword: searchText, module: module) { items in
-                            searchItems = items
-                            hasNoResults = items.isEmpty
-                            isSearching = false
+                        jsController.fetchSearchResults(keyword: searchQuery, module: module) { items in
+                            DispatchQueue.main.async {
+                                searchItems = items
+                                hasNoResults = items.isEmpty
+                                isSearching = false
+                                unlockOrientation(after: 3.0)
+                            }
                         }
                     }
                 } catch {
                     Logger.shared.log("Error loading module: \(error)", type: "Error")
-                    isSearching = false
-                    hasNoResults = true
+                    DispatchQueue.main.async {
+                        isSearching = false
+                        hasNoResults = true
+                        unlockOrientation(after: 3.0)
+                    }
                 }
             }
         }
@@ -444,10 +315,10 @@ struct SearchBar: View {
                 .padding(.horizontal, 25)
                 .background(Color(.systemGray6))
                 .cornerRadius(8)
-                .onChange(of: text){newValue in
+                .onChange(of: text) { newValue in
                     debounceTimer?.invalidate()
                     if !newValue.isEmpty {
-                        debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
+                        debounceTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { _ in
                             onSearchButtonClicked()
                         }
                     }
