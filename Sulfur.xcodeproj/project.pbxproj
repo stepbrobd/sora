@@ -330,7 +330,6 @@
 				133D7C852D2BE2640075467E /* Utils */,
 				133D7C7B2D2BE2630075467E /* Views */,
 				133D7C6D2D2BE2500075467E /* SoraApp.swift */,
-				133D7C7C2D2BE2630075467E /* SearchView.swift */,
 				133D7C6F2D2BE2500075467E /* ContentView.swift */,
 				133D7C712D2BE2520075467E /* Assets.xcassets */,
 				133D7C732D2BE2520075467E /* Preview Content */,
@@ -349,6 +348,7 @@
 		133D7C7B2D2BE2630075467E /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				133D7C7C2D2BE2630075467E /* SearchView.swift */,
 				72443C7C2DC8036500A61321 /* DownloadView.swift */,
 				0402DA122DE7B5EC003BB42C /* SearchView */,
 				133D7C7F2D2BE2630075467E /* MediaInfoView */,
