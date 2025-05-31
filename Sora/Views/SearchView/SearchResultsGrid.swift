@@ -9,13 +9,26 @@ import SwiftUI
 import Kingfisher
 
 struct SearchResultsGrid: View {
+    @AppStorage("mediaColumnsPortrait") private var mediaColumnsPortrait: Int = 2
+    @AppStorage("mediaColumnsLandscape") private var mediaColumnsLandscape: Int = 4
+    @Environment(\.verticalSizeClass) var verticalSizeClass
+    
     let items: [SearchItem]
     let columns: [GridItem]
     let selectedModule: ScrapingModule
     let cellWidth: CGFloat
     
+    private var columnsCount: Int {
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            let isLandscape = UIScreen.main.bounds.width > UIScreen.main.bounds.height
+            return isLandscape ? mediaColumnsLandscape : mediaColumnsPortrait
+        } else {
+            return verticalSizeClass == .compact ? mediaColumnsLandscape : mediaColumnsPortrait
+        }
+    }
+    
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 16) {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: columnsCount), spacing: 12) {
             ForEach(items) { item in
                 NavigationLink(destination: MediaInfoView(title: item.title, imageUrl: item.imageUrl, href: item.href, module: selectedModule)) {
                     ZStack {
