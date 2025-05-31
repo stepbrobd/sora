@@ -96,7 +96,7 @@ struct SearchView: View {
                 .padding(.top, 20)
                 
                 ScrollView {
-                    SearchContent(
+                    SearchContentView(
                         selectedModule: selectedModule,
                         searchQuery: searchQuery,
                         searchHistory: searchHistory,

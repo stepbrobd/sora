@@ -105,6 +105,43 @@ struct ModuleSelectorMenu: View {
     }
 }
 
+struct SearchContentView: View {
+    let selectedModule: ScrapingModule?
+    let searchQuery: String
+    let searchHistory: [String]
+    let searchItems: [SearchItem]
+    let isSearching: Bool
+    let hasNoResults: Bool
+    let columns: [GridItem]
+    let columnsCount: Int
+    let cellWidth: CGFloat
+    let onHistoryItemSelected: (String) -> Void
+    let onHistoryItemDeleted: (Int) -> Void
+    let onClearHistory: () -> Void
+    
+    var body: some View {
+        NavigationView {
+            SearchContent(
+                selectedModule: selectedModule,
+                searchQuery: searchQuery,
+                searchHistory: searchHistory,
+                searchItems: searchItems,
+                isSearching: isSearching,
+                hasNoResults: hasNoResults,
+                columns: columns,
+                columnsCount: columnsCount,
+                cellWidth: cellWidth,
+                onHistoryItemSelected: onHistoryItemSelected,
+                onHistoryItemDeleted: onHistoryItemDeleted,
+                onClearHistory: onClearHistory
+            )
+            .navigationTitle("Search")
+            .navigationBarTitleDisplayMode(.large)
+        }
+        .navigationViewStyle(.stack)
+    }
+}
+
 struct SearchContent: View {
     let selectedModule: ScrapingModule?
     let searchQuery: String
@@ -188,6 +225,5 @@ struct SearchContent: View {
                 }
             }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
     }
-} 
+}
