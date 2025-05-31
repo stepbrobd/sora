@@ -75,23 +75,6 @@ extension JSController {
         let filename = "\(sanitizedTitle)_\(downloadID.uuidString.prefix(8)).mp4"
         let destinationURL = downloadDirectory.appendingPathComponent(filename)
         
-        // Create an active download object
-        let activeDownload = JSActiveDownload(
-            id: downloadID,
-            originalURL: url,
-            task: nil,
-            queueStatus: .downloading,
-            type: downloadType,
-            metadata: metadata,
-            title: title,
-            imageURL: imageURL,
-            subtitleURL: subtitleURL,
-            headers: headers
-        )
-        
-        // Add to active downloads
-        activeDownloads.append(activeDownload)
-        
         // Create request with headers
         var request = URLRequest(url: url)
         request.timeoutInterval = 30.0
@@ -204,16 +187,32 @@ extension JSController {
             }
         }
         
-        // Set up progress observation
-        setupProgressObservation(for: downloadTask, downloadID: downloadID)
+        // Create an active download object with the mp4Task
+        let activeDownload = JSActiveDownload(
+            id: downloadID,
+            originalURL: url,
+            task: nil,
+            mp4Task: downloadTask, // Add the MP4 download task
+            queueStatus: .downloading,
+            type: downloadType,
+            metadata: metadata,
+            title: title,
+            imageURL: imageURL,
+            subtitleURL: subtitleURL,
+            headers: headers
+        )
         
+        // Add to active downloads and map
+        activeDownloads.append(activeDownload)
+        activeDownloadMap[downloadTask] = downloadID
+
         // Store session reference
         storeSessionReference(session: customSession, for: downloadID)
         
-        // Start download
+        // Set initial task state to running
         downloadTask.resume()
         print("MP4 Download: Task started for \(filename)")
-        
+
         // Initial success callback
         completionHandler?(true, "Download started")
     }
@@ -230,14 +229,39 @@ extension JSController {
     }
     
     private func setupProgressObservation(for task: URLSessionDownloadTask, downloadID: UUID) {
+        // Create a dispatch queue for progress updates
+        let progressQueue = DispatchQueue(label: "com.sora.download.progress")
+        
         let observation = task.progress.observe(\.fractionCompleted) { [weak self] progress, _ in
-            DispatchQueue.main.async {
+            progressQueue.async {
                 guard let self = self else { return }
-                self.updateDownloadProgress(downloadID: downloadID, progress: progress.fractionCompleted)
-                NotificationCenter.default.post(name: NSNotification.Name("downloadProgressUpdated"), object: nil)
+                
+                // Only update if enough time has passed since last update
+                let currentTime = Date()
+                let lastUpdate = JSController.lastProgressUpdateTime[downloadID] ?? .distantPast
+                
+                if currentTime.timeIntervalSince(lastUpdate) >= JSController.progressUpdateInterval {
+                    DispatchQueue.main.async {
+                        self.updateDownloadProgress(downloadID: downloadID, progress: progress.fractionCompleted)
+                        JSController.lastProgressUpdateTime[downloadID] = currentTime
+                        
+                        // Find and update the download object
+                        if let index = self.activeDownloads.firstIndex(where: { $0.id == downloadID }) {
+                            let download = self.activeDownloads[index]
+                            // Post progress notification with episode info if available
+                            if let episodeNumber = download.metadata?.episode {
+                                self.postDownloadNotification(.progress, userInfo: [
+                                    "episodeNumber": episodeNumber,
+                                    "progress": progress.fractionCompleted,
+                                    "status": "downloading"
+                                ])
+                            }
+                        }
+                    }
+                }
             }
         }
-        
+
         if mp4ProgressObservations == nil {
             mp4ProgressObservations = [:]
         }
