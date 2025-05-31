@@ -100,7 +100,7 @@ extension JSController {
         }
         
         // Use a background session so downloads continue if app is backgrounded or view is dismissed
-        let sessionIdentifier = "mp4-background-(downloadID.uuidString)"
+        let sessionIdentifier = "mp4-background-(downloadID.uuidString)"
         let sessionConfig = URLSessionConfiguration.background(withIdentifier: sessionIdentifier)
         sessionConfig.timeoutIntervalForRequest = 60.0
         sessionConfig.timeoutIntervalForResource = 1800.0
