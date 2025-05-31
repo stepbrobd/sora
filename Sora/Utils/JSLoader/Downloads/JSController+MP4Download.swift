@@ -99,16 +99,17 @@ extension JSController {
             request.addValue(value, forHTTPHeaderField: key)
         }
         
-        // Enhanced session configuration
-        let sessionConfig = URLSessionConfiguration.default
+        // Use a background session so downloads continue if app is backgrounded or view is dismissed
+        let sessionIdentifier = "mp4-background-(downloadID.uuidString)"
+        let sessionConfig = URLSessionConfiguration.background(withIdentifier: sessionIdentifier)
         sessionConfig.timeoutIntervalForRequest = 60.0
         sessionConfig.timeoutIntervalForResource = 1800.0
         sessionConfig.httpMaximumConnectionsPerHost = 1
         sessionConfig.allowsCellularAccess = true
-        
-        // Create custom session with delegate
+
+        // Create custom session with delegate (self is JSController, which is persistent)
         let customSession = URLSession(configuration: sessionConfig, delegate: self, delegateQueue: nil)
-        
+
         // Create the download task
         let downloadTask = customSession.downloadTask(with: request) { [weak self] (tempURL, response, error) in
             guard let self = self else { return }
