@@ -821,11 +821,12 @@ struct MediaInfoView: View {
             
             Text("Episodes might not be available yet or there could be an issue with the source.")
                 .font(.body)
+                .lineLimit(0)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
         }
-        .padding(.vertical, 40)
+        .padding(.vertical, 60)
     }
     
     private var startWatchingText: String {
