@@ -42,8 +42,11 @@ public struct LanczosUpscaleProcessor: ImageProcessor {
     public let sharpeningIntensity: Float
     public let sharpeningRadius: Float
     public var identifier: String {
-        "com.yourapp.lanczos_\(scale)_sharp_\(sharpeningIntensity)_\(sharpeningRadius)"
+        "me.cranci.lanczos_\(scale)_sharp_\(sharpeningIntensity)_\(sharpeningRadius)"
     }
+
+    // Reuse CIContext
+    private static let ciContext = CIContext(options: nil)
 
     public init(
         scale: CGFloat,
@@ -59,40 +62,31 @@ public struct LanczosUpscaleProcessor: ImageProcessor {
         item: ImageProcessItem,
         options: KingfisherParsedOptionsInfo
     ) -> KFCrossPlatformImage? {
-        
-        let inputImage: KFCrossPlatformImage?
-        switch item {
-        case .image(let image):
-            inputImage = image
-        case .data(let data):
-            inputImage = KFCrossPlatformImage(data: data)
-        }
-        guard let uiImage = inputImage,
-              let cgImage = uiImage.cgImage else {
-            return nil
-        }
-
+        let uiImage: KFCrossPlatformImage? = {
+            switch item {
+            case .image(let image): return image
+            case .data(let data): return KFCrossPlatformImage(data: data)
+            }
+        }()
+        guard let cgImage = uiImage?.cgImage else { return nil }
         let ciInput = CIImage(cgImage: cgImage)
 
         let scaleFilter = CIFilter.lanczosScaleTransform()
-        scaleFilter.inputImage   = ciInput
-        scaleFilter.scale        = Float(scale)
-        scaleFilter.aspectRatio  = 1.0
-        guard let scaledCI = scaleFilter.outputImage else {
-            return uiImage
-        }
+        scaleFilter.inputImage = ciInput
+        scaleFilter.scale = Float(scale)
+        scaleFilter.aspectRatio = 1.0
+        guard let scaledCI = scaleFilter.outputImage else { return uiImage }
 
         let unsharp = CIFilter.unsharpMask()
-        unsharp.inputImage    = scaledCI
-        unsharp.intensity     = sharpeningIntensity
-        unsharp.radius        = sharpeningRadius
+        unsharp.inputImage = scaledCI
+        unsharp.intensity = sharpeningIntensity
+        unsharp.radius = sharpeningRadius
         guard let sharpCI = unsharp.outputImage else {
-            return UIImage(ciImage: scaledCI)
+            return KFCrossPlatformImage(ciImage: scaledCI)
         }
 
-        let context = CIContext(options: nil)
-        guard let outputCG = context.createCGImage(sharpCI, from: sharpCI.extent) else {
-            return UIImage(ciImage: sharpCI)
+        guard let outputCG = Self.ciContext.createCGImage(sharpCI, from: sharpCI.extent) else {
+            return KFCrossPlatformImage(ciImage: sharpCI)
         }
         return KFCrossPlatformImage(cgImage: outputCG)
     }
