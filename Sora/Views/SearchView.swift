@@ -37,6 +37,7 @@ struct SearchView: View {
     @State private var searchHistory: [String] = []
     @State private var isSearchFieldFocused = false
     @State private var saveDebounceTimer: Timer?
+    @State private var searchDebounceTimer: Timer?
     
     private let columns = [GridItem(.adaptive(minimum: 150))]
     
@@ -142,17 +143,22 @@ struct SearchView: View {
             }
         }
         .onChange(of: searchQuery) { newValue in
+            searchDebounceTimer?.invalidate()
+            
             if newValue.isEmpty {
                 saveDebounceTimer?.invalidate()
                 searchItems = []
                 hasNoResults = false
                 isSearching = false
             } else {
-                performSearch()
+                searchDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.7, repeats: false) { _ in
+                    performSearch()
+                }
                 
                 saveDebounceTimer?.invalidate()
                 saveDebounceTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
-                    self.addToSearchHistory(newValue)}
+                    self.addToSearchHistory(newValue)
+                }
             }
         }
     }

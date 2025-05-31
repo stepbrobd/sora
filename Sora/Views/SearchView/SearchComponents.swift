@@ -48,18 +48,15 @@ struct SearchHistoryRow: View {
     
     var body: some View {
         HStack {
-            // Clock Icon
             Image(systemName: "clock")
                 .frame(width: 24, height: 24)
                 .foregroundStyle(Color.primary)
             
-            // Search Text
             Text(text)
                 .foregroundStyle(Color.primary)
             
             Spacer()
             
-            // Delete Button
             Button(action: onDelete) {
                 Image(systemName: "xmark.circle.fill")
                     .foregroundStyle(Color.secondary)
@@ -70,7 +67,6 @@ struct SearchHistoryRow: View {
         .contentShape(Rectangle())
         .onTapGesture(perform: onTap)
         
-        // Divider if needed
         if showDivider {
             Divider()
                 .padding(.horizontal, 16)
