@@ -776,24 +776,24 @@ struct EpisodeCell: View {
     private func fetchTMDBEpisodeImage() {
         guard let tmdbID = tmdbID, let season = seasonNumber else { return }
         let episodeNum = episodeID + 1
-        let urlString = "https://api.themoviedb.org/3/tv/\(tmdbID)/season/\(season)/episode/\(episodeNum)/images?api_key=738b4edd0a156cc126dc4a4b8aea4aca"
+        let urlString = "https://api.themoviedb.org/3/tv/\(tmdbID)/season/\(season)/episode/\(episodeNum)?api_key=738b4edd0a156cc126dc4a4b8aea4aca"
         guard let url = URL(string: urlString) else { return }
-        
+    
         URLSession.custom.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else { return }
             do {
-                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let stills = json["stills"] as? [[String: Any]],
-                   let firstStill = stills.first,
-                   let filePath = firstStill["file_path"] as? String {
-                    let imageUrl = "https://image.tmdb.org/t/p/w780\(filePath)"
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    let name = json["name"] as? String ?? ""
+                    let stillPath = json["still_path"] as? String
+                    let imageUrl = stillPath != nil ? "https://image.tmdb.org/t/p/w780\(stillPath!)" : ""
                     DispatchQueue.main.async {
+                        self.episodeTitle = name
                         self.episodeImageUrl = imageUrl
                         self.isLoading = false
                     }
                 }
             } catch {
-                Logger.shared.log("Failed to parse TMDB episode image response: \(error.localizedDescription)", type: "Error")
+                Logger.shared.log("Failed to parse TMDB episode details: \(error.localizedDescription)", type: "Error")
                 DispatchQueue.main.async {
                     self.isLoading = false
                 }
