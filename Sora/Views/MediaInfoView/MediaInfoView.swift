@@ -779,7 +779,7 @@ struct MediaInfoView: View {
     }
     
     private func fetchMetadataIDIfNeeded() {
-        let provider = UserDefaults.standard.string(forKey: "metadataProviders") ?? "Anilist"
+        let provider = UserDefaults.standard.string(forKey: "metadataProviders") ?? "TMDB"
         let cleaned = cleanTitle(title)
         if provider == "TMDB" {
             tmdbID = nil

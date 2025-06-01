@@ -219,13 +219,13 @@ struct EpisodeCell: View {
         .onAppear {
             updateProgress()
             updateDownloadStatus()
-            if UserDefaults.standard.string(forKey: "metadataProviders") ?? "Anilist" == "AniList" {
+            if UserDefaults.standard.string(forKey: "metadataProviders") ?? "TMDB" == "TMDB" {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    fetchAnimeEpisodeDetails()
+                    fetchTMDBEpisodeImage()
                 }
             } else {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    fetchTMDBEpisodeImage()
+                    fetchAnimeEpisodeDetails()
                 }
             }
             
@@ -778,14 +778,16 @@ struct EpisodeCell: View {
         let episodeNum = episodeID + 1
         let urlString = "https://api.themoviedb.org/3/tv/\(tmdbID)/season/\(season)/episode/\(episodeNum)?api_key=738b4edd0a156cc126dc4a4b8aea4aca"
         guard let url = URL(string: urlString) else { return }
-    
+
+        let tmdbImageWidth = UserDefaults.standard.string(forKey: "tmdbImageWidth") ?? "w780"
+        
         URLSession.custom.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else { return }
             do {
                 if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
                     let name = json["name"] as? String ?? ""
                     let stillPath = json["still_path"] as? String
-                    let imageUrl = stillPath != nil ? "https://image.tmdb.org/t/p/w780\(stillPath!)" : ""
+                    let imageUrl = stillPath != nil ? "https://image.tmdb.org/t/p/\(tmdbImageWidth)\(stillPath!)" : ""
                     DispatchQueue.main.async {
                         self.episodeTitle = name
                         self.episodeImageUrl = imageUrl
