@@ -20,7 +20,7 @@ struct MediaItem: Identifiable {
 
 struct MediaInfoView: View {
     let title: String
-    let imageUrl: String
+    @State var imageUrl: String
     let href: String
     let module: ScrapingModule
     
@@ -77,6 +77,7 @@ struct MediaInfoView: View {
     @State private var showRangeInput: Bool = false
     @State private var isBulkDownloading: Bool = false
     @State private var bulkDownloadProgress: String = ""
+    @State private var tmdbType: TMDBFetcher.MediaType? = nil
     
     private var isGroupedBySeasons: Bool {
         return groupedEpisodes().count > 1
@@ -494,10 +495,19 @@ struct MediaInfoView: View {
                     Label("Open in AniList", systemImage: "link")
                 }
             }
+            
+            if UserDefaults.standard.string(forKey: "metadataProviders") ?? "TMDB" == "AniList" {
+                Button(action: {
+                    isMatchingPresented = true
+                }) {
+                    Label("Match with AniList", systemImage: "magnifyingglass")
+                }
+            }
+            
             Button(action: {
-                isMatchingPresented = true
+                fetchTMDBPosterImageAndSet()
             }) {
-                Label("Match with AniList", systemImage: "magnifyingglass")
+                Label("Use TMDB Poster Image", systemImage: "photo")
             }
             
             Divider()
@@ -781,11 +791,13 @@ struct MediaInfoView: View {
     private func fetchMetadataIDIfNeeded() {
         let provider = UserDefaults.standard.string(forKey: "metadataProviders") ?? "TMDB"
         let cleaned = cleanTitle(title)
+        
         if provider == "TMDB" {
             tmdbID = nil
             tmdbFetcher.fetchBestMatchID(for: cleaned) { id, type in
                 DispatchQueue.main.async {
                     self.tmdbID = id
+                    self.tmdbType = type
                     Logger.shared.log("Fetched TMDB ID: \(id ?? -1) (\(type?.rawValue ?? "unknown")) for title: \(cleaned)", type: "Debug")
                 }
             }
@@ -803,6 +815,35 @@ struct MediaInfoView: View {
                 }
             }
         }
+    }
+    
+    private func fetchTMDBPosterImageAndSet() {
+        guard let tmdbID = tmdbID, let tmdbType = tmdbType else { return }
+        let apiType = tmdbType.rawValue
+        let urlString = "https://api.themoviedb.org/3/\(apiType)/\(tmdbID)?api_key=738b4edd0a156cc126dc4a4b8aea4aca"
+        guard let url = URL(string: urlString) else { return }
+
+        let tmdbImageWidth = UserDefaults.standard.string(forKey: "tmdbImageWidth") ?? "780"
+
+        URLSession.custom.dataTask(with: url) { data, _, error in
+            guard let data = data, error == nil else { return }
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let posterPath = json["poster_path"] as? String {
+                    let imageUrl: String
+                    if tmdbImageWidth == "original" {
+                        imageUrl = "https://image.tmdb.org/t/p/original\(posterPath)"
+                    } else {
+                        imageUrl = "https://image.tmdb.org/t/p/w\(tmdbImageWidth)\(posterPath)"
+                    }
+                    DispatchQueue.main.async {
+                        self.imageUrl = imageUrl
+                    }
+                }
+            } catch {
+                Logger.shared.log("Failed to parse TMDB poster: \(error.localizedDescription)", type: "Error")
+            }
+        }.resume()
     }
     
     private func markAllPreviousEpisodesAsWatched(ep: EpisodeLink, inSeason: Bool) {
