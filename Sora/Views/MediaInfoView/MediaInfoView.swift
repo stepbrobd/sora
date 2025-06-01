@@ -540,14 +540,13 @@ struct MediaInfoView: View {
                 .circularGradientOutline()
         }
         .sheet(isPresented: $isMatchingPresented) {
-                AnilistMatchPopupView(seriesTitle: title) { selectedID in
-                    // 1) Assign the new AniList ID:
-                    self.customAniListID = selectedID
-                    self.itemID = selectedID
-                    UserDefaults.standard.set(selectedID, forKey: "custom_anilist_id_\(href)")
-                    
-                    isMatchingPresented = false
-                }
+            AnilistMatchPopupView(seriesTitle: title) { selectedID in
+                self.customAniListID = selectedID
+                self.itemID = selectedID
+                UserDefaults.standard.set(selectedID, forKey: "custom_anilist_id_\(href)")
+                self.fetchDetails()
+                isMatchingPresented = false
+            }
         }
     }
     
@@ -1420,6 +1419,7 @@ struct MediaInfoView: View {
                 itemID = id
                 UserDefaults.standard.set(id, forKey: "custom_anilist_id_\(href)")
                 Logger.shared.log("Set custom AniList ID: \(id)", type: "General")
+                self.fetchDetails()
             }
         })
         
