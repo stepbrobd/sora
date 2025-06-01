@@ -95,7 +95,7 @@ struct SearchView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
                 
-                VStack {
+                ScrollView {
                     SearchContent(
                         selectedModule: selectedModule,
                         searchQuery: searchQuery,
@@ -115,6 +115,7 @@ struct SearchView: View {
                         onClearHistory: clearSearchHistory
                     )
                 }
+                .scrollViewBottomPadding()
                 .simultaneousGesture(
                     DragGesture().onChanged { _ in
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
