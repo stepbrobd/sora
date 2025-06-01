@@ -206,7 +206,6 @@ struct SettingsViewPlayer: View {
     @AppStorage("pipButtonVisible") private var pipButtonVisible: Bool = true
     
     private let mediaPlayers = ["Default", "Sora", "VLC", "OutPlayer", "Infuse", "nPlayer", "SenPlayer", "IINA"]
-    private let inAppPlayers = ["Default", "Sora"]
     private let externalPlayers = ["VLC", "OutPlayer", "Infuse", "nPlayer", "SenPlayer", "IINA"]
     
     var body: some View {
@@ -216,13 +215,37 @@ struct SettingsViewPlayer: View {
                     title: "Media Player",
                     footer: "Some features are limited to the Sora and Default player, such as ForceLandscape, holdSpeed and custom time skip increments."
                 ) {
-                    SettingsPickerRow(
-                        icon: "play.circle",
-                        title: "Media Player",
-                        options: mediaPlayers,
-                        optionToString: { $0 },
-                        selection: $externalPlayer
-                    )
+                    
+                    VStack(spacing: 0) {
+                        HStack {
+                            Image(systemName: "play.circle")
+                                .frame(width: 24, height: 24)
+                                .foregroundStyle(.primary)
+                            Text("Media Player")
+                                .foregroundStyle(.primary)
+                            Spacer()
+                            Menu {
+                                Button("In-app Players", action: {}).disabled(true)
+                                ForEach(mediaPlayers.prefix(2), id: \.self) { option in
+                                    Button(action: { externalPlayer = option }) {
+                                        Label(option, systemImage: externalPlayer == option ? "checkmark" : "")
+                                    }
+                                }
+                                Button("External Players", action: {}).disabled(true)
+                                ForEach(mediaPlayers.dropFirst(2), id: \.self) { option in
+                                    Button(action: { externalPlayer = option }) {
+                                        Label(option, systemImage: externalPlayer == option ? "checkmark" : "")
+                                    }
+                                }
+                            } label: {
+                                Text(externalPlayer)
+                                    .foregroundStyle(.gray)
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        Divider().padding(.horizontal, 16)
+                    }
                     
                     SettingsToggleRow(
                         icon: "rotate.right",
