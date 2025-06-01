@@ -124,6 +124,7 @@ struct SearchView: View {
             }
             .navigationBarHidden(true)
         }
+        .navigationViewStyle(.stack)
         .onAppear {
             loadSearchHistory()
             if !searchQuery.isEmpty {
@@ -162,7 +163,6 @@ struct SearchView: View {
                 }
             }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     private func performSearch() {
