@@ -108,7 +108,6 @@ struct MediaInfoView: View {
                 .navigationBarHidden(true)
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationBarTitle("")
-                .navigationViewStyle(StackNavigationViewStyle())
                 .ignoresSafeArea(.container, edges: .top)
                 .onAppear {
                     if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
@@ -204,7 +203,6 @@ struct MediaInfoView: View {
             isFetchingEpisode = false
             showStreamLoadingView = false
         }
-        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     @ViewBuilder
