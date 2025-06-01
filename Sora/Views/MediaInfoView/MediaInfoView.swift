@@ -60,9 +60,6 @@ struct MediaInfoView: View {
     @State private var customAniListID: Int?
     @State private var showStreamLoadingView: Bool = false
     @State private var currentStreamTitle: String = ""
-    private enum StreamAction { case play, download }
-    @State private var streamAction: StreamAction = .play
-    @State private var pendingEpisodeLink: EpisodeLink? = nil
     
     @State private var activeFetchID: UUID? = nil
     @Environment(\.dismiss) private var dismiss
@@ -377,23 +374,21 @@ struct MediaInfoView: View {
                         }
                         
                         Button(action: {
-                        if let ep = episodeLinks.first {
-                            let downloadStatus = jsController.isEpisodeDownloadedOrInProgress(
-                                showTitle: title,
-                                episodeNumber: ep.number,
-                                season: 1
-                            )
-
-                            if downloadStatus == .notDownloaded {
-                                streamAction = .download
-                                pendingEpisodeLink = ep
-                                selectedEpisodeNumber = ep.number
-                                fetchStream(href: ep.href)
-                                DropManager.shared.showDrop(title: "Starting Download", subtitle: "", duration: 1.0, icon: UIImage(systemName: "arrow.down.circle"))
-                            } else {
-                                DropManager.shared.showDrop(title: "Already Downloaded", subtitle: "", duration: 1.0, icon: UIImage(systemName: "checkmark.circle"))
+                            if let ep = episodeLinks.first {
+                                let downloadStatus = jsController.isEpisodeDownloadedOrInProgress(
+                                    showTitle: title,
+                                    episodeNumber: ep.number,
+                                    season: 1
+                                )
+                                
+                                if downloadStatus == .notDownloaded {
+                                    selectedEpisodeNumber = ep.number
+                                    fetchStream(href: ep.href)
+                                    DropManager.shared.showDrop(title: "Starting Download", subtitle: "", duration: 1.0, icon: UIImage(systemName: "arrow.down.circle"))
+                                } else {
+                                    DropManager.shared.showDrop(title: "Already Downloaded", subtitle: "", duration: 1.0, icon: UIImage(systemName: "checkmark.circle"))
+                                }
                             }
-                        }
                         }) {
                             HStack(spacing: 4) {
                                 Image(systemName: "arrow.down.circle")
@@ -1077,12 +1072,7 @@ struct MediaInfoView: View {
                         self.showStreamSelectionAlert(streams: sources, fullURL: href, subtitles: result.subtitles?.first, fetchID: fetchID)
                     } else if let streamUrl = sources[0]["streamUrl"] as? String {
                         let headers = sources[0]["headers"] as? [String: String]
-                        if streamAction == .download, let ep = pendingEpisodeLink, let urlObj = URL(string: streamUrl) {
-                            let subtitleURL = result.subtitles?.first.flatMap { URL(string: $0) }
-                            self.startEpisodeDownloadWithProcessedStream(episode: ep, url: urlObj, streamUrl: streamUrl, subtitleURL: subtitleURL)
-                        } else {
-                            self.playStream(url: streamUrl, fullURL: href, subtitles: result.subtitles?.first, headers: headers, fetchID: fetchID)
-                        }
+                        self.playStream(url: streamUrl, fullURL: href, subtitles: result.subtitles?.first, headers: headers, fetchID: fetchID)
                     } else {
                         self.handleStreamFailure(error: nil)
                     }
@@ -1090,13 +1080,7 @@ struct MediaInfoView: View {
                     if streams.count > 1 {
                         self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first, fetchID: fetchID)
                     } else {
-                        let streamUrl = streams[0]
-                        if streamAction == .download, let ep = pendingEpisodeLink, let urlObj = URL(string: streamUrl) {
-                            let subtitleURL = result.subtitles?.first.flatMap { URL(string: $0) }
-                            self.startEpisodeDownloadWithProcessedStream(episode: ep, url: urlObj, streamUrl: streamUrl, subtitleURL: subtitleURL)
-                        } else {
-                            self.playStream(url: streamUrl, fullURL: href, subtitles: result.subtitles?.first, fetchID: fetchID)
-                        }
+                        self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first, fetchID: fetchID)
                     }
                 } else {
                     self.handleStreamFailure(error: nil)
@@ -1201,18 +1185,10 @@ struct MediaInfoView: View {
                 
                 
                 alert.addAction(UIAlertAction(title: title, style: .default) { _ in
-                    guard self.activeFetchID == fetchID else { return }
-                    switch self.streamAction {
-                    case .play:
-                        self.playStream(url: streamUrl, fullURL: fullURL, subtitles: subtitles, headers: headers, fetchID: fetchID)
-                    case .download:
-                        if let ep = self.pendingEpisodeLink, let urlObj = URL(string: streamUrl) {
-                            let subtitleURL = subtitles.flatMap { URL(string: $0) }
-                            self.startEpisodeDownloadWithProcessedStream(episode: ep, url: urlObj, streamUrl: streamUrl, subtitleURL: subtitleURL)
-                        }
+                    guard self.activeFetchID == fetchID else {
+                        return
                     }
-                    self.streamAction = .play
-                    self.pendingEpisodeLink = nil
+                    self.playStream(url: streamUrl, fullURL: fullURL, subtitles: subtitles, headers: headers, fetchID: fetchID)
                 })
                 
                 streamIndex += 1
