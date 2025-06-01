@@ -158,6 +158,10 @@ struct MediaInfoView: View {
             let savedID = UserDefaults.standard.integer(forKey: "custom_anilist_id_\(href)")
             if savedID != 0 { customAniListID = savedID }
             
+            if let savedPoster = UserDefaults.standard.string(forKey: "tmdbPosterURL_\(href)") {
+                self.imageUrl = savedPoster
+            }
+            
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             
             if !hasFetched {
@@ -838,6 +842,7 @@ struct MediaInfoView: View {
                     }
                     DispatchQueue.main.async {
                         self.imageUrl = imageUrl
+                        UserDefaults.standard.set(imageUrl, forKey: "tmdbPosterURL_\(self.href)")
                     }
                 }
             } catch {
