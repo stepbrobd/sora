@@ -284,11 +284,10 @@ struct MediaInfoView: View {
             }
         }
         .onAppear {
-            UIScrollView.appearance().bounces = false
+            UIScrollView.appearance().bounces = true
         }
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarTitle("")
-        .navigationViewStyle(StackNavigationViewStyle())
         .ignoresSafeArea(.container, edges: .top)
     }
     

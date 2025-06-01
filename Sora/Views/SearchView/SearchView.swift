@@ -115,7 +115,6 @@ struct SearchView: View {
                         onClearHistory: clearSearchHistory
                     )
                 }
-                .navigationViewStyle(StackNavigationViewStyle())
                 .scrollViewBottomPadding()
                 .simultaneousGesture(
                     DragGesture().onChanged { _ in
