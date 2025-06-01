@@ -69,12 +69,18 @@ struct EpisodeCell: View {
         }
     }
     
+    let tmdbID: Int?
+    let seasonNumber: Int?
+
     init(episodeIndex: Int, episode: String, episodeID: Int, progress: Double,
          itemID: Int, totalEpisodes: Int? = nil, defaultBannerImage: String = "",
          module: ScrapingModule, parentTitle: String, showPosterURL: String? = nil,
          isMultiSelectMode: Bool = false, isSelected: Bool = false,
          onSelectionChanged: ((Bool) -> Void)? = nil,
-         onTap: @escaping (String) -> Void, onMarkAllPrevious: @escaping () -> Void) {
+         onTap: @escaping (String) -> Void, onMarkAllPrevious: @escaping () -> Void,
+         tmdbID: Int? = nil,
+         seasonNumber: Int? = nil
+    ) {
         self.episodeIndex = episodeIndex
         self.episode = episode
         self.episodeID = episodeID
@@ -99,6 +105,8 @@ struct EpisodeCell: View {
         self.onSelectionChanged = onSelectionChanged
         self.onTap = onTap
         self.onMarkAllPrevious = onMarkAllPrevious
+        self.tmdbID = tmdbID
+        self.seasonNumber = seasonNumber
     }
     
     var body: some View {
@@ -211,13 +219,14 @@ struct EpisodeCell: View {
         .onAppear {
             updateProgress()
             updateDownloadStatus()
-            
-            if let type = module.metadata.type?.lowercased(), type == "anime" {
+            if UserDefaults.standard.string(forKey: "metadataProviders") ?? "Anilist" == "AniList" {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     fetchAnimeEpisodeDetails()
                 }
             } else {
-                isLoading = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    fetchTMDBEpisodeImage()
+                }
             }
             
             if let totalEpisodes = totalEpisodes, episodeID + 1 < totalEpisodes {
@@ -232,12 +241,9 @@ struct EpisodeCell: View {
             updateProgress()
         }
         .onChange(of: itemID) { newID in
-            // 1) Clear any cached title/image so that the UI shows the loading spinner:
             loadedFromCache = false
             isLoading = true
-            retryAttempts = maxRetryAttempts  // reset retries if you want
-
-            // 2) Call the same logic you already use to pull per-episode info:
+            retryAttempts = maxRetryAttempts
             fetchEpisodeDetails()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("downloadProgressChanged"))) { _ in
@@ -765,6 +771,34 @@ struct EpisodeCell: View {
                 self.retryAttempts = 0
             }
         }
+    }
+    
+    private func fetchTMDBEpisodeImage() {
+        guard let tmdbID = tmdbID, let season = seasonNumber else { return }
+        let episodeNum = episodeID + 1
+        let urlString = "https://api.themoviedb.org/3/tv/\(tmdbID)/season/\(season)/episode/\(episodeNum)/images?api_key=738b4edd0a156cc126dc4a4b8aea4aca"
+        guard let url = URL(string: urlString) else { return }
+        
+        URLSession.custom.dataTask(with: url) { data, _, error in
+            guard let data = data, error == nil else { return }
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let stills = json["stills"] as? [[String: Any]],
+                   let firstStill = stills.first,
+                   let filePath = firstStill["file_path"] as? String {
+                    let imageUrl = "https://image.tmdb.org/t/p/w780\(filePath)"
+                    DispatchQueue.main.async {
+                        self.episodeImageUrl = imageUrl
+                        self.isLoading = false
+                    }
+                }
+            } catch {
+                Logger.shared.log("Failed to parse TMDB episode image response: \(error.localizedDescription)", type: "Error")
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                }
+            }
+        }.resume()
     }
     
     private func calculateMaxSwipeDistance() -> CGFloat {

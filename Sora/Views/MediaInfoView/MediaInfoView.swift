@@ -280,7 +280,7 @@ struct MediaInfoView: View {
         }
         .onAppear {
             UIScrollView.appearance().bounces = false
-        } 
+        }
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarTitle("")
         .navigationViewStyle(StackNavigationViewStyle())
@@ -335,7 +335,7 @@ struct MediaInfoView: View {
             }
             
             playAndBookmarkSection
-
+            
             if episodeLinks.count == 1 {
                 VStack(spacing: 12) {
                     HStack(spacing: 12) {
@@ -464,9 +464,9 @@ struct MediaInfoView: View {
                     .foregroundColor(.gray)
                     .padding(.vertical, 4)
             }
-
+            
             Divider()
-
+            
             if let _ = customAniListID {
                 Button(action: {
                     customAniListID = nil
@@ -666,6 +666,51 @@ struct MediaInfoView: View {
     }
     
     @ViewBuilder
+    private var flatEpisodeList: some View {
+        LazyVStack(spacing: 15) {
+            ForEach(episodeLinks.indices.filter { selectedRange.contains($0) }, id: \.self) { i in
+                let ep = episodeLinks[i]
+                let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+                let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+                let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
+                
+                let defaultBannerImageValue = getBannerImageBasedOnAppearance()
+                
+                EpisodeCell(
+                    episodeIndex: i,
+                    episode: ep.href,
+                    episodeID: ep.number - 1,
+                    progress: progress,
+                    itemID: itemID ?? 0,
+                    totalEpisodes: episodeLinks.count,
+                    defaultBannerImage: defaultBannerImageValue,
+                    module: module,
+                    parentTitle: title,
+                    showPosterURL: imageUrl,
+                    isMultiSelectMode: isMultiSelectMode,
+                    isSelected: selectedEpisodes.contains(ep.number),
+                    onSelectionChanged: { isSelected in
+                        if isSelected {
+                            selectedEpisodes.insert(ep.number)
+                        } else {
+                            selectedEpisodes.remove(ep.number)
+                        }
+                    },
+                    onTap: { imageUrl in
+                        episodeTapAction(ep: ep, imageUrl: imageUrl)
+                    },
+                    onMarkAllPrevious: {
+                        markAllPreviousEpisodesInFlatList(ep: ep, index: i)
+                    },
+                    tmdbID: tmdbID,
+                    seasonNumber: 1
+                )
+                    .disabled(isFetchingEpisode)
+            }
+        }
+    }
+    
+    @ViewBuilder
     private var seasonsEpisodeList: some View {
         let seasons = groupedEpisodes()
         if !seasons.isEmpty, selectedSeason < seasons.count {
@@ -702,9 +747,11 @@ struct MediaInfoView: View {
                         },
                         onMarkAllPrevious: {
                             markAllPreviousEpisodesAsWatched(ep: ep, inSeason: true)
-                        }
+                        },
+                        tmdbID: tmdbID,
+                        seasonNumber: selectedSeason + 1
                     )
-                    .disabled(isFetchingEpisode)
+                        .disabled(isFetchingEpisode)
                 }
             }
         } else {
@@ -728,70 +775,6 @@ struct MediaInfoView: View {
                 event: "watch",
                 additionalData: ["title": title, "episode": ep.number]
             )
-        }
-    }
-    
-    private func markAllPreviousEpisodesAsWatched(ep: EpisodeLink, inSeason: Bool) {
-        let userDefaults = UserDefaults.standard
-        var updates = [String: Double]()
-        
-        if inSeason {
-            let seasons = groupedEpisodes()
-            for ep2 in seasons[selectedSeason] where ep2.number < ep.number {
-                let href = ep2.href
-                updates["lastPlayedTime_\(href)"] = 99999999.0
-                updates["totalTime_\(href)"] = 99999999.0
-            }
-            
-            for (key, value) in updates {
-                userDefaults.set(value, forKey: key)
-            }
-            
-            userDefaults.synchronize()
-            Logger.shared.log("Marked episodes watched within season \(selectedSeason + 1) of \"\(title)\".", type: "General")
-        }
-    }
-    
-    @ViewBuilder
-    private var flatEpisodeList: some View {
-        LazyVStack(spacing: 15) {
-            ForEach(episodeLinks.indices.filter { selectedRange.contains($0) }, id: \.self) { i in
-                let ep = episodeLinks[i]
-                let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-                let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-                let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
-                
-                let defaultBannerImageValue = getBannerImageBasedOnAppearance()
-                
-                EpisodeCell(
-                    episodeIndex: i,
-                    episode: ep.href,
-                    episodeID: ep.number - 1,
-                    progress: progress,
-                    itemID: itemID ?? 0,
-                    totalEpisodes: episodeLinks.count,
-                    defaultBannerImage: defaultBannerImageValue,
-                    module: module,
-                    parentTitle: title,
-                    showPosterURL: imageUrl,
-                    isMultiSelectMode: isMultiSelectMode,
-                    isSelected: selectedEpisodes.contains(ep.number),
-                    onSelectionChanged: { isSelected in
-                        if isSelected {
-                            selectedEpisodes.insert(ep.number)
-                        } else {
-                            selectedEpisodes.remove(ep.number)
-                        }
-                    },
-                    onTap: { imageUrl in
-                        episodeTapAction(ep: ep, imageUrl: imageUrl)
-                    },
-                    onMarkAllPrevious: {
-                        markAllPreviousEpisodesInFlatList(ep: ep, index: i)
-                    }
-                )
-                .disabled(isFetchingEpisode)
-            }
         }
     }
     
@@ -819,6 +802,27 @@ struct MediaInfoView: View {
                     Logger.shared.log("Failed to fetch AniList ID: \(error)", type: "Error")
                 }
             }
+        }
+    }
+    
+    private func markAllPreviousEpisodesAsWatched(ep: EpisodeLink, inSeason: Bool) {
+        let userDefaults = UserDefaults.standard
+        var updates = [String: Double]()
+        
+        if inSeason {
+            let seasons = groupedEpisodes()
+            for ep2 in seasons[selectedSeason] where ep2.number < ep.number {
+                let href = ep2.href
+                updates["lastPlayedTime_\(href)"] = 99999999.0
+                updates["totalTime_\(href)"] = 99999999.0
+            }
+            
+            for (key, value) in updates {
+                userDefaults.set(value, forKey: key)
+            }
+            
+            userDefaults.synchronize()
+            Logger.shared.log("Marked episodes watched within season \(selectedSeason + 1) of \"\(title)\".", type: "General")
         }
     }
     
