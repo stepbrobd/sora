@@ -60,6 +60,8 @@ struct MediaInfoView: View {
     @State private var customAniListID: Int?
     @State private var showStreamLoadingView: Bool = false
     @State private var currentStreamTitle: String = ""
+    @State private var isDownloadMode: Bool = false
+    @State private var pendingDownloadEp: EpisodeLink? = nil
     
     @State private var activeFetchID: UUID? = nil
     @Environment(\.dismiss) private var dismiss
@@ -380,8 +382,10 @@ struct MediaInfoView: View {
                                     episodeNumber: ep.number,
                                     season: 1
                                 )
-                                
+
                                 if downloadStatus == .notDownloaded {
+                                    isDownloadMode = true
+                                    pendingDownloadEp = ep
                                     selectedEpisodeNumber = ep.number
                                     fetchStream(href: ep.href)
                                     DropManager.shared.showDrop(title: "Starting Download", subtitle: "", duration: 1.0, icon: UIImage(systemName: "arrow.down.circle"))
@@ -1071,16 +1075,26 @@ struct MediaInfoView: View {
                     if sources.count > 1 {
                         self.showStreamSelectionAlert(streams: sources, fullURL: href, subtitles: result.subtitles?.first, fetchID: fetchID)
                     } else if let streamUrl = sources[0]["streamUrl"] as? String {
-                        let headers = sources[0]["headers"] as? [String: String]
-                        self.playStream(url: streamUrl, fullURL: href, subtitles: result.subtitles?.first, headers: headers, fetchID: fetchID)
+                        if isDownloadMode, let ep = pendingDownloadEp, let urlObj = URL(string: streamUrl) {
+                            let subtitleURL = result.subtitles?.first.flatMap { URL(string: $0) }
+                            startEpisodeDownloadWithProcessedStream(episode: ep, url: urlObj, streamUrl: streamUrl, subtitleURL: subtitleURL)
+                        } else {
+                            let headers = sources[0]["headers"] as? [String: String]
+                            playStream(url: streamUrl, fullURL: href, subtitles: result.subtitles?.first, headers: headers, fetchID: fetchID)
+                        }
                     } else {
-                        self.handleStreamFailure(error: nil)
+                        handleStreamFailure(error: nil)
                     }
                 } else if let streams = result.streams, !streams.isEmpty {
                     if streams.count > 1 {
-                        self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first, fetchID: fetchID)
-                    } else {
-                        self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first, fetchID: fetchID)
+                        showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first, fetchID: fetchID)
+                    } else if let streamUrl = streams.first {
+                        if isDownloadMode, let ep = pendingDownloadEp, let urlObj = URL(string: streamUrl) {
+                            let subtitleURL = result.subtitles?.first.flatMap { URL(string: $0) }
+                            startEpisodeDownloadWithProcessedStream(episode: ep, url: urlObj, streamUrl: streamUrl, subtitleURL: subtitleURL)
+                        } else {
+                            playStream(url: streamUrl, fullURL: href, subtitles: result.subtitles?.first, fetchID: fetchID)
+                        }
                     }
                 } else {
                     self.handleStreamFailure(error: nil)
@@ -1185,10 +1199,15 @@ struct MediaInfoView: View {
                 
                 
                 alert.addAction(UIAlertAction(title: title, style: .default) { _ in
-                    guard self.activeFetchID == fetchID else {
-                        return
+                    guard self.activeFetchID == fetchID else { return }
+                    if self.isDownloadMode, let ep = self.pendingDownloadEp, let urlObj = URL(string: streamUrl) {
+                        let subtitleURL = subtitles.flatMap { URL(string: $0) }
+                        self.startEpisodeDownloadWithProcessedStream(episode: ep, url: urlObj, streamUrl: streamUrl, subtitleURL: subtitleURL)
+                    } else {
+                        self.playStream(url: streamUrl, fullURL: fullURL, subtitles: subtitles, headers: headers, fetchID: fetchID)
                     }
-                    self.playStream(url: streamUrl, fullURL: fullURL, subtitles: subtitles, headers: headers, fetchID: fetchID)
+                    self.isDownloadMode = false
+                    self.pendingDownloadEp = nil
                 })
                 
                 streamIndex += 1
