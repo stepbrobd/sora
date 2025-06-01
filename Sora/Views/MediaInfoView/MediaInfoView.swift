@@ -47,6 +47,8 @@ struct MediaInfoView: View {
     
     @State private var isModuleSelectorPresented = false
     @State private var isError = false
+    @State private var isMatchingPresented = false
+    @State private var matchedTitle: String? = nil
     
     @StateObject private var jsController = JSController.shared
     @EnvironmentObject var moduleManager: ModuleManager
@@ -150,6 +152,10 @@ struct MediaInfoView: View {
         .onAppear {
             buttonRefreshTrigger.toggle()
             
+            let savedID = UserDefaults.standard.integer(forKey: "custom_anilist_id_\(href)")
+            if savedID != 0 {
+                customAniListID = savedID }
+            
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             
             if !hasFetched {
@@ -212,14 +218,14 @@ struct MediaInfoView: View {
                             .fill(Color.gray.opacity(0.3))
                             .shimmering()
                     }
-                    .setProcessor(ImageUpscaler.lanczosProcessor(scale: 3, sharpeningIntensity: 1, sharpeningRadius: 1))
+                    .setProcessor(ImageUpscaler.lanczosProcessor(scale: 3, sharpeningIntensity: 1.5, sharpeningRadius: 0.8))
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: UIScreen.main.bounds.width, height: 600)
                     .clipped()
                 KFImage(URL(string: imageUrl))
                     .placeholder { EmptyView() }
-                    .setProcessor(ImageUpscaler.lanczosProcessor(scale: 3, sharpeningIntensity: 1, sharpeningRadius: 1))
+                    .setProcessor(ImageUpscaler.lanczosProcessor(scale: 3, sharpeningIntensity: 1.5, sharpeningRadius: 0.8))
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: UIScreen.main.bounds.width, height: 600)
@@ -458,16 +464,22 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var menuButton: some View {
         Menu {
-            Button(action: {
-                showCustomIDAlert()
-            }) {
-                Label("Set Custom AniList ID", systemImage: "number")
+            // Show current match (title if available, else ID)
+            if let id = itemID ?? customAniListID {
+                let labelText = (matchedTitle?.isEmpty == false ? matchedTitle! : "\(id)")
+                Text("Matched with: \(labelText)")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                    .padding(.vertical, 4)
             }
-            
-            if let customID = customAniListID {
+
+            Divider()
+
+            if let _ = customAniListID {
                 Button(action: {
                     customAniListID = nil
                     itemID = nil
+                    matchedTitle = nil
                     fetchItemID(byTitle: cleanTitle(title)) { result in
                         switch result {
                         case .success(let id):
@@ -490,12 +502,30 @@ struct MediaInfoView: View {
                     Label("Open in AniList", systemImage: "link")
                 }
             }
+            Button(action: {
+                isMatchingPresented = true
+            }) {
+                Label("Match with AniList", systemImage: "magnifyingglass")
+            }
             
             Divider()
             
             Button(action: {
-                Logger.shared.log("Debug Info:\nTitle: \(title)\nHref: \(href)\nModule: \(module.metadata.sourceName)\nAniList ID: \(itemID ?? -1)\nCustom ID: \(customAniListID ?? -1)", type: "Debug")
-                DropManager.shared.showDrop(title: "Debug Info Logged", subtitle: "", duration: 1.0, icon: UIImage(systemName: "terminal"))
+                Logger.shared.log("""
+                    Debug Info:
+                    Title: \(title)
+                    Href: \(href)
+                    Module: \(module.metadata.sourceName)
+                    AniList ID: \(itemID ?? -1)
+                    Custom ID: \(customAniListID ?? -1)
+                    Matched Title: \(matchedTitle ?? "—")
+                    """, type: "Debug")
+                DropManager.shared.showDrop(
+                    title: "Debug Info Logged",
+                    subtitle: "",
+                    duration: 1.0,
+                    icon: UIImage(systemName: "terminal")
+                )
             }) {
                 Label("Log Debug Info", systemImage: "terminal")
             }
@@ -508,6 +538,16 @@ struct MediaInfoView: View {
                 .background(Color.gray.opacity(0.2))
                 .clipShape(Circle())
                 .circularGradientOutline()
+        }
+        .sheet(isPresented: $isMatchingPresented) {
+                AnilistMatchPopupView(seriesTitle: title) { selectedID in
+                    // 1) Assign the new AniList ID:
+                    self.customAniListID = selectedID
+                    self.itemID = selectedID
+                    UserDefaults.standard.set(selectedID, forKey: "custom_anilist_id_\(href)")
+                    
+                    isMatchingPresented = false
+                }
         }
     }
     
@@ -638,41 +678,43 @@ struct MediaInfoView: View {
     private var seasonsEpisodeList: some View {
         let seasons = groupedEpisodes()
         if !seasons.isEmpty, selectedSeason < seasons.count {
-            ForEach(seasons[selectedSeason]) { ep in
-                let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-                let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-                let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
-                
-                let defaultBannerImageValue = getBannerImageBasedOnAppearance()
-                
-                EpisodeCell(
-                    episodeIndex: selectedSeason,
-                    episode: ep.href,
-                    episodeID: ep.number - 1,
-                    progress: progress,
-                    itemID: itemID ?? 0,
-                    totalEpisodes: episodeLinks.count,
-                    defaultBannerImage: defaultBannerImageValue,
-                    module: module,
-                    parentTitle: title,
-                    showPosterURL: imageUrl,
-                    isMultiSelectMode: isMultiSelectMode,
-                    isSelected: selectedEpisodes.contains(ep.number),
-                    onSelectionChanged: { isSelected in
-                        if isSelected {
-                            selectedEpisodes.insert(ep.number)
-                        } else {
-                            selectedEpisodes.remove(ep.number)
+            LazyVStack(spacing: 15) {
+                ForEach(seasons[selectedSeason]) { ep in
+                    let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+                    let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+                    let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
+                    
+                    let defaultBannerImageValue = getBannerImageBasedOnAppearance()
+                    
+                    EpisodeCell(
+                        episodeIndex: selectedSeason,
+                        episode: ep.href,
+                        episodeID: ep.number - 1,
+                        progress: progress,
+                        itemID: itemID ?? 0,
+                        totalEpisodes: episodeLinks.count,
+                        defaultBannerImage: defaultBannerImageValue,
+                        module: module,
+                        parentTitle: title,
+                        showPosterURL: imageUrl,
+                        isMultiSelectMode: isMultiSelectMode,
+                        isSelected: selectedEpisodes.contains(ep.number),
+                        onSelectionChanged: { isSelected in
+                            if isSelected {
+                                selectedEpisodes.insert(ep.number)
+                            } else {
+                                selectedEpisodes.remove(ep.number)
+                            }
+                        },
+                        onTap: { imageUrl in
+                            episodeTapAction(ep: ep, imageUrl: imageUrl)
+                        },
+                        onMarkAllPrevious: {
+                            markAllPreviousEpisodesAsWatched(ep: ep, inSeason: true)
                         }
-                    },
-                    onTap: { imageUrl in
-                        episodeTapAction(ep: ep, imageUrl: imageUrl)
-                    },
-                    onMarkAllPrevious: {
-                        markAllPreviousEpisodesAsWatched(ep: ep, inSeason: true)
-                    }
-                )
+                    )
                     .disabled(isFetchingEpisode)
+                }
             }
         } else {
             Text("No episodes available")
@@ -721,42 +763,85 @@ struct MediaInfoView: View {
     
     @ViewBuilder
     private var flatEpisodeList: some View {
-        ForEach(episodeLinks.indices.filter { selectedRange.contains($0) }, id: \.self) { i in
-            let ep = episodeLinks[i]
-            let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-            let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-            let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
-            
-            EpisodeCell(
-                episodeIndex: i,
-                episode: ep.href,
-                episodeID: ep.number - 1,
-                progress: progress,
-                itemID: itemID ?? 0,
-                totalEpisodes: episodeLinks.count,
-                defaultBannerImage: getBannerImageBasedOnAppearance(),
-                module: module,
-                parentTitle: title,
-                showPosterURL: imageUrl,
-                isMultiSelectMode: isMultiSelectMode,
-                isSelected: selectedEpisodes.contains(ep.number),
-                onSelectionChanged: { isSelected in
-                    if isSelected {
-                        selectedEpisodes.insert(ep.number)
-                    } else {
-                        selectedEpisodes.remove(ep.number)
+        LazyVStack(spacing: 15) {
+            ForEach(episodeLinks.indices.filter { selectedRange.contains($0) }, id: \.self) { i in
+                let ep = episodeLinks[i]
+                let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+                let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+                let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
+                
+                let defaultBannerImageValue = getBannerImageBasedOnAppearance()
+                
+                EpisodeCell(
+                    episodeIndex: i,
+                    episode: ep.href,
+                    episodeID: ep.number - 1,
+                    progress: progress,
+                    itemID: itemID ?? 0,
+                    totalEpisodes: episodeLinks.count,
+                    defaultBannerImage: defaultBannerImageValue,
+                    module: module,
+                    parentTitle: title,
+                    showPosterURL: imageUrl,
+                    isMultiSelectMode: isMultiSelectMode,
+                    isSelected: selectedEpisodes.contains(ep.number),
+                    onSelectionChanged: { isSelected in
+                        if isSelected {
+                            selectedEpisodes.insert(ep.number)
+                        } else {
+                            selectedEpisodes.remove(ep.number)
+                        }
+                    },
+                    onTap: { imageUrl in
+                        episodeTapAction(ep: ep, imageUrl: imageUrl)
+                    },
+                    onMarkAllPrevious: {
+                        markAllPreviousEpisodesInFlatList(ep: ep, index: i)
                     }
-                },
-                onTap: { imageUrl in
-                    episodeTapAction(ep: ep, imageUrl: imageUrl)
-                },
-                onMarkAllPrevious: {
-                    markAllPreviousEpisodesInFlatList(ep: ep, index: i)
-                }
-            )
+                )
                 .disabled(isFetchingEpisode)
+            }
         }
     }
+    
+    private func fetchAniListTitle(id: Int) {
+        let query = """
+        query ($id: Int) {
+          Media(id: $id, type: ANIME) {
+            title {
+              english
+              romaji
+            }
+          }
+        }
+        """
+        let variables: [String: Any] = ["id": id]
+
+        guard let url = URL(string: "https://graphql.anilist.co") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: ["query": query, "variables": variables])
+
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            guard
+                let data = data,
+                let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                let dataDict = json["data"] as? [String: Any],
+                let media = dataDict["Media"] as? [String: Any],
+                let titleDict = media["title"] as? [String: Any]
+            else { return }
+
+            let english = titleDict["english"] as? String
+            let romaji  = titleDict["romaji"]  as? String
+            let finalTitle = (english?.isEmpty == false ? english! : (romaji ?? "Unknown"))
+
+            DispatchQueue.main.async {
+                matchedTitle = finalTitle
+            }
+        }.resume()
+    }
+
     
     private func markAllPreviousEpisodesInFlatList(ep: EpisodeLink, index: Int) {
         let userDefaults = UserDefaults.standard
