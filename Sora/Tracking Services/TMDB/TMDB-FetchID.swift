@@ -23,9 +23,6 @@ class TMDBFetcher {
         let results: [TMDBResult]
     }
     
-    private let apiKey = "738b4edd0a156cc126dc4a4b8aea4aca"
-    private let session = URLSession.custom
-    
     func fetchBestMatchID(for title: String, completion: @escaping (Int?, MediaType?) -> Void) {
         let group = DispatchGroup()
         var bestResults: [(id: Int, score: Double, type: MediaType)] = []
@@ -48,13 +45,13 @@ class TMDBFetcher {
     
     private func fetchBestMatchID(for title: String, type: MediaType, completion: @escaping (Int?, Double?) -> Void) {
         let query = title.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        let urlString = "https://api.themoviedb.org/3/search/\(type.rawValue)?api_key=\(apiKey)&query=\(query)"
+        let urlString = "https://api.themoviedb.org/3/search/\(type.rawValue)?api_key=738b4edd0a156cc126dc4a4b8aea4aca&query=\(query)"
         guard let url = URL(string: urlString) else {
             completion(nil, nil)
             return
         }
         
-        session.dataTask(with: url) { data, _, error in
+        URLSession.custom.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else {
                 completion(nil, nil)
                 return

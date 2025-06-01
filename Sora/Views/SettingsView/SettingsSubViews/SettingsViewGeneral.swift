@@ -236,7 +236,7 @@ struct SettingsViewGeneral: View {
                         
                         SettingsPickerRow(
                             icon: "square.stack.3d.down.right",
-                            title: "Thumbnails Width",
+                            title: "Poster Quality",
                             options: TMDBimageWidhtList,
                             optionToString: { $0 },
                             selection: $TMDBimageWidht,

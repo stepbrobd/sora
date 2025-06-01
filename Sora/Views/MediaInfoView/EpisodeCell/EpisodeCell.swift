@@ -779,8 +779,6 @@ struct EpisodeCell: View {
         let urlString = "https://api.themoviedb.org/3/tv/\(tmdbID)/season/\(season)/episode/\(episodeNum)?api_key=738b4edd0a156cc126dc4a4b8aea4aca"
         guard let url = URL(string: urlString) else { return }
         
-        let tmdbImageWidth = UserDefaults.standard.string(forKey: "tmdbImageWidth") ?? "original"
-        
         URLSession.custom.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else { return }
             do {
@@ -789,11 +787,7 @@ struct EpisodeCell: View {
                     let stillPath = json["still_path"] as? String
                     let imageUrl: String
                     if let stillPath = stillPath {
-                        if tmdbImageWidth == "original" {
-                            imageUrl = "https://image.tmdb.org/t/p/original\(stillPath)"
-                        } else {
-                            imageUrl = "https://image.tmdb.org/t/p/w\(tmdbImageWidth)\(stillPath)"
-                        }
+                        imageUrl = "https://image.tmdb.org/t/p/w300\(stillPath)"
                     } else {
                         imageUrl = ""
                     }
