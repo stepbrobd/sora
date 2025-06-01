@@ -273,7 +273,7 @@ struct MediaInfoView: View {
             }
         }
         .onAppear {
-            UIScrollView.appearance().bounces = true
+            UIScrollView.appearance().bounces = false
         }
         .ignoresSafeArea(.container, edges: .top)
     }
