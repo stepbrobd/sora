@@ -40,6 +40,7 @@ struct TabBar: View {
     @Binding var selectedTab: Int
     @Binding var lastTab: Int
     @State var showSearch: Bool = false
+    @State var searchLocked: Bool = false
     @FocusState var keyboardFocus: Bool
     @State var keyboardHidden: Bool = true
     @Binding var searchQuery: String
@@ -101,7 +102,7 @@ struct TabBar: View {
                                 .matchedGeometryEffect(id: "background_circle", in: animation)
                         )
                 }
-                .disabled(!keyboardHidden)
+                .disabled(!keyboardHidden || searchLocked)
             }
             
             HStack {
@@ -174,7 +175,6 @@ struct TabBar: View {
         .padding(.horizontal, 20)
         .padding(.bottom, 20)
         .background {
-            // Move the blur background here and animate it
             ProgressiveBlurView()
                 .blur(radius: 10)
                 .padding(.horizontal, -20)
@@ -207,18 +207,23 @@ struct TabBar: View {
     private func tabButton(for tab: TabItem, index: Int) -> some View {
         Button(action: {
             if index == tabs.count - 1 {
+                searchLocked = true
+                
                 withAnimation(.bouncy(duration: 0.3)) {
                     lastTab = selectedTab
                     selectedTab = index
                     showSearch = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        keyboardFocus = true
-                    }
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    searchLocked = false
                 }
             } else {
-                withAnimation(.bouncy(duration: 0.3)) {
-                    lastTab = selectedTab
-                    selectedTab = index
+                if !searchLocked {
+                    withAnimation(.bouncy(duration: 0.3)) {
+                        lastTab = selectedTab
+                        selectedTab = index
+                    }
                 }
             }
         }) {
