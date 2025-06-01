@@ -108,6 +108,7 @@ struct MediaInfoView: View {
                 .navigationBarHidden(true)
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationBarTitle("")
+                .navigationBarBackButtonHidden(true)
                 .ignoresSafeArea(.container, edges: .top)
             
             VStack {
