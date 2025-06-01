@@ -778,8 +778,8 @@ struct EpisodeCell: View {
         let episodeNum = episodeID + 1
         let urlString = "https://api.themoviedb.org/3/tv/\(tmdbID)/season/\(season)/episode/\(episodeNum)?api_key=738b4edd0a156cc126dc4a4b8aea4aca"
         guard let url = URL(string: urlString) else { return }
-
-        let tmdbImageWidth = UserDefaults.standard.string(forKey: "tmdbImageWidth") ?? "w780"
+        
+        let tmdbImageWidth = UserDefaults.standard.string(forKey: "tmdbImageWidth") ?? "780"
         
         URLSession.custom.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else { return }
@@ -787,7 +787,16 @@ struct EpisodeCell: View {
                 if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
                     let name = json["name"] as? String ?? ""
                     let stillPath = json["still_path"] as? String
-                    let imageUrl = stillPath != nil ? "https://image.tmdb.org/t/p/\(tmdbImageWidth)\(stillPath!)" : ""
+                    let imageUrl: String
+                    if let stillPath = stillPath {
+                        if tmdbImageWidth == "original" {
+                            imageUrl = "https://image.tmdb.org/t/p/original\(stillPath)"
+                        } else {
+                            imageUrl = "https://image.tmdb.org/t/p/w\(tmdbImageWidth)\(stillPath)"
+                        }
+                    } else {
+                        imageUrl = ""
+                    }
                     DispatchQueue.main.async {
                         self.episodeTitle = name
                         self.episodeImageUrl = imageUrl

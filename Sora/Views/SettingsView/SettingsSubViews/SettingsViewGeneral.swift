@@ -160,7 +160,7 @@ struct SettingsViewGeneral: View {
     @AppStorage("currentAppIcon") private var currentAppIcon = "Default"
     
     private let metadataProvidersList = ["AniList", "TMDB"]
-    private let TMDBimageWidhtList = ["w300", "w500", "w780", "w1280", "original"]
+    private let TMDBimageWidhtList = ["300", "500", "780", "1280", "original"]
     private let sortOrderOptions = ["Ascending", "Descending"]
     @EnvironmentObject var settings: Settings
     @State private var showAppIconPicker = false
