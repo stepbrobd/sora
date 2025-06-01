@@ -1301,7 +1301,9 @@ struct MediaInfoView: View {
                 videoPlayerViewController.aniListID = itemID ?? 0
                 videoPlayerViewController.modalPresentationStyle = .overFullScreen
                 
-                if let currentVC = UIApplication.shared.windows.first?.rootViewController?.presentedViewController ?? UIApplication.shared.windows.first?.rootViewController {
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let window = windowScene.windows.first,
+                   let currentVC = window.rootViewController?.presentedViewController ?? window.rootViewController {
                     currentVC.present(videoPlayerViewController, animated: true, completion: nil)
                 }
                 return
@@ -1341,8 +1343,10 @@ struct MediaInfoView: View {
                 customMediaPlayer.modalPresentationStyle = .overFullScreen
                 Logger.shared.log("Opening custom media player with url: \(url)")
                 
-                if let currentVC = UIApplication.shared.windows.first?.rootViewController?.presentedViewController ?? UIApplication.shared.windows.first?.rootViewController {
-                    currentVC.present(customMediaPlayer, animated: true)
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let window = windowScene.windows.first,
+                   let currentVC = window.rootViewController?.presentedViewController ?? window.rootViewController {
+                    currentVC.present(customMediaPlayer, animated: true, completion: nil)
                 }
             }
         }
