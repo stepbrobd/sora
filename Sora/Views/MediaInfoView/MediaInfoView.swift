@@ -209,45 +209,52 @@ struct MediaInfoView: View {
     private var mainScrollView: some View {
         ScrollView {
             ZStack(alignment: .top) {
-                GeometryReader { geometry in
-                    KFImage(URL(string: imageUrl))
-                        .placeholder {
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.3))
-                                .shimmering()
-                        }
-                        .setProcessor(ImageUpscaler.lanczosProcessor(scale: 3, sharpeningIntensity: 1.5, sharpeningRadius: 0.8))
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: geometry.size.width, height: geometry.size.height + 100)
-                        .blur(radius: 30)
-                        .overlay(
-                            LinearGradient(
-                                gradient: Gradient(stops: [
-                                    .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.0), location: 0.0),
-                                    .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.3), location: 0.3),
-                                    .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.8), location: 0.7),
-                                    .init(color: (colorScheme == .dark ? Color.black : Color.white), location: 1.0)
-                                ]),
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
+                KFImage(URL(string: imageUrl))
+                    .placeholder {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .shimmering()
+                    }
+                    .setProcessor(ImageUpscaler.lanczosProcessor(scale: 3, sharpeningIntensity: 1.5, sharpeningRadius: 0.8))
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: UIScreen.main.bounds.width, height: 700)
+                    .clipped()
+                KFImage(URL(string: imageUrl))
+                    .placeholder { EmptyView() }
+                    .setProcessor(ImageUpscaler.lanczosProcessor(scale: 3, sharpeningIntensity: 1.5, sharpeningRadius: 0.8))
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: UIScreen.main.bounds.width, height: 700)
+                    .clipped()
+                    .blur(radius: 30)
+                    .mask(
+                        LinearGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: .clear, location: 0.0),
+                                .init(color: .clear, location: 0.6),
+                                .init(color: .black, location: 0.8),
+                                .init(color: .black, location: 1.0)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
                         )
-                }
-                .ignoresSafeArea()
+                    )
+                    .overlay(
+                        LinearGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: .clear, location: 0.0),
+                                .init(color: .clear, location: 0.7),
+                                .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.9), location: 1.0)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
                 VStack(spacing: 0) {
-                    KFImage(URL(string: imageUrl))
-                        .placeholder {
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.3))
-                                .shimmering()
-                        }
-                        .setProcessor(ImageUpscaler.lanczosProcessor(scale: 3, sharpeningIntensity: 1.5, sharpeningRadius: 0.8))
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: UIScreen.main.bounds.width, height: 700)
-                        .clipped()
-                    
+                    Rectangle()
+                        .fill(Color.clear)
+                        .frame(height: 400)
                     VStack(alignment: .leading, spacing: 16) {
                         headerSection
                         if !episodeLinks.isEmpty {
@@ -257,7 +264,22 @@ struct MediaInfoView: View {
                         }
                     }
                     .padding()
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.0), location: 0.0),
+                                .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.5), location: 0.2),
+                                .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.8), location: 0.5),
+                                .init(color: (colorScheme == .dark ? Color.black : Color.white), location: 1.0)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                            .clipShape(RoundedRectangle(cornerRadius: 0))
+                            .shadow(color: (colorScheme == .dark ? Color.black : Color.white).opacity(1), radius: 10, x: 0, y: 10)
+                    )
                 }
+                .deviceScaled()
             }
         }
         .onAppear {
