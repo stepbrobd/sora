@@ -232,7 +232,7 @@ struct SettingsViewData: View {
                         .padding(.vertical, 12)
                     }
                     
-                    Divider()
+                    Divider().padding(.horizontal, 16)
                     
                     Button(action: clearAllCaches) {
                         Text("Clear All Caches")

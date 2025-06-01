@@ -234,7 +234,7 @@ struct SettingsViewPlayer: View {
                         icon: "hand.tap",
                         title: "Two Finger Hold for Pause",
                         isOn: $holdForPauseEnabled,
-                        showDivider: false
+                        showDivider: true
                     )
                     
                     SettingsToggleRow(
