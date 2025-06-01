@@ -150,17 +150,15 @@ fileprivate struct SettingsPickerRow<T: Hashable>: View {
 
 struct SettingsViewGeneral: View {
     @AppStorage("episodeChunkSize") private var episodeChunkSize: Int = 100
-    @AppStorage("refreshModulesOnLaunch") private var refreshModulesOnLaunch: Bool = false
+    @AppStorage("refreshModulesOnLaunch") private var refreshModulesOnLaunch: Bool = true
     @AppStorage("fetchEpisodeMetadata") private var fetchEpisodeMetadata: Bool = true
     @AppStorage("analyticsEnabled") private var analyticsEnabled: Bool = false
-    @AppStorage("multiThreads") private var multiThreadsEnabled: Bool = false
     @AppStorage("metadataProviders") private var metadataProviders: String = "AniList"
     @AppStorage("mediaColumnsPortrait") private var mediaColumnsPortrait: Int = 2
     @AppStorage("mediaColumnsLandscape") private var mediaColumnsLandscape: Int = 4
     @AppStorage("currentAppIcon") private var currentAppIcon = "Default"
-    @AppStorage("episodeSortOrder") private var episodeSortOrder: String = "Ascending"
     
-    private let metadataProvidersList = ["AniList"]
+    private let metadataProvidersList = ["AniList", "TMDB"]
     private let sortOrderOptions = ["Ascending", "Descending"]
     @EnvironmentObject var settings: Settings
     @State private var showAppIconPicker = false

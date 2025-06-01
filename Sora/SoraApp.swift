@@ -183,9 +183,7 @@ class AppInfo: NSObject {
     }
     
     @objc func getDisplayName() -> String {
-        return Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ??
-               Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ??
-               "Sora"
+        return Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as! String
     }
 }
 

@@ -9,6 +9,8 @@ import SwiftUI
 import Kingfisher
 import SafariServices
 
+private let tmdbFetcher = TMDBFetcher()
+
 struct MediaItem: Identifiable {
     let id = UUID()
     let description: String
@@ -153,8 +155,7 @@ struct MediaInfoView: View {
             buttonRefreshTrigger.toggle()
             
             let savedID = UserDefaults.standard.integer(forKey: "custom_anilist_id_\(href)")
-            if savedID != 0 {
-                customAniListID = savedID }
+            if savedID != 0 { customAniListID = savedID }
             
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             
@@ -167,15 +168,7 @@ struct MediaInfoView: View {
                     itemID = savedID
                     Logger.shared.log("Using custom AniList ID: \(savedID)", type: "Debug")
                 } else {
-                    fetchItemID(byTitle: cleanTitle(title)) { result in
-                        switch result {
-                        case .success(let id):
-                            itemID = id
-                        case .failure(let error):
-                            Logger.shared.log("Failed to fetch AniList ID: \(error)")
-                            AnalyticsManager.shared.sendEvent(event: "error", additionalData: ["error": error, "message": "Failed to fetch AniList ID"])
-                        }
-                    }
+                    fetchMetadataIDIfNeeded()
                 }
                 
                 selectedRange = 0..<episodeChunkSize
@@ -464,7 +457,6 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var menuButton: some View {
         Menu {
-            // Show current match (title if available, else ID)
             if let id = itemID ?? customAniListID {
                 let labelText = (matchedTitle?.isEmpty == false ? matchedTitle! : "\(id)")
                 Text("Matched with: \(labelText)")
@@ -803,44 +795,32 @@ struct MediaInfoView: View {
         }
     }
     
-    private func fetchAniListTitle(id: Int) {
-        let query = """
-        query ($id: Int) {
-          Media(id: $id, type: ANIME) {
-            title {
-              english
-              romaji
+    private func fetchMetadataIDIfNeeded() {
+        let provider = UserDefaults.standard.string(forKey: "metadataProviders") ?? "Anilist"
+        let cleaned = cleanTitle(title)
+        if provider == "TMDB" {
+            tmdbID = nil
+            tmdbFetcher.fetchBestMatchID(for: cleaned) { id, type in
+                DispatchQueue.main.async {
+                    self.tmdbID = id
+                    Logger.shared.log("Fetched TMDB ID: \(id ?? -1) (\(type?.rawValue ?? "unknown")) for title: \(cleaned)", type: "Debug")
+                }
             }
-          }
+        } else if provider == "Anilist" {
+            itemID = nil
+            fetchItemID(byTitle: cleaned) { result in
+                switch result {
+                case .success(let id):
+                    DispatchQueue.main.async {
+                        self.itemID = id
+                        Logger.shared.log("Fetched AniList ID: \(id) for title: \(cleaned)", type: "Debug")
+                    }
+                case .failure(let error):
+                    Logger.shared.log("Failed to fetch AniList ID: \(error)", type: "Error")
+                }
+            }
         }
-        """
-        let variables: [String: Any] = ["id": id]
-
-        guard let url = URL(string: "https://graphql.anilist.co") else { return }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try? JSONSerialization.data(withJSONObject: ["query": query, "variables": variables])
-
-        URLSession.shared.dataTask(with: request) { data, _, _ in
-            guard
-                let data = data,
-                let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                let dataDict = json["data"] as? [String: Any],
-                let media = dataDict["Media"] as? [String: Any],
-                let titleDict = media["title"] as? [String: Any]
-            else { return }
-
-            let english = titleDict["english"] as? String
-            let romaji  = titleDict["romaji"]  as? String
-            let finalTitle = (english?.isEmpty == false ? english! : (romaji ?? "Unknown"))
-
-            DispatchQueue.main.async {
-                matchedTitle = finalTitle
-            }
-        }.resume()
     }
-
     
     private func markAllPreviousEpisodesInFlatList(ep: EpisodeLink, index: Int) {
         let userDefaults = UserDefaults.standard
