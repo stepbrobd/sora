@@ -174,7 +174,7 @@ struct ContributorsView: View {
     private func loadContributors() {
         let url = URL(string: "https://api.github.com/repos/cranci1/Sora/contributors")!
         
-        URLSession.shared.dataTask(with: url) { data, response, error in
+        URLSession.custom.dataTask(with: url) { data, response, error in
             DispatchQueue.main.async {
                 isLoading = false
                 
@@ -185,7 +185,17 @@ struct ContributorsView: View {
                 
                 if let data = data {
                     do {
-                        self.contributors = try JSONDecoder().decode([Contributor].self, from: data)
+                        var decodedContributors = try JSONDecoder().decode([Contributor].self, from: data)
+                        let artificialContributors: [Contributor] = [
+                            Contributor(id: -1, login: "undeaDD", avatarUrl: "https://avatars.githubusercontent.com/u/8116188?v=4"),
+                            Contributor(id: -2, login: "qooode", avatarUrl: "https://avatars.githubusercontent.com/u/71751652?v=4")
+                        ]
+                        for artificial in artificialContributors {
+                            if !decodedContributors.contains(where: { $0.login.lowercased() == artificial.login.lowercased() }) {
+                                decodedContributors.append(artificial)
+                            }
+                        }
+                        self.contributors = decodedContributors
                     } catch {
                         self.error = error
                     }
