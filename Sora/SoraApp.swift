@@ -58,7 +58,6 @@ struct SoraApp: App {
     @StateObject private var jsController = JSController.shared
     
     init() {
-        _ = MetadataCacheManager.shared
         _ = KingfisherCacheManager.shared
         
         if let userAccentColor = UserDefaults.standard.color(forKey: "accentColor") {

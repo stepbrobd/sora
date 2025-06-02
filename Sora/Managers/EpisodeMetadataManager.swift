@@ -280,22 +280,6 @@ class EpisodeMetadataManager: ObservableObject {
                 )
                 
                 // Cache the metadata
-                if MetadataCacheManager.shared.isCachingEnabled {
-                    let metadata = EpisodeMetadata(
-                        title: title,
-                        imageUrl: image,
-                        anilistId: anilistId,
-                        episodeNumber: episodeNumber
-                    )
-                    
-                    if let metadataData = metadata.toData() {
-                        MetadataCacheManager.shared.storeMetadata(
-                            metadataData,
-                            forKey: cacheKey
-                        )
-                        Logger.shared.log("Cached metadata for episode \(episodeNumber)", type: "Debug")
-                    }
-                }
                 
                 // Reset retry count on success (even with missing fields)
                 self.currentRetryAttempts.removeValue(forKey: cacheKey)
@@ -473,22 +457,6 @@ class EpisodeMetadataManager: ObservableObject {
                         results[episodeNumber] = metadataInfo
                         
                         // Cache the metadata
-                        if MetadataCacheManager.shared.isCachingEnabled {
-                            let metadata = EpisodeMetadata(
-                                title: title,
-                                imageUrl: image,
-                                anilistId: anilistId,
-                                episodeNumber: episodeNumber
-                            )
-                            
-                            let cacheKey = "anilist_\(anilistId)_episode_\(episodeNumber)"
-                            if let metadataData = metadata.toData() {
-                                MetadataCacheManager.shared.storeMetadata(
-                                    metadataData,
-                                    forKey: cacheKey
-                                )
-                            }
-                        }
                     } else {
                         missingEpisodes.append(episodeNumber)
                     }

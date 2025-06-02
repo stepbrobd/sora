@@ -169,7 +169,7 @@ struct SettingsViewData: View {
                         isOn: $isMetadataCachingEnabled
                     )
                     .onChange(of: isMetadataCachingEnabled) { newValue in
-                        MetadataCacheManager.shared.isCachingEnabled = newValue
+                        // MetadataCacheManager removed
                         if !newValue {
                             calculateCacheSize()
                         }
@@ -194,9 +194,8 @@ struct SettingsViewData: View {
                             isOn: $isMemoryOnlyMode
                         )
                         .onChange(of: isMemoryOnlyMode) { newValue in
-                            MetadataCacheManager.shared.isMemoryOnlyMode = newValue
+                            // MetadataCacheManager removed
                             if newValue {
-                                MetadataCacheManager.shared.clearAllCache()
                                 calculateCacheSize()
                             }
                         }
@@ -274,9 +273,7 @@ struct SettingsViewData: View {
             .scrollViewBottomPadding()
             .navigationTitle("App Data")
             .onAppear {
-                isMetadataCachingEnabled = MetadataCacheManager.shared.isCachingEnabled
                 isImageCachingEnabled = KingfisherCacheManager.shared.isCachingEnabled
-                isMemoryOnlyMode = MetadataCacheManager.shared.isMemoryOnlyMode
                 calculateCacheSize()
                 updateSizes()
             }
@@ -319,9 +316,6 @@ struct SettingsViewData: View {
             cacheSizeText = "Calculating..."
             DispatchQueue.global(qos: .background).async {
                 var totalSize: Int64 = 0
-                let metadataSize = MetadataCacheManager.shared.getCacheSize()
-                totalSize += metadataSize
-                
                 KingfisherCacheManager.shared.calculateCacheSize { imageSize in
                     totalSize += Int64(imageSize)
                     DispatchQueue.main.async {
@@ -333,7 +327,7 @@ struct SettingsViewData: View {
         }
         
         func clearAllCaches() {
-            MetadataCacheManager.shared.clearAllCache()
+            // MetadataCacheManager removed
             KingfisherCacheManager.shared.clearCache {
                 calculateCacheSize()
             }
