@@ -611,9 +611,20 @@ struct MediaInfoView: View {
                         .fill(Color.accentColor.opacity(0.25))
                         .frame(width: width, height: 48)
                     
-                    RoundedRectangle(cornerRadius: 25)
+                    Capsule()
                         .fill(Color.accentColor)
-                        .frame(width: width * CGFloat(progress), height: 48)
+                        .frame(width: max(width * CGFloat(progress), 8), height: 48)
+                        .mask(
+                            HStack {
+                                if progress < 0.05 {
+                                    RoundedRectangle(cornerRadius: 24)
+                                        .frame(width: 8)
+                                } else {
+                                    RoundedRectangle(cornerRadius: 24)
+                                }
+                                Spacer()
+                            }
+                        )
                 }
                 .frame(height: 48)
                 
@@ -999,76 +1010,40 @@ struct MediaInfoView: View {
         .padding(.vertical, 50)
     }
     
-    private var startWatchingText: String {
-        let indices = finishedAndUnfinishedIndices()
-        let finished = indices.finished
-        let unfinished = indices.unfinished
-        
-        if episodeLinks.count == 1 {
-            if unfinished != nil {
-                return "Continue Watching"
-            }
-            return "Start Watching"
-        }
-        
-        if let finishedIndex = finished, finishedIndex < episodeLinks.count - 1 {
-            let nextEp = episodeLinks[finishedIndex + 1]
-            return "Start Watching Episode \(nextEp.number)"
-        }
-        
-        if let unfinishedIndex = unfinished {
-            let currentEp = episodeLinks[unfinishedIndex]
-            return "Continue Watching Episode \(currentEp.number)"
-        }
-        
-        return "Start Watching"
-    }
-    
     private func updateContinueWatchingText() {
-        let indices = finishedAndUnfinishedIndices()
-        let unfinishedIndex = indices.unfinished
-        
-        if let unfinishedIndex = unfinishedIndex {
-            let ep = episodeLinks[unfinishedIndex]
-            if isGroupedBySeasons {
-                let seasons = groupedEpisodes()
-                for (seasonIdx, seasonEpisodes) in seasons.enumerated() {
-                    if let epIdx = seasonEpisodes.firstIndex(where: { $0.number == ep.number }) {
-                        continueWatchingText = "Continue Watching S\(seasonIdx + 1) E\(epIdx + 1)"
-                        return
-                    }
-                }
-                continueWatchingText = "Continue Watching S1 E\(ep.number)"
-            } else {
-                continueWatchingText = "Continue Watching episode \(ep.number)"
+        for ep in episodeLinks {
+            let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+            let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+            let progress = total > 0 ? last / total : 0
+            
+            if progress == 0 {
+                continueWatchingText = "Start Watching Episode \(ep.number)"
+                return
+            } else if progress < 0.9 {
+                continueWatchingText = "Continue Watching Episode \(ep.number)"
+                return
             }
-        } else {
-            continueWatchingText = "Start Watching"
         }
+
+        continueWatchingText = "Start Watching"
     }
     
     private func playFirstUnwatchedEpisode() {
-        let indices = finishedAndUnfinishedIndices()
-        let finished = indices.finished
-        let unfinished = indices.unfinished
-        
-        if let finishedIndex = finished, finishedIndex < episodeLinks.count - 1 {
-            let nextEp = episodeLinks[finishedIndex + 1]
-            selectedEpisodeNumber = nextEp.number
-            fetchStream(href: nextEp.href)
-            return
+        for ep in episodeLinks {
+            let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+            let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+            let progress = total > 0 ? last / total : 0
+            
+            if progress < 0.9 {
+                selectedEpisodeNumber = ep.number
+                fetchStream(href: ep.href)
+                return
+            }
         }
-        
-        if let unfinishedIndex = unfinished {
-            let ep = episodeLinks[unfinishedIndex]
-            selectedEpisodeNumber = ep.number
-            fetchStream(href: ep.href)
-            return
-        }
-        
-        if let firstEpisode = episodeLinks.first {
-            selectedEpisodeNumber = firstEpisode.number
-            fetchStream(href: firstEpisode.href)
+
+        if let first = episodeLinks.first {
+            selectedEpisodeNumber = first.number
+            fetchStream(href: first.href)
         }
     }
     
