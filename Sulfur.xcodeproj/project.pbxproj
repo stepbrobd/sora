@@ -53,6 +53,7 @@
 		13637B902DE0ECD200BDA2FC /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = 13637B8F2DE0ECD200BDA2FC /* Drops */; };
 		13637B932DE0ECDB00BDA2FC /* MarqueeLabel in Frameworks */ = {isa = PBXBuildFile; productRef = 13637B922DE0ECDB00BDA2FC /* MarqueeLabel */; };
 		136BBE802DB1038000906B5E /* Notification+Name.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136BBE7F2DB1038000906B5E /* Notification+Name.swift */; };
+		138A7F542DEDA978005E148F /* JPEGCompressionProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138A7F532DEDA978005E148F /* JPEGCompressionProcessor.swift */; };
 		138AA1B82D2D66FD0021F9DF /* EpisodeCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138AA1B62D2D66FD0021F9DF /* EpisodeCell.swift */; };
 		138AA1B92D2D66FD0021F9DF /* CircularProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138AA1B72D2D66FD0021F9DF /* CircularProgressBar.swift */; };
 		138FE1D02DECA00D00936D81 /* TMDB-FetchID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138FE1CF2DECA00D00936D81 /* TMDB-FetchID.swift */; };
@@ -147,6 +148,7 @@
 		135CCBE12D4D1138008B9C0E /* SettingsViewPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewPlayer.swift; sourceTree = "<group>"; };
 		13637B892DE0EA1100BDA2FC /* UserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaults.swift; sourceTree = "<group>"; };
 		136BBE7F2DB1038000906B5E /* Notification+Name.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Notification+Name.swift"; sourceTree = "<group>"; };
+		138A7F532DEDA978005E148F /* JPEGCompressionProcessor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JPEGCompressionProcessor.swift; sourceTree = "<group>"; };
 		138AA1B62D2D66FD0021F9DF /* EpisodeCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpisodeCell.swift; sourceTree = "<group>"; };
 		138AA1B72D2D66FD0021F9DF /* CircularProgressBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CircularProgressBar.swift; sourceTree = "<group>"; };
 		138FE1CF2DECA00D00936D81 /* TMDB-FetchID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TMDB-FetchID.swift"; sourceTree = "<group>"; };
@@ -604,6 +606,7 @@
 			isa = PBXGroup;
 			children = (
 				7205AED72DCCEF9500943F3F /* EpisodeMetadata.swift */,
+				138A7F532DEDA978005E148F /* JPEGCompressionProcessor.swift */,
 				7205AED82DCCEF9500943F3F /* KingfisherManager.swift */,
 				7205AED92DCCEF9500943F3F /* MetadataCacheManager.swift */,
 			);
@@ -788,6 +791,7 @@
 				72443C7F2DC8038300A61321 /* SettingsViewDownloads.swift in Sources */,
 				13DB46922D900BCE008CBC03 /* SettingsViewTrackers.swift in Sources */,
 				7222485F2DCBAA2C00CABE2D /* DownloadModels.swift in Sources */,
+				138A7F542DEDA978005E148F /* JPEGCompressionProcessor.swift in Sources */,
 				722248602DCBAA2C00CABE2D /* M3U8StreamExtractor.swift in Sources */,
 				13C0E5EA2D5F85EA00E7F619 /* ContinueWatchingManager.swift in Sources */,
 				13637B8A2DE0EA1100BDA2FC /* UserDefaults.swift in Sources */,
