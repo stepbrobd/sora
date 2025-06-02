@@ -931,7 +931,7 @@ struct MediaInfoView: View {
     
     @ViewBuilder
     private var noEpisodesSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 8) {
             Image(systemName: "tv.slash")
                 .font(.system(size: 48))
                 .foregroundColor(.secondary)
@@ -948,7 +948,7 @@ struct MediaInfoView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
         }
-        .padding(.vertical, 60)
+        .padding(.vertical, 50)
     }
     
     private var startWatchingText: String {
