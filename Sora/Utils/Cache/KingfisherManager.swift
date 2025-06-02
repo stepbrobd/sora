@@ -9,7 +9,6 @@
 import SwiftUI
 import Foundation
 import Kingfisher
-import Sora.Utils.Cache.JPEGCompressionProcessor
 
 class KingfisherCacheManager {
     private let jpegCompressionQuality: CGFloat = 0.7
