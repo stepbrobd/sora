@@ -270,7 +270,6 @@ struct EpisodeCell: View {
                     .onFailure { error in
                         Logger.shared.log("Failed to load episode image: \(error)", type: "Error")
                     }
-                    .cacheMemoryOnly(!KingfisherCacheManager.shared.isCachingEnabled)
                     .resizable()
                     .aspectRatio(16/9, contentMode: .fill)
                     .frame(width: 100, height: 56)
