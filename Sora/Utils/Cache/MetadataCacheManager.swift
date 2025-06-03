@@ -7,7 +7,6 @@
 
 import Foundation
 import SwiftUI
-import CryptoKit
 
 /// A class to manage episode metadata caching, both in-memory and on disk
 class MetadataCacheManager {
@@ -98,23 +97,21 @@ class MetadataCacheManager {
     /// - Parameters:
     ///   - data: The metadata to cache
     ///   - key: The cache key (usually anilist_id + episode_number)
-    private func safeFileName(for key: String) -> String {
-        let hash = SHA256.hash(data: Data(key.utf8))
-        return hash.compactMap { String(format: "%02x", $0) }.joined()
-    }
-
     func storeMetadata(_ data: Data, forKey key: String) {
         guard isCachingEnabled else { return }
+        
         let keyString = key as NSString
+        
+        // Always store in memory cache
         memoryCache.setObject(data as NSData, forKey: keyString)
+        
+        // Store on disk if not in memory-only mode
         if !isMemoryOnlyMode {
-            let fileName = safeFileName(for: key)
-            let fileURL = cacheDirectory.appendingPathComponent(fileName)
-            let tempURL = fileURL.appendingPathExtension("tmp")
+            let fileURL = cacheDirectory.appendingPathComponent(key)
+            
             DispatchQueue.global(qos: .background).async { [weak self] in
                 do {
-                    try data.write(to: tempURL)
-                    try self?.fileManager.moveItem(at: tempURL, to: fileURL)
+                    try data.write(to: fileURL)
                     
                     // Add timestamp as a file attribute instead of using extended attributes
                     let attributes: [FileAttributeKey: Any] = [
@@ -276,4 +273,4 @@ class MetadataCacheManager {
             }
         }
     }
-}
+} 

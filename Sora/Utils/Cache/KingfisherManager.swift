@@ -54,6 +54,20 @@ class KingfisherCacheManager {
         cache.memoryStorage.config.cleanInterval = 60
         
         KingfisherManager.shared.downloader.downloadTimeout = 15.0
+        
+        struct CustomJPEGCacheSerializer: CacheSerializer {
+            let compressionQuality: CGFloat
+            
+            func data(with image: KFCrossPlatformImage, original: Data?) -> Data? {
+                return image.kf.jpegData(compressionQuality: compressionQuality)
+            }
+            
+            func image(with data: Data, options: KingfisherParsedOptionsInfo) -> KFCrossPlatformImage? {
+                return DefaultCacheSerializer.default.image(with: data, options: options)
+            }
+        }
+        cache.diskStorage.config.cacheSerializer = CustomJPEGCacheSerializer(compressionQuality: jpegCompressionQuality)
+        
         Logger.shared.log("Configured Kingfisher cache. Enabled: \(isCachingEnabled)", type: "Debug")
     }
     
