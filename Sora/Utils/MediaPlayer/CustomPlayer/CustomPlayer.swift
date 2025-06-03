@@ -428,20 +428,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             NotificationCenter.default.removeObserver(foregroundToken)
         }
         
-        inactivityTimer?.invalidate()
-        updateTimer?.invalidate()
-        lockButtonTimer?.invalidate()
-        dimButtonTimer?.invalidate()
-        loadedTimeRangesObservation?.invalidate()
-        playerTimeControlStatusObserver?.invalidate()
-        volumeObserver?.invalidate()
-        
-        player.replaceCurrentItem(with: nil)
         player.pause()
-        
-        playerViewController = nil
-        sliderHostingController = nil
-        try? AVAudioSession.sharedInstance().setActive(false)
     }
 
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
