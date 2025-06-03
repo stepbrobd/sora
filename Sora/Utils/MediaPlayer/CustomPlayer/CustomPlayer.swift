@@ -41,6 +41,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     var currentTimeVal: Double = 0.0
     var duration: Double = 0.0
     var isVideoLoaded = false
+    var detachedWindow: UIWindow?
     
     private var isHoldPauseEnabled: Bool {
         UserDefaults.standard.bool(forKey: "holdForPauseEnabled")
@@ -1827,16 +1828,15 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     @objc func dismissTapped() {
-        if let presentingViewController = self.presentingViewController {
-            presentingViewController.dismiss(animated: true, completion: nil)
-        } else {
-            dismiss(animated: true, completion: nil)
+        dismiss(animated: true) { [weak self] in
+            self?.detachedWindow = nil
         }
     }
     
     @objc func watchNextTapped() {
         player.pause()
         dismiss(animated: true) { [weak self] in
+            self?.detachedWindow = nil
             self?.onWatchNext()
         }
     }

@@ -1370,11 +1370,7 @@ struct MediaInfoView: View {
                 videoPlayerViewController.aniListID = itemID ?? 0
                 videoPlayerViewController.modalPresentationStyle = .overFullScreen
                 
-                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                   let window = windowScene.windows.first,
-                   let currentVC = window.rootViewController?.presentedViewController ?? window.rootViewController {
-                    currentVC.present(videoPlayerViewController, animated: true, completion: nil)
-                }
+                presentPlayerWithDetachedContext(videoPlayerViewController: videoPlayerViewController)
                 return
             default:
                 break
@@ -1412,11 +1408,7 @@ struct MediaInfoView: View {
                 customMediaPlayer.modalPresentationStyle = .overFullScreen
                 Logger.shared.log("Opening custom media player with stream URL: \(url), and subtitles URL: \(String(describing: subtitles))", type: "Stream")
                 
-                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                   let window = windowScene.windows.first,
-                   let currentVC = window.rootViewController?.presentedViewController ?? window.rootViewController {
-                    currentVC.present(customMediaPlayer, animated: true, completion: nil)
-                }
+                presentPlayerWithDetachedContext(customMediaPlayer: customMediaPlayer)
             }
         }
     }
@@ -1998,5 +1990,35 @@ struct MediaInfoView: View {
                 completion(nil)
             }
         }.resume()
+    }
+    
+    private func presentPlayerWithDetachedContext(videoPlayerViewController: VideoPlayerViewController) {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+        
+        let detachedWindow = UIWindow(windowScene: windowScene)
+        let hostingController = UIViewController()
+        hostingController.view.backgroundColor = .clear
+        detachedWindow.rootViewController = hostingController
+        detachedWindow.backgroundColor = .clear
+        detachedWindow.windowLevel = .normal + 1
+        detachedWindow.makeKeyAndVisible()
+        
+        videoPlayerViewController.detachedWindow = detachedWindow
+        hostingController.present(videoPlayerViewController, animated: true, completion: nil)
+    }
+    
+    private func presentPlayerWithDetachedContext(customMediaPlayer: CustomMediaPlayerViewController) {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+        
+        let detachedWindow = UIWindow(windowScene: windowScene)
+        let hostingController = UIViewController()
+        hostingController.view.backgroundColor = .clear
+        detachedWindow.rootViewController = hostingController
+        detachedWindow.backgroundColor = .clear
+        detachedWindow.windowLevel = .normal + 1
+        detachedWindow.makeKeyAndVisible()
+        
+        customMediaPlayer.detachedWindow = detachedWindow
+        hostingController.present(customMediaPlayer, animated: true, completion: nil)
     }
 }
