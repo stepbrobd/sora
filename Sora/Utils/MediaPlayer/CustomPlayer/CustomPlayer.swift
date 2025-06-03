@@ -2499,7 +2499,9 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         switch gesture.state {
         case .ended:
             if translation.y > 100 {
-                dismiss(animated: true, completion: nil)
+                dismiss(animated: true) { [weak self] in
+                    self?.detachedWindow = nil
+                }
             }
         default:
             break
