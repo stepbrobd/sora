@@ -1839,15 +1839,20 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     @objc func dismissTapped() {
-        dismiss(animated: true) { [weak self] in
-            self?.detachedWindow = nil
+        if let presentingViewController = self.presentingViewController {
+            presentingViewController.dismiss(animated: true) { [weak self] in
+                self?.detachedWindow = nil
+            }
+        } else {
+            dismiss(animated: true) { [weak self] in
+                self?.detachedWindow = nil
+            }
         }
     }
     
     @objc func watchNextTapped() {
         player.pause()
         dismiss(animated: true) { [weak self] in
-            self?.detachedWindow = nil
             self?.onWatchNext()
         }
     }
@@ -2006,15 +2011,20 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     private func parseM3U8(url: URL, completion: @escaping () -> Void) {
         var request = URLRequest(url: url)
-        if let mydict = headers, !mydict.isEmpty {
-            for (key,value) in mydict {
+        if let mydict = headers, !mydict.isEmpty
+        {
+            for (key,value) in mydict
+            {
                 request.addValue(value, forHTTPHeaderField: key)
             }
-        } else {
+        }
+        else
+        {
             request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
             request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
         }
-        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
+        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+                         forHTTPHeaderField: "User-Agent")
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self,
