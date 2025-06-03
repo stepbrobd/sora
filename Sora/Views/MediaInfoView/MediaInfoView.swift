@@ -1373,7 +1373,7 @@ struct MediaInfoView: View {
                 videoPlayerViewController.mediaTitle = title
                 videoPlayerViewController.subtitles = subtitles ?? ""
                 videoPlayerViewController.aniListID = itemID ?? 0
-                videoPlayerViewController.modalPresentationStyle = .overFullScreen
+                videoPlayerViewController.modalPresentationStyle = .fullScreen
                 
                 presentPlayerWithDetachedContext(videoPlayerViewController: videoPlayerViewController)
                 return
@@ -1410,7 +1410,7 @@ struct MediaInfoView: View {
                     episodeImageUrl: selectedEpisodeImage,
                     headers: headers ?? nil
                 )
-                customMediaPlayer.modalPresentationStyle = .overFullScreen
+                customMediaPlayer.modalPresentationStyle = .fullScreen
                 Logger.shared.log("Opening custom media player with stream URL: \(url), and subtitles URL: \(String(describing: subtitles))", type: "Stream")
                 
                 presentPlayerWithDetachedContext(customMediaPlayer: customMediaPlayer)
