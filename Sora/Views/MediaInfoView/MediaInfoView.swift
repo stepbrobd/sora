@@ -1305,7 +1305,7 @@ struct MediaInfoView: View {
                 videoPlayerViewController.mediaTitle = title
                 videoPlayerViewController.subtitles = subtitles ?? ""
                 videoPlayerViewController.aniListID = itemID ?? 0
-                videoPlayerViewController.modalPresentationStyle = .fullScreen
+                videoPlayerViewController.modalPresentationStyle = .overFullScreen
                 
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                    let window = windowScene.windows.first,
@@ -1346,7 +1346,7 @@ struct MediaInfoView: View {
                     episodeImageUrl: selectedEpisodeImage,
                     headers: headers ?? nil
                 )
-                customMediaPlayer.modalPresentationStyle = .fullScreen
+                customMediaPlayer.modalPresentationStyle = .overFullScreen
                 Logger.shared.log("Opening custom media player with url: \(url)")
                 
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
