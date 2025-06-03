@@ -5,11 +5,9 @@
 //  Created by doomsboygaming on 5/22/25
 //
 
-
 import SwiftUI
 import Foundation
 import Kingfisher
-import Sora.Utils.Cache.JPEGCompressionProcessor
 
 class KingfisherCacheManager {
     private let jpegCompressionQuality: CGFloat = 0.7
@@ -56,11 +54,7 @@ class KingfisherCacheManager {
         cache.memoryStorage.config.cleanInterval = 60
         
         KingfisherManager.shared.downloader.downloadTimeout = 15.0
-        
-        let processor = JPEGCompressionProcessor(compressionQuality: jpegCompressionQuality)
-        KingfisherManager.shared.defaultOptions = [.processor(processor)]
-
-        Logger.shared.log("Configured Kingfisher cache. Enabled: \(isCachingEnabled) | JPEG Compression: \(jpegCompressionQuality)", type: "Debug")
+        Logger.shared.log("Configured Kingfisher cache. Enabled: \(isCachingEnabled)", type: "Debug")
     }
     
     func clearCache(completion: (() -> Void)? = nil) {
