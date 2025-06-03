@@ -573,43 +573,25 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var playAndBookmarkSection: some View {
         HStack(spacing: 12) {
-            ZStack {
-                GeometryReader { geometry in
-                    let width = geometry.size.width
-                    let progress = watchingProgress
-                    RoundedRectangle(cornerRadius: 25)
-                        .fill(Color.accentColor.opacity(0.25))
-                        .frame(width: width, height: 48)
+            Button(action: {
+                playFirstUnwatchedEpisode()
+            }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "play.fill")
+                        .foregroundColor(colorScheme == .dark ? .black : .white)
+                    Text(startWatchingText)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(colorScheme == .dark ? .black : .white)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .padding(.horizontal, 20)
+                .background(
                     RoundedRectangle(cornerRadius: 25)
                         .fill(Color.accentColor)
-                        .frame(width: width * CGFloat(progress), height: 48)
-                }
-                .frame(height: 48)
-                
-                Button(action: {
-                    playFirstUnwatchedEpisode()
-                }) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "play.fill")
-                            .foregroundColor(colorScheme == .dark ? .black : .white)
-                        Text(startWatchingText)
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(colorScheme == .dark ? .black : .white)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 20)
-                    .background(Color.clear)
-                    .contentShape(RoundedRectangle(cornerRadius: 25))
-                }
-                .disabled(isFetchingEpisode)
+                )
             }
-            .frame(height: 48)
-            .clipShape(RoundedRectangle(cornerRadius: 25))
-            .overlay(
-                RoundedRectangle(cornerRadius: 25)
-                    .stroke(Color.accentColor, lineWidth: 0)
-            )
+            .disabled(isFetchingEpisode)
             
             Button(action: {
                 libraryManager.toggleBookmark(
