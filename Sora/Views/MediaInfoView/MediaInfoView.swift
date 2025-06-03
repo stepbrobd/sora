@@ -1248,7 +1248,8 @@ struct MediaInfoView: View {
                 var title: String = ""
                 var streamUrl: String = ""
                 var headers: [String:String]? = nil
-                if let sources = sources as? [String] {
+                if let sources = sources as? [String]
+                {
                     if index + 1 < sources.count {
                         if !sources[index].lowercased().contains("http") {
                             title = sources[index]
@@ -1264,11 +1265,16 @@ struct MediaInfoView: View {
                         streamUrl = sources[index]
                         index += 1
                     }
-                } else if let sources = sources as? [[String: Any]] {
-                    if let currTitle = sources[index]["title"] as? String {
+                }
+                else if let sources = sources as? [[String: Any]]
+                {
+                    if let currTitle = sources[index]["title"] as? String
+                    {
                         title = currTitle
                         streamUrl = (sources[index]["streamUrl"] as? String) ?? ""
-                    } else {
+                    }
+                    else
+                    {
                         title = "Stream \(streamIndex)"
                         streamUrl = (sources[index]["streamUrl"] as? String)!
                     }
@@ -1355,7 +1361,9 @@ struct MediaInfoView: View {
                 videoPlayerViewController.aniListID = itemID ?? 0
                 videoPlayerViewController.modalPresentationStyle = .fullScreen
                 
-                presentPlayerWithDetachedContext(videoPlayerViewController: videoPlayerViewController)
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene, let rootVC = windowScene.windows.first?.rootViewController {
+                    rootVC.present(videoPlayerViewController, animated: true, completion: nil)
+                }
                 return
             default:
                 break
@@ -1965,20 +1973,5 @@ if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScen
                 completion(nil)
             }
         }.resume()
-    }
-    
-    private func presentPlayerWithDetachedContext(videoPlayerViewController: VideoPlayerViewController) {
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
-        
-        let detachedWindow = UIWindow(windowScene: windowScene)
-        let hostingController = UIViewController()
-        hostingController.view.backgroundColor = .clear
-        detachedWindow.rootViewController = hostingController
-        detachedWindow.backgroundColor = .clear
-        detachedWindow.windowLevel = .normal + 1
-        detachedWindow.makeKeyAndVisible()
-        
-        videoPlayerViewController.detachedWindow = detachedWindow
-        hostingController.present(videoPlayerViewController, animated: true, completion: nil)
     }
 }
