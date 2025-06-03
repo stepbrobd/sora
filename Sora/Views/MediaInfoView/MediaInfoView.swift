@@ -78,6 +78,7 @@ struct MediaInfoView: View {
     @State private var isBulkDownloading: Bool = false
     @State private var bulkDownloadProgress: String = ""
     @State private var tmdbType: TMDBFetcher.MediaType? = nil
+    @State private var latestProgress: Double = 0.0
     
     private var isGroupedBySeasons: Bool {
         return groupedEpisodes().count > 1
@@ -170,6 +171,7 @@ struct MediaInfoView: View {
         }
         .onAppear {
             updateContinueWatchingText()
+            updateLatestProgress()
             buttonRefreshTrigger.toggle()
             
             let savedID = UserDefaults.standard.integer(forKey: "custom_anilist_id_\(href)")
@@ -377,10 +379,14 @@ struct MediaInfoView: View {
                                     UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(ep.href)")
                                     UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(ep.href)")
                                     DropManager.shared.showDrop(title: "Marked as Watched", subtitle: "", duration: 1.0, icon: UIImage(systemName: "checkmark.circle.fill"))
+                                    updateLatestProgress()
+                                    updateContinueWatchingText()
                                 } else {
                                     UserDefaults.standard.set(0.0, forKey: "lastPlayedTime_\(ep.href)")
                                     UserDefaults.standard.set(0.0, forKey: "totalTime_\(ep.href)")
                                     DropManager.shared.showDrop(title: "Progress Reset", subtitle: "", duration: 1.0, icon: UIImage(systemName: "arrow.counterclockwise"))
+                                    updateLatestProgress()
+                                    updateContinueWatchingText()
                                 }
                             }
                         }) {
@@ -606,26 +612,28 @@ struct MediaInfoView: View {
             ZStack(alignment: .leading) {
                 GeometryReader { geometry in
                     let width = geometry.size.width
-                    let progress = latestProgressEpisode?.progress ?? 0.0
+                    let progress = latestProgress
                     
                     RoundedRectangle(cornerRadius: 25)
-                        .fill(Color.accentColor.opacity(0.25))
+                        .fill(progress == 0 ? Color(.systemBackground) : Color.accentColor.opacity(0.25))
                         .frame(width: width, height: 48)
                     
-                    Capsule()
-                        .fill(Color.accentColor)
-                        .frame(width: max(width * CGFloat(progress), 8), height: 48)
-                        .mask(
-                            HStack {
-                                if progress < 0.05 && progress != 0 {
-                                    RoundedRectangle(cornerRadius: 24)
-                                        .frame(width: 8)
-                                } else {
-                                    RoundedRectangle(cornerRadius: 24)
+                    if progress > 0 {
+                        Capsule()
+                            .fill(Color.accentColor)
+                            .frame(width: max(width * CGFloat(progress), 8), height: 48)
+                            .mask(
+                                HStack {
+                                    if progress < 0.05 {
+                                        RoundedRectangle(cornerRadius: 24)
+                                            .frame(width: 8)
+                                    } else {
+                                        RoundedRectangle(cornerRadius: 24)
+                                    }
+                                    Spacer()
                                 }
-                                Spacer()
-                            }
-                        )
+                            )
+                    }
                 }
                 .frame(height: 48)
                 
@@ -987,6 +995,18 @@ struct MediaInfoView: View {
                 )
             }
         }
+    }
+    
+    private func updateLatestProgress() {
+        for ep in episodeLinks.reversed() {
+            let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+            let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+            if total > 0 {
+                latestProgress = last / total
+                return
+            }
+        }
+        latestProgress = 0.0
     }
     
     @ViewBuilder
