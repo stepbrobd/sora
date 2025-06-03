@@ -41,6 +41,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     var currentTimeVal: Double = 0.0
     var duration: Double = 0.0
     var isVideoLoaded = false
+    var detachedWindow: UIWindow?
     
     private var isHoldPauseEnabled: Bool {
         UserDefaults.standard.bool(forKey: "holdForPauseEnabled")
