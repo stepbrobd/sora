@@ -5,8 +5,9 @@
 //  Created by Francesco on 02/06/25.
 //
 
-import UIKit
+
 import Kingfisher
+import UIKit
 
 struct JPEGCompressionProcessor: ImageProcessor {
     let identifier: String
