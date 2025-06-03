@@ -1393,7 +1393,13 @@ struct MediaInfoView: View {
                 customMediaPlayer.modalPresentationStyle = .fullScreen
                 Logger.shared.log("Opening custom media player with url: \(url)")
                 
-                presentPlayerWithDetachedContext(customMediaPlayer: customMediaPlayer)
+if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+   let rootVC = windowScene.windows.first?.rootViewController {
+    rootVC.present(customMediaPlayer, animated: true, completion: nil)
+} else {
+    Logger.shared.log("Failed to find root view controller", type: "Error")
+    DropManager.shared.showDrop(title: "Error", subtitle: "Failed to present player", duration: 2.0, icon: UIImage(systemName: "xmark.circle"))
+}
             }
         }
     }
@@ -1974,20 +1980,5 @@ struct MediaInfoView: View {
         
         videoPlayerViewController.detachedWindow = detachedWindow
         hostingController.present(videoPlayerViewController, animated: true, completion: nil)
-    }
-    
-    private func presentPlayerWithDetachedContext(customMediaPlayer: CustomMediaPlayerViewController) {
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
-        
-        let detachedWindow = UIWindow(windowScene: windowScene)
-        let hostingController = UIViewController()
-        hostingController.view.backgroundColor = .clear
-        detachedWindow.rootViewController = hostingController
-        detachedWindow.backgroundColor = .clear
-        detachedWindow.windowLevel = .normal + 1
-        detachedWindow.makeKeyAndVisible()
-        
-        customMediaPlayer.detachedWindow = detachedWindow
-        hostingController.present(customMediaPlayer, animated: true, completion: nil)
     }
 }
