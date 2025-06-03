@@ -78,7 +78,9 @@ struct MediaInfoView: View {
     @State private var isBulkDownloading: Bool = false
     @State private var bulkDownloadProgress: String = ""
     @State private var tmdbType: TMDBFetcher.MediaType? = nil
+    
     @State private var latestProgress: Double = 0.0
+    private var episodeProgressCache: [String: (lastPlayed: Double, total: Double, progress: Double)] = [:]
     
     private var isGroupedBySeasons: Bool {
         return groupedEpisodes().count > 1
@@ -970,9 +972,30 @@ struct MediaInfoView: View {
             }
         }
     }
-    
+
+    private func cacheEpisodeProgress() {
+        let userDefaults = UserDefaults.standard
+        episodeProgressCache.removeAll()
+        for ep in episodeLinks {
+            let lastKey = "lastPlayedTime_\(ep.href)"
+            let totalKey = "totalTime_\(ep.href)"
+            let last = userDefaults.double(forKey: lastKey)
+            let total = userDefaults.double(forKey: totalKey)
+            let progress = total > 0 ? last / total : 0
+            episodeProgressCache[ep.href] = (last, total, progress)
+        }
+    }
+
     private func updateLatestProgress() {
-        Logger.shared.log("Called, Called", type: "General")
+        if episodeProgressCache.isEmpty && !episodeLinks.isEmpty {
+            cacheEpisodeProgress()
+        }
+        for ep in episodeLinks.reversed() {
+            if let cachedProgress = episodeProgressCache[ep.href], cachedProgress.total > 0 {
+                latestProgress = cachedProgress.progress
+                return
+            }
+        }
         for ep in episodeLinks.reversed() {
             let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
             let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
@@ -1007,45 +1030,80 @@ struct MediaInfoView: View {
     }
     
     private var continueWatchingText: String {
+        guard !episodeLinks.isEmpty else {
+            return "Start Watching"
+        }
+        if episodeProgressCache.isEmpty {
+            cacheEpisodeProgress()
+        }
+        var firstUnwatchedEpisode: EpisodeLink? = nil
         for ep in episodeLinks {
-            let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-            let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-            let progress = total > 0 ? last / total : 0
-            
+            let progress: Double
+            if let cachedData = episodeProgressCache[ep.href] {
+                progress = cachedData.progress
+            } else {
+                let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+                let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+                progress = total > 0 ? last / total : 0
+            }
             if progress > 0 && progress < 0.9 {
                 return "Continue Watching Episode \(ep.number)"
             }
-        }
-        
-        for ep in episodeLinks {
-            let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-            let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-            let progress = total > 0 ? last / total : 0
-            
-            if progress < 0.9 {
-                return "Start Watching Episode \(ep.number)"
+            if firstUnwatchedEpisode == nil && progress < 0.9 {
+                firstUnwatchedEpisode = ep
             }
         }
-        
+        if let firstUnwatched = firstUnwatchedEpisode {
+            return "Start Watching Episode \(firstUnwatched.number)"
+        }
         return "Start Watching"
     }
     
     private func playFirstUnwatchedEpisode() {
+        guard !episodeLinks.isEmpty else { return }
+        if episodeProgressCache.isEmpty {
+            cacheEpisodeProgress()
+        }
+        var episodeToPlay: EpisodeLink? = nil
         for ep in episodeLinks {
-            let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-            let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-            let progress = total > 0 ? last / total : 0
-            
-            if progress < 0.9 {
-                selectedEpisodeNumber = ep.number
-                fetchStream(href: ep.href)
-                return
+            let progress: Double
+            let hasValidTotal: Bool
+            if let cached = episodeProgressCache[ep.href] {
+                progress = cached.progress
+                hasValidTotal = cached.total > 0
+            } else {
+                let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+                let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+                progress = total > 0 ? last / total : 0
+                hasValidTotal = total > 0
+            }
+            if hasValidTotal && progress > 0 && progress < 0.9 {
+                episodeToPlay = ep
+                break
             }
         }
-        
-        if let first = episodeLinks.first {
-            selectedEpisodeNumber = first.number
-            fetchStream(href: first.href)
+        if episodeToPlay == nil {
+            for ep in episodeLinks {
+                let progress: Double
+                if let cached = episodeProgressCache[ep.href] {
+                    progress = cached.progress
+                } else {
+                    let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+                    let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+                    progress = total > 0 ? last / total : 0
+                }
+                if progress < 0.9 {
+                    episodeToPlay = ep
+                    break
+                }
+            }
+        }
+        if episodeToPlay == nil {
+            episodeToPlay = episodeLinks.first
+        }
+        if let episode = episodeToPlay {
+            selectedEpisodeNumber = episode.number
+            fetchStream(href: episode.href)
         }
     }
     
