@@ -1891,6 +1891,24 @@ struct MediaInfoView: View {
             return
         }
         
+        if MetadataCacheManager.shared.isCachingEnabled {
+            let cacheKey = "anilist_\(anilistId)_episode_\(episode.number)"
+            
+            if let cachedData = MetadataCacheManager.shared.getMetadata(forKey: cacheKey),
+               let metadata = EpisodeMetadata.fromData(cachedData) {
+                
+                print("[Bulk Download] Using cached metadata for episode \(episode.number)")
+                let metadataInfo = EpisodeMetadataInfo(
+                    title: metadata.title,
+                    imageUrl: metadata.imageUrl,
+                    anilistId: metadata.anilistId,
+                    episodeNumber: metadata.episodeNumber
+                )
+                completion(metadataInfo)
+                return
+            }
+        }
+        
         fetchEpisodeMetadataFromNetwork(anilistId: anilistId, episodeNumber: episode.number, completion: completion)
     }
     
@@ -1948,6 +1966,22 @@ struct MediaInfoView: View {
                 
                 if let imageUrl = episodeDetails["image"] as? String, !imageUrl.isEmpty {
                     image = imageUrl
+                }
+                if MetadataCacheManager.shared.isCachingEnabled {
+                    let metadata = EpisodeMetadata(
+                        title: title,
+                        imageUrl: image,
+                        anilistId: anilistId,
+                        episodeNumber: episodeNumber
+                    )
+                    
+                    let cacheKey = "anilist_\(anilistId)_episode_\(episodeNumber)"
+                    if let metadataData = metadata.toData() {
+                        MetadataCacheManager.shared.storeMetadata(
+                            metadataData,
+                            forKey: cacheKey
+                        )
+                    }
                 }
                 
                 let metadataInfo = EpisodeMetadataInfo(
