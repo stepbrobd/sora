@@ -103,31 +103,6 @@ struct MediaInfoView: View {
         return isCompactLayout ? 20 : 16
     }
     
-    private var watchingProgress: Double {
-        guard !episodeLinks.isEmpty else { return 0 }
-        var watchedCount = 0
-        for ep in episodeLinks {
-            let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-            let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-            if totalTime > 0 && (totalTime - lastPlayedTime) / totalTime <= 0.1 {
-                watchedCount += 1
-            }
-        }
-        return Double(watchedCount) / Double(episodeLinks.count)
-    }
-    
-    private var latestProgressEpisode: (progress: Double, title: String)? {
-        for ep in episodeLinks.reversed() {
-            let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-            let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-            if totalTime > 0 {
-                let progress = lastPlayedTime / totalTime
-                return (progress, "Episode \(ep.number)")
-            }
-        }
-        return nil
-    }
-    
     var body: some View {
         ZStack {
             bodyContent
@@ -997,6 +972,7 @@ struct MediaInfoView: View {
     }
     
     private func updateLatestProgress() {
+        Logger.shared.log("Called, Called", type: "General")
         for ep in episodeLinks.reversed() {
             let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
             let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
