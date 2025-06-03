@@ -102,33 +102,6 @@ struct MediaInfoView: View {
         return isCompactLayout ? 20 : 16
     }
     
-    private var watchingProgress: Double {
-        guard !episodeLinks.isEmpty else { return 0 }
-        var watchedCount = 0
-        for ep in episodeLinks {
-            let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-            let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-            if totalTime > 0 && (totalTime - lastPlayedTime) / totalTime <= 0.1 {
-                watchedCount += 1
-            }
-        }
-        return Double(watchedCount) / Double(episodeLinks.count)
-    }
-    
-    private var latestProgressEpisode: (progress: Double, title: String)? {
-        for ep in episodeLinks.reversed() {
-            let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-            let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-            if totalTime > 0 {
-                let progress = lastPlayedTime / totalTime
-                return (progress, "Episode \(ep.number)")
-            }
-        }
-        return nil
-    }
-    
-    @State private var continueWatchingText: String = "Start Watching"
-    
     var body: some View {
         ZStack {
             bodyContent
@@ -169,7 +142,6 @@ struct MediaInfoView: View {
             }
         }
         .onAppear {
-            updateContinueWatchingText()
             buttonRefreshTrigger.toggle()
             
             let savedID = UserDefaults.standard.integer(forKey: "custom_anilist_id_\(href)")
@@ -603,55 +575,25 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var playAndBookmarkSection: some View {
         HStack(spacing: 12) {
-            ZStack(alignment: .leading) {
-                GeometryReader { geometry in
-                    let width = geometry.size.width
-                    let progress = latestProgressEpisode?.progress ?? 0.0
-                    
+            Button(action: {
+                playFirstUnwatchedEpisode()
+            }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "play.fill")
+                        .foregroundColor(colorScheme == .dark ? .black : .white)
+                    Text(startWatchingText)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(colorScheme == .dark ? .black : .white)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .padding(.horizontal, 20)
+                .background(
                     RoundedRectangle(cornerRadius: 25)
-                        .fill(Color.accentColor.opacity(0.25))
-                        .frame(width: width, height: 48)
-                    
-                    Capsule()
                         .fill(Color.accentColor)
-                        .frame(width: max(width * CGFloat(progress), 8), height: 48)
-                        .mask(
-                            HStack {
-                                if progress < 0.05 && progress != 0 {
-                                    RoundedRectangle(cornerRadius: 24)
-                                        .frame(width: 8)
-                                } else {
-                                    RoundedRectangle(cornerRadius: 24)
-                                }
-                                Spacer()
-                            }
-                        )
-                }
-                .frame(height: 48)
-                
-                Button(action: {
-                    playFirstUnwatchedEpisode()
-                }) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "play.fill")
-                            .foregroundColor(colorScheme == .dark ? .black : .white)
-                        Text(latestProgressEpisode?.title ?? "Start Watching")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(colorScheme == .dark ? .black : .white)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 20)
-                    .background(Color.clear)
-                    .contentShape(RoundedRectangle(cornerRadius: 25))
-                }
-                .disabled(isFetchingEpisode)
+                )
             }
-            .clipShape(RoundedRectangle(cornerRadius: 25))
-            .overlay(
-                RoundedRectangle(cornerRadius: 25)
-                    .stroke(Color.accentColor, lineWidth: 0)
-            )
+            .disabled(isFetchingEpisode)
             
             Button(action: {
                 libraryManager.toggleBookmark(
@@ -1008,25 +950,32 @@ struct MediaInfoView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
         }
-        .padding(.vertical, 50)
+        .padding(.vertical, 60)
     }
     
-    private func updateContinueWatchingText() {
-        for ep in episodeLinks {
-            let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-            let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-            let progress = total > 0 ? last / total : 0
-            
-            if progress == 0 {
-                continueWatchingText = "Start Watching Episode \(ep.number)"
-                return
-            } else if progress < 0.9 {
-                continueWatchingText = "Continue Watching Episode \(ep.number)"
-                return
+    private var startWatchingText: String {
+        let indices = finishedAndUnfinishedIndices()
+        let finished = indices.finished
+        let unfinished = indices.unfinished
+        
+        if episodeLinks.count == 1 {
+            if let unfinishedIndex = unfinished {
+                return "Continue Watching"
             }
+            return "Start Watching"
         }
         
-        continueWatchingText = "Start Watching"
+        if let finishedIndex = finished, finishedIndex < episodeLinks.count - 1 {
+            let nextEp = episodeLinks[finishedIndex + 1]
+            return "Start Watching Episode \(nextEp.number)"
+        }
+        
+        if let unfinishedIndex = unfinished {
+            let currentEp = episodeLinks[unfinishedIndex]
+            return "Continue Watching Episode \(currentEp.number)"
+        }
+        
+        return "Start Watching"
     }
     
     private func playFirstUnwatchedEpisode() {
