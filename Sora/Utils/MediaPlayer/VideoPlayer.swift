@@ -25,6 +25,8 @@ class VideoPlayerViewController: UIViewController {
     var episodeImageUrl: String = ""
     var mediaTitle: String = ""
     
+    var detachedWindow: UIWindow?
+    
     init(module: ScrapingModule) {
         self.module = module
         super.init(nibName: nil, bundle: nil)
