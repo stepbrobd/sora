@@ -1797,6 +1797,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         wasPlayingBeforeBackground = player.rate > 0
         if isPipAutoEnabled && AVPictureInPictureController.isPictureInPictureSupported() {
             startPipIfNeeded()
+        } else {
+            player.pause()
         }
     }
     
