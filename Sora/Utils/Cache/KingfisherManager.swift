@@ -5,23 +5,29 @@
 //  Created by doomsboygaming on 5/22/25
 //
 
-import SwiftUI
 import Foundation
 import Kingfisher
+import SwiftUI
 
+/// Manages Kingfisher image caching configuration
 class KingfisherCacheManager {
-    private let jpegCompressionQuality: CGFloat = 0.7
-    
     static let shared = KingfisherCacheManager()
-    private let maxDiskCacheSize: UInt = 64 * 1024 * 1024
+    
+    /// Maximum disk cache size (default 500MB)
+    private let maxDiskCacheSize: UInt = 500 * 1024 * 1024
+    
+    /// Maximum cache age (default 7 days)
     private let maxCacheAgeInDays: TimeInterval = 7
     
+    /// UserDefaults keys
     private let imageCachingEnabledKey = "imageCachingEnabled"
     
+    /// Whether image caching is enabled
     var isCachingEnabled: Bool {
         get {
-            UserDefaults.standard.object(forKey: imageCachingEnabledKey) == nil ?
-            true : UserDefaults.standard.bool(forKey: imageCachingEnabledKey)
+            // Default to true if not set
+            UserDefaults.standard.object(forKey: imageCachingEnabledKey) == nil ? 
+                true : UserDefaults.standard.bool(forKey: imageCachingEnabledKey)
         }
         set {
             UserDefaults.standard.set(newValue, forKey: imageCachingEnabledKey)
@@ -31,46 +37,31 @@ class KingfisherCacheManager {
     
     private init() {
         configureKingfisher()
-#if os(iOS)
-        NotificationCenter.default.addObserver(self, selector: #selector(clearMemoryCacheOnWarning), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
-#endif
     }
     
-    @objc private func clearMemoryCacheOnWarning() {
-        KingfisherManager.shared.cache.clearMemoryCache()
-        Logger.shared.log("Cleared memory cache due to memory warning", type: "Debug")
-    }
-    
+    /// Configure Kingfisher with appropriate caching settings
     func configureKingfisher() {
         let cache = ImageCache.default
         
+        // Set disk cache size limit and expiration
         cache.diskStorage.config.sizeLimit = isCachingEnabled ? maxDiskCacheSize : 0
-        cache.diskStorage.config.expiration = isCachingEnabled ?
-            .days(Int(maxCacheAgeInDays)) : .seconds(1)
+        cache.diskStorage.config.expiration = isCachingEnabled ? 
+            .days(Int(maxCacheAgeInDays)) : .seconds(1)  // 1 second means effectively disabled
         
-        cache.memoryStorage.config.totalCostLimit = isCachingEnabled ?
-        12 * 1024 * 1024 : 0
-        
-        cache.memoryStorage.config.cleanInterval = 60
-        
-        KingfisherManager.shared.downloader.downloadTimeout = 15.0
-        
-        struct CustomJPEGCacheSerializer: CacheSerializer {
-            let compressionQuality: CGFloat
+        // Set memory cache size
+        cache.memoryStorage.config.totalCostLimit = isCachingEnabled ? 
+            30 * 1024 * 1024 : 0  // 30MB memory cache when enabled
             
-            func data(with image: KFCrossPlatformImage, original: Data?) -> Data? {
-                return image.kf.jpegData(compressionQuality: compressionQuality)
-            }
-            
-            func image(with data: Data, options: KingfisherParsedOptionsInfo) -> KFCrossPlatformImage? {
-                return DefaultCacheSerializer.default.image(with: data, options: options)
-            }
-        }
-        cache.diskStorage.config.cacheSerializer = CustomJPEGCacheSerializer(compressionQuality: jpegCompressionQuality)
+        // Configure clean interval
+        cache.memoryStorage.config.cleanInterval = 60  // Clean memory every 60 seconds
+        
+        // Configure retry strategy
+        KingfisherManager.shared.downloader.downloadTimeout = 15.0  // 15 second timeout
         
         Logger.shared.log("Configured Kingfisher cache. Enabled: \(isCachingEnabled)", type: "Debug")
     }
     
+    /// Clear all cached images
     func clearCache(completion: (() -> Void)? = nil) {
         KingfisherManager.shared.cache.clearMemoryCache()
         KingfisherManager.shared.cache.clearDiskCache {
@@ -79,6 +70,8 @@ class KingfisherCacheManager {
         }
     }
     
+    /// Calculate current cache size
+    /// - Parameter completion: Closure to call with cache size in bytes
     func calculateCacheSize(completion: @escaping (UInt) -> Void) {
         KingfisherManager.shared.cache.calculateDiskStorageSize { result in
             switch result {
@@ -91,9 +84,12 @@ class KingfisherCacheManager {
         }
     }
     
+    /// Convert cache size to user-friendly string
+    /// - Parameter sizeInBytes: Size in bytes
+    /// - Returns: Formatted string (e.g., "5.2 MB")
     static func formatCacheSize(_ sizeInBytes: UInt) -> String {
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
         return formatter.string(fromByteCount: Int64(sizeInBytes))
     }
-}
+} 
