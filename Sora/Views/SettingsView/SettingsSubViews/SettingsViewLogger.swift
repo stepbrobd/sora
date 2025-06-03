@@ -62,17 +62,7 @@ fileprivate struct SettingsSection<Content: View>: View {
 struct SettingsViewLogger: View {
     @State private var logs: String = ""
     @State private var isLoading: Bool = true
-    @State private var showFullLogs: Bool = false
     @StateObject private var filterViewModel = LogFilterViewModel.shared
-    
-    private let displayCharacterLimit = 50_000
-    
-    var displayedLogs: String {
-        if showFullLogs || logs.count <= displayCharacterLimit {
-            return logs
-        }
-        return String(logs.suffix(displayCharacterLimit))
-    }
     
     var body: some View {
         ScrollView {
@@ -89,26 +79,13 @@ struct SettingsViewLogger: View {
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.vertical, 20)
                     } else {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(displayedLogs)
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .textSelection(.enabled)
-                            
-                            if logs.count > displayCharacterLimit && !showFullLogs {
-                                Button(action: {
-                                    showFullLogs = true
-                                }) {
-                                    Text("Show More (\(logs.count - displayCharacterLimit) more characters)")
-                                        .font(.footnote)
-                                        .foregroundColor(.accentColor)
-                                }
-                                .padding(.top, 8)
-                            }
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
+                        Text(logs)
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .textSelection(.enabled)
                     }
                 }
             }
@@ -162,7 +139,6 @@ struct SettingsViewLogger: View {
             await Logger.shared.clearLogsAsync()
             await MainActor.run {
                 self.logs = ""
-                self.showFullLogs = false
             }
         }
     }
