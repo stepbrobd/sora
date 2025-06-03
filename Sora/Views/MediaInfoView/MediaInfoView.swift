@@ -102,6 +102,33 @@ struct MediaInfoView: View {
         return isCompactLayout ? 20 : 16
     }
     
+    private var watchingProgress: Double {
+        guard !episodeLinks.isEmpty else { return 0 }
+        var watchedCount = 0
+        for ep in episodeLinks {
+            let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+            let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+            if totalTime > 0 && (totalTime - lastPlayedTime) / totalTime <= 0.1 {
+                watchedCount += 1
+            }
+        }
+        return Double(watchedCount) / Double(episodeLinks.count)
+    }
+    
+    private var latestProgressEpisode: (progress: Double, title: String)? {
+        for ep in episodeLinks.reversed() {
+            let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+            let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+            if totalTime > 0 {
+                let progress = lastPlayedTime / totalTime
+                return (progress, "Episode \(ep.number)")
+            }
+        }
+        return nil
+    }
+    
+    @State private var continueWatchingText: String = "Start Watching"
+    
     var body: some View {
         ZStack {
             bodyContent
@@ -142,6 +169,7 @@ struct MediaInfoView: View {
             }
         }
         .onAppear {
+            updateContinueWatchingText()
             buttonRefreshTrigger.toggle()
             
             let savedID = UserDefaults.standard.integer(forKey: "custom_anilist_id_\(href)")
@@ -320,10 +348,12 @@ struct MediaInfoView: View {
                         .font(.system(size: 16))
                         .foregroundColor(.secondary)
                         .lineLimit(showFullSynopsis ? nil : 3)
+                        .animation(nil, value: showFullSynopsis)
                     
                     Text(showFullSynopsis ? "LESS" : "MORE")
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.accentColor)
+                        .animation(.easeInOut(duration: 0.3), value: showFullSynopsis)
                 }
                 .onTapGesture {
                     withAnimation(.easeInOut(duration: 0.3)) {
@@ -573,25 +603,55 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var playAndBookmarkSection: some View {
         HStack(spacing: 12) {
-            Button(action: {
-                playFirstUnwatchedEpisode()
-            }) {
-                HStack(spacing: 8) {
-                    Image(systemName: "play.fill")
-                        .foregroundColor(colorScheme == .dark ? .black : .white)
-                    Text(startWatchingText)
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(colorScheme == .dark ? .black : .white)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .padding(.horizontal, 20)
-                .background(
+            ZStack(alignment: .leading) {
+                GeometryReader { geometry in
+                    let width = geometry.size.width
+                    let progress = latestProgressEpisode?.progress ?? 0.0
+                    
                     RoundedRectangle(cornerRadius: 25)
+                        .fill(Color.accentColor.opacity(0.25))
+                        .frame(width: width, height: 48)
+                    
+                    Capsule()
                         .fill(Color.accentColor)
-                )
+                        .frame(width: max(width * CGFloat(progress), 8), height: 48)
+                        .mask(
+                            HStack {
+                                if progress < 0.05 && progress != 0 {
+                                    RoundedRectangle(cornerRadius: 24)
+                                        .frame(width: 8)
+                                } else {
+                                    RoundedRectangle(cornerRadius: 24)
+                                }
+                                Spacer()
+                            }
+                        )
+                }
+                .frame(height: 48)
+                
+                Button(action: {
+                    playFirstUnwatchedEpisode()
+                }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "play.fill")
+                            .foregroundColor(colorScheme == .dark ? .black : .white)
+                        Text(latestProgressEpisode?.title ?? "Start Watching")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(colorScheme == .dark ? .black : .white)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 20)
+                    .background(Color.clear)
+                    .contentShape(RoundedRectangle(cornerRadius: 25))
+                }
+                .disabled(isFetchingEpisode)
             }
-            .disabled(isFetchingEpisode)
+            .clipShape(RoundedRectangle(cornerRadius: 25))
+            .overlay(
+                RoundedRectangle(cornerRadius: 25)
+                    .stroke(Color.accentColor, lineWidth: 0)
+            )
             
             Button(action: {
                 libraryManager.toggleBookmark(
@@ -840,9 +900,9 @@ struct MediaInfoView: View {
         let apiType = tmdbType.rawValue
         let urlString = "https://api.themoviedb.org/3/\(apiType)/\(tmdbID)?api_key=738b4edd0a156cc126dc4a4b8aea4aca"
         guard let url = URL(string: urlString) else { return }
-
+        
         let tmdbImageWidth = UserDefaults.standard.string(forKey: "tmdbImageWidth") ?? "original"
-
+        
         URLSession.custom.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else { return }
             do {
@@ -931,7 +991,7 @@ struct MediaInfoView: View {
     
     @ViewBuilder
     private var noEpisodesSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 8) {
             Image(systemName: "tv.slash")
                 .font(.system(size: 48))
                 .foregroundColor(.secondary)
@@ -948,56 +1008,43 @@ struct MediaInfoView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
         }
-        .padding(.vertical, 60)
+        .padding(.vertical, 50)
     }
     
-    private var startWatchingText: String {
-        let indices = finishedAndUnfinishedIndices()
-        let finished = indices.finished
-        let unfinished = indices.unfinished
-        
-        if episodeLinks.count == 1 {
-            if let unfinishedIndex = unfinished {
-                return "Continue Watching"
+    private func updateContinueWatchingText() {
+        for ep in episodeLinks {
+            let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+            let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+            let progress = total > 0 ? last / total : 0
+            
+            if progress == 0 {
+                continueWatchingText = "Start Watching Episode \(ep.number)"
+                return
+            } else if progress < 0.9 {
+                continueWatchingText = "Continue Watching Episode \(ep.number)"
+                return
             }
-            return "Start Watching"
         }
         
-        if let finishedIndex = finished, finishedIndex < episodeLinks.count - 1 {
-            let nextEp = episodeLinks[finishedIndex + 1]
-            return "Start Watching Episode \(nextEp.number)"
-        }
-        
-        if let unfinishedIndex = unfinished {
-            let currentEp = episodeLinks[unfinishedIndex]
-            return "Continue Watching Episode \(currentEp.number)"
-        }
-        
-        return "Start Watching"
+        continueWatchingText = "Start Watching"
     }
     
     private func playFirstUnwatchedEpisode() {
-        let indices = finishedAndUnfinishedIndices()
-        let finished = indices.finished
-        let unfinished = indices.unfinished
-        
-        if let finishedIndex = finished, finishedIndex < episodeLinks.count - 1 {
-            let nextEp = episodeLinks[finishedIndex + 1]
-            selectedEpisodeNumber = nextEp.number
-            fetchStream(href: nextEp.href)
-            return
+        for ep in episodeLinks {
+            let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
+            let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
+            let progress = total > 0 ? last / total : 0
+            
+            if progress < 0.9 {
+                selectedEpisodeNumber = ep.number
+                fetchStream(href: ep.href)
+                return
+            }
         }
         
-        if let unfinishedIndex = unfinished {
-            let ep = episodeLinks[unfinishedIndex]
-            selectedEpisodeNumber = ep.number
-            fetchStream(href: ep.href)
-            return
-        }
-        
-        if let firstEpisode = episodeLinks.first {
-            selectedEpisodeNumber = firstEpisode.number
-            fetchStream(href: firstEpisode.href)
+        if let first = episodeLinks.first {
+            selectedEpisodeNumber = first.number
+            fetchStream(href: first.href)
         }
     }
     
@@ -1113,7 +1160,7 @@ struct MediaInfoView: View {
                 
                 if let sources = result.sources, !sources.isEmpty {
                     if sources.count > 1 {
-                        self.showStreamSelectionAlert(streams: sources, fullURL: href, subtitles: result.subtitles?.first, fetchID: fetchID)
+                        self.showStreamSelectionAlert(sources: sources, fullURL: href, subtitles: result.subtitles?.first, fetchID: fetchID)
                     } else if let streamUrl = sources[0]["streamUrl"] as? String {
                         let headers = sources[0]["headers"] as? [String: String]
                         self.playStream(url: streamUrl, fullURL: href, subtitles: result.subtitles?.first, headers: headers, fetchID: fetchID)
@@ -1122,7 +1169,7 @@ struct MediaInfoView: View {
                     }
                 } else if let streams = result.streams, !streams.isEmpty {
                     if streams.count > 1 {
-                        self.showStreamSelectionAlert(streams: streams, fullURL: href, subtitles: result.subtitles?.first, fetchID: fetchID)
+                        self.showStreamSelectionAlert(sources: streams, fullURL: href, subtitles: result.subtitles?.first, fetchID: fetchID)
                     } else {
                         self.playStream(url: streams[0], fullURL: href, subtitles: result.subtitles?.first, fetchID: fetchID)
                     }
@@ -1171,7 +1218,7 @@ struct MediaInfoView: View {
         }
     }
     
-    func showStreamSelectionAlert(streams: [Any], fullURL: String, subtitles: String? = nil, fetchID: UUID) {
+    func showStreamSelectionAlert(sources: [Any], fullURL: String, subtitles: String? = nil, fetchID: UUID) {
         guard self.activeFetchID == fetchID else {
             return
         }
@@ -1189,41 +1236,37 @@ struct MediaInfoView: View {
             var index = 0
             var streamIndex = 1
             
-            while index < streams.count {
+            while index < sources.count {
                 var title: String = ""
                 var streamUrl: String = ""
                 var headers: [String:String]? = nil
-                if let streams = streams as? [String]
-                {
-                    if index + 1 < streams.count {
-                        if !streams[index].lowercased().contains("http") {
-                            title = streams[index]
-                            streamUrl = streams[index + 1]
+                if let sources = sources as? [String] {
+                    if index + 1 < sources.count {
+                        if !sources[index].lowercased().contains("http") {
+                            title = sources[index]
+                            streamUrl = sources[index + 1]
                             index += 2
                         } else {
                             title = "Stream \(streamIndex)"
-                            streamUrl = streams[index]
+                            streamUrl = sources[index]
                             index += 1
                         }
                     } else {
                         title = "Stream \(streamIndex)"
-                        streamUrl = streams[index]
+                        streamUrl = sources[index]
                         index += 1
                     }
                 }
-                else if let streams = streams as? [[String: Any]]
-                {
-                    if let currTitle = streams[index]["title"] as? String
-                    {
+                else if let sources = sources as? [[String: Any]] {
+                    if let currTitle = sources[index]["title"] as? String {
                         title = currTitle
-                        streamUrl = (streams[index]["streamUrl"] as? String) ?? ""
-                    }
-                    else
+                        streamUrl = (sources[index]["streamUrl"] as? String) ?? ""
+                    } else
                     {
                         title = "Stream \(streamIndex)"
-                        streamUrl = (streams[index]["streamUrl"] as? String)!
+                        streamUrl = (sources[index]["streamUrl"] as? String)!
                     }
-                    headers = streams[index]["headers"] as? [String:String] ?? [:]
+                    headers = sources[index]["headers"] as? [String:String] ?? [:]
                     index += 1
                 }
                 
@@ -1347,7 +1390,7 @@ struct MediaInfoView: View {
                     headers: headers ?? nil
                 )
                 customMediaPlayer.modalPresentationStyle = .overFullScreen
-                Logger.shared.log("Opening custom media player with url: \(url)")
+                Logger.shared.log("Opening custom media player with stream URL: \(url), and subtitles URL: \(String(describing: subtitles))", type: "Stream")
                 
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                    let window = windowScene.windows.first,
@@ -1613,39 +1656,130 @@ struct MediaInfoView: View {
     }
     
     private func handleBulkDownloadResult(_ result: (streams: [String]?, subtitles: [String]?, sources: [[String:Any]]?), episode: EpisodeLink, methodIndex: Int, softsub: Bool, continuation: CheckedContinuation<Bool, Never>) {
-        if let streams = result.streams, !streams.isEmpty, let url = URL(string: streams[0]) {
+        
+        if let sources = result.sources, !sources.isEmpty {
+            if sources.count > 1 {
+                showBulkDownloadStreamSelectionAlert(sources: sources, episode: episode, continuation: continuation)
+                return
+            } else if let streamUrl = sources[0]["streamUrl"] as? String, let url = URL(string: streamUrl) {
+                
+                let subtitleURLString = sources[0]["subtitle"] as? String
+                let subtitleURL = subtitleURLString.flatMap { URL(string: $0) }
+                if let subtitleURL = subtitleURL {
+                    Logger.shared.log("[Bulk Download] Found subtitle URL: \(subtitleURL.absoluteString)")
+                }
+                
+                startEpisodeDownloadWithProcessedStream(episode: episode, url: url, streamUrl: streamUrl, subtitleURL: subtitleURL)
+                continuation.resume(returning: true)
+                return
+            }
+        }
+        
+        if let streams = result.streams, !streams.isEmpty {
             if streams[0] == "[object Promise]" {
-                print("[Bulk Download] Method #\(methodIndex+1) returned a Promise object, trying next method")
                 tryNextDownloadMethodForBulk(episode: episode, methodIndex: methodIndex + 1, softsub: softsub, continuation: continuation)
                 return
             }
             
-            print("[Bulk Download] Method #\(methodIndex+1) returned valid stream URL: \(streams[0])")
+            if streams.count > 1 {
+                showBulkDownloadStreamSelectionAlert(sources: streams, episode: episode, continuation: continuation)
+                return
+            } else if let url = URL(string: streams[0]) {
+                let subtitleURL = result.subtitles?.first.flatMap { URL(string: $0) }
+                if let subtitleURL = subtitleURL {
+                    Logger.shared.log("[Bulk Download] Found subtitle URL: \(subtitleURL.absoluteString)")
+                }
+                
+                startEpisodeDownloadWithProcessedStream(episode: episode, url: url, streamUrl: streams[0], subtitleURL: subtitleURL)
+                continuation.resume(returning: true)
+                return
+            }
+        }
+        
+        tryNextDownloadMethodForBulk(episode: episode, methodIndex: methodIndex + 1, softsub: softsub, continuation: continuation)
+    }
+    
+    private func showBulkDownloadStreamSelectionAlert(sources: [Any], episode: EpisodeLink, continuation: CheckedContinuation<Bool, Never>) {
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: "Select Download Server", message: "Choose a server to download Episode \(episode.number) from", preferredStyle: .actionSheet)
             
-            let subtitleURL = result.subtitles?.first.flatMap { URL(string: $0) }
-            if let subtitleURL = subtitleURL {
-                print("[Bulk Download] Found subtitle URL: \(subtitleURL.absoluteString)")
+            var index = 0
+            var streamIndex = 1
+            
+            while index < sources.count {
+                var title: String = ""
+                var streamUrl: String = ""
+                var headers: [String:String]? = nil
+                
+                if let sources = sources as? [String] {
+                    if index + 1 < sources.count {
+                        if !sources[index].lowercased().contains("http") {
+                            title = sources[index]
+                            streamUrl = sources[index + 1]
+                            index += 2
+                        } else {
+                            title = "Server \(streamIndex)"
+                            streamUrl = sources[index]
+                            index += 1
+                        }
+                    } else {
+                        title = "Server \(streamIndex)"
+                        streamUrl = sources[index]
+                        index += 1
+                    }
+                } else if let sources = sources as? [[String: Any]] {
+                    if let currTitle = sources[index]["title"] as? String {
+                        title = currTitle
+                    } else {
+                        title = "Server \(streamIndex)"
+                    }
+                    streamUrl = (sources[index]["streamUrl"] as? String) ?? ""
+                    index += 1
+                }
+                
+                alert.addAction(UIAlertAction(title: title, style: .default) { _ in
+                    guard let url = URL(string: streamUrl) else {
+                        DropManager.shared.error("Invalid stream URL selected")
+                        continuation.resume(returning: false)
+                        return
+                    }
+                    
+                    var subtitleURL: URL? = nil
+                    if let sources = sources as? [[String: Any]],
+                       let subtitleURLString = sources[index-1]["subtitle"] as? String {
+                        subtitleURL = URL(string: subtitleURLString)
+                    }
+                    
+                    self.startEpisodeDownloadWithProcessedStream(episode: episode, url: url, streamUrl: streamUrl, subtitleURL: subtitleURL)
+                    continuation.resume(returning: true)
+                })
+                
+                streamIndex += 1
             }
             
-            startEpisodeDownloadWithProcessedStream(episode: episode, url: url, streamUrl: streams[0], subtitleURL: subtitleURL)
-            continuation.resume(returning: true)
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in
+                continuation.resume(returning: false)
+            })
             
-        } else if let sources = result.sources, !sources.isEmpty, let streamUrl = sources[0]["streamUrl"] as? String, let url = URL(string: streamUrl) {
-            
-            print("[Bulk Download] Method #\(methodIndex+1) returned valid stream URL with headers: \(streamUrl)")
-            
-            let subtitleURLString = sources[0]["subtitle"] as? String
-            let subtitleURL = subtitleURLString.flatMap { URL(string: $0) }
-            if let subtitleURL = subtitleURL {
-                print("[Bulk Download] Found subtitle URL: \(subtitleURL.absoluteString)")
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first,
+               let rootVC = window.rootViewController {
+                
+                if UIDevice.current.userInterfaceIdiom == .pad {
+                    if let popover = alert.popoverPresentationController {
+                        popover.sourceView = window
+                        popover.sourceRect = CGRect(
+                            x: UIScreen.main.bounds.width / 2,
+                            y: UIScreen.main.bounds.height / 2,
+                            width: 0,
+                            height: 0
+                        )
+                        popover.permittedArrowDirections = []
+                    }
+                }
+                
+                findTopViewController.findViewController(rootVC).present(alert, animated: true)
             }
-            
-            startEpisodeDownloadWithProcessedStream(episode: episode, url: url, streamUrl: streamUrl, subtitleURL: subtitleURL)
-            continuation.resume(returning: true)
-            
-        } else {
-            print("[Bulk Download] Method #\(methodIndex+1) did not return valid streams, trying next method")
-            tryNextDownloadMethodForBulk(episode: episode, methodIndex: methodIndex + 1, softsub: softsub, continuation: continuation)
         }
     }
     
