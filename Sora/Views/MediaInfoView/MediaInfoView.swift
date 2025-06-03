@@ -102,21 +102,6 @@ struct MediaInfoView: View {
         return isCompactLayout ? 20 : 16
     }
     
-    private var watchingProgress: Double {
-        guard !episodeLinks.isEmpty else { return 0 }
-        var watchedCount = 0
-        for ep in episodeLinks {
-            let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-            let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-            if totalTime > 0 && (totalTime - lastPlayedTime) / totalTime <= 0.1 {
-                watchedCount += 1
-            }
-        }
-        return Double(watchedCount) / Double(episodeLinks.count)
-    }
-
-    @State private var continueWatchingText: String = "Start Watching"
-    
     var body: some View {
         ZStack {
             bodyContent
@@ -157,7 +142,6 @@ struct MediaInfoView: View {
             }
         }
         .onAppear {
-            updateContinueWatchingText()
             buttonRefreshTrigger.toggle()
             
             let savedID = UserDefaults.standard.integer(forKey: "custom_anilist_id_\(href)")
@@ -608,7 +592,7 @@ struct MediaInfoView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "play.fill")
                             .foregroundColor(colorScheme == .dark ? .black : .white)
-                        Text(continueWatchingText)
+                        Text(startWatchingText)
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(colorScheme == .dark ? .black : .white)
                     }
@@ -989,50 +973,27 @@ struct MediaInfoView: View {
         let indices = finishedAndUnfinishedIndices()
         let finished = indices.finished
         let unfinished = indices.unfinished
-
+        
         if episodeLinks.count == 1 {
-            if unfinished != nil {
+            if let unfinishedIndex = unfinished {
                 return "Continue Watching"
             }
             return "Start Watching"
         }
-
+        
         if let finishedIndex = finished, finishedIndex < episodeLinks.count - 1 {
             let nextEp = episodeLinks[finishedIndex + 1]
             return "Start Watching Episode \(nextEp.number)"
         }
-
+        
         if let unfinishedIndex = unfinished {
             let currentEp = episodeLinks[unfinishedIndex]
             return "Continue Watching Episode \(currentEp.number)"
         }
-
+        
         return "Start Watching"
     }
-
-    private func updateContinueWatchingText() {
-        let indices = finishedAndUnfinishedIndices()
-        let unfinishedIndex = indices.unfinished
-
-        if let unfinishedIndex = unfinishedIndex {
-            let ep = episodeLinks[unfinishedIndex]
-            if isGroupedBySeasons {
-                let seasons = groupedEpisodes()
-                for (seasonIdx, seasonEpisodes) in seasons.enumerated() {
-                    if let epIdx = seasonEpisodes.firstIndex(where: { $0.number == ep.number }) {
-                        continueWatchingText = "Continue Watching S\(seasonIdx + 1) E\(epIdx + 1)"
-                        return
-                    }
-                }
-                continueWatchingText = "Continue Watching S1 E\(ep.number)"
-            } else {
-                continueWatchingText = "Continue Watching episode \(ep.number)"
-            }
-        } else {
-            continueWatchingText = "Start Watching"
-        }
-    }
-
+    
     private func playFirstUnwatchedEpisode() {
         let indices = finishedAndUnfinishedIndices()
         let finished = indices.finished
@@ -1404,7 +1365,7 @@ struct MediaInfoView: View {
                     headers: headers ?? nil
                 )
                 customMediaPlayer.modalPresentationStyle = .overFullScreen
-                Logger.shared.log("Opening custom media player with stream URL: \(url), and subtitles URL: \(String(describing: subtitles))", type: "Stream")
+                Logger.shared.log("Opening custom media player with stream URL: \(url), and subtitles URL: \(subtitles)", type: "Stream")
                 
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                    let window = windowScene.windows.first,
@@ -1856,6 +1817,7 @@ struct MediaInfoView: View {
         
         print("Bulk download headers: \(headers)")
         fetchEpisodeMetadataForDownload(episode: episode) { metadata in
+            let episodeTitle = metadata?.title["en"] ?? metadata?.title.values.first ?? ""
             let episodeImageUrl = metadata?.imageUrl ?? ""
             
             let episodeName = metadata?.title["en"] ?? "Episode \(episode.number)"
