@@ -1968,7 +1968,7 @@ struct MediaInfoView: View {
         let hostingController = UIViewController()
         hostingController.view.backgroundColor = .black
         detachedWindow.rootViewController = hostingController
-        detachedWindow.backgroundColor = .clear
+        detachedWindow.backgroundColor = .black
         detachedWindow.windowLevel = .normal + 1
         detachedWindow.makeKeyAndVisible()
         
@@ -1983,7 +1983,7 @@ struct MediaInfoView: View {
         let hostingController = UIViewController()
         hostingController.view.backgroundColor = .black
         detachedWindow.rootViewController = hostingController
-        detachedWindow.backgroundColor = .clear
+        detachedWindow.backgroundColor = .black
         detachedWindow.windowLevel = .normal + 1
         detachedWindow.makeKeyAndVisible()
         
