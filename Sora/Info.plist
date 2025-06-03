@@ -10,11 +10,25 @@
 	<dict>
 		<key>CFBundleAlternateIcons</key>
 		<dict>
-			<key>AppIcon_CiroChrome</key>
+			<key>AppIcon_Original</key>
 			<dict>
 				<key>CFBundleIconFiles</key>
 				<array>
-					<string>AppIcon_CiroChrome</string>
+					<string>AppIcon_Original</string>
+				</array>
+			</dict>
+			<key>AppIcon_Pixel</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>AppIcon_Pixel</string>
+				</array>
+			</dict>
+			<key>AppIcon_SoraAlt</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>AppIcon_SoraAlt</string>
 				</array>
 			</dict>
 			<key>AppIcon_CiroGold</key>
@@ -24,11 +38,11 @@
 					<string>AppIcon_CiroGold</string>
 				</array>
 			</dict>
-			<key>AppIcon_CiroGoldThree</key>
+			<key>AppIcon_CiroChrome</key>
 			<dict>
 				<key>CFBundleIconFiles</key>
 				<array>
-					<string>AppIcon_CiroGoldThree</string>
+					<string>AppIcon_CiroChrome</string>
 				</array>
 			</dict>
 			<key>AppIcon_CiroGoldTwo</key>
@@ -36,6 +50,13 @@
 				<key>CFBundleIconFiles</key>
 				<array>
 					<string>AppIcon_CiroGoldTwo</string>
+				</array>
+			</dict>
+			<key>AppIcon_CiroGoldThree</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>AppIcon_CiroGoldThree</string>
 				</array>
 			</dict>
 			<key>AppIcon_CiroPink</key>
@@ -87,27 +108,6 @@
 					<string>AppIcon_CiroYellow</string>
 				</array>
 			</dict>
-			<key>AppIcon_Original</key>
-			<dict>
-				<key>CFBundleIconFiles</key>
-				<array>
-					<string>AppIcon_Original</string>
-				</array>
-			</dict>
-			<key>AppIcon_Pixel</key>
-			<dict>
-				<key>CFBundleIconFiles</key>
-				<array>
-					<string>AppIcon_Pixel</string>
-				</array>
-			</dict>
-			<key>AppIcon_SoraAlt</key>
-			<dict>
-				<key>CFBundleIconFiles</key>
-				<array>
-					<string>AppIcon_SoraAlt</string>
-				</array>
-			</dict>
 		</dict>
 	</dict>
 	<key>CFBundleURLTypes</key>
@@ -140,7 +140,6 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
-		<string>fetch</string>
 		<string>processing</string>
 	</array>
 </dict>
