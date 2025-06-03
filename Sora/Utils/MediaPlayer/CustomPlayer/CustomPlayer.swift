@@ -1840,9 +1840,13 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     @objc func dismissTapped() {
         if let presentingViewController = self.presentingViewController {
-            presentingViewController.dismiss(animated: true, completion: nil)
+            presentingViewController.dismiss(animated: true) { [weak self] in
+                self?.detachedWindow = nil
+            }
         } else {
-            dismiss(animated: true, completion: nil)
+            dismiss(animated: true) { [weak self] in
+                self?.detachedWindow = nil
+            }
         }
     }
     
