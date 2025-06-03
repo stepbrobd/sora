@@ -265,7 +265,7 @@ struct MediaInfoView: View {
                         )
                     )
                     .overlay(
-                        VStack(spacing: 0) {Add commentMore actions
+                        VStack(spacing: 0) {
                             Spacer()
                             LinearGradient(
                                 gradient: Gradient(stops: [
