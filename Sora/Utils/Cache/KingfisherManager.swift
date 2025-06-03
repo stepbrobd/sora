@@ -14,7 +14,7 @@ class KingfisherCacheManager {
     private let jpegCompressionQuality: CGFloat = 0.7
     
     static let shared = KingfisherCacheManager()
-    private let maxDiskCacheSize: UInt = 16 * 1024 * 1024
+    private let maxDiskCacheSize: UInt = 64 * 1024 * 1024
     private let maxCacheAgeInDays: TimeInterval = 7
     
     private let imageCachingEnabledKey = "imageCachingEnabled"
@@ -39,9 +39,7 @@ class KingfisherCacheManager {
     
     @objc private func clearMemoryCacheOnWarning() {
         KingfisherManager.shared.cache.clearMemoryCache()
-        KingfisherManager.shared.cache.clearDiskCache {
-            Logger.shared.log("Cleared memory and disk cache due to memory warning", type: "Debug")
-        }
+        Logger.shared.log("Cleared memory cache due to memory warning", type: "Debug")
     }
     
     func configureKingfisher() {
@@ -52,7 +50,7 @@ class KingfisherCacheManager {
             .days(Int(maxCacheAgeInDays)) : .seconds(1)
         
         cache.memoryStorage.config.totalCostLimit = isCachingEnabled ?
-        4 * 1024 * 1024 : 0
+        12 * 1024 * 1024 : 0
         
         cache.memoryStorage.config.cleanInterval = 60
         

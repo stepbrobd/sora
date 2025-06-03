@@ -616,7 +616,7 @@ struct MediaInfoView: View {
                         .frame(width: max(width * CGFloat(progress), 8), height: 48)
                         .mask(
                             HStack {
-                                if progress < 0.05 && progress != 0 {
+                                if progress < 0.05 {
                                     RoundedRectangle(cornerRadius: 24)
                                         .frame(width: 8)
                                 } else {
