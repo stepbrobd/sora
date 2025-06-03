@@ -1030,7 +1030,7 @@ struct MediaInfoView: View {
         .padding(.vertical, 50)
     }
     
-    private var continueWatchingText: String {Add commentMore actions
+    private var continueWatchingText: String {
         for ep in episodeLinks {
             let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
             let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
