@@ -114,20 +114,7 @@ struct MediaInfoView: View {
         }
         return Double(watchedCount) / Double(episodeLinks.count)
     }
-    
-    private var latestProgressEpisode: (progress: Double, title: String)? {
-        for ep in episodeLinks.reversed() {
-            let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-            let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-            if totalTime > 0 {
-                let progress = lastPlayedTime / totalTime
-                return (progress, "Episode \(ep.number)")
-            }
-        }
-        return nil
-    }
-    
-    
+
     @State private var continueWatchingText: String = "Start Watching"
     
     var body: some View {
@@ -348,7 +335,7 @@ struct MediaInfoView: View {
                         .foregroundColor(.secondary)
                         .lineLimit(showFullSynopsis ? nil : 3)
                         .animation(nil, value: showFullSynopsis)
-                    
+
                     Text(showFullSynopsis ? "LESS" : "MORE")
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.accentColor)
@@ -602,15 +589,13 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var playAndBookmarkSection: some View {
         HStack(spacing: 12) {
-            ZStack(alignment: .leading) {
+            ZStack {
                 GeometryReader { geometry in
                     let width = geometry.size.width
-                    let progress = latestProgressEpisode?.progress ?? 0.0
-                    
+                    let progress = watchingProgress
                     RoundedRectangle(cornerRadius: 25)
                         .fill(Color.accentColor.opacity(0.25))
                         .frame(width: width, height: 48)
-                    
                     RoundedRectangle(cornerRadius: 25)
                         .fill(Color.accentColor)
                         .frame(width: width * CGFloat(progress), height: 48)
@@ -623,7 +608,7 @@ struct MediaInfoView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "play.fill")
                             .foregroundColor(colorScheme == .dark ? .black : .white)
-                        Text(latestProgressEpisode?.title ?? "Start Watching")
+                        Text(continueWatchingText)
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(colorScheme == .dark ? .black : .white)
                     }
@@ -635,6 +620,7 @@ struct MediaInfoView: View {
                 }
                 .disabled(isFetchingEpisode)
             }
+            .frame(height: 48)
             .clipShape(RoundedRectangle(cornerRadius: 25))
             .overlay(
                 RoundedRectangle(cornerRadius: 25)
@@ -888,9 +874,9 @@ struct MediaInfoView: View {
         let apiType = tmdbType.rawValue
         let urlString = "https://api.themoviedb.org/3/\(apiType)/\(tmdbID)?api_key=738b4edd0a156cc126dc4a4b8aea4aca"
         guard let url = URL(string: urlString) else { return }
-        
+
         let tmdbImageWidth = UserDefaults.standard.string(forKey: "tmdbImageWidth") ?? "original"
-        
+
         URLSession.custom.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else { return }
             do {
@@ -1003,31 +989,31 @@ struct MediaInfoView: View {
         let indices = finishedAndUnfinishedIndices()
         let finished = indices.finished
         let unfinished = indices.unfinished
-        
+
         if episodeLinks.count == 1 {
             if unfinished != nil {
                 return "Continue Watching"
             }
             return "Start Watching"
         }
-        
+
         if let finishedIndex = finished, finishedIndex < episodeLinks.count - 1 {
             let nextEp = episodeLinks[finishedIndex + 1]
             return "Start Watching Episode \(nextEp.number)"
         }
-        
+
         if let unfinishedIndex = unfinished {
             let currentEp = episodeLinks[unfinishedIndex]
             return "Continue Watching Episode \(currentEp.number)"
         }
-        
+
         return "Start Watching"
     }
-    
+
     private func updateContinueWatchingText() {
         let indices = finishedAndUnfinishedIndices()
         let unfinishedIndex = indices.unfinished
-        
+
         if let unfinishedIndex = unfinishedIndex {
             let ep = episodeLinks[unfinishedIndex]
             if isGroupedBySeasons {
@@ -1046,7 +1032,7 @@ struct MediaInfoView: View {
             continueWatchingText = "Start Watching"
         }
     }
-    
+
     private func playFirstUnwatchedEpisode() {
         let indices = finishedAndUnfinishedIndices()
         let finished = indices.finished
