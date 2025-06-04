@@ -421,7 +421,7 @@ struct SettingsViewData: View {
             let formatter = ByteCountFormatter()
             formatter.allowedUnits = [.useBytes, .useKB, .useMB, .useGB]
             formatter.countStyle = .file
-            return formatter.string(fromByteCount: bytes) ?? "\(bytes) bytes"
+            return formatter.string(fromByteCount: bytes)
         }
         
         func updateSizes() {

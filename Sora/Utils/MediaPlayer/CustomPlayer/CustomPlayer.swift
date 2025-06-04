@@ -154,6 +154,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     private var playerItemKVOContext = 0
     private var loadedTimeRangesObservation: NSKeyValueObservation?
     private var playerTimeControlStatusObserver: NSKeyValueObservation?
+    private var playerRateObserver: NSKeyValueObservation?
     
     private var controlsLocked = false
     private var lockButtonTimer: Timer?
@@ -255,14 +256,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         super.viewDidLoad()
         view.backgroundColor = .black
         
-        backgroundToken = NotificationCenter.default.addObserver(forName: UIApplication.willResignActiveNotification, object: nil, queue: .main ) { [weak self] _ in
-            self?.handleEnterBackground()
-        }
-        
-        foregroundToken = NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main ) { [weak self] _ in
-            self?.handleBecomeActive()
-        }
-        
         setupHoldGesture()
         loadSubtitleSettings()
         setupPlayerViewController()
@@ -315,6 +308,17 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             try audioSession.setActive(true)
         } catch {
             Logger.shared.log("Error activating audio session: \(error)", type: "Debug")
+        }
+        
+        playerRateObserver = player.observe(\.rate, options: [.new, .old]) { [weak self] player, change in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                let isActuallyPlaying = player.rate != 0
+                if self.isPlaying != isActuallyPlaying {
+                    self.isPlaying = isActuallyPlaying
+                    self.playPauseButton.image = UIImage(systemName: isActuallyPlaying ? "pause.fill" : "play.fill")
+                }
+            }
         }
         
         volumeViewModel.value = Double(audioSession.outputVolume)
@@ -418,11 +422,21 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     deinit {
-        if let token = timeObserverToken {
-            player.removeTimeObserver(token)
-        }
+        playerRateObserver?.invalidate()
+        inactivityTimer?.invalidate()
+        updateTimer?.invalidate()
+        lockButtonTimer?.invalidate()
+        dimButtonTimer?.invalidate()
+        loadedTimeRangesObservation?.invalidate()
+        playerTimeControlStatusObserver?.invalidate()
+        volumeObserver?.invalidate()
         
+        player.replaceCurrentItem(with: nil)
         player.pause()
+        
+        playerViewController = nil
+        sliderHostingController = nil
+        try? AVAudioSession.sharedInstance().setActive(false)
     }
 
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
