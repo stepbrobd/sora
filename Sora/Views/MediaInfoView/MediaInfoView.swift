@@ -586,7 +586,7 @@ struct MediaInfoView: View {
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 25)
                     .fill(Color.accentColor.opacity(0.25))
-                    .frame(width: width, height: 48)
+                    .frame(height: 48)
                 
                 Button(action: {
                     playFirstUnwatchedEpisode()

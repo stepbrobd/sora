@@ -422,13 +422,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             player.removeTimeObserver(token)
         }
         
-        if let backgroundToken = backgroundToken {
-            NotificationCenter.default.removeObserver(backgroundToken)
-        }
-        if let foregroundToken = foregroundToken {
-            NotificationCenter.default.removeObserver(foregroundToken)
-        }
-        
         player.pause()
     }
 
@@ -1791,25 +1784,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             
             lockButton.setImage(UIImage(systemName: "lock.open.fill"), for: .normal)
             updateSkipButtonsVisibility()
-        }
-    }
-    
-    func handleEnterBackground() {
-        wasPlayingBeforeBackground = player.rate > 0
-        if isPipAutoEnabled && AVPictureInPictureController.isPictureInPictureSupported() {
-            startPipIfNeeded()
-        } else {
-            player.pause()
-        }
-    }
-    
-    private func handleBecomeActive() {
-        if wasPlayingBeforeBackground && 
-           !(pipController?.isPictureInPictureActive ?? false) {
-            player.play()
-            player.rate = currentPlaybackSpeed
-            isPlaying = true
-            playPauseButton.image = UIImage(systemName: "pause.fill")
         }
     }
 
