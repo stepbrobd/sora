@@ -585,7 +585,7 @@ struct MediaInfoView: View {
         HStack(spacing: 12) {
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 25)
-                    .fill(Color.accentColor.opacity(0.25))
+                    .fill(Color.accentColor)
                     .frame(height: 48)
                 
                 Button(action: {
