@@ -584,32 +584,9 @@ struct MediaInfoView: View {
     private var playAndBookmarkSection: some View {
         HStack(spacing: 12) {
             ZStack(alignment: .leading) {
-                GeometryReader { geometry in
-                    let width = geometry.size.width
-                    let progress = latestProgress
-                    
-                    RoundedRectangle(cornerRadius: 25)
-                        .fill(Color.accentColor.opacity(0.25))
-                        .frame(width: width, height: 48)
-                    
-                    if progress < 0.9 {
-                        Capsule()
-                            .fill(Color.accentColor)
-                            .frame(width: max(width * CGFloat(progress), 8), height: 48)
-                            .mask(
-                                HStack {
-                                    if progress < 0.05 && progress != 0 {
-                                        RoundedRectangle(cornerRadius: 24)
-                                            .frame(width: 8)
-                                    } else {
-                                        RoundedRectangle(cornerRadius: 24)
-                                    }
-                                    Spacer()
-                                }
-                            )
-                    }
-                }
-                .frame(height: 48)
+                RoundedRectangle(cornerRadius: 25)
+                    .fill(Color.accentColor.opacity(0.25))
+                    .frame(width: width, height: 48)
                 
                 Button(action: {
                     playFirstUnwatchedEpisode()

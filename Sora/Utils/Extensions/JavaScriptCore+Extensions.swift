@@ -78,10 +78,12 @@ extension JSContext {
     }
     
     func setupFetchV2() {
-        let fetchV2NativeFunction: @convention(block) (String, [String: String]?, String?, String?, ObjCBool,JSValue, JSValue) -> Void = { urlString, headers, method, body, redirect, resolve, reject in
+        let fetchV2NativeFunction: @convention(block) (String, [String: String]?, String?, String?, ObjCBool, JSValue, JSValue) -> Void = { urlString, headers, method, body, redirect, resolve, reject in
             guard let url = URL(string: urlString) else {
                 Logger.shared.log("Invalid URL", type: "Error")
-                reject.call(withArguments: ["Invalid URL"])
+                DispatchQueue.main.async {
+                    reject.call(withArguments: ["Invalid URL"])
+                }
                 return
             }
             
@@ -93,7 +95,9 @@ extension JSContext {
             
             if httpMethod == "GET", let body = body, !body.isEmpty, body != "null", body != "undefined" {
                 Logger.shared.log("GET request must not have a body", type: "Error")
-                reject.call(withArguments: ["GET request must not have a body"])
+                DispatchQueue.main.async {
+                    reject.call(withArguments: ["GET request must not have a body"])
+                }
                 return
             }
             
@@ -101,27 +105,33 @@ extension JSContext {
                 request.httpBody = body.data(using: .utf8)
             }
             
-            
             if let headers = headers {
                 for (key, value) in headers {
                     request.setValue(value, forHTTPHeaderField: key)
                 }
             }
-            Logger.shared.log("Redirect value is \(redirect.boolValue)",type:"Error")
+            Logger.shared.log("Redirect value is \(redirect.boolValue)", type: "Error")
             let task = URLSession.fetchData(allowRedirects: redirect.boolValue).downloadTask(with: request) { tempFileURL, response, error in
+                let callReject: (String) -> Void = { message in
+                    DispatchQueue.main.async {
+                        reject.call(withArguments: [message])
+                    }
+                }
+                let callResolve: ([String: Any]) -> Void = { dict in
+                    DispatchQueue.main.async {
+                        resolve.call(withArguments: [dict])
+                    }
+                }
+                
                 if let error = error {
                     Logger.shared.log("Network error in fetchV2NativeFunction: \(error.localizedDescription)", type: "Error")
-                    DispatchQueue.main.async {
-                        reject.call(withArguments: [error.localizedDescription])
-                    }
+                    callReject(error.localizedDescription)
                     return
                 }
                 
                 guard let tempFileURL = tempFileURL else {
                     Logger.shared.log("No data in response", type: "Error")
-                    DispatchQueue.main.async {
-                        reject.call(withArguments: ["No data"])
-                    }
+                    callReject("No data")
                     return
                 }
                 
@@ -146,29 +156,21 @@ extension JSContext {
                     
                     if data.count > 10_000_000 {
                         Logger.shared.log("Response exceeds maximum size", type: "Error")
-                        DispatchQueue.main.async {
-                            reject.call(withArguments: ["Response exceeds maximum size"])
-                        }
+                        callReject("Response exceeds maximum size")
                         return
                     }
                     
                     if let text = String(data: data, encoding: .utf8) {
                         responseDict["body"] = text
-                        DispatchQueue.main.async {
-                            resolve.call(withArguments: [responseDict])
-                        }
+                        callResolve(responseDict)
                     } else {
                         Logger.shared.log("Unable to decode data to text", type: "Error")
-                        DispatchQueue.main.async {
-                            resolve.call(withArguments: [responseDict])
-                        }
+                        callResolve(responseDict)
                     }
                     
                 } catch {
                     Logger.shared.log("Error reading downloaded file: \(error.localizedDescription)", type: "Error")
-                    DispatchQueue.main.async {
-                        reject.call(withArguments: ["Error reading downloaded file"])
-                    }
+                    callReject("Error reading downloaded file")
                 }
             }
             task.resume()
