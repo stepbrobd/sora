@@ -584,10 +584,6 @@ struct MediaInfoView: View {
     private var playAndBookmarkSection: some View {
         HStack(spacing: 12) {
             ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 25)
-                    .fill(Color.accentColor)
-                    .frame(height: 48)
-                
                 Button(action: {
                     playFirstUnwatchedEpisode()
                 }) {
@@ -601,7 +597,6 @@ struct MediaInfoView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .padding(.horizontal, 20)
-                    .background(Color.clear)
                     .contentShape(RoundedRectangle(cornerRadius: 25))
                 }
                 .disabled(isFetchingEpisode)
@@ -949,7 +944,6 @@ struct MediaInfoView: View {
     }
     
     private func updateLatestProgress() {
-        Logger.shared.log("Called, Called", type: "General")
         for ep in episodeLinks.reversed() {
             let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
             let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
