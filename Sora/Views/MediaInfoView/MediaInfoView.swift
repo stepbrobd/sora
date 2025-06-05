@@ -105,9 +105,65 @@ struct MediaInfoView: View {
     
     var body: some View {
         ZStack {
-            bodyContent
-                .navigationBarHidden(true)
-                .ignoresSafeArea(.container, edges: .top)
+            Group {
+                if isLoading {
+                    ProgressView()
+                        .padding()
+                } else {
+                    mainScrollView
+                }
+            }
+            .onAppear {
+                updateLatestProgress()
+                buttonRefreshTrigger.toggle()
+                
+                let savedID = UserDefaults.standard.integer(forKey: "custom_anilist_id_\(href)")
+                if savedID != 0 { customAniListID = savedID }
+                
+                if let savedPoster = UserDefaults.standard.string(forKey: "tmdbPosterURL_\(href)") {
+                    self.imageUrl = savedPoster
+                }
+                
+                if !hasFetched {
+                    DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching.", duration: 0.5, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
+                    fetchDetails()
+                    
+                    if let savedID = UserDefaults.standard.object(forKey: "custom_anilist_id_\(href)") as? Int {
+                        customAniListID = savedID
+                        itemID = savedID
+                        Logger.shared.log("Using custom AniList ID: \(savedID)", type: "Debug")
+                    } else {
+                        fetchMetadataIDIfNeeded()
+                    }
+                    
+                    selectedRange = 0..<episodeChunkSize
+                    
+                    hasFetched = true
+                    AnalyticsManager.shared.sendEvent(event: "MediaInfoView", additionalData: ["title": title])
+                }
+                tabBarController.hideTabBar()
+            }
+            .onDisappear(){
+                tabBarController.showTabBar()
+            }
+            .alert("Loading Stream", isPresented: $showLoadingAlert) {
+                Button("Cancel", role: .cancel) {
+                    activeFetchID = nil
+                    isFetchingEpisode = false
+                    showStreamLoadingView = false
+                }
+            } message: {
+                HStack {
+                    Text("Loading Episode \(selectedEpisodeNumber)...")
+                    ProgressView()
+                        .padding(.top, 8)
+                }
+            }
+            .onDisappear {
+                activeFetchID = nil
+                isFetchingEpisode = false
+                showStreamLoadingView = false
+            }
             
             VStack {
                 HStack {
@@ -129,78 +185,6 @@ struct MediaInfoView: View {
                 }
                 Spacer()
             }
-        }
-    }
-    
-    @ViewBuilder
-    private var bodyContent: some View {
-        Group {
-            if isLoading {
-                ProgressView()
-                    .padding()
-            } else {
-                mainScrollView
-            }
-        }
-        .onAppear {
-            updateLatestProgress()
-            buttonRefreshTrigger.toggle()
-            
-            let savedID = UserDefaults.standard.integer(forKey: "custom_anilist_id_\(href)")
-            if savedID != 0 { customAniListID = savedID }
-            
-            if let savedPoster = UserDefaults.standard.string(forKey: "tmdbPosterURL_\(href)") {
-                self.imageUrl = savedPoster
-            }
-            
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-            
-            if !hasFetched {
-                DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching.", duration: 0.5, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
-                fetchDetails()
-                
-                if let savedID = UserDefaults.standard.object(forKey: "custom_anilist_id_\(href)") as? Int {
-                    customAniListID = savedID
-                    itemID = savedID
-                    Logger.shared.log("Using custom AniList ID: \(savedID)", type: "Debug")
-                } else {
-                    fetchMetadataIDIfNeeded()
-                }
-                
-                selectedRange = 0..<episodeChunkSize
-                
-                hasFetched = true
-                AnalyticsManager.shared.sendEvent(event: "search", additionalData: ["title": title])
-            }
-            tabBarController.hideTabBar()
-            
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let window = windowScene.windows.first,
-               let navigationController = window.rootViewController?.children.first as? UINavigationController {
-                navigationController.interactivePopGestureRecognizer?.isEnabled = true
-                navigationController.interactivePopGestureRecognizer?.delegate = nil
-            }
-        }
-        .onDisappear(){
-            tabBarController.showTabBar()
-        }
-        .alert("Loading Stream", isPresented: $showLoadingAlert) {
-            Button("Cancel", role: .cancel) {
-                activeFetchID = nil
-                isFetchingEpisode = false
-                showStreamLoadingView = false
-            }
-        } message: {
-            HStack {
-                Text("Loading Episode \(selectedEpisodeNumber)...")
-                ProgressView()
-                    .padding(.top, 8)
-            }
-        }
-        .onDisappear {
-            activeFetchID = nil
-            isFetchingEpisode = false
-            showStreamLoadingView = false
         }
     }
     
@@ -584,6 +568,10 @@ struct MediaInfoView: View {
     private var playAndBookmarkSection: some View {
         HStack(spacing: 12) {
             ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 25)
+                    .fill(Color.accentColor)
+                    .frame(height: 48)
+                
                 Button(action: {
                     playFirstUnwatchedEpisode()
                 }) {
@@ -597,6 +585,7 @@ struct MediaInfoView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .padding(.horizontal, 20)
+                    .background(Color.clear)
                     .contentShape(RoundedRectangle(cornerRadius: 25))
                 }
                 .disabled(isFetchingEpisode)
