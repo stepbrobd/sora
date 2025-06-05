@@ -20,7 +20,6 @@ struct MediaItem: Identifiable {
 
 struct MediaInfoView: View {
     let title: String
-    let originalImageUrl: String
     @State var imageUrl: String
     let href: String
     let module: ScrapingModule
@@ -533,19 +532,10 @@ struct MediaInfoView: View {
                 }
             }
             
-            if let tmdbPoster = UserDefaults.standard.string(forKey: "tmdbPosterURL_\(href)"), imageUrl == tmdbPoster {
-                Button(action: {
-                    UserDefaults.standard.removeObject(forKey: "tmdbPosterURL_\(href)")
-                    self.imageUrl = originalImageUrl
-                }) {
-                    Label("Use Module Image", systemImage: "arrow.uturn.backward")
-                }
-            } else {
-                Button(action: {
-                    fetchTMDBPosterImageAndSet()
-                }) {
-                    Label("Use TMDB Poster Image", systemImage: "photo")
-                }
+            Button(action: {
+                fetchTMDBPosterImageAndSet()
+            }) {
+                Label("Use TMDB Poster Image", systemImage: "photo")
             }
             
             Divider()
@@ -869,7 +859,9 @@ struct MediaInfoView: View {
         let apiType = tmdbType.rawValue
         let urlString = "https://api.themoviedb.org/3/\(apiType)/\(tmdbID)?api_key=738b4edd0a156cc126dc4a4b8aea4aca"
         guard let url = URL(string: urlString) else { return }
+        
         let tmdbImageWidth = UserDefaults.standard.string(forKey: "tmdbImageWidth") ?? "original"
+        
         URLSession.custom.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else { return }
             do {
