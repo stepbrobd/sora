@@ -113,6 +113,8 @@ struct MediaInfoView: View {
                     mainScrollView
                 }
             }
+            .navigationBarHidden(true)
+            .ignoresSafeArea(.container, edges: .top)
             .onAppear {
                 updateLatestProgress()
                 buttonRefreshTrigger.toggle()
