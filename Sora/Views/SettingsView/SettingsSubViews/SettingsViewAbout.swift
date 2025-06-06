@@ -132,7 +132,7 @@ struct ContributorsView: View {
     @State private var isLoading = true
     @State private var error: Error?
     @State private var isAnimating = false
-
+    
     var body: some View {
         Group {
             if isLoading {
@@ -230,7 +230,7 @@ struct ContributorsView: View {
                                         .font(.headline)
                                         .foregroundColor(
                                             contributor.login == "IBH-RAD" ? Color(hexTwo: "#41127b") :
-                                            .accentColor
+                                                    .accentColor
                                         )
                                 }
                                 
@@ -313,25 +313,21 @@ struct AnimatedText: View {
     let text: String
     let primaryColor: Color
     let secondaryColor: Color
-    @State private var isAnimating = false
+    @State private var gradientPosition: CGFloat = 0.0
     
     var body: some View {
+        let animatedGradient = LinearGradient(
+            colors: [primaryColor, secondaryColor, primaryColor],
+            startPoint: UnitPoint(x: gradientPosition, y: 0.5),
+            endPoint: UnitPoint(x: min(gradientPosition + 0.5, 1.0), y: 0.5)
+        )
         Text(text)
             .font(.headline)
-            .foregroundStyle(
-                LinearGradient(
-                    colors: [
-                        primaryColor,
-                        secondaryColor,
-                        primaryColor
-                    ],
-                    startPoint: isAnimating ? .trailing : .leading,
-                    endPoint: isAnimating ? .leading : .trailing
-                )
-            )
+            .foregroundStyle(animatedGradient)
             .onAppear {
-                withAnimation(.linear(duration: 2.0).repeatForever(autoreverses: false)) {
-                    isAnimating = true
+                gradientPosition = 0.0
+                withAnimation(Animation.linear(duration: 2.0).repeatForever(autoreverses: false)) {
+                    gradientPosition = 1.0
                 }
             }
     }
