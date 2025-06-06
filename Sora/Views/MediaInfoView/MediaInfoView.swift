@@ -1337,6 +1337,8 @@ struct MediaInfoView: View {
                 scheme = "senplayer://x-callback-url/play?url=\(url)"
             case "IINA":
                 scheme = "iina://weblink?url=\(url)"
+            case "TracyPlayer":
+                scheme = "tracy://open?url=\(url)"
             case "Default":
                 let videoPlayerViewController = VideoPlayerViewController(module: module)
                 videoPlayerViewController.headers = headers
