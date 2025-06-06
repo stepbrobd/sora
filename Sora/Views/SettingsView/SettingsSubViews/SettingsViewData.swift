@@ -322,7 +322,7 @@ struct SettingsViewData: View {
             }
         }
         
-        private func calculateDirectorySize(for url: URL) -> Int64 {
+        func calculateDirectorySize(for url: URL) -> Int64 {
             let fileManager = FileManager.default
             var totalSize: Int64 = 0
             
@@ -343,7 +343,7 @@ struct SettingsViewData: View {
             return totalSize
         }
         
-        private func formatSize(_ bytes: Int64) -> String {
+        func formatSize(_ bytes: Int64) -> String {
             let formatter = ByteCountFormatter()
             formatter.allowedUnits = [.useBytes, .useKB, .useMB, .useGB]
             formatter.countStyle = .file
