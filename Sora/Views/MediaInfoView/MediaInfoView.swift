@@ -85,7 +85,6 @@ struct MediaInfoView: View {
     @State private var isBulkDownloading: Bool = false
     @State private var bulkDownloadProgress: String = ""
     @State private var tmdbType: TMDBFetcher.MediaType? = nil
-    @State private var latestProgress: Double = 0.0
     
     private var isGroupedBySeasons: Bool {
         return groupedEpisodes().count > 1
@@ -244,24 +243,20 @@ struct MediaInfoView: View {
                         )
                     )
                     .overlay(
-                        VStack(spacing: 0) {
-                            Spacer()
-                            LinearGradient(
-                                gradient: Gradient(stops: [
-                                    .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.0), location: 0.0),
-                                    .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.5), location: 0.5),
-                                    .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(1.0), location: 1.0)
-                                ]),
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                                .frame(height: 150)
-                        }
+                        LinearGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: .clear, location: 0.0),
+                                .init(color: .clear, location: 0.7),
+                                .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.9), location: 1.0)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
                     )
                 VStack(spacing: 0) {
                     Rectangle()
                         .fill(Color.clear)
-                        .frame(height: 450)
+                        .frame(height: 400)
                     VStack(alignment: .leading, spacing: 16) {
                         headerSection
                         if !episodeLinks.isEmpty {
@@ -275,15 +270,15 @@ struct MediaInfoView: View {
                         LinearGradient(
                             gradient: Gradient(stops: [
                                 .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.0), location: 0.0),
-                                .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.3), location: 0.1),
-                                .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.6), location: 0.3),
-                                .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.9), location: 0.7),
+                                .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.5), location: 0.2),
+                                .init(color: (colorScheme == .dark ? Color.black : Color.white).opacity(0.8), location: 0.5),
+                                .init(color: (colorScheme == .dark ? Color.black : Color.white), location: 1.0)
                             ]),
                             startPoint: .top,
                             endPoint: .bottom
                         )
                             .clipShape(RoundedRectangle(cornerRadius: 0))
-                            .shadow(color: (colorScheme == .dark ? Color.black : Color.white).opacity(1), radius: 15, x: 0, y: 15)
+                            .shadow(color: (colorScheme == .dark ? Color.black : Color.white).opacity(1), radius: 10, x: 0, y: 10)
                     )
                 }
                 .deviceScaled()
@@ -359,12 +354,10 @@ struct MediaInfoView: View {
                                     UserDefaults.standard.set(99999999.0, forKey: "lastPlayedTime_\(ep.href)")
                                     UserDefaults.standard.set(99999999.0, forKey: "totalTime_\(ep.href)")
                                     DropManager.shared.showDrop(title: "Marked as Watched", subtitle: "", duration: 1.0, icon: UIImage(systemName: "checkmark.circle.fill"))
-                                    updateLatestProgress()
                                 } else {
                                     UserDefaults.standard.set(0.0, forKey: "lastPlayedTime_\(ep.href)")
                                     UserDefaults.standard.set(0.0, forKey: "totalTime_\(ep.href)")
                                     DropManager.shared.showDrop(title: "Progress Reset", subtitle: "", duration: 1.0, icon: UIImage(systemName: "arrow.counterclockwise"))
-                                    updateLatestProgress()
                                 }
                             }
                         }) {
@@ -587,34 +580,25 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var playAndBookmarkSection: some View {
         HStack(spacing: 12) {
-            ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 25)
-                    .fill(Color.accentColor)
-                    .frame(height: 48)
-                
-                Button(action: {
-                    playFirstUnwatchedEpisode()
-                }) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "play.fill")
-                            .foregroundColor(colorScheme == .dark ? .black : .white)
-                        Text(continueWatchingText)
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(colorScheme == .dark ? .black : .white)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 20)
-                    .background(Color.clear)
-                    .contentShape(RoundedRectangle(cornerRadius: 25))
+            Button(action: {
+                playFirstUnwatchedEpisode()
+            }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "play.fill")
+                        .foregroundColor(colorScheme == .dark ? .black : .white)
+                    Text(startWatchingText)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(colorScheme == .dark ? .black : .white)
                 }
-                .disabled(isFetchingEpisode)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .padding(.horizontal, 20)
+                .background(
+                    RoundedRectangle(cornerRadius: 25)
+                        .fill(Color.accentColor)
+                )
             }
-            .clipShape(RoundedRectangle(cornerRadius: 25))
-            .overlay(
-                RoundedRectangle(cornerRadius: 25)
-                    .stroke(Color.accentColor, lineWidth: 0)
-            )
+            .disabled(isFetchingEpisode)
             
             Button(action: {
                 libraryManager.toggleBookmark(
@@ -1000,46 +984,53 @@ struct MediaInfoView: View {
         .padding(.vertical, 50)
     }
     
-    private var continueWatchingText: String {
-        for ep in episodeLinks {
-            let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-            let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-            let progress = total > 0 ? last / total : 0
-            
-            if progress > 0 && progress < 0.9 {
-                return "Continue Watching Episode \(ep.number)"
+    private var startWatchingText: String {
+        let indices = finishedAndUnfinishedIndices()
+        let finished = indices.finished
+        let unfinished = indices.unfinished
+        
+        if episodeLinks.count == 1 {
+            if let unfinishedIndex = unfinished {
+                return "Continue Watching"
             }
+            return "Start Watching"
         }
         
-        for ep in episodeLinks {
-            let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-            let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-            let progress = total > 0 ? last / total : 0
-            
-            if progress < 0.9 {
-                return "Start Watching Episode \(ep.number)"
-            }
+        if let finishedIndex = finished, finishedIndex < episodeLinks.count - 1 {
+            let nextEp = episodeLinks[finishedIndex + 1]
+            return "Start Watching Episode \(nextEp.number)"
+        }
+        
+        if let unfinishedIndex = unfinished {
+            let currentEp = episodeLinks[unfinishedIndex]
+            return "Continue Watching Episode \(currentEp.number)"
         }
         
         return "Start Watching"
     }
     
     private func playFirstUnwatchedEpisode() {
-        for ep in episodeLinks {
-            let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-            let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-            let progress = total > 0 ? last / total : 0
-            
-            if progress < 0.9 {
-                selectedEpisodeNumber = ep.number
-                fetchStream(href: ep.href)
-                return
-            }
+        let indices = finishedAndUnfinishedIndices()
+        let finished = indices.finished
+        let unfinished = indices.unfinished
+        
+        if let finishedIndex = finished, finishedIndex < episodeLinks.count - 1 {
+            let nextEp = episodeLinks[finishedIndex + 1]
+            selectedEpisodeNumber = nextEp.number
+            fetchStream(href: nextEp.href)
+            return
         }
         
-        if let first = episodeLinks.first {
-            selectedEpisodeNumber = first.number
-            fetchStream(href: first.href)
+        if let unfinishedIndex = unfinished {
+            let ep = episodeLinks[unfinishedIndex]
+            selectedEpisodeNumber = ep.number
+            fetchStream(href: ep.href)
+            return
+        }
+        
+        if let firstEpisode = episodeLinks.first {
+            selectedEpisodeNumber = firstEpisode.number
+            fetchStream(href: firstEpisode.href)
         }
     }
     
@@ -1347,9 +1338,12 @@ struct MediaInfoView: View {
                 videoPlayerViewController.mediaTitle = title
                 videoPlayerViewController.subtitles = subtitles ?? ""
                 videoPlayerViewController.aniListID = itemID ?? 0
-                videoPlayerViewController.modalPresentationStyle = .fullScreen
+                videoPlayerViewController.modalPresentationStyle = .overFullScreen
                 
-                presentPlayerWithDetachedContext(videoPlayerViewController: videoPlayerViewController)
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let rootVC = windowScene.windows.first?.rootViewController {
+                    findTopViewController.findViewController(rootVC).present(videoPlayerViewController, animated: true, completion: nil)
+                }
                 return
             default:
                 break
@@ -1384,10 +1378,16 @@ struct MediaInfoView: View {
                     episodeImageUrl: selectedEpisodeImage,
                     headers: headers ?? nil
                 )
-                customMediaPlayer.modalPresentationStyle = .fullScreen
-                Logger.shared.log("Opening custom media player with stream URL: \(url), and subtitles URL: \(String(describing: subtitles))", type: "Stream")
+                customMediaPlayer.modalPresentationStyle = .overFullScreen
+                Logger.shared.log("Opening custom media player with url: \(url)")
                 
-                presentPlayerWithDetachedContext(customMediaPlayer: customMediaPlayer)
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let rootVC = windowScene.windows.first?.rootViewController {
+                    findTopViewController.findViewController(rootVC).present(customMediaPlayer, animated: true, completion: nil)
+                } else {
+                    Logger.shared.log("Failed to find root view controller", type: "Error")
+                    DropManager.shared.showDrop(title: "Error", subtitle: "Failed to present player", duration: 2.0, icon: UIImage(systemName: "xmark.circle"))
+                }
             }
         }
     }
@@ -1935,35 +1935,5 @@ struct MediaInfoView: View {
                 completion(nil)
             }
         }.resume()
-    }
-    
-    private func presentPlayerWithDetachedContext(videoPlayerViewController: VideoPlayerViewController) {
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
-        
-        let detachedWindow = UIWindow(windowScene: windowScene)
-        let hostingController = UIViewController()
-        hostingController.view.backgroundColor = .clear
-        detachedWindow.rootViewController = hostingController
-        detachedWindow.backgroundColor = .clear
-        detachedWindow.windowLevel = .normal + 1
-        detachedWindow.makeKeyAndVisible()
-        
-        videoPlayerViewController.detachedWindow = detachedWindow
-        hostingController.present(videoPlayerViewController, animated: true, completion: nil)
-    }
-    
-    private func presentPlayerWithDetachedContext(customMediaPlayer: CustomMediaPlayerViewController) {
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
-        
-        let detachedWindow = UIWindow(windowScene: windowScene)
-        let hostingController = UIViewController()
-        hostingController.view.backgroundColor = .clear
-        detachedWindow.rootViewController = hostingController
-        detachedWindow.backgroundColor = .clear
-        detachedWindow.windowLevel = .normal + 1
-        detachedWindow.makeKeyAndVisible()
-        
-        customMediaPlayer.detachedWindow = detachedWindow
-        hostingController.present(customMediaPlayer, animated: true, completion: nil)
     }
 }

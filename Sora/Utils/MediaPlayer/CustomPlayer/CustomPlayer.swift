@@ -41,7 +41,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     var currentTimeVal: Double = 0.0
     var duration: Double = 0.0
     var isVideoLoaded = false
-    var detachedWindow: UIWindow?
     
     private var isHoldPauseEnabled: Bool {
         UserDefaults.standard.bool(forKey: "holdForPauseEnabled")
@@ -1816,15 +1815,12 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     @objc func dismissTapped() {
-        dismiss(animated: true) { [weak self] in
-            self?.detachedWindow = nil
-        }
+        dismiss(animated: true, completion: nil)
     }
     
     @objc func watchNextTapped() {
         player.pause()
         dismiss(animated: true) { [weak self] in
-            self?.detachedWindow = nil
             self?.onWatchNext()
         }
     }
@@ -2487,9 +2483,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         switch gesture.state {
         case .ended:
             if translation.y > 100 {
-                dismiss(animated: true) { [weak self] in
-                    self?.detachedWindow = nil
-                }
+                dismiss(animated: true, completion: nil)
             }
         default:
             break
