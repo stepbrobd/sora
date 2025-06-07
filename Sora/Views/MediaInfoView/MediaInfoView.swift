@@ -408,7 +408,7 @@ struct MediaInfoView: View {
                                 
                                 if downloadStatus == .notDownloaded {
                                     selectedEpisodeNumber = ep.number
-                                    fetchStream(href: ep.href)
+                                    startBulkDownload()
                                     DropManager.shared.showDrop(title: "Starting Download", subtitle: "", duration: 1.0, icon: UIImage(systemName: "arrow.down.circle"))
                                 } else {
                                     DropManager.shared.showDrop(title: "Already Downloaded", subtitle: "", duration: 1.0, icon: UIImage(systemName: "checkmark.circle"))
