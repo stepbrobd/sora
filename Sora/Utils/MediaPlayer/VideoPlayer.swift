@@ -19,10 +19,12 @@ class VideoPlayerViewController: UIViewController {
     var subtitles: String = ""
     var aniListID: Int = 0
     var headers: [String:String]? = nil
+    var totalEpisodes: Int = 0
     
     var episodeNumber: Int = 0
     var episodeImageUrl: String = ""
     var mediaTitle: String = ""
+    var detachedWindow: UIWindow?
     
     init(module: ScrapingModule) {
         self.module = module
@@ -41,15 +43,11 @@ class VideoPlayerViewController: UIViewController {
         }
         
         var request = URLRequest(url: url)
-        if let mydict = headers, !mydict.isEmpty
-        {
-            for (key,value) in mydict
-            {
+        if let mydict = headers, !mydict.isEmpty {
+            for (key,value) in mydict {
                 request.addValue(value, forHTTPHeaderField: key)
             }
-        }
-        else
-        {
+        } else {
             request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
             request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
         }
@@ -139,7 +137,8 @@ class VideoPlayerViewController: UIViewController {
                     subtitles: self.subtitles,
                     aniListID: self.aniListID,
                     module: self.module,
-                    headers: self.headers
+                    headers: self.headers,
+                    totalEpisodes: self.totalEpisodes
                 )
                 ContinueWatchingManager.shared.save(item: item)
             }

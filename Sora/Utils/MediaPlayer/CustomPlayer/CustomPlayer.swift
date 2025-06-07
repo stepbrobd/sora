@@ -28,6 +28,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     private var aniListUpdateImpossible: Bool = false
     private var aniListRetryCount = 0
     private let aniListMaxRetries = 6
+    private let totalEpisodes: Int
     
     var player: AVPlayer!
     var timeObserverToken: Any?
@@ -40,6 +41,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     var currentTimeVal: Double = 0.0
     var duration: Double = 0.0
     var isVideoLoaded = false
+    var detachedWindow: UIWindow?
     
     private var isHoldPauseEnabled: Bool {
         UserDefaults.standard.bool(forKey: "holdForPauseEnabled")
@@ -58,6 +60,20 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         }
         return UserDefaults.standard.bool(forKey: "doubleTapSeekEnabled")
     }
+    
+    private var isPipAutoEnabled: Bool {
+        UserDefaults.standard.bool(forKey: "pipAutoEnabled")
+    }
+    
+    private var isPipButtonVisible: Bool {
+        if UserDefaults.standard.object(forKey: "pipButtonVisible") == nil {
+            return true
+        }
+        return UserDefaults.standard.bool(forKey: "pipButtonVisible")
+    }
+    private var pipController: AVPictureInPictureController?
+    private var pipButton: UIButton!
+
     
     var portraitButtonVisibleConstraints: [NSLayoutConstraint] = []
     var portraitButtonHiddenConstraints: [NSLayoutConstraint] = []
@@ -138,6 +154,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     private var playerItemKVOContext = 0
     private var loadedTimeRangesObservation: NSKeyValueObservation?
     private var playerTimeControlStatusObserver: NSKeyValueObservation?
+    private var playerRateObserver: NSKeyValueObservation?
     
     private var controlsLocked = false
     private var lockButtonTimer: Timer?
@@ -175,6 +192,10 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     private var subtitleDelay: Double = 0.0
     var currentPlaybackSpeed: Float = 1.0
     
+    private var wasPlayingBeforeBackground = false
+    private var backgroundToken: Any?
+    private var foregroundToken: Any?
+    
     init(module: ScrapingModule,
          urlString: String,
          fullUrl: String,
@@ -183,6 +204,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
          onWatchNext: @escaping () -> Void,
          subtitlesURL: String?,
          aniListID: Int,
+         totalEpisodes: Int,
          episodeImageUrl: String,headers:[String:String]?) {
         
         self.module = module
@@ -195,6 +217,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         self.subtitlesURL = subtitlesURL
         self.aniListID = aniListID
         self.headers = headers
+        self.totalEpisodes = totalEpisodes
         
         super.init(nibName: nil, bundle: nil)
         
@@ -256,6 +279,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         setupAudioSession()
         updateSkipButtonsVisibility()
         setupHoldSpeedIndicator()
+        setupPipIfSupported()
         
         view.bringSubviewToFront(subtitleStackView)
         
@@ -284,6 +308,17 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             try audioSession.setActive(true)
         } catch {
             Logger.shared.log("Error activating audio session: \(error)", type: "Debug")
+        }
+        
+        playerRateObserver = player.observe(\.rate, options: [.new, .old]) { [weak self] player, change in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                let isActuallyPlaying = player.rate != 0
+                if self.isPlaying != isActuallyPlaying {
+                    self.isPlaying = isActuallyPlaying
+                    self.playPauseButton.image = UIImage(systemName: isActuallyPlaying ? "pause.fill" : "play.fill")
+                }
+            }
         }
         
         volumeViewModel.value = Double(audioSession.outputVolume)
@@ -386,6 +421,24 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         player.pause()
     }
     
+    deinit {
+        playerRateObserver?.invalidate()
+        inactivityTimer?.invalidate()
+        updateTimer?.invalidate()
+        lockButtonTimer?.invalidate()
+        dimButtonTimer?.invalidate()
+        loadedTimeRangesObservation?.invalidate()
+        playerTimeControlStatusObserver?.invalidate()
+        volumeObserver?.invalidate()
+        
+        player.replaceCurrentItem(with: nil)
+        player.pause()
+        
+        playerViewController = nil
+        sliderHostingController = nil
+        try? AVAudioSession.sharedInstance().setActive(false)
+    }
+
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         guard context == &playerItemKVOContext else {
             super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
@@ -1048,7 +1101,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     func setupSkipButtons() {
         let introConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
         let introImage = UIImage(systemName: "forward.frame", withConfiguration: introConfig)
-        skipIntroButton = UIButton(type: .system)
+        skipIntroButton = GradientOverlayButton(type: .system)
         skipIntroButton.setTitle(" Skip Intro", for: .normal)
         skipIntroButton.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .bold)
         skipIntroButton.setImage(introImage, for: .normal)
@@ -1080,7 +1133,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         
         let outroConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
         let outroImage = UIImage(systemName: "forward.frame", withConfiguration: outroConfig)
-        skipOutroButton = UIButton(type: .system)
+        skipOutroButton = GradientOverlayButton(type: .system)
         skipOutroButton.setTitle(" Skip Outro", for: .normal)
         skipOutroButton.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .bold)
         skipOutroButton.setImage(outroImage, for: .normal)
@@ -1186,6 +1239,53 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         }
     }
     
+    private func setupPipIfSupported() {
+        guard AVPictureInPictureController.isPictureInPictureSupported() else {
+            return
+        }
+        let pipPlayerLayer = AVPlayerLayer(player: playerViewController.player)
+        pipPlayerLayer.frame = playerViewController.view.layer.bounds
+        pipPlayerLayer.videoGravity = .resizeAspect
+
+        playerViewController.view.layer.insertSublayer(pipPlayerLayer, at: 0)
+        pipController = AVPictureInPictureController(playerLayer: pipPlayerLayer)
+        pipController?.delegate = self
+
+            let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .medium)
+            let Image = UIImage(systemName: "pip", withConfiguration: config)
+            pipButton = UIButton(type: .system)
+            pipButton.setImage(Image, for: .normal)
+            pipButton.tintColor = .white
+            pipButton.addTarget(self, action: #selector(pipButtonTapped(_:)), for: .touchUpInside)
+
+            pipButton.layer.shadowColor = UIColor.black.cgColor
+            pipButton.layer.shadowOffset = CGSize(width: 0, height: 2)
+            pipButton.layer.shadowOpacity = 0.6
+            pipButton.layer.shadowRadius = 4
+            pipButton.layer.masksToBounds = false
+
+            controlsContainerView.addSubview(pipButton)
+            pipButton.translatesAutoresizingMaskIntoConstraints = false
+
+            // NEW: pin pipButton to the left of lockButton:
+            NSLayoutConstraint.activate([
+                pipButton.centerYAnchor.constraint(equalTo: dimButton.centerYAnchor),
+                pipButton.trailingAnchor.constraint(equalTo: dimButton.leadingAnchor, constant: -8),
+                pipButton.widthAnchor.constraint(equalToConstant: 44),
+                pipButton.heightAnchor.constraint(equalToConstant: 44)
+            ])
+
+            pipButton.isHidden = !isPipButtonVisible
+
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(startPipIfNeeded),
+                name: UIApplication.willResignActiveNotification,
+                object: nil
+            )
+        }
+
+    
     func setupMenuButton() {
         let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
         let image = UIImage(systemName: "text.bubble", withConfiguration: config)
@@ -1280,7 +1380,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
         let image = UIImage(systemName: "goforward", withConfiguration: config)
         
-        skip85Button = UIButton(type: .system)
+        skip85Button = GradientOverlayButton(type: .system)
         skip85Button.setTitle(" Skip 85s", for: .normal)
         skip85Button.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .bold)
         skip85Button.setImage(image, for: .normal)
@@ -1424,7 +1524,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                         subtitles: self.subtitlesURL,
                         aniListID: self.aniListID,
                         module: self.module,
-                        headers: self.headers
+                        headers: self.headers,
+                        totalEpisodes: self.totalEpisodes
                     )
                     ContinueWatchingManager.shared.save(item: item)
                 }
@@ -1641,6 +1742,24 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         }
     }
     
+    @objc private func pipButtonTapped(_ sender: UIButton) {
+        guard let pip = pipController else { return }
+        if pip.isPictureInPictureActive {
+            pip.stopPictureInPicture()
+        } else {
+            pip.startPictureInPicture()
+        }
+    }
+
+    @objc private func startPipIfNeeded() {
+        guard isPipAutoEnabled,
+              let pip = pipController,
+              !pip.isPictureInPictureActive else {
+            return
+        }
+        pip.startPictureInPicture()
+    }
+    
     @objc private func lockTapped() {
         controlsLocked.toggle()
         
@@ -1681,7 +1800,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             updateSkipButtonsVisibility()
         }
     }
-    
+
     @objc private func skipIntro() {
         if let range = skipIntervals.op {
             player.seek(to: range.end)
@@ -1697,12 +1816,15 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     @objc func dismissTapped() {
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true) { [weak self] in
+            self?.detachedWindow = nil
+        }
     }
     
     @objc func watchNextTapped() {
         player.pause()
         dismiss(animated: true) { [weak self] in
+            self?.detachedWindow = nil
             self?.onWatchNext()
         }
     }
@@ -1758,35 +1880,77 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     private func tryAniListUpdate() {
-        let aniListMutation = AniListMutation()
-        aniListMutation.updateAnimeProgress(animeId: self.aniListID, episodeNumber: self.episodeNumber) { [weak self] result in
+        guard !aniListUpdatedSuccessfully else { return }
+
+        guard aniListID > 0 else {
+            Logger.shared.log("AniList ID is invalid, skipping update.", type: "Warning")
+            return
+        }
+
+        let client = AniListMutation()
+
+        client.fetchMediaStatus(mediaId: aniListID) { [weak self] statusResult in
             guard let self = self else { return }
+
+            let newStatus: String = {
+                switch statusResult {
+                case .success(let mediaStatus):
+                    if mediaStatus == "RELEASING" {
+                        return "CURRENT"
+                    }
+                    return (self.episodeNumber == self.totalEpisodes) ? "COMPLETED" : "CURRENT"
+
+                case .failure(let error):
+                    Logger.shared.log(
+                        "Failed to fetch AniList status: \(error.localizedDescription). " +
+                        "Using default CURRENT/COMPLETED logic.",
+                        type: "Warning"
+                    )
+                    return (self.episodeNumber == self.totalEpisodes) ? "COMPLETED" : "CURRENT"
+                }
+            }()
             
-            switch result {
-            case .success:
-                self.aniListUpdatedSuccessfully = true
-                Logger.shared.log("Successfully updated AniList progress for episode \(self.episodeNumber)", type: "General")
-                
-            case .failure(let error):
-                let errorString = error.localizedDescription.lowercased()
-                Logger.shared.log("AniList progress update failed: \(errorString)", type: "Error")
-                
-                if errorString.contains("access token not found") {
-                    Logger.shared.log("AniList update will NOT retry due to missing token.", type: "Error")
-                    self.aniListUpdateImpossible = true
-                    
-                } else {
-                    if self.aniListRetryCount < self.aniListMaxRetries {
-                        self.aniListRetryCount += 1
-                        
-                        let delaySeconds = 5.0
-                        Logger.shared.log("AniList update will retry in \(delaySeconds)s (attempt \(self.aniListRetryCount)).", type: "Debug")
-                        
-                        DispatchQueue.main.asyncAfter(deadline: .now() + delaySeconds) {
-                            self.tryAniListUpdate()
-                        }
+            client.updateAnimeProgress(
+                animeId: self.aniListID,
+                episodeNumber: self.episodeNumber,
+                status: newStatus
+            ) { result in
+                switch result {
+                case .success:
+                    self.aniListUpdatedSuccessfully = true
+                    Logger.shared.log(
+                        "AniList progress updated to \(newStatus) for ep \(self.episodeNumber)",
+                        type: "General"
+                    )
+
+                case .failure(let error):
+                    let errorString = error.localizedDescription.lowercased()
+                    Logger.shared.log("AniList progress update failed: \(errorString)", type: "Error")
+
+                    if errorString.contains("access token not found") {
+                        Logger.shared.log("AniList update will NOT retry due to missing token.", type: "Error")
+                        self.aniListUpdateImpossible = true
+
                     } else {
-                        Logger.shared.log("AniList update reached max retries. No more attempts.", type: "Error")
+                        if self.aniListRetryCount < self.aniListMaxRetries {
+                            self.aniListRetryCount += 1
+
+                            let delaySeconds = 5.0
+                            Logger.shared.log(
+                                "AniList update will retry in \(delaySeconds)s " +
+                                "(attempt \(self.aniListRetryCount)).",
+                                type: "Debug"
+                            )
+
+                            DispatchQueue.main.asyncAfter(deadline: .now() + delaySeconds) {
+                                self.tryAniListUpdate()
+                            }
+                        } else {
+                            Logger.shared.log(
+                                "Reached max retry count (\(self.aniListMaxRetries)). Giving up.",
+                                type: "Error"
+                            )
+                        }
                     }
                 }
             }
@@ -2323,7 +2487,9 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         switch gesture.state {
         case .ended:
             if translation.y > 100 {
-                dismiss(animated: true, completion: nil)
+                dismiss(animated: true) { [weak self] in
+                    self?.detachedWindow = nil
+                }
             }
         default:
             break
@@ -2407,7 +2573,62 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
 }
 
+class GradientOverlayButton: UIButton {
+    private let gradientLayer = CAGradientLayer()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupGradient()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupGradient()
+    }
+    
+    private func setupGradient() {
+        gradientLayer.colors = [
+            UIColor.white.withAlphaComponent(0.25).cgColor,
+            UIColor.white.withAlphaComponent(0).cgColor
+        ]
+        gradientLayer.startPoint = CGPoint(x: 0.5, y: 0)
+        gradientLayer.endPoint = CGPoint(x: 0.5, y: 1)
+        layer.addSublayer(gradientLayer)
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        gradientLayer.frame = bounds
+        
+        let path = UIBezierPath(roundedRect: bounds.insetBy(dx: 0.25, dy: 0.25), cornerRadius: bounds.height / 2)
+        let maskLayer = CAShapeLayer()
+        maskLayer.path = path.cgPath
+        maskLayer.fillColor = nil
+        maskLayer.strokeColor = UIColor.white.cgColor
+        maskLayer.lineWidth = 0.5
+        gradientLayer.mask = maskLayer
+    }
+}
+
+extension CustomMediaPlayerViewController: AVPictureInPictureControllerDelegate {
+    func pictureInPictureControllerWillStartPictureInPicture(_ pipController: AVPictureInPictureController) {
+        pipButton.alpha = 0.5
+    }
+    
+    func pictureInPictureControllerDidStopPictureInPicture(_ pipController: AVPictureInPictureController) {
+        pipButton.alpha = 1.0
+    }
+    
+    func pictureInPictureController(_ pipController: AVPictureInPictureController,
+                                    failedToStartPictureInPictureWithError error: Error) {
+        
+        Logger.shared.log("PiP failed to start: \(error.localizedDescription)", type: "Error")
+    }
+}
+
 // yes? Like the plural of the famous american rapper ye? -IBHRAD
 // low taper fade the meme is massive -cranci
-// cranci still doesnt have a job -seiike
+// The mind is the source of good and evil, only you yourself can decide which you will bring yourself. -seiike
 // guys watch Clannad already - ibro
+// May the Divine Providence bestow its infinite mercy upon your soul, and may eternal grace find you beyond the shadows of this mortal realm. - paul, 15/11/2005 - 13/05/2023
+// this dumbass ↑ defo used gpt

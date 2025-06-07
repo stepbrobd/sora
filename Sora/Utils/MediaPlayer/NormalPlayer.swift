@@ -46,7 +46,7 @@ class NormalPlayer: AVPlayerViewController {
     private func endHoldSpeed() {
         player?.rate = originalRate
     }
-    
+
     func setupAudioSession() {
         do {
             let audioSession = AVAudioSession.sharedInstance()
