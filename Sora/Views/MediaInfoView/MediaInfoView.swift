@@ -122,7 +122,6 @@ struct MediaInfoView: View {
             .navigationBarHidden(true)
             .ignoresSafeArea(.container, edges: .top)
             .onAppear {
-                updateLatestProgress()
                 buttonRefreshTrigger.toggle()
                 
                 let savedID = UserDefaults.standard.integer(forKey: "custom_anilist_id_\(href)")
@@ -948,18 +947,6 @@ struct MediaInfoView: View {
                 )
             }
         }
-    }
-    
-    private func updateLatestProgress() {
-        for ep in episodeLinks.reversed() {
-            let last = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
-            let total = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
-            if total > 0 {
-                latestProgress = last / total
-                return
-            }
-        }
-        latestProgress = 0.0
     }
     
     @ViewBuilder
