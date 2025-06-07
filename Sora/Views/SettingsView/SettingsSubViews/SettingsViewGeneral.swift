@@ -162,7 +162,6 @@ struct SettingsViewGeneral: View {
     private let TMDBimageWidhtList = ["300", "500", "780", "1280", "original"]
     private let sortOrderOptions = ["Ascending", "Descending"]
     @EnvironmentObject var settings: Settings
-    @State private var showAppIconPicker = false
     
     var body: some View {
         ScrollView {
@@ -281,13 +280,5 @@ struct SettingsViewGeneral: View {
         }
         .navigationTitle("General")
         .scrollViewBottomPadding()
-        .sheet(isPresented: $showAppIconPicker) {
-            if #available(iOS 16.0, *) {
-                SettingsViewAlternateAppIconPicker(isPresented: $showAppIconPicker)
-                    .presentationDetents([.height(200)])
-            } else {
-                SettingsViewAlternateAppIconPicker(isPresented: $showAppIconPicker)
-            }
-        }
     }
 }
