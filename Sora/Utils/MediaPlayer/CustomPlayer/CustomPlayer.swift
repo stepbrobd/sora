@@ -2159,14 +2159,14 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])
         let playerItem = AVPlayerItem(asset: asset)
         
-        var audioApplied = false
         let audioTrackToApply = lastSelectedAudioTrack
-        let observer = playerItem.observe(\.status, options: [.new]) { [weak self] item, change in
+        let observer = playerItem.observe(\.status, options: [.new]) { [weak self] item, _ in
             guard let self = self else { return }
-            if item.status == .readyToPlay, !audioApplied {
-                audioApplied = true
-                if let lastAudio = audioTrackToApply {
-                    self.switchToAudioTrack(named: lastAudio)
+            if item.status == .readyToPlay {
+                if let audioTrackName = audioTrackToApply,
+                   let group = item.asset.mediaSelectionGroup(forMediaCharacteristic: .audible),
+                   let option = group.options.first(where: { $0.displayName == audioTrackName }) {
+                    playerItem.select(option, in: group)
                 }
             }
         }
