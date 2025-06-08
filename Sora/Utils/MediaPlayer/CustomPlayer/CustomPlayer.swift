@@ -2144,6 +2144,9 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         
         let currentTime = player.currentTime()
         let wasPlaying = player.rate > 0
+        let audioTrackToApply = lastSelectedAudioTrack
+        
+        player.pause()
         
         var request = URLRequest(url: url)
         if let mydict = headers, !mydict.isEmpty {
@@ -2159,35 +2162,39 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])
         let playerItem = AVPlayerItem(asset: asset)
         
-        let audioTrackToApply = lastSelectedAudioTrack
-        let observer = playerItem.observe(\.status, options: [.new]) { [weak self] item, _ in
-            guard let self = self else { return }
-            if item.status == .readyToPlay {
-                if let audioTrackName = audioTrackToApply,
-                   let group = item.asset.mediaSelectionGroup(forMediaCharacteristic: .audible),
-                   let option = group.options.first(where: { $0.displayName == audioTrackName }) {
-                    playerItem.select(option, in: group)
+        asset.loadValuesAsynchronously(forKeys: ["playable"]) { [weak self] in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                let observer = playerItem.observe(\.status, options: [.new]) { [weak self] item, _ in
+                    guard let self = self else { return }
+                    
+                    if item.status == .readyToPlay {
+                        if let audioTrackName = audioTrackToApply,
+                           let group = item.asset.mediaSelectionGroup(forMediaCharacteristic: .audible),
+                           let option = group.options.first(where: { $0.displayName == audioTrackName }) {
+                            item.select(option, in: group)
+                        }
+                        
+                        self.player.seek(to: currentTime)
+                        if wasPlaying {
+                            self.player.play()
+                        }
+                    }
+                }
+                self.player.replaceCurrentItem(with: playerItem)
+                
+                self.currentQualityURL = url
+                UserDefaults.standard.set(urlString, forKey: "lastSelectedQuality")
+                self.qualityButton.menu = self.qualitySelectionMenu()
+                
+                if let selectedQuality = self.qualities.first(where: { $0.1 == urlString })?.0 {
+                    DropManager.shared.showDrop(title: "Quality: \(selectedQuality)", subtitle: "", duration: 0.5, icon: UIImage(systemName: "eye"))
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    observer.invalidate()
                 }
             }
-        }
-        
-        player.replaceCurrentItem(with: playerItem)
-        player.seek(to: currentTime)
-        if wasPlaying {
-            player.play()
-        }
-        
-        currentQualityURL = url
-        
-        UserDefaults.standard.set(urlString, forKey: "lastSelectedQuality")
-        qualityButton.menu = qualitySelectionMenu()
-        
-        if let selectedQuality = qualities.first(where: { $0.1 == urlString })?.0 {
-            DropManager.shared.showDrop(title: "Quality: \(selectedQuality)", subtitle: "", duration: 0.5, icon: UIImage(systemName: "eye"))
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            observer.invalidate()
         }
     }
     
@@ -2687,7 +2694,7 @@ extension CustomMediaPlayerViewController: AVPictureInPictureControllerDelegate 
         pipButton.alpha = 1.0
     }
     
-    func pictureInPictureController(_ pipController: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
+    func pictureInPictureController(_ pipController: AVPictureInPictureController, failed toStartPictureInPictureWithError error: Error) {
         Logger.shared.log("PiP failed to start: \(error.localizedDescription)", type: "Error")
     }
 }
