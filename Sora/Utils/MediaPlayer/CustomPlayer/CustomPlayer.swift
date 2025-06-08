@@ -2044,7 +2044,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                     let nextLine = lines[index + 1].trimmingCharacters(in: .whitespacesAndNewlines)
                     let qualityName = getQualityName(from: line, url: nextLine) ?? "Unknown"
                     var qualityURL = nextLine
-                    if !nextLine.hasPrefix("http") && nextLine.contains(".m3u8") {
+                    if !nextLine.hasPrefix("http") {
                         if let baseURL = self.baseM3U8URL {
                             let baseURLString = baseURL.deletingLastPathComponent().absoluteString
                             qualityURL = URL(string: nextLine, relativeTo: baseURL)?.absoluteString
@@ -2140,8 +2140,9 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     private func checkForHLSStream() {
         guard let url = URL(string: streamURL) else { return }
+        let streamType = module.metadata.streamType.lowercased()
         
-        if url.absoluteString.contains(".m3u8") || url.absoluteString.contains(".m3u") {
+        if url.absoluteString.contains(".m3u8") || url.absoluteString.contains(".m3u") || streamType.contains("hls") {
             isHLSStream = true
             baseM3U8URL = url
             currentQualityURL = url
