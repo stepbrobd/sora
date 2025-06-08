@@ -422,20 +422,70 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     deinit {
-        playerRateObserver?.invalidate()
         inactivityTimer?.invalidate()
+        inactivityTimer = nil
         updateTimer?.invalidate()
+        updateTimer = nil
         lockButtonTimer?.invalidate()
+        lockButtonTimer = nil
         dimButtonTimer?.invalidate()
-        loadedTimeRangesObservation?.invalidate()
-        playerTimeControlStatusObserver?.invalidate()
-        volumeObserver?.invalidate()
+        dimButtonTimer = nil
         
-        player.replaceCurrentItem(with: nil)
-        player.pause()
+        playerRateObserver?.invalidate()
+        playerRateObserver = nil
+        loadedTimeRangesObservation?.invalidate()
+        loadedTimeRangesObservation = nil
+        playerTimeControlStatusObserver?.invalidate()
+        playerTimeControlStatusObserver = nil
+        volumeObserver?.invalidate()
+        volumeObserver = nil
+        
+        NotificationCenter.default.removeObserver(self)
+        if let token = timeObserverToken {
+            player?.removeTimeObserver(token)
+            timeObserverToken = nil
+        }
+        
+        player?.replaceCurrentItem(with: nil)
+        player?.pause()
+        player = nil
+        
+        if let playerVC = playerViewController {
+            playerVC.willMove(toParent: nil)
+            playerVC.view.removeFromSuperview()
+            playerVC.removeFromParent()
+        }
+        
+        if let sliderHost = sliderHostingController {
+            sliderHost.willMove(toParent: nil)
+            sliderHost.view.removeFromSuperview()
+            sliderHost.removeFromParent()
+        }
         
         playerViewController = nil
         sliderHostingController = nil
+        volumeSliderHostingView = nil
+        
+        volumeSliderHostingView?.removeFromSuperview()
+        hiddenVolumeView.removeFromSuperview()
+        subtitleStackView?.removeFromSuperview()
+        marqueeLabel?.removeFromSuperview()
+        controlsContainerView?.removeFromSuperview()
+        blackCoverView?.removeFromSuperview()
+        skipIntroButton?.removeFromSuperview()
+        skipOutroButton?.removeFromSuperview()
+        skip85Button?.removeFromSuperview()
+        pipButton?.removeFromSuperview()
+        airplayButton?.removeFromSuperview()
+        menuButton?.removeFromSuperview()
+        speedButton?.removeFromSuperview()
+        qualityButton?.removeFromSuperview()
+        holdSpeedIndicator?.removeFromSuperview()
+        lockButton?.removeFromSuperview()
+        dimButton?.removeFromSuperview()
+        dismissButton?.removeFromSuperview()
+        watchNextButton?.removeFromSuperview()
+        
         try? AVAudioSession.sharedInstance().setActive(false)
     }
     
@@ -1471,9 +1521,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     func addTimeObserver() {
         let interval = CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval,
-                                                           queue: .main)
-        { [weak self] time in
+        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             guard let self = self,
                   let currentItem = self.player.currentItem,
                   currentItem.duration.seconds.isFinite else { return }
@@ -1520,7 +1568,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             
             let segmentsColor = self.getSegmentsColor()
             
-            DispatchQueue.main.async {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
                 if let currentItem = self.player.currentItem, currentItem.duration.seconds > 0 {
                     let progress = min(max(self.currentTimeVal / self.duration, 0), 1.0)
                     
@@ -1540,7 +1589,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                     )
                     ContinueWatchingManager.shared.save(item: item)
                 }
-                
                 
                 let remainingPercentage = (self.duration - self.currentTimeVal) / self.duration
                 
@@ -1602,7 +1650,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             }
         }
     }
-    
     
     func startUpdateTimer() {
         updateTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
