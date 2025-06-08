@@ -2694,7 +2694,7 @@ extension CustomMediaPlayerViewController: AVPictureInPictureControllerDelegate 
         pipButton.alpha = 1.0
     }
     
-    func pictureInPictureController(_ pipController: AVPictureInPictureController, failed toStartPictureInPictureWithError error: Error) {
+    func pictureInPictureController(_ pipController: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
         Logger.shared.log("PiP failed to start: \(error.localizedDescription)", type: "Error")
     }
 }
