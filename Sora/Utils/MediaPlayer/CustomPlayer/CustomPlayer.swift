@@ -266,8 +266,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         setupHoldGesture()
         loadSubtitleSettings()
         setupPlayerViewController()
-        setupSpeedButton()
-        setupQualityButton()
         setupControls()
         addInvisibleControlOverlays()
         setupWatchNextButton()
@@ -275,6 +273,9 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         setupDismissButton()
         volumeSlider()
         setupDimButton()
+        setupSpeedButton()
+        setupQualityButton()
+        setupAudioMenuButton()
         setupMenuButton()
         setupMarqueeLabel()
         setupSkip85Button()
@@ -667,21 +668,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             forwardButton.leadingAnchor.constraint(equalTo: playPauseButton.trailingAnchor, constant: 50),
             forwardButton.widthAnchor.constraint(equalToConstant: 40),
             forwardButton.heightAnchor.constraint(equalToConstant: 40)
-        ])
-        
-        audioTrackButton = UIButton(type: .system)
-        audioTrackButton.setImage(UIImage(systemName: "waveform.circle"), for: .normal)
-        audioTrackButton.tintColor = .white
-        audioTrackButton.showsMenuAsPrimaryAction = true
-        audioTrackButton.menu = audioTrackSelectionMenu()
-        audioTrackButton.isHidden = true
-        controlsContainerView.addSubview(audioTrackButton)
-        audioTrackButton.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            audioTrackButton.topAnchor.constraint(equalTo: qualityButton.topAnchor),
-            audioTrackButton.trailingAnchor.constraint(equalTo: qualityButton.leadingAnchor, constant: -6),
-            audioTrackButton.widthAnchor.constraint(equalToConstant: 40),
-            audioTrackButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
     
@@ -1475,6 +1461,34 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             qualityButton.trailingAnchor.constraint(equalTo: speedButton.leadingAnchor, constant: -6),
             qualityButton.widthAnchor.constraint(equalToConstant: 40),
             qualityButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+    }
+    
+    func setupAudioMenuButton() {
+        let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
+        let image = UIImage(systemName: "waveform.circle", withConfiguration: config)
+        
+        audioTrackButton = UIButton(type: .system)
+        audioTrackButton.setImage(image, for: .normal)
+        audioTrackButton.tintColor = .white
+        audioTrackButton.showsMenuAsPrimaryAction = true
+        audioTrackButton.menu = audioTrackSelectionMenu()
+        audioTrackButton.isHidden = true
+        
+        audioTrackButton.layer.shadowColor = UIColor.black.cgColor
+        audioTrackButton.layer.shadowOffset = CGSize(width: 0, height: 2)
+        audioTrackButton.layer.shadowOpacity = 0.6
+        audioTrackButton.layer.shadowRadius = 4
+        audioTrackButton.layer.masksToBounds = false
+        
+        controlsContainerView.addSubview(audioTrackButton)
+        audioTrackButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            audioTrackButton.topAnchor.constraint(equalTo: qualityButton.topAnchor),
+            audioTrackButton.trailingAnchor.constraint(equalTo: qualityButton.leadingAnchor, constant: -6),
+            audioTrackButton.widthAnchor.constraint(equalToConstant: 40),
+            audioTrackButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
     
@@ -2663,9 +2677,7 @@ extension CustomMediaPlayerViewController: AVPictureInPictureControllerDelegate 
         pipButton.alpha = 1.0
     }
     
-    func pictureInPictureController(_ pipController: AVPictureInPictureController,
-                                    failedToStartPictureInPictureWithError error: Error) {
-        
+    func pictureInPictureController(_ pipController: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
         Logger.shared.log("PiP failed to start: \(error.localizedDescription)", type: "Error")
     }
 }
