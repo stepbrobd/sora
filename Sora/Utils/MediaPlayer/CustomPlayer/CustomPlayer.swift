@@ -2150,7 +2150,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         guard let url = URL(string: streamURL) else { return }
         let streamType = module.metadata.streamType.lowercased()
         
-        if url.absoluteString.contains(".m3u8") || url.absoluteString.contains(".m3u")) {
+        if url.absoluteString.contains(".m3u8") || url.absoluteString.contains(".m3u") {
             isHLSStream = true
             baseM3U8URL = url
             currentQualityURL = url
