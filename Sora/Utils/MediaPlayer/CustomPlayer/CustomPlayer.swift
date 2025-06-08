@@ -2102,10 +2102,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         qualityButton.menu = qualitySelectionMenu()
         
         if let selectedQuality = qualities.first(where: { $0.1 == urlString })?.0 {
-            DropManager.shared.showDrop(title: "Quality: \(selectedQuality)",
-                                        subtitle: "",
-                                        duration: 0.5,
-                                        icon: UIImage(systemName: "eye"))
+            DropManager.shared.showDrop(title: "Quality: \(selectedQuality)", subtitle: "", duration: 0.5, icon: UIImage(systemName: "eye"))
         }
     }
     
@@ -2144,7 +2141,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     private func checkForHLSStream() {
         guard let url = URL(string: streamURL) else { return }
         
-        if url.absoluteString.contains(".m3u8") {
+        if url.absoluteString.contains(".m3u8") || url.absoluteString.contains(".m3u") {
             isHLSStream = true
             baseM3U8URL = url
             currentQualityURL = url
