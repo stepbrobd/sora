@@ -13,7 +13,6 @@ import AVFoundation
 import MarqueeLabel
 
 class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDelegate {
-    private var airplayButton: AVRoutePickerView!
     let module: ScrapingModule
     let streamURL: String
     let fullUrl: String
@@ -110,12 +109,15 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     var skip85Button: UIButton!
     var qualityButton: UIButton!
     var holdSpeedIndicator: UIButton!
-    private var lockButton: UIButton!
+    var audioTrackButton: UIButton!
+    var airplayButton: AVRoutePickerView!
+    var lockButton: UIButton!
     
     var isHLSStream: Bool = false
     var qualities: [(String, String)] = []
     var currentQualityURL: URL?
     var baseM3U8URL: URL?
+    var selectedAudioOptionID: String?
     
     var sliderHostingController: UIHostingController<MusicProgressSlider<Double>>?
     var sliderViewModel = SliderViewModel()
@@ -177,7 +179,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         watchNextButton,
         volumeSliderHostingView,
         pipButton,
-        airplayButton
+        airplayButton,
+        audioTrackButton
     ].compactMap { $0 }
     
     private var originalHiddenStates: [UIView: Bool] = [:]
@@ -280,6 +283,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         updateSkipButtonsVisibility()
         setupHoldSpeedIndicator()
         setupPipIfSupported()
+        setupAudioTrackButton()
         
         view.bringSubviewToFront(subtitleStackView)
         
@@ -2079,6 +2083,13 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         let currentTime = player.currentTime()
         let wasPlaying = player.rate > 0
         
+        var selectedAudioOption: AVMediaSelectionOption?
+        if let currentItem = player.currentItem,
+           let group = currentItem.asset.mediaSelectionGroup(forMediaCharacteristic: .audible) {
+            selectedAudioOption = currentItem.currentMediaSelection.selectedMediaOption(in: group)
+            selectedAudioOptionID = selectedAudioOption?.extendedLanguageTag ?? selectedAudioOption?.locale?.identifier
+        }
+        
         var request = URLRequest(url: url)
         if let mydict = headers, !mydict.isEmpty {
             for (key,value) in mydict {
@@ -2099,6 +2110,16 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             player.play()
         }
         
+        if let group = playerItem.asset.mediaSelectionGroup(forMediaCharacteristic: .audible),
+           let savedID = selectedAudioOptionID {
+            let match = group.options.first(where: {
+                $0.extendedLanguageTag == savedID || $0.locale?.identifier == savedID
+            })
+            if let match = match {
+                playerItem.select(match, in: group)
+            }
+        }
+        
         currentQualityURL = url
         
         UserDefaults.standard.set(urlString, forKey: "lastSelectedQuality")
@@ -2107,6 +2128,62 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         if let selectedQuality = qualities.first(where: { $0.1 == urlString })?.0 {
             DropManager.shared.showDrop(title: "Quality: \(selectedQuality)", subtitle: "", duration: 0.5, icon: UIImage(systemName: "eye"))
         }
+        
+        updateAudioTrackButtonMenu()
+    }
+    
+    private func setupAudioTrackButton() {
+        let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
+        let image = UIImage(systemName: "music.note.list", withConfiguration: config)
+        
+        audioTrackButton = UIButton(type: .system)
+        audioTrackButton.setImage(image, for: .normal)
+        audioTrackButton.tintColor = .white
+        audioTrackButton.showsMenuAsPrimaryAction = true
+        audioTrackButton.menu = buildAudioTrackMenu()
+        
+        audioTrackButton.layer.shadowColor = UIColor.black.cgColor
+        audioTrackButton.layer.shadowOffset = CGSize(width: 0, height: 2)
+        audioTrackButton.layer.shadowOpacity = 0.6
+        audioTrackButton.layer.shadowRadius = 4
+        audioTrackButton.layer.masksToBounds = false
+        
+        controlsContainerView.addSubview(audioTrackButton)
+        audioTrackButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            audioTrackButton.topAnchor.constraint(equalTo: qualityButton.topAnchor),
+            audioTrackButton.trailingAnchor.constraint(equalTo: qualityButton.leadingAnchor, constant: -6),
+            audioTrackButton.widthAnchor.constraint(equalToConstant: 40),
+            audioTrackButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+    }
+    
+    private func buildAudioTrackMenu() -> UIMenu {
+        guard let currentItem = player.currentItem,
+              let group = currentItem.asset.mediaSelectionGroup(forMediaCharacteristic: .audible) else {
+                  return UIMenu(title: "Audio Tracks", children: [
+                    UIAction(title: "No audio tracks", attributes: .disabled, handler: { _ in })
+                  ])
+              }
+        
+        var actions: [UIAction] = []
+        for option in group.options {
+            let lang = option.displayName
+            let isSelected = currentItem.currentMediaSelection.selectedMediaOption(in: group) == option
+            let action = UIAction(title: lang, state: isSelected ? .on : .off) { [weak self] _ in
+                guard let self = self else { return }
+                currentItem.select(option, in: group)
+                self.selectedAudioOptionID = option.extendedLanguageTag ?? option.locale?.identifier
+                self.updateAudioTrackButtonMenu()
+            }
+            actions.append(action)
+        }
+        return UIMenu(title: "Audio Tracks", children: actions)
+    }
+    
+    private func updateAudioTrackButtonMenu() {
+        audioTrackButton.menu = buildAudioTrackMenu()
     }
     
     private func qualitySelectionMenu() -> UIMenu {
