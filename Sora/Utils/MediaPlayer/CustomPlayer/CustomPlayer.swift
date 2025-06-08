@@ -266,6 +266,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         setupHoldGesture()
         loadSubtitleSettings()
         setupPlayerViewController()
+        setupSpeedButton()
+        setupQualityButton()
         setupControls()
         addInvisibleControlOverlays()
         setupWatchNextButton()
@@ -273,8 +275,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         setupDismissButton()
         volumeSlider()
         setupDimButton()
-        setupSpeedButton()
-        setupQualityButton()
         setupMenuButton()
         setupMarqueeLabel()
         setupSkip85Button()
@@ -2159,7 +2159,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         if let selectedQuality = qualities.first(where: { $0.1 == urlString })?.0 {
             DropManager.shared.showDrop(title: "Quality: \(selectedQuality)", subtitle: "", duration: 0.5, icon: UIImage(systemName: "eye"))
         }
-
+        
         if let lastAudio = lastSelectedAudioTrack {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
                 self?.switchToAudioTrack(named: lastAudio)
