@@ -119,8 +119,8 @@ struct ModuleAdditionSettingsView: View {
                                 VStack(spacing: 0) {
                                     FancyUrlRow(title: "Base URL", value: metadata.baseUrl)
                                     Divider().padding(.horizontal, 8)
-                                    if let searchBaseUrl = metadata.searchBaseUrl, !searchBaseUrl.isEmpty {
-                                        FancyUrlRow(title: "Search URL", value: searchBaseUrl)
+                                    if !metadata.searchBaseUrl.isEmpty {
+                                        FancyUrlRow(title: "Search URL", value: metadata.searchBaseUrl)
                                         Divider().padding(.horizontal, 8)
                                     }
                                     FancyUrlRow(title: "Script URL", value: metadata.scriptUrl)

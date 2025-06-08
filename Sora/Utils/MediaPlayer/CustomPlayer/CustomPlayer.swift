@@ -1993,20 +1993,15 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     private func parseM3U8(url: URL, completion: @escaping () -> Void) {
         var request = URLRequest(url: url)
-        if let mydict = headers, !mydict.isEmpty
-        {
-            for (key,value) in mydict
-            {
+        if let mydict = headers, !mydict.isEmpty {
+            for (key,value) in mydict {
                 request.addValue(value, forHTTPHeaderField: key)
             }
-        }
-        else
-        {
+        } else {
             request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
             request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
         }
-        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
-                         forHTTPHeaderField: "User-Agent")
+        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self,
@@ -2023,59 +2018,51 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             let lines = content.components(separatedBy: .newlines)
             var qualities: [(String, String)] = []
             
-            qualities.append(("Auto (Recommended)", url.absoluteString))
-            
-            func getQualityName(for height: Int) -> String {
-                switch height {
-                case 1080...: return "\(height)p (FHD)"
-                case 720..<1080: return "\(height)p (HD)"
-                case 480..<720: return "\(height)p (SD)"
-                default: return "\(height)p"
+            func getQualityName(from line: String, url: String) -> String? {
+                if let resRange = line.range(of: "RESOLUTION=") {
+                    let afterRes = line[resRange.upperBound...]
+                    let resString = afterRes.split(separator: ",").first ?? ""
+                    if let heightStr = resString.split(separator: "x").last,
+                       let height = Int(heightStr) {
+                        switch height {
+                        case 1080...: return "\(height)p (FHD)"
+                        case 720..<1080: return "\(height)p (HD)"
+                        case 480..<720: return "\(height)p (SD)"
+                        default: return "\(height)p"
+                        }
+                    }
                 }
+                if let match = url.range(of: "rendition=([0-9]+p)", options: .regularExpression) {
+                    let rendition = String(url[match]).replacingOccurrences(of: "rendition=", with: "")
+                    return rendition
+                }
+                return nil
             }
             
             for (index, line) in lines.enumerated() {
                 if line.contains("#EXT-X-STREAM-INF"), index + 1 < lines.count {
-                    if let resolutionRange = line.range(of: "RESOLUTION="),
-                       let resolutionEndRange = line[resolutionRange.upperBound...].range(of: ",")
-                        ?? line[resolutionRange.upperBound...].range(of: "\n") {
-                        
-                        let resolutionPart = String(line[resolutionRange.upperBound..<resolutionEndRange.lowerBound])
-                        if let heightStr = resolutionPart.components(separatedBy: "x").last,
-                           let height = Int(heightStr) {
-                            
-                            let nextLine = lines[index + 1].trimmingCharacters(in: .whitespacesAndNewlines)
-                            let qualityName = getQualityName(for: height)
-                            
-                            var qualityURL = nextLine
-                            if !nextLine.hasPrefix("http") && nextLine.contains(".m3u8") {
-                                if let baseURL = self.baseM3U8URL {
-                                    let baseURLString = baseURL.deletingLastPathComponent().absoluteString
-                                    qualityURL = URL(string: nextLine, relativeTo: baseURL)?.absoluteString
-                                    ?? baseURLString + "/" + nextLine
-                                }
-                            }
-                            
-                            if !qualities.contains(where: { $0.0 == qualityName }) {
-                                qualities.append((qualityName, qualityURL))
-                            }
+                    let nextLine = lines[index + 1].trimmingCharacters(in: .whitespacesAndNewlines)
+                    let qualityName = getQualityName(from: line, url: nextLine) ?? "Unknown"
+                    var qualityURL = nextLine
+                    if !nextLine.hasPrefix("http") && nextLine.contains(".m3u8") {
+                        if let baseURL = self.baseM3U8URL {
+                            let baseURLString = baseURL.deletingLastPathComponent().absoluteString
+                            qualityURL = URL(string: nextLine, relativeTo: baseURL)?.absoluteString
+                            ?? baseURLString + "/" + nextLine
                         }
+                    }
+                    if !qualities.contains(where: { $0.0 == qualityName }) {
+                        qualities.append((qualityName, qualityURL))
                     }
                 }
             }
             
             DispatchQueue.main.async {
-                let autoQuality = qualities.first
-                var sortedQualities = qualities.dropFirst().sorted { first, second in
+                let sortedQualities = qualities.sorted { first, second in
                     let firstHeight = Int(first.0.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 0
                     let secondHeight = Int(second.0.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 0
                     return firstHeight > secondHeight
                 }
-                
-                if let auto = autoQuality {
-                    sortedQualities.insert(auto, at: 0)
-                }
-                
                 self.qualities = sortedQualities
                 completion()
             }
@@ -2090,20 +2077,15 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         let wasPlaying = player.rate > 0
         
         var request = URLRequest(url: url)
-        if let mydict = headers, !mydict.isEmpty
-        {
-            for (key,value) in mydict
-            {
+        if let mydict = headers, !mydict.isEmpty {
+            for (key,value) in mydict {
                 request.addValue(value, forHTTPHeaderField: key)
             }
-        }
-        else
-        {
+        } else {
             request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
             request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
         }
-        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
-                         forHTTPHeaderField: "User-Agent")
+        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
         
         let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])
         let playerItem = AVPlayerItem(asset: asset)
@@ -2129,7 +2111,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     private func qualitySelectionMenu() -> UIMenu {
         var menuItems: [UIMenuElement] = []
-        
         if isHLSStream {
             if qualities.isEmpty {
                 let loadingAction = UIAction(title: "Loading qualities...", attributes: .disabled) { _ in }
@@ -2140,10 +2121,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                    let selectedQuality = qualities.first(where: { $0.1 == currentURL })?.0 {
                     menuTitle = "Quality: \(selectedQuality)"
                 }
-                
                 for (name, urlString) in qualities {
                     let isCurrentQuality = currentQualityURL?.absoluteString == urlString
-                    
                     let action = UIAction(
                         title: name,
                         state: isCurrentQuality ? .on : .off,
@@ -2153,14 +2132,12 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                     )
                     menuItems.append(action)
                 }
-                
                 return UIMenu(title: menuTitle, children: menuItems)
             }
         } else {
             let unavailableAction = UIAction(title: "Quality selection unavailable", attributes: .disabled) { _ in }
             menuItems.append(unavailableAction)
         }
-        
         return UIMenu(title: "Video Quality", children: menuItems)
     }
     
