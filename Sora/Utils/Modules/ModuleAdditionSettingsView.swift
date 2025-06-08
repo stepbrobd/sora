@@ -32,98 +32,108 @@ struct ModuleAdditionSettingsView: View {
             
             VStack(spacing: 0) {
                 HStack {
-                    Button(action: { presentationMode.wrappedValue.dismiss() }) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(.primary)
-                            .padding(10)
-                            .background(Color.gray.opacity(0.15))
-                            .clipShape(Circle())
-                            .circularGradientOutline()
-                    }
                     Spacer()
-                    Text("Add Module")
-                        .font(.largeTitle.bold())
-                        .foregroundColor(.primary)
+                    Capsule()
+                        .frame(width: 40, height: 5)
+                        .foregroundColor(Color(.systemGray4))
+                        .padding(.top, 10)
                     Spacer()
-                    Color.clear.frame(width: 44)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 24)
+                .padding(.bottom, 8)
                 
                 ScrollView {
-                    VStack(spacing: 28) {
+                    VStack(spacing: 24) {
                         if let metadata = moduleMetadata {
-                            VStack(spacing: 18) {
+                            VStack(spacing: 0) {
                                 KFImage(URL(string: metadata.iconUrl))
                                     .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 110, height: 110)
-                                    .clipShape(Circle())
-                                    .shadow(radius: 6)
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 90, height: 90)
+                                    .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                                    .shadow(color: Color.accentColor.opacity(0.18), radius: 10, x: 0, y: 6)
                                     .overlay(
-                                        Circle()
+                                        RoundedRectangle(cornerRadius: 22)
                                             .stroke(Color.accentColor, lineWidth: 2)
                                     )
                                     .padding(.top, 10)
                                 
-                                Text(metadata.sourceName)
-                                    .font(.title2.bold())
-                                    .multilineTextAlignment(.center)
-                                    .foregroundColor(.primary)
-                                
-                                HStack(spacing: 14) {
-                                    KFImage(URL(string: metadata.author.icon))
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        .frame(width: 48, height: 48)
-                                        .clipShape(Circle())
-                                        .shadow(radius: 2)
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(metadata.author.name)
-                                            .font(.headline)
-                                            .foregroundColor(.primary)
-                                        Text("Author")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
+                                VStack(spacing: 6) {
+                                    Text(metadata.sourceName)
+                                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                                        .foregroundColor(.primary)
+                                        .multilineTextAlignment(.center)
+                                        .padding(.top, 6)
+                                    
+                                    HStack(spacing: 10) {
+                                        KFImage(URL(string: metadata.author.icon))
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 32, height: 32)
+                                            .clipShape(Circle())
+                                            .shadow(radius: 2)
+                                        VStack(alignment: .leading, spacing: 0) {
+                                            Text(metadata.author.name)
+                                                .font(.headline)
+                                                .foregroundColor(.primary)
+                                            Text("Author")
+                                                .font(.caption2)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        Spacer()
                                     }
-                                    Spacer()
+                                    .padding(.horizontal, 18)
+                                    .padding(.vertical, 8)
+                                    .background(
+                                        Capsule()
+                                            .fill(Color.accentColor.opacity(colorScheme == .dark ? 0.13 : 0.08))
+                                    )
+                                    .padding(.top, 2)
                                 }
-                                .padding(14)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 18)
-                                        .fill(Color(.systemGray6).opacity(colorScheme == .dark ? 0.2 : 0.7))
-                                )
                                 
                                 VStack(spacing: 0) {
-                                    InfoRow(title: "Version", value: metadata.version)
+                                    HStack(spacing: 0) {
+                                        FancyInfoTile(icon: "globe", label: "Language", value: metadata.language)
+                                        Divider().frame(height: 44)
+                                        FancyInfoTile(icon: "film", label: "Type", value: metadata.type ?? "-")
+                                    }
+                                    Divider()
+                                    HStack(spacing: 0) {
+                                        FancyInfoTile(icon: "arrow.down.circle", label: "Quality", value: metadata.quality)
+                                        Divider().frame(height: 44)
+                                        FancyInfoTile(icon: "waveform", label: "Stream", value: metadata.streamType)
+                                    }
+                                    Divider()
+                                    HStack(spacing: 0) {
+                                        FancyInfoTile(icon: "number", label: "Version", value: metadata.version)
+                                        Divider().frame(height: 44)
+                                        FancyInfoTile(icon: "bolt.horizontal", label: "Async JS", value: metadata.asyncJS == true ? "Yes" : "No")
+                                    }
+                                }
+                                .background(
+                                    RoundedRectangle(cornerRadius: 22)
+                                        .fill(Color(.systemGray6).opacity(colorScheme == .dark ? 0.18 : 0.8))
+                                )
+                                .padding(.top, 18)
+                                .padding(.horizontal, 2)
+                                
+                                VStack(spacing: 0) {
+                                    FancyUrlRow(title: "Base URL", value: metadata.baseUrl)
                                     Divider().padding(.horizontal, 8)
-                                    InfoRow(title: "Language", value: metadata.language)
-                                    Divider().padding(.horizontal, 8)
-                                    InfoRow(title: "Quality", value: metadata.quality)
-                                    Divider().padding(.horizontal, 8)
-                                    InfoRow(title: "Stream Typed", value: metadata.streamType)
-                                    Divider().padding(.horizontal, 8)
-                                    InfoRow(title: "Base URL", value: metadata.baseUrl)
-                                        .onLongPressGesture {
-                                            UIPasteboard.general.string = metadata.baseUrl
-                                            DropManager.shared.showDrop(title: "Copied to Clipboard", subtitle: "", duration: 1.0, icon: UIImage(systemName: "doc.on.clipboard.fill"))
-                                        }
-                                    Divider().padding(.horizontal, 8)
-                                    InfoRow(title: "Script URL", value: metadata.scriptUrl)
-                                        .onLongPressGesture {
-                                            UIPasteboard.general.string = metadata.scriptUrl
-                                            DropManager.shared.showDrop(title: "Copied to Clipboard", subtitle: "", duration: 1.0, icon: UIImage(systemName: "doc.on.clipboard.fill"))
-                                        }
+                                    if let searchBaseUrl = metadata.searchBaseUrl {
+                                        FancyUrlRow(title: "Search URL", value: searchBaseUrl)
+                                        Divider().padding(.horizontal, 8)
+                                    }
+                                    FancyUrlRow(title: "Script URL", value: metadata.scriptUrl)
                                 }
                                 .padding(16)
                                 .background(
                                     RoundedRectangle(cornerRadius: 18)
-                                        .fill(Color(.systemGray6).opacity(colorScheme == .dark ? 0.18 : 0.8))
+                                        .fill(Color(.systemGray6).opacity(colorScheme == .dark ? 0.13 : 0.85))
                                 )
+                                .padding(.top, 18)
                             }
-                            .padding(.horizontal, 20)
-                            .padding(.top, 10)
+                            .padding(.horizontal, 18)
+                            .padding(.top, 8)
                         } else if isLoading {
                             VStack(spacing: 20) {
                                 ProgressView()
@@ -243,22 +253,58 @@ struct ModuleAdditionSettingsView: View {
     }
 }
 
-struct InfoRow: View {
+struct FancyInfoTile: View {
+    let icon: String
+    let label: String
+    let value: String
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.accentColor)
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            Text(value)
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .foregroundColor(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .frame(maxWidth: .infinity, minHeight: 54)
+        .padding(.vertical, 6)
+    }
+}
+
+struct FancyUrlRow: View {
     let title: String
     let value: String
     
     var body: some View {
-        HStack {
+        HStack(spacing: 8) {
             Text(title)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             Spacer()
             Text(value)
-                .font(.body)
-                .foregroundColor(.primary)
+                .font(.footnote.monospaced())
+                .foregroundColor(.accentColor)
                 .lineLimit(1)
-                .truncationMode(.tail)
+                .truncationMode(.middle)
+                .onLongPressGesture {
+                    UIPasteboard.general.string = value
+                    DropManager.shared.showDrop(title: "Copied to Clipboard", subtitle: "", duration: 1.0, icon: UIImage(systemName: "doc.on.clipboard.fill"))
+                }
+            Image(systemName: "doc.on.clipboard")
+                .foregroundColor(.accentColor)
+                .font(.system(size: 14))
+                .onTapGesture {
+                    UIPasteboard.general.string = value
+                    DropManager.shared.showDrop(title: "Copied to Clipboard", subtitle: "", duration: 1.0, icon: UIImage(systemName: "doc.on.clipboard.fill"))
+                }
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, 7)
+        .padding(.horizontal, 2)
     }
 }
