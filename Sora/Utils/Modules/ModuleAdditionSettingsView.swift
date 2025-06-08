@@ -119,7 +119,7 @@ struct ModuleAdditionSettingsView: View {
                                 VStack(spacing: 0) {
                                     FancyUrlRow(title: "Base URL", value: metadata.baseUrl)
                                     Divider().padding(.horizontal, 8)
-                                    if let searchBaseUrl = metadata.searchBaseUrl {
+                                    if let searchBaseUrl = metadata.searchBaseUrl, !searchBaseUrl.isEmpty {
                                         FancyUrlRow(title: "Search URL", value: searchBaseUrl)
                                         Divider().padding(.horizontal, 8)
                                     }
@@ -178,7 +178,7 @@ struct ModuleAdditionSettingsView: View {
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
-                                .clipShape(RoundedRectangle(cornerRadius: 18))
+                            .clipShape(RoundedRectangle(cornerRadius: 18))
                         )
                         .shadow(color: Color.accentColor.opacity(0.18), radius: 8, x: 0, y: 4)
                         .padding(.horizontal, 20)
