@@ -2159,6 +2159,18 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])
         let playerItem = AVPlayerItem(asset: asset)
         
+        var audioApplied = false
+        let audioTrackToApply = lastSelectedAudioTrack
+        let observer = playerItem.observe(\.status, options: [.new]) { [weak self] item, change in
+            guard let self = self else { return }
+            if item.status == .readyToPlay, !audioApplied {
+                audioApplied = true
+                if let lastAudio = audioTrackToApply {
+                    self.switchToAudioTrack(named: lastAudio)
+                }
+            }
+        }
+        
         player.replaceCurrentItem(with: playerItem)
         player.seek(to: currentTime)
         if wasPlaying {
@@ -2174,10 +2186,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             DropManager.shared.showDrop(title: "Quality: \(selectedQuality)", subtitle: "", duration: 0.5, icon: UIImage(systemName: "eye"))
         }
         
-        if let lastAudio = lastSelectedAudioTrack {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-                self?.switchToAudioTrack(named: lastAudio)
-            }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            observer.invalidate()
         }
     }
     
