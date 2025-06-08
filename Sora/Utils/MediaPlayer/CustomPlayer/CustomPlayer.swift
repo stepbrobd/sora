@@ -179,7 +179,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         watchNextButton,
         volumeSliderHostingView,
         pipButton,
-        airplayButton
+        airplayButton,
+        audioTrackButton
     ].compactMap { $0 }
     
     private var originalHiddenStates: [UIView: Bool] = [:]
@@ -197,6 +198,10 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     private var wasPlayingBeforeBackground = false
     private var backgroundToken: Any?
     private var foregroundToken: Any?
+    
+    private var audioTracks: [(name: String, groupID: String, uri: String)] = []
+    private var audioTrackButton: UIButton!
+    private var lastSelectedAudioTrack: String?
     
     init(module: ScrapingModule,
          urlString: String,
@@ -662,6 +667,21 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             forwardButton.leadingAnchor.constraint(equalTo: playPauseButton.trailingAnchor, constant: 50),
             forwardButton.widthAnchor.constraint(equalToConstant: 40),
             forwardButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+        
+        audioTrackButton = UIButton(type: .system)
+        audioTrackButton.setImage(UIImage(systemName: "waveform.circle"), for: .normal)
+        audioTrackButton.tintColor = .white
+        audioTrackButton.showsMenuAsPrimaryAction = true
+        audioTrackButton.menu = audioTrackSelectionMenu()
+        audioTrackButton.isHidden = true
+        controlsContainerView.addSubview(audioTrackButton)
+        audioTrackButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            audioTrackButton.topAnchor.constraint(equalTo: qualityButton.topAnchor),
+            audioTrackButton.trailingAnchor.constraint(equalTo: qualityButton.leadingAnchor, constant: -6),
+            audioTrackButton.widthAnchor.constraint(equalToConstant: 40),
+            audioTrackButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
     
@@ -1862,7 +1882,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         
         UIView.animate(withDuration: 0.25) {
             self.blackCoverView.alpha = self.isDimmed ? 1.0 : 0.4
-            for v in self.controlsToHide { v.alpha = self.isDimmed ? 0 : 1 }
+            for v in self.controlsToHide { v.alpha = self.isDimmed ? 0 :  1 }
             self.dimButton.alpha  = self.isDimmed ? 0 : 1
             self.lockButton.alpha = self.isDimmed ? 0 : 1
             
@@ -2017,6 +2037,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             
             let lines = content.components(separatedBy: .newlines)
             var qualities: [(String, String)] = []
+            var audioTracks: [(name: String, groupID: String, uri: String)] = []
             
             func getQualityName(from line: String, url: String) -> String? {
                 if let resRange = line.range(of: "RESOLUTION=") {
@@ -2040,6 +2061,12 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             }
             
             for (index, line) in lines.enumerated() {
+                if line.hasPrefix("#EXT-X-MEDIA:") && line.contains("TYPE=AUDIO") {
+                    let name = line.components(separatedBy: "NAME=\"").last?.components(separatedBy: "\"").first ?? "Unknown"
+                    let groupID = line.components(separatedBy: "GROUP-ID=\"").last?.components(separatedBy: "\"").first ?? ""
+                    let uri = line.components(separatedBy: "URI=\"").last?.components(separatedBy: "\"").first ?? ""
+                    audioTracks.append((name: name, groupID: groupID, uri: uri))
+                }
                 if line.contains("#EXT-X-STREAM-INF"), index + 1 < lines.count {
                     let nextLine = lines[index + 1].trimmingCharacters(in: .whitespacesAndNewlines)
                     let qualityName = getQualityName(from: line, url: nextLine) ?? "Unknown"
@@ -2064,9 +2091,37 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                     return firstHeight > secondHeight
                 }
                 self.qualities = sortedQualities
+                self.audioTracks = audioTracks
+                self.audioTrackButton.isHidden = self.audioTracks.isEmpty
+                self.audioTrackButton.menu = self.audioTrackSelectionMenu()
                 completion()
             }
         }.resume()
+    }
+    
+    private func audioTrackSelectionMenu() -> UIMenu {
+        var menuItems: [UIMenuElement] = []
+        if audioTracks.isEmpty {
+            let unavailable = UIAction(title: "No alternate audio", attributes: .disabled) { _ in }
+            menuItems.append(unavailable)
+        } else {
+            for (name, _, _) in audioTracks {
+                let action = UIAction(title: name, state: (lastSelectedAudioTrack == name ? .on : .off)) { [weak self] _ in
+                    self?.switchToAudioTrack(named: name)
+                }
+                menuItems.append(action)
+            }
+        }
+        return UIMenu(title: "Audio Track", children: menuItems)
+    }
+    
+    private func switchToAudioTrack(named name: String) {
+        lastSelectedAudioTrack = name
+        guard let playerItem = player.currentItem else { return }
+        guard let group = playerItem.asset.mediaSelectionGroup(forMediaCharacteristic: .audible) else { return }
+        guard let option = group.options.first(where: { $0.displayName == name }) else { return }
+        playerItem.select(option, in: group)
+        audioTrackButton.menu = audioTrackSelectionMenu()
     }
     
     private func switchToQuality(urlString: String) {
@@ -2103,6 +2158,12 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         
         if let selectedQuality = qualities.first(where: { $0.1 == urlString })?.0 {
             DropManager.shared.showDrop(title: "Quality: \(selectedQuality)", subtitle: "", duration: 0.5, icon: UIImage(systemName: "eye"))
+        }
+
+        if let lastAudio = lastSelectedAudioTrack {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                self?.switchToAudioTrack(named: lastAudio)
+            }
         }
     }
     
