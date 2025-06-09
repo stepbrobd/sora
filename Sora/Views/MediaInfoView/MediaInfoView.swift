@@ -224,7 +224,7 @@ struct MediaInfoView: View {
                     Rectangle()
                         .fill(Color.clear)
                         .frame(height: 400)
-                    VStack(alignment: .leading, spacing: 16) {
+                    LazyVStack(alignment: .leading, spacing: 16) {
                         headerSection
                         if !episodeLinks.isEmpty {
                             episodesSection
@@ -257,7 +257,7 @@ struct MediaInfoView: View {
     
     @ViewBuilder
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        LazyVStack(alignment: .leading, spacing: 8) {
             Spacer()
             HStack(spacing: 16) {
                 
@@ -412,7 +412,7 @@ struct MediaInfoView: View {
     
     @ViewBuilder
     private var contentSection: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        LazyVStack(alignment: .leading, spacing: 20) {
             playAndBookmarkSection
             
             if !episodeLinks.isEmpty {
@@ -667,7 +667,7 @@ struct MediaInfoView: View {
     
     @ViewBuilder
     private var flatEpisodeList: some View {
-        VStack(spacing: 15) {
+        LazyVStack(spacing: 15) {
             ForEach(episodeLinks.indices.filter { selectedRange.contains($0) }, id: \.self) { i in
                 let ep = episodeLinks[i]
                 let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
@@ -714,7 +714,7 @@ struct MediaInfoView: View {
     private var seasonsEpisodeList: some View {
         let seasons = groupedEpisodes()
         if !seasons.isEmpty, selectedSeason < seasons.count {
-            VStack(spacing: 15) {
+            LazyVStack(spacing: 15) {
                 ForEach(seasons[selectedSeason]) { ep in
                     let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
                     let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
