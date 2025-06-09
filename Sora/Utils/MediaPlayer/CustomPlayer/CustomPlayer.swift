@@ -13,6 +13,7 @@ import AVFoundation
 import MarqueeLabel
 
 class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDelegate {
+    private var airplayButton: AVRoutePickerView!
     let module: ScrapingModule
     let streamURL: String
     let fullUrl: String
@@ -41,7 +42,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     var currentTimeVal: Double = 0.0
     var duration: Double = 0.0
     var isVideoLoaded = false
-    var detachedWindow: UIWindow?
     
     private var isHoldPauseEnabled: Bool {
         UserDefaults.standard.bool(forKey: "holdForPauseEnabled")
@@ -73,7 +73,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     private var pipController: AVPictureInPictureController?
     private var pipButton: UIButton!
-
     
     var portraitButtonVisibleConstraints: [NSLayoutConstraint] = []
     var portraitButtonHiddenConstraints: [NSLayoutConstraint] = []
@@ -81,7 +80,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     var landscapeButtonHiddenConstraints: [NSLayoutConstraint] = []
     var currentMarqueeConstraints: [NSLayoutConstraint] = []
     private var currentMenuButtonTrailing: NSLayoutConstraint!
-    
     
     var subtitleForegroundColor: String = "white"
     var subtitleBackgroundEnabled: Bool = true
@@ -177,7 +175,9 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         qualityButton,
         speedButton,
         watchNextButton,
-        volumeSliderHostingView
+        volumeSliderHostingView,
+        pipButton,
+        airplayButton
     ].compactMap { $0 }
     
     private var originalHiddenStates: [UIView: Bool] = [:]
@@ -422,23 +422,73 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     deinit {
-        playerRateObserver?.invalidate()
         inactivityTimer?.invalidate()
+        inactivityTimer = nil
         updateTimer?.invalidate()
+        updateTimer = nil
         lockButtonTimer?.invalidate()
+        lockButtonTimer = nil
         dimButtonTimer?.invalidate()
-        loadedTimeRangesObservation?.invalidate()
-        playerTimeControlStatusObserver?.invalidate()
-        volumeObserver?.invalidate()
+        dimButtonTimer = nil
         
-        player.replaceCurrentItem(with: nil)
-        player.pause()
+        playerRateObserver?.invalidate()
+        playerRateObserver = nil
+        loadedTimeRangesObservation?.invalidate()
+        loadedTimeRangesObservation = nil
+        playerTimeControlStatusObserver?.invalidate()
+        playerTimeControlStatusObserver = nil
+        volumeObserver?.invalidate()
+        volumeObserver = nil
+        
+        NotificationCenter.default.removeObserver(self)
+        if let token = timeObserverToken {
+            player?.removeTimeObserver(token)
+            timeObserverToken = nil
+        }
+        
+        player?.replaceCurrentItem(with: nil)
+        player?.pause()
+        player = nil
+        
+        if let playerVC = playerViewController {
+            playerVC.willMove(toParent: nil)
+            playerVC.view.removeFromSuperview()
+            playerVC.removeFromParent()
+        }
+        
+        if let sliderHost = sliderHostingController {
+            sliderHost.willMove(toParent: nil)
+            sliderHost.view.removeFromSuperview()
+            sliderHost.removeFromParent()
+        }
         
         playerViewController = nil
         sliderHostingController = nil
+        volumeSliderHostingView = nil
+        
+        volumeSliderHostingView?.removeFromSuperview()
+        hiddenVolumeView.removeFromSuperview()
+        subtitleStackView?.removeFromSuperview()
+        marqueeLabel?.removeFromSuperview()
+        controlsContainerView?.removeFromSuperview()
+        blackCoverView?.removeFromSuperview()
+        skipIntroButton?.removeFromSuperview()
+        skipOutroButton?.removeFromSuperview()
+        skip85Button?.removeFromSuperview()
+        pipButton?.removeFromSuperview()
+        airplayButton?.removeFromSuperview()
+        menuButton?.removeFromSuperview()
+        speedButton?.removeFromSuperview()
+        qualityButton?.removeFromSuperview()
+        holdSpeedIndicator?.removeFromSuperview()
+        lockButton?.removeFromSuperview()
+        dimButton?.removeFromSuperview()
+        dismissButton?.removeFromSuperview()
+        watchNextButton?.removeFromSuperview()
+        
         try? AVAudioSession.sharedInstance().setActive(false)
     }
-
+    
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         guard context == &playerItemKVOContext else {
             super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
@@ -448,7 +498,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         if keyPath == "loadedTimeRanges" {
         }
     }
-    
     
     @objc private func playerItemDidChange() {
         DispatchQueue.main.async { [weak self] in
@@ -1240,51 +1289,64 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     private func setupPipIfSupported() {
+        airplayButton = AVRoutePickerView(frame: .zero)
+        airplayButton.translatesAutoresizingMaskIntoConstraints = false
+        airplayButton.activeTintColor = .white
+        airplayButton.tintColor = .white
+        airplayButton.backgroundColor = .clear
+        airplayButton.prioritizesVideoDevices = true
+        airplayButton.setContentHuggingPriority(.required, for: .horizontal)
+        airplayButton.setContentCompressionResistancePriority(.required, for: .horizontal)
+        controlsContainerView.addSubview(airplayButton)
+        
         guard AVPictureInPictureController.isPictureInPictureSupported() else {
             return
         }
         let pipPlayerLayer = AVPlayerLayer(player: playerViewController.player)
         pipPlayerLayer.frame = playerViewController.view.layer.bounds
         pipPlayerLayer.videoGravity = .resizeAspect
-
+        
         playerViewController.view.layer.insertSublayer(pipPlayerLayer, at: 0)
         pipController = AVPictureInPictureController(playerLayer: pipPlayerLayer)
         pipController?.delegate = self
-
-            let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .medium)
-            let Image = UIImage(systemName: "pip", withConfiguration: config)
-            pipButton = UIButton(type: .system)
-            pipButton.setImage(Image, for: .normal)
-            pipButton.tintColor = .white
-            pipButton.addTarget(self, action: #selector(pipButtonTapped(_:)), for: .touchUpInside)
-
-            pipButton.layer.shadowColor = UIColor.black.cgColor
-            pipButton.layer.shadowOffset = CGSize(width: 0, height: 2)
-            pipButton.layer.shadowOpacity = 0.6
-            pipButton.layer.shadowRadius = 4
-            pipButton.layer.masksToBounds = false
-
-            controlsContainerView.addSubview(pipButton)
-            pipButton.translatesAutoresizingMaskIntoConstraints = false
-
-            // NEW: pin pipButton to the left of lockButton:
-            NSLayoutConstraint.activate([
-                pipButton.centerYAnchor.constraint(equalTo: dimButton.centerYAnchor),
-                pipButton.trailingAnchor.constraint(equalTo: dimButton.leadingAnchor, constant: -8),
-                pipButton.widthAnchor.constraint(equalToConstant: 44),
-                pipButton.heightAnchor.constraint(equalToConstant: 44)
-            ])
-
-            pipButton.isHidden = !isPipButtonVisible
-
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(startPipIfNeeded),
-                name: UIApplication.willResignActiveNotification,
-                object: nil
-            )
-        }
-
+        
+        
+        let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .medium)
+        let Image = UIImage(systemName: "pip", withConfiguration: config)
+        pipButton = UIButton(type: .system)
+        pipButton.setImage(Image, for: .normal)
+        pipButton.tintColor = .white
+        pipButton.addTarget(self, action: #selector(pipButtonTapped(_:)), for: .touchUpInside)
+        
+        pipButton.layer.shadowColor = UIColor.black.cgColor
+        pipButton.layer.shadowOffset = CGSize(width: 0, height: 2)
+        pipButton.layer.shadowOpacity = 0.6
+        pipButton.layer.shadowRadius = 4
+        pipButton.layer.masksToBounds = false
+        
+        controlsContainerView.addSubview(pipButton)
+        pipButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            pipButton.centerYAnchor.constraint(equalTo: dimButton.centerYAnchor),
+            pipButton.trailingAnchor.constraint(equalTo: dimButton.leadingAnchor, constant: -8),
+            pipButton.widthAnchor.constraint(equalToConstant: 44),
+            pipButton.heightAnchor.constraint(equalToConstant: 44),
+            airplayButton.centerYAnchor.constraint(equalTo: pipButton.centerYAnchor),
+            airplayButton.trailingAnchor.constraint(equalTo: pipButton.leadingAnchor, constant: -8),
+            airplayButton.widthAnchor.constraint(equalToConstant: 44),
+            airplayButton.heightAnchor.constraint(equalToConstant: 44)
+        ])
+        
+        pipButton.isHidden = !isPipButtonVisible
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(startPipIfNeeded),
+            name: UIApplication.willResignActiveNotification,
+            object: nil
+        )
+    }
     
     func setupMenuButton() {
         let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
@@ -1356,7 +1418,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         watchNextButton.tintColor = .white
         watchNextButton.setTitleColor(.white, for: .normal)
         
-        // The shadow:
         watchNextButton.layer.shadowColor = UIColor.black.cgColor
         watchNextButton.layer.shadowOffset = CGSize(width: 0, height: 2)
         watchNextButton.layer.shadowOpacity = 0.6
@@ -1460,9 +1521,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     func addTimeObserver() {
         let interval = CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval,
-                                                           queue: .main)
-        { [weak self] time in
+        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             guard let self = self,
                   let currentItem = self.player.currentItem,
                   currentItem.duration.seconds.isFinite else { return }
@@ -1509,7 +1568,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             
             let segmentsColor = self.getSegmentsColor()
             
-            DispatchQueue.main.async {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
                 if let currentItem = self.player.currentItem, currentItem.duration.seconds > 0 {
                     let progress = min(max(self.currentTimeVal / self.duration, 0), 1.0)
                     
@@ -1529,7 +1589,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                     )
                     ContinueWatchingManager.shared.save(item: item)
                 }
-                
                 
                 let remainingPercentage = (self.duration - self.currentTimeVal) / self.duration
                 
@@ -1591,7 +1650,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             }
         }
     }
-    
     
     func startUpdateTimer() {
         updateTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
@@ -1750,13 +1808,13 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             pip.startPictureInPicture()
         }
     }
-
+    
     @objc private func startPipIfNeeded() {
         guard isPipAutoEnabled,
               let pip = pipController,
               !pip.isPictureInPictureActive else {
-            return
-        }
+                  return
+              }
         pip.startPictureInPicture()
     }
     
@@ -1800,7 +1858,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             updateSkipButtonsVisibility()
         }
     }
-
+    
     @objc private func skipIntro() {
         if let range = skipIntervals.op {
             player.seek(to: range.end)
@@ -1816,15 +1874,12 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     @objc func dismissTapped() {
-        dismiss(animated: true) { [weak self] in
-            self?.detachedWindow = nil
-        }
+        dismiss(animated: true, completion: nil)
     }
     
     @objc func watchNextTapped() {
         player.pause()
         dismiss(animated: true) { [weak self] in
-            self?.detachedWindow = nil
             self?.onWatchNext()
         }
     }
@@ -1849,19 +1904,16 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         
         UIView.animate(withDuration: 0.25) {
             self.blackCoverView.alpha = self.isDimmed ? 1.0 : 0.4
-            // fade all controls (and lock button) in or out
-            for v in self.controlsToHide { v.alpha = self.isDimmed ? 0 : 1 }
+            for v in self.controlsToHide { v.alpha = self.isDimmed ? 0 :  1 }
             self.dimButton.alpha  = self.isDimmed ? 0 : 1
             self.lockButton.alpha = self.isDimmed ? 0 : 1
             
-            // switch subtitle constraints just like toggleControls()
             self.subtitleBottomToSafeAreaConstraint?.isActive = !self.isControlsVisible
             self.subtitleBottomToSliderConstraint?.isActive    =  self.isControlsVisible
             
             self.view.layoutIfNeeded()
         }
         
-        // slide the dim-icon over
         dimButtonToSlider.isActive = !isDimmed
         dimButtonToRight.isActive  =  isDimmed
     }
@@ -1881,17 +1933,17 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     private func tryAniListUpdate() {
         guard !aniListUpdatedSuccessfully else { return }
-
+        
         guard aniListID > 0 else {
             Logger.shared.log("AniList ID is invalid, skipping update.", type: "Warning")
             return
         }
-
+        
         let client = AniListMutation()
-
+        
         client.fetchMediaStatus(mediaId: aniListID) { [weak self] statusResult in
             guard let self = self else { return }
-
+            
             let newStatus: String = {
                 switch statusResult {
                 case .success(let mediaStatus):
@@ -1899,7 +1951,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                         return "CURRENT"
                     }
                     return (self.episodeNumber == self.totalEpisodes) ? "COMPLETED" : "CURRENT"
-
+                    
                 case .failure(let error):
                     Logger.shared.log(
                         "Failed to fetch AniList status: \(error.localizedDescription). " +
@@ -1922,26 +1974,26 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                         "AniList progress updated to \(newStatus) for ep \(self.episodeNumber)",
                         type: "General"
                     )
-
+                    
                 case .failure(let error):
                     let errorString = error.localizedDescription.lowercased()
                     Logger.shared.log("AniList progress update failed: \(errorString)", type: "Error")
-
+                    
                     if errorString.contains("access token not found") {
                         Logger.shared.log("AniList update will NOT retry due to missing token.", type: "Error")
                         self.aniListUpdateImpossible = true
-
+                        
                     } else {
                         if self.aniListRetryCount < self.aniListMaxRetries {
                             self.aniListRetryCount += 1
-
+                            
                             let delaySeconds = 5.0
                             Logger.shared.log(
                                 "AniList update will retry in \(delaySeconds)s " +
                                 "(attempt \(self.aniListRetryCount)).",
                                 type: "Debug"
                             )
-
+                            
                             DispatchQueue.main.asyncAfter(deadline: .now() + delaySeconds) {
                                 self.tryAniListUpdate()
                             }
@@ -1983,20 +2035,15 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     private func parseM3U8(url: URL, completion: @escaping () -> Void) {
         var request = URLRequest(url: url)
-        if let mydict = headers, !mydict.isEmpty
-        {
-            for (key,value) in mydict
-            {
+        if let mydict = headers, !mydict.isEmpty {
+            for (key,value) in mydict {
                 request.addValue(value, forHTTPHeaderField: key)
             }
-        }
-        else
-        {
+        } else {
             request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
             request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
         }
-        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
-                         forHTTPHeaderField: "User-Agent")
+        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self,
@@ -2080,20 +2127,15 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         let wasPlaying = player.rate > 0
         
         var request = URLRequest(url: url)
-        if let mydict = headers, !mydict.isEmpty
-        {
-            for (key,value) in mydict
-            {
+        if let mydict = headers, !mydict.isEmpty {
+            for (key,value) in mydict {
                 request.addValue(value, forHTTPHeaderField: key)
             }
-        }
-        else
-        {
+        } else {
             request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Referer")
             request.addValue("\(module.metadata.baseUrl)", forHTTPHeaderField: "Origin")
         }
-        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
-                         forHTTPHeaderField: "User-Agent")
+        request.addValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
         
         let asset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": request.allHTTPHeaderFields ?? [:]])
         let playerItem = AVPlayerItem(asset: asset)
@@ -2110,10 +2152,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         qualityButton.menu = qualitySelectionMenu()
         
         if let selectedQuality = qualities.first(where: { $0.1 == urlString })?.0 {
-            DropManager.shared.showDrop(title: "Quality: \(selectedQuality)",
-                                        subtitle: "",
-                                        duration: 0.5,
-                                        icon: UIImage(systemName: "eye"))
+            DropManager.shared.showDrop(title: "Quality: \(selectedQuality)", subtitle: "", duration: 0.5, icon: UIImage(systemName: "eye"))
         }
     }
     
@@ -2156,8 +2195,9 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     private func checkForHLSStream() {
         guard let url = URL(string: streamURL) else { return }
+        let streamType = module.metadata.streamType.lowercased()
         
-        if url.absoluteString.contains(".m3u8") {
+        if url.absoluteString.contains(".m3u8") || url.absoluteString.contains(".m3u") {
             isHLSStream = true
             baseM3U8URL = url
             currentQualityURL = url
@@ -2487,9 +2527,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         switch gesture.state {
         case .ended:
             if translation.y > 100 {
-                dismiss(animated: true) { [weak self] in
-                    self?.detachedWindow = nil
-                }
+                dismiss(animated: true, completion: nil)
             }
         default:
             break
@@ -2619,9 +2657,7 @@ extension CustomMediaPlayerViewController: AVPictureInPictureControllerDelegate 
         pipButton.alpha = 1.0
     }
     
-    func pictureInPictureController(_ pipController: AVPictureInPictureController,
-                                    failedToStartPictureInPictureWithError error: Error) {
-        
+    func pictureInPictureController(_ pipController: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
         Logger.shared.log("PiP failed to start: \(error.localizedDescription)", type: "Error")
     }
 }
@@ -2631,4 +2667,4 @@ extension CustomMediaPlayerViewController: AVPictureInPictureControllerDelegate 
 // The mind is the source of good and evil, only you yourself can decide which you will bring yourself. -seiike
 // guys watch Clannad already - ibro
 // May the Divine Providence bestow its infinite mercy upon your soul, and may eternal grace find you beyond the shadows of this mortal realm. - paul, 15/11/2005 - 13/05/2023
-// this dumbass ↑ defo used gpt
+// this dumbass ↑ defo used gpt, ong he did bro

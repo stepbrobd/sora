@@ -5,13 +5,14 @@
 //  Created by Francesco on 05/01/25.
 //
 
-import SwiftUI
-import Kingfisher
 import UIKit
+import NukeUI
+import SwiftUI
 
 struct LibraryView: View {
     @EnvironmentObject private var libraryManager: LibraryManager
     @EnvironmentObject private var moduleManager: ModuleManager
+    @Environment(\.scenePhase) private var scenePhase
     
     @AppStorage("mediaColumnsPortrait") private var mediaColumnsPortrait: Int = 2
     @AppStorage("mediaColumnsLandscape") private var mediaColumnsLandscape: Int = 4
@@ -165,6 +166,11 @@ struct LibraryView: View {
                 .onAppear {
                     fetchContinueWatching()
                 }
+                .onChange(of: scenePhase) { newPhase in
+                    if newPhase == .active {
+                        fetchContinueWatching()
+                    }
+                }
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
@@ -237,8 +243,8 @@ struct ContinueWatchingCell: View {
     var markAsWatched: () -> Void
     var removeItem: () -> Void
     
-    @State private
-    var currentProgress: Double = 0.0
+    @State private var currentProgress: Double = 0.0
+    @Environment(\.scenePhase) private var scenePhase
     
     var body: some View {
         Button(action: {
@@ -280,85 +286,96 @@ struct ContinueWatchingCell: View {
             }
         }) {
             ZStack(alignment: .bottomLeading) {
-                KFImage(URL(string: item.imageUrl.isEmpty ? "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/main/assets/banner2.png" : item.imageUrl))
-                    .placeholder {
+                LazyImage(url: URL(string: item.imageUrl.isEmpty ? "https://raw.githubusercontent.com/cranci1/Sora/refs/heads/main/assets/banner2.png" : item.imageUrl)) { state in
+                    if let uiImage = state.imageContainer?.image {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(16/9, contentMode: .fill)
+                            .frame(width: 280, height: 157.03)
+                            .cornerRadius(10)
+                            .clipped()
+                    } else {
                         RoundedRectangle(cornerRadius: 10)
                             .fill(Color.gray.opacity(0.3))
                             .frame(width: 280, height: 157.03)
-                            .shimmering()
+                            .redacted(reason: .placeholder)
                     }
-                    .resizable()
-                    .aspectRatio(16/9, contentMode: .fill)
-                    .frame(width: 280, height: 157.03)
-                    .cornerRadius(10)
-                    .clipped()
-                    .overlay(
-                        ZStack {
-                            ProgressiveBlurView()
-                                .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
+                }
+                .overlay(
+                    ZStack {
+                        ProgressiveBlurView()
+                            .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Spacer()
+                            Text(item.mediaTitle)
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .lineLimit(1)
                             
-                            VStack(alignment: .leading, spacing: 4) {
-                                Spacer()
-                                Text(item.mediaTitle)
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .lineLimit(1)
+                            HStack {
+                                Text("Episode \(item.episodeNumber)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.white.opacity(0.9))
                                 
-                                HStack {
-                                    Text("Episode \(item.episodeNumber)")
-                                        .font(.subheadline)
-                                        .foregroundColor(.white.opacity(0.9))
-                                    
-                                    Spacer()
-                                    
-                                    Text("\(Int(item.progress * 100))% seen")
-                                        .font(.caption)
-                                        .foregroundColor(.white.opacity(0.9))
-                                }
+                                Spacer()
+                                
+                                Text("\(Int(item.progress * 100))% seen")
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.9))
                             }
-                            .padding(10)
-                            .background(
-                                LinearGradient(
-                                    colors: [
-                                        .black.opacity(0.7),
-                                        .black.opacity(0.0)
-                                    ],
-                                    startPoint: .bottom,
-                                    endPoint: .top
-                                )
-                                    .clipped()
-                                    .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
-                                    .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 1)
+                        }
+                        .padding(10)
+                        .background(
+                            LinearGradient(
+                                colors: [
+                                    .black.opacity(0.7),
+                                    .black.opacity(0.0)
+                                ],
+                                startPoint: .bottom,
+                                endPoint: .top
                             )
-                        },
-                        alignment: .bottom
-                    )
-                    .overlay(
-                        ZStack {
-                            if item.streamUrl.hasPrefix("file://") {
-                                Image(systemName: "arrow.down.app.fill")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 24, height: 24)
-                                    .foregroundColor(.white)
-                                    .background(Color.black.cornerRadius(6))
-                                    .padding(8)
-                            } else {
-                                Circle()
-                                    .fill(Color.black.opacity(0.5))
-                                    .frame(width: 28, height: 28)
-                                    .overlay(
-                                        KFImage(URL(string: item.module.metadata.iconUrl))
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(width: 32, height: 32)
-                                            .clipShape(Circle())
-                                    )
-                                    .padding(8)
-                            }
-                        },
-                        alignment: .topLeading
-                    )
+                                .clipped()
+                                .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
+                                .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 1)
+                        )
+                    },
+                    alignment: .bottom
+                )
+                .overlay(
+                    ZStack {
+                        if item.streamUrl.hasPrefix("file://") {
+                            Image(systemName: "arrow.down.app.fill")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 24, height: 24)
+                                .foregroundColor(.white)
+                                .background(Color.black.cornerRadius(6))
+                                .padding(8)
+                        } else {
+                            Circle()
+                                .fill(Color.black.opacity(0.5))
+                                .frame(width: 28, height: 28)
+                                .overlay(
+                                    LazyImage(url: URL(string: item.module.metadata.iconUrl)) { state in
+                                        if let uiImage = state.imageContainer?.image {
+                                            Image(uiImage: uiImage)
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: 32, height: 32)
+                                                .clipShape(Circle())
+                                        } else {
+                                            Circle()
+                                                .fill(Color.gray.opacity(0.3))
+                                                .frame(width: 32, height: 32)
+                                        }
+                                    }
+                                )
+                                .padding(8)
+                        }
+                    },
+                    alignment: .topLeading
+                )
             }
             .frame(width: 280, height: 157.03)
         }
@@ -377,11 +394,11 @@ struct ContinueWatchingCell: View {
         .onAppear {
             updateProgress()
         }
-        .onReceive(NotificationCenter.default.publisher(
-            for: UIApplication.didBecomeActiveNotification)) {
-                _ in
+        .onChange(of: scenePhase) { newPhase in
+            if newPhase == .active {
                 updateProgress()
             }
+        }
     }
     
     private func updateProgress() {
@@ -525,34 +542,45 @@ struct BookmarkItemView: View {
                 isDetailActive = true
             }) {
                 ZStack {
-                    KFImage(URL(string: item.imageUrl))
-                        .placeholder {
+                    LazyImage(url: URL(string: item.imageUrl)) { state in
+                        if let uiImage = state.imageContainer?.image {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .aspectRatio(0.72, contentMode: .fill)
+                                .frame(width: 162, height: 243)
+                                .cornerRadius(12)
+                                .clipped()
+                        } else {
                             RoundedRectangle(cornerRadius: 12)
                                 .fill(Color.gray.opacity(0.3))
-                                .aspectRatio(2 / 3, contentMode: .fit)
-                                .shimmering()
+                                .aspectRatio(2/3, contentMode: .fit)
+                                .redacted(reason: .placeholder)
                         }
-                        .resizable()
-                        .aspectRatio(0.72, contentMode: .fill)
-                        .frame(width: 162, height: 243)
-                        .cornerRadius(12)
-                        .clipped()
-                        .overlay(
-                            ZStack {
-                                Circle()
-                                    .fill(Color.black.opacity(0.5))
-                                    .frame(width: 28, height: 28)
-                                    .overlay(
-                                        KFImage(URL(string: module.metadata.iconUrl))
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(width: 32, height: 32)
-                                            .clipShape(Circle())
-                                    )
-                            }
-                                .padding(8),
-                            alignment: .topLeading
-                        )
+                    }
+                    .overlay(
+                        ZStack {
+                            Circle()
+                                .fill(Color.black.opacity(0.5))
+                                .frame(width: 28, height: 28)
+                                .overlay(
+                                    LazyImage(url: URL(string: module.metadata.iconUrl)) { state in
+                                        if let uiImage = state.imageContainer?.image {
+                                            Image(uiImage: uiImage)
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: 32, height: 32)
+                                                .clipShape(Circle())
+                                        } else {
+                                            Circle()
+                                                .fill(Color.gray.opacity(0.3))
+                                                .frame(width: 32, height: 32)
+                                        }
+                                    }
+                                )
+                        }
+                        .padding(8),
+                        alignment: .topLeading
+                    )
                     
                     VStack {
                         Spacer()
