@@ -27,7 +27,7 @@ struct ModuleSelectorMenu: View {
                             onModuleSelected(module.id.uuidString)
                         } label: {
                             HStack {
-                                LazyImage(url: URL(string: module.metadata.iconUrl)) { state in
+                                LazyImage(source: URL(string: module.metadata.iconUrl)) { state in
                                     if let uiImage = state.imageContainer?.image {
                                         Image(uiImage: uiImage)
                                             .resizable()
@@ -56,7 +56,7 @@ struct ModuleSelectorMenu: View {
                     Text(selectedModule.metadata.sourceName)
                         .font(.headline)
                         .foregroundColor(.primary)
-                    LazyImage(url: URL(string: selectedModule.metadata.iconUrl)) { state in
+                    LazyImage(source: URL(string: selectedModule.metadata.iconUrl)) { state in
                         if let uiImage = state.imageContainer?.image {
                             Image(uiImage: uiImage)
                                 .resizable()

@@ -58,10 +58,9 @@
 		139935662D468C450065CEFF /* ModuleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 139935652D468C450065CEFF /* ModuleManager.swift */; };
 		1399FAD42D3AB38C00E97C31 /* SettingsViewLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1399FAD32D3AB38C00E97C31 /* SettingsViewLogger.swift */; };
 		1399FAD62D3AB3DB00E97C31 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1399FAD52D3AB3DB00E97C31 /* Logger.swift */; };
-		13AF34B42DF6CB5900C77880 /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 13AF34B32DF6CB5900C77880 /* Nuke */; };
-		13AF34B62DF6CB5900C77880 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 13AF34B52DF6CB5900C77880 /* NukeUI */; };
 		13B77E202DA457AA00126FDF /* AniListPushUpdates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B77E1F2DA457AA00126FDF /* AniListPushUpdates.swift */; };
 		13B7F4C12D58FFDD0045714A /* Shimmer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B7F4C02D58FFDD0045714A /* Shimmer.swift */; };
+		13BC689F2DF61327009A0651 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 13BC689E2DF61327009A0651 /* NukeUI */; };
 		13C0E5EA2D5F85EA00E7F619 /* ContinueWatchingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C0E5E92D5F85EA00E7F619 /* ContinueWatchingManager.swift */; };
 		13C0E5EC2D5F85F800E7F619 /* ContinueWatchingItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13C0E5EB2D5F85F800E7F619 /* ContinueWatchingItem.swift */; };
 		13CBA0882D60F19C00EFE70A /* VTTSubtitlesLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13CBA0872D60F19C00EFE70A /* VTTSubtitlesLoader.swift */; };
@@ -192,10 +191,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				13AF34B62DF6CB5900C77880 /* NukeUI in Frameworks */,
 				13637B902DE0ECD200BDA2FC /* Drops in Frameworks */,
 				13637B932DE0ECDB00BDA2FC /* MarqueeLabel in Frameworks */,
-				13AF34B42DF6CB5900C77880 /* Nuke in Frameworks */,
+				13BC689F2DF61327009A0651 /* NukeUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -618,8 +616,7 @@
 			packageProductDependencies = (
 				13637B8F2DE0ECD200BDA2FC /* Drops */,
 				13637B922DE0ECDB00BDA2FC /* MarqueeLabel */,
-				13AF34B32DF6CB5900C77880 /* Nuke */,
-				13AF34B52DF6CB5900C77880 /* NukeUI */,
+				13BC689E2DF61327009A0651 /* NukeUI */,
 			);
 			productName = Sora;
 			productReference = 133D7C6A2D2BE2500075467E /* Sulfur.app */;
@@ -646,13 +643,12 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
-				Base,
 			);
 			mainGroup = 133D7C612D2BE2500075467E;
 			packageReferences = (
 				13637B8E2DE0ECD200BDA2FC /* XCRemoteSwiftPackageReference "Drops" */,
 				13637B912DE0ECDB00BDA2FC /* XCRemoteSwiftPackageReference "MarqueeLabel" */,
-				13AF34B22DF6CB5900C77880 /* XCRemoteSwiftPackageReference "Nuke" */,
+				13BC689D2DF61327009A0651 /* XCRemoteSwiftPackageReference "NukeUI" */,
 			);
 			productRefGroup = 133D7C6B2D2BE2500075467E /* Products */;
 			projectDirPath = "";
@@ -924,9 +920,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = me.cranci.sulfur;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = YES;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,6";
@@ -967,9 +962,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = me.cranci.sulfur;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = YES;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,6";
@@ -1012,13 +1006,13 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/cbpowell/MarqueeLabel";
 			requirement = {
-				branch = master;
-				kind = branch;
+				kind = exactVersion;
+				version = 4.2.1;
 			};
 		};
-		13AF34B22DF6CB5900C77880 /* XCRemoteSwiftPackageReference "Nuke" */ = {
+		13BC689D2DF61327009A0651 /* XCRemoteSwiftPackageReference "NukeUI" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/kean/Nuke.git";
+			repositoryURL = "https://github.com/kean/NukeUI";
 			requirement = {
 				branch = main;
 				kind = branch;
@@ -1037,14 +1031,9 @@
 			package = 13637B912DE0ECDB00BDA2FC /* XCRemoteSwiftPackageReference "MarqueeLabel" */;
 			productName = MarqueeLabel;
 		};
-		13AF34B32DF6CB5900C77880 /* Nuke */ = {
+		13BC689E2DF61327009A0651 /* NukeUI */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 13AF34B22DF6CB5900C77880 /* XCRemoteSwiftPackageReference "Nuke" */;
-			productName = Nuke;
-		};
-		13AF34B52DF6CB5900C77880 /* NukeUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 13AF34B22DF6CB5900C77880 /* XCRemoteSwiftPackageReference "Nuke" */;
+			package = 13BC689D2DF61327009A0651 /* XCRemoteSwiftPackageReference "NukeUI" */;
 			productName = NukeUI;
 		};
 /* End XCSwiftPackageProductDependency section */

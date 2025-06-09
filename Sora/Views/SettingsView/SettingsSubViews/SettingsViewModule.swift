@@ -67,7 +67,7 @@ fileprivate struct ModuleListItemView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                LazyImage(url: URL(string: module.metadata.iconUrl)) { state in
+                LazyImage(source: URL(string: module.metadata.iconUrl)) { state in
                     if let uiImage = state.imageContainer?.image {
                         Image(uiImage: uiImage)
                             .resizable()
