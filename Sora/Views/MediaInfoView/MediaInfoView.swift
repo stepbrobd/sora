@@ -123,38 +123,6 @@ struct MediaInfoView: View {
             .ignoresSafeArea(.container, edges: .top)
             .onAppear {
                 buttonRefreshTrigger.toggle()
-                
-                let savedID = UserDefaults.standard.integer(forKey: "custom_anilist_id_\(href)")
-                if savedID != 0 { customAniListID = savedID }
-                
-                if let savedPoster = UserDefaults.standard.string(forKey: "tmdbPosterURL_\(href)") {
-                    self.imageUrl = savedPoster
-                }
-                
-                if !hasFetched {
-                    DropManager.shared.showDrop(
-                        title: "Fetching Data",
-                        subtitle: "Please wait while fetching.",
-                        duration: 0.5,
-                        icon: UIImage(systemName: "arrow.triangle.2.circlepath")
-                    )
-                    fetchDetails()
-                    
-                    if let savedID = UserDefaults.standard.object(forKey: "custom_anilist_id_\(href)") as? Int {
-                        customAniListID = savedID
-                        itemID = savedID
-                        Logger.shared.log("Using custom AniList ID: \(savedID)", type: "Debug")
-                    } else {
-                        fetchMetadataIDIfNeeded()
-                    }
-                                        
-                    hasFetched = true
-                    AnalyticsManager.shared.sendEvent(
-                        event: "MediaInfoView",
-                        additionalData: ["title": title]
-                    )
-                }
-                
                 tabBarController.hideTabBar()
             }
             .onChange(of: selectedRange) { newValue in
@@ -174,12 +142,8 @@ struct MediaInfoView: View {
                 if let savedPoster = UserDefaults.standard.string(forKey: "tmdbPosterURL_\(href)") {
                     imageUrl = savedPoster
                 }
-                DropManager.shared.showDrop(
-                    title: "Fetching Data",
-                    subtitle: "Please wait while fetching.",
-                    duration: 0.5,
-                    icon: UIImage(systemName: "arrow.triangle.2.circlepath")
-                )
+                
+                DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching.", duration: 0.5, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
                 fetchDetails()
 
                 if savedCustomID != 0 {
@@ -240,7 +204,7 @@ struct MediaInfoView: View {
     private var mainScrollView: some View {
         ScrollView {
             ZStack(alignment: .top) {
-                LazyImage(source: URL(string: imageUrl)) { state in
+                LazyImage(url: URL(string: imageUrl)) { state in
                     if let uiImage = state.imageContainer?.image {
                         Image(uiImage: uiImage)
                             .resizable()
@@ -255,6 +219,7 @@ struct MediaInfoView: View {
                             .clipped()
                     }
                 }
+                
                 VStack(spacing: 0) {
                     Rectangle()
                         .fill(Color.clear)
@@ -283,13 +248,11 @@ struct MediaInfoView: View {
                             .shadow(color: (colorScheme == .dark ? Color.black : Color.white).opacity(1), radius: 10, x: 0, y: 10)
                     )
                 }
-                .deviceScaled()
             }
         }
         .onAppear {
             UIScrollView.appearance().bounces = false
         }
-        .ignoresSafeArea(.container, edges: .top)
     }
     
     @ViewBuilder
@@ -704,7 +667,7 @@ struct MediaInfoView: View {
     
     @ViewBuilder
     private var flatEpisodeList: some View {
-        LazyVStack(spacing: 15) {
+        VStack(spacing: 15) {
             ForEach(episodeLinks.indices.filter { selectedRange.contains($0) }, id: \.self) { i in
                 let ep = episodeLinks[i]
                 let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
@@ -751,7 +714,7 @@ struct MediaInfoView: View {
     private var seasonsEpisodeList: some View {
         let seasons = groupedEpisodes()
         if !seasons.isEmpty, selectedSeason < seasons.count {
-            LazyVStack(spacing: 15) {
+            VStack(spacing: 15) {
                 ForEach(seasons[selectedSeason]) { ep in
                     let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
                     let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
@@ -1328,12 +1291,16 @@ struct MediaInfoView: View {
                 videoPlayerViewController.mediaTitle = title
                 videoPlayerViewController.subtitles = subtitles ?? ""
                 videoPlayerViewController.aniListID = itemID ?? 0
-                videoPlayerViewController.modalPresentationStyle = .overFullScreen
+                videoPlayerViewController.modalPresentationStyle = .fullScreen
                 
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                    let rootVC = windowScene.windows.first?.rootViewController {
                     findTopViewController.findViewController(rootVC).present(videoPlayerViewController, animated: true, completion: nil)
+                } else {
+                    Logger.shared.log("Failed to find root view controller", type: "Error")
+                    DropManager.shared.showDrop(title: "Error", subtitle: "Failed to present player", duration: 2.0, icon: UIImage(systemName: "xmark.circle"))
                 }
+                
                 return
             default:
                 break
@@ -1368,7 +1335,7 @@ struct MediaInfoView: View {
                     episodeImageUrl: selectedEpisodeImage,
                     headers: headers ?? nil
                 )
-                customMediaPlayer.modalPresentationStyle = .overFullScreen
+                customMediaPlayer.modalPresentationStyle = .fullScreen
                 Logger.shared.log("Opening custom media player with url: \(url)")
                 
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
