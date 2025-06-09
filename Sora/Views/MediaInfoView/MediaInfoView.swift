@@ -123,38 +123,6 @@ struct MediaInfoView: View {
             .ignoresSafeArea(.container, edges: .top)
             .onAppear {
                 buttonRefreshTrigger.toggle()
-                
-                let savedID = UserDefaults.standard.integer(forKey: "custom_anilist_id_\(href)")
-                if savedID != 0 { customAniListID = savedID }
-                
-                if let savedPoster = UserDefaults.standard.string(forKey: "tmdbPosterURL_\(href)") {
-                    self.imageUrl = savedPoster
-                }
-                
-                if !hasFetched {
-                    DropManager.shared.showDrop(
-                        title: "Fetching Data",
-                        subtitle: "Please wait while fetching.",
-                        duration: 0.5,
-                        icon: UIImage(systemName: "arrow.triangle.2.circlepath")
-                    )
-                    fetchDetails()
-                    
-                    if let savedID = UserDefaults.standard.object(forKey: "custom_anilist_id_\(href)") as? Int {
-                        customAniListID = savedID
-                        itemID = savedID
-                        Logger.shared.log("Using custom AniList ID: \(savedID)", type: "Debug")
-                    } else {
-                        fetchMetadataIDIfNeeded()
-                    }
-                                        
-                    hasFetched = true
-                    AnalyticsManager.shared.sendEvent(
-                        event: "MediaInfoView",
-                        additionalData: ["title": title]
-                    )
-                }
-                
                 tabBarController.hideTabBar()
             }
             .onChange(of: selectedRange) { newValue in
@@ -174,12 +142,8 @@ struct MediaInfoView: View {
                 if let savedPoster = UserDefaults.standard.string(forKey: "tmdbPosterURL_\(href)") {
                     imageUrl = savedPoster
                 }
-                DropManager.shared.showDrop(
-                    title: "Fetching Data",
-                    subtitle: "Please wait while fetching.",
-                    duration: 0.5,
-                    icon: UIImage(systemName: "arrow.triangle.2.circlepath")
-                )
+                
+                DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching.", duration: 0.5, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
                 fetchDetails()
 
                 if savedCustomID != 0 {
@@ -255,11 +219,12 @@ struct MediaInfoView: View {
                             .clipped()
                     }
                 }
+                
                 VStack(spacing: 0) {
                     Rectangle()
                         .fill(Color.clear)
                         .frame(height: 400)
-                    VStack(alignment: .leading, spacing: 16) {
+                    LazyVStack(alignment: .leading, spacing: 16) {
                         headerSection
                         if !episodeLinks.isEmpty {
                             episodesSection
@@ -289,12 +254,11 @@ struct MediaInfoView: View {
         .onAppear {
             UIScrollView.appearance().bounces = false
         }
-        .ignoresSafeArea(.container, edges: .top)
     }
     
     @ViewBuilder
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        LazyVStack(alignment: .leading, spacing: 8) {
             Spacer()
             HStack(spacing: 16) {
                 
@@ -449,7 +413,7 @@ struct MediaInfoView: View {
     
     @ViewBuilder
     private var contentSection: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        LazyVStack(alignment: .leading, spacing: 20) {
             playAndBookmarkSection
             
             if !episodeLinks.isEmpty {
