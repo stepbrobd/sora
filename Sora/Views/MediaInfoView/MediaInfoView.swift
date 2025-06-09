@@ -18,6 +18,12 @@ struct MediaItem: Identifiable {
     let airdate: String
 }
 
+extension EpisodeLink: Equatable {
+    static func == (lhs: EpisodeLink, rhs: EpisodeLink) -> Bool {
+        return lhs.href == rhs.href && lhs.number == rhs.number
+    }
+}
+
 struct MediaInfoView: View {
     let title: String
     @State var imageUrl: String
@@ -86,8 +92,24 @@ struct MediaInfoView: View {
     @State private var bulkDownloadProgress: String = ""
     @State private var tmdbType: TMDBFetcher.MediaType? = nil
     
+    @State private var cachedGroupedEpisodes: [[EpisodeLink]] = []
+    @State private var cachedRanges: [Range<Int>] = []
+    @State private var cachedBannerImage: String = ""
+    @State private var lastEpisodeCount: Int = 0
+    @State private var lastChunkSize: Int = 0
+    
+    @State private var viewState: ViewState = .loading
+    
+    enum ViewState {
+        case loading
+        case loaded
+        case error
+    }
+    
+    @State private var currentTasks: Set<Task<Void, Never>> = []
+    
     private var isGroupedBySeasons: Bool {
-        return groupedEpisodes().count > 1
+        return cachedGroupedEpisodes.count > 1
     }
     
     private var isCompactLayout: Bool {
@@ -112,11 +134,14 @@ struct MediaInfoView: View {
     var body: some View {
         ZStack {
             Group {
-                if isLoading {
+                switch viewState {
+                case .loading:
                     ProgressView()
                         .padding()
-                } else {
+                case .loaded:
                     mainScrollView
+                case .error:
+                    errorView
                 }
             }
             .navigationBarHidden(true)
@@ -124,6 +149,7 @@ struct MediaInfoView: View {
             .onAppear {
                 buttonRefreshTrigger.toggle()
                 tabBarController.hideTabBar()
+                updateCachedBannerImage()
             }
             .onChange(of: selectedRange) { newValue in
                 UserDefaults.standard.set(newValue.lowerBound, forKey: selectedRangeKey)
@@ -131,8 +157,15 @@ struct MediaInfoView: View {
             .onChange(of: selectedSeason) { newValue in
                 UserDefaults.standard.set(newValue, forKey: selectedSeasonKey)
             }
+            .onChange(of: episodeLinks.count) { _ in
+                updateCachedComputations()
+            }
+            .onChange(of: episodeChunkSize) { _ in
+                updateCachedComputations()
+            }
             .onDisappear(){
                 tabBarController.showTabBar()
+                cancelAllTasks()
             }
             .task {
                 guard !hasFetched else { return }
@@ -144,13 +177,19 @@ struct MediaInfoView: View {
                 }
                 
                 DropManager.shared.showDrop(title: "Fetching Data", subtitle: "Please wait while fetching.", duration: 0.5, icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
-                fetchDetails()
-
-                if savedCustomID != 0 {
-                    itemID = savedCustomID
-                } else {
-                    fetchMetadataIDIfNeeded()
+                
+                let fetchTask = Task {
+                    await fetchDetailsAsync()
+                    
+                    if !Task.isCancelled {
+                        if savedCustomID != 0 {
+                            itemID = savedCustomID
+                        } else {
+                            await fetchMetadataIDIfNeededAsync()
+                        }
+                    }
                 }
+                currentTasks.insert(fetchTask)
                 
                 hasFetched = true
                 AnalyticsManager.shared.sendEvent(
@@ -175,6 +214,7 @@ struct MediaInfoView: View {
                 activeFetchID = nil
                 isFetchingEpisode = false
                 showStreamLoadingView = false
+                cancelAllTasks()
             }
             
             VStack {
@@ -201,6 +241,29 @@ struct MediaInfoView: View {
     }
     
     @ViewBuilder
+    private var errorView: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 48))
+                .foregroundColor(.secondary)
+            
+            Text("Failed to Load")
+                .font(.title2)
+                .fontWeight(.semibold)
+            
+            Button("Retry") {
+                viewState = .loading
+                let retryTask = Task {
+                    await fetchDetailsAsync()
+                }
+                currentTasks.insert(retryTask)
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding()
+    }
+    
+    @ViewBuilder
     private var mainScrollView: some View {
         ScrollView {
             ZStack(alignment: .top) {
@@ -219,6 +282,7 @@ struct MediaInfoView: View {
                             .clipped()
                     }
                 }
+                .id("hero-image-\(imageUrl)")
                 
                 VStack(spacing: 0) {
                     Rectangle()
@@ -637,7 +701,7 @@ struct MediaInfoView: View {
                         .foregroundColor(.accentColor)
                 }
             } else if isGroupedBySeasons {
-                let seasons = groupedEpisodes()
+                let seasons = cachedGroupedEpisodes
                 if seasons.count > 1 {
                     Menu {
                         ForEach(0..<seasons.count, id: \.self) { index in
@@ -675,8 +739,6 @@ struct MediaInfoView: View {
                 let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
                 let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
                 
-                let defaultBannerImageValue = getBannerImageBasedOnAppearance()
-                
                 EpisodeCell(
                     episodeIndex: i,
                     episode: ep.href,
@@ -684,7 +746,7 @@ struct MediaInfoView: View {
                     progress: progress,
                     itemID: itemID ?? 0,
                     totalEpisodes: episodeLinks.count,
-                    defaultBannerImage: defaultBannerImageValue,
+                    defaultBannerImage: cachedBannerImage,
                     module: module,
                     parentTitle: title,
                     showPosterURL: imageUrl,
@@ -706,22 +768,20 @@ struct MediaInfoView: View {
                     tmdbID: tmdbID,
                     seasonNumber: 1
                 )
-                    .disabled(isFetchingEpisode)
+                .id("episode-\(ep.href)-\(isMultiSelectMode)")
+                .disabled(isFetchingEpisode)
             }
         }
     }
     
     @ViewBuilder
     private var seasonsEpisodeList: some View {
-        let seasons = groupedEpisodes()
-        if !seasons.isEmpty, selectedSeason < seasons.count {
+        if !cachedGroupedEpisodes.isEmpty, selectedSeason < cachedGroupedEpisodes.count {
             LazyVStack(spacing: 15) {
-                ForEach(seasons[selectedSeason]) { ep in
+                ForEach(cachedGroupedEpisodes[selectedSeason], id: \.href) { ep in
                     let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(ep.href)")
                     let totalTime = UserDefaults.standard.double(forKey: "totalTime_\(ep.href)")
                     let progress = totalTime > 0 ? lastPlayedTime / totalTime : 0
-                    
-                    let defaultBannerImageValue = getBannerImageBasedOnAppearance()
                     
                     EpisodeCell(
                         episodeIndex: selectedSeason,
@@ -730,7 +790,7 @@ struct MediaInfoView: View {
                         progress: progress,
                         itemID: itemID ?? 0,
                         totalEpisodes: episodeLinks.count,
-                        defaultBannerImage: defaultBannerImageValue,
+                        defaultBannerImage: cachedBannerImage,
                         module: module,
                         parentTitle: title,
                         showPosterURL: imageUrl,
@@ -752,12 +812,139 @@ struct MediaInfoView: View {
                         tmdbID: tmdbID,
                         seasonNumber: selectedSeason + 1
                     )
-                        .disabled(isFetchingEpisode)
+                    .id("season-episode-\(ep.href)-\(isMultiSelectMode)")
+                    .disabled(isFetchingEpisode)
                 }
             }
         } else {
             Text("No episodes available")
         }
+    }
+    
+    private func updateCachedComputations() {
+        let currentEpisodeCount = episodeLinks.count
+        let currentChunkSize = episodeChunkSize
+        
+        guard currentEpisodeCount != lastEpisodeCount || currentChunkSize != lastChunkSize else { 
+            return 
+        }
+        
+        lastEpisodeCount = currentEpisodeCount
+        lastChunkSize = currentChunkSize
+        
+        cachedGroupedEpisodes = groupedEpisodes()
+        cachedRanges = generateRanges()
+        updateCachedBannerImage()
+    }
+    
+    private func updateCachedBannerImage() {
+        cachedBannerImage = getBannerImageBasedOnAppearance()
+    }
+    
+    private func fetchDetailsAsync() async {
+        await MainActor.run {
+            viewState = .loading
+        }
+        
+        do {
+            try await Task.sleep(nanoseconds: 500_000_000)
+            
+            guard !Task.isCancelled else { return }
+            
+            let jsContent = try moduleManager.getModuleContent(module)
+            
+            await MainActor.run {
+                jsController.loadScript(jsContent)
+            }
+            
+            await withCheckedContinuation { continuation in
+                if module.metadata.asyncJS == true {
+                    jsController.fetchDetailsJS(url: href) { items, episodes in
+                        if let item = items.first {
+                            self.synopsis = item.description
+                            self.aliases = item.aliases
+                            self.airdate = item.airdate
+                        }
+                        self.episodeLinks = episodes
+                        self.updateCachedComputations()
+                        self.restoreSelectionState()
+                        self.viewState = .loaded
+                        self.isRefetching = false
+                        continuation.resume()
+                    }
+                } else {
+                    jsController.fetchDetails(url: href) { items, episodes in
+                        if let item = items.first {
+                            self.synopsis = item.description
+                            self.aliases = item.aliases
+                            self.airdate = item.airdate
+                        }
+                        self.episodeLinks = episodes
+                        self.updateCachedComputations()
+                        self.restoreSelectionState()
+                        self.viewState = .loaded
+                        self.isRefetching = false
+                        continuation.resume()
+                    }
+                }
+            }
+        } catch {
+            await MainActor.run {
+                Logger.shared.log("Error loading module: \(error)", type: "Error")
+                viewState = .error
+                isRefetching = false
+            }
+        }
+    }
+    
+    private func fetchMetadataIDIfNeededAsync() async {
+        let provider = UserDefaults.standard.string(forKey: "metadataProviders") ?? "TMDB"
+        let cleaned = cleanTitle(title)
+        
+        if provider == "TMDB" {
+            await MainActor.run { tmdbID = nil }
+            await withCheckedContinuation { continuation in
+                tmdbFetcher.fetchBestMatchID(for: cleaned) { id, type in
+                    Task { @MainActor in
+                        guard !Task.isCancelled else {
+                            continuation.resume()
+                            return
+                        }
+                        self.tmdbID = id
+                        self.tmdbType = type
+                        Logger.shared.log("Fetched TMDB ID: \(id ?? -1) (\(type?.rawValue ?? "unknown")) for title: \(cleaned)", type: "Debug")
+                        continuation.resume()
+                    }
+                }
+            }
+        } else if provider == "Anilist" {
+            await MainActor.run { itemID = nil }
+            await withCheckedContinuation { continuation in
+                fetchItemID(byTitle: cleaned) { result in
+                    Task { @MainActor in
+                        guard !Task.isCancelled else {
+                            continuation.resume()
+                            return
+                        }
+                        switch result {
+                        case .success(let id):
+                            self.itemID = id
+                            Logger.shared.log("Fetched AniList ID: \(id) for title: \(cleaned)", type: "Debug")
+                        case .failure(let error):
+                            Logger.shared.log("Failed to fetch AniList ID: \(error)", type: "Error")
+                        }
+                        continuation.resume()
+                    }
+                }
+            }
+        }
+    }
+    
+    private func cancelAllTasks() {
+        for task in currentTasks {
+            task.cancel()
+        }
+        currentTasks.removeAll()
     }
     
     private func restoreSelectionState() {
@@ -769,7 +956,7 @@ struct MediaInfoView: View {
         }
 
         if let savedSeason = UserDefaults.standard.object(forKey: selectedSeasonKey) as? Int {
-            let maxIndex = max(0, groupedEpisodes().count - 1)
+            let maxIndex = max(0, cachedGroupedEpisodes.count - 1)
             selectedSeason = min(savedSeason, maxIndex)
         }
     }
@@ -857,7 +1044,7 @@ struct MediaInfoView: View {
         var updates = [String: Double]()
         
         if inSeason {
-            let seasons = groupedEpisodes()
+            let seasons = cachedGroupedEpisodes
             for ep2 in seasons[selectedSeason] where ep2.number < ep.number {
                 let href = ep2.href
                 updates["lastPlayedTime_\(href)"] = 99999999.0
@@ -1042,43 +1229,10 @@ struct MediaInfoView: View {
     }
     
     func fetchDetails() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            Task {
-                do {
-                    let jsContent = try moduleManager.getModuleContent(module)
-                    jsController.loadScript(jsContent)
-                    if module.metadata.asyncJS == true {
-                        jsController.fetchDetailsJS(url: href) { items, episodes in
-                            if let item = items.first {
-                                self.synopsis = item.description
-                                self.aliases = item.aliases
-                                self.airdate = item.airdate
-                            }
-                            self.episodeLinks = episodes
-                            self.restoreSelectionState()
-                            self.isLoading = false
-                            self.isRefetching = false
-                        }
-                    } else {
-                        jsController.fetchDetails(url: href) { items, episodes in
-                            if let item = items.first {
-                                self.synopsis = item.description
-                                self.aliases = item.aliases
-                                self.airdate = item.airdate
-                            }
-                            self.episodeLinks = episodes
-                            self.restoreSelectionState()
-                            self.isLoading = false
-                            self.isRefetching = false
-                        }
-                    }
-                } catch {
-                    Logger.shared.log("Error loading module: \(error)", type: "Error")
-                    self.isLoading = false
-                    self.isRefetching = false
-                }
-            }
+        let fetchTask = Task {
+            await fetchDetailsAsync()
         }
+        currentTasks.insert(fetchTask)
     }
     
     func fetchStream(href: String) {
@@ -1471,7 +1625,7 @@ struct MediaInfoView: View {
     
     private func selectAllVisibleEpisodes() {
         if isGroupedBySeasons {
-            let seasons = groupedEpisodes()
+            let seasons = cachedGroupedEpisodes
             if !seasons.isEmpty, selectedSeason < seasons.count {
                 for episode in seasons[selectedSeason] {
                     selectedEpisodes.insert(episode.number)
