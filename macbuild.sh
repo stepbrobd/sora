@@ -16,30 +16,29 @@ cd build
 xcodebuild -project "$WORKING_LOCATION/$APPLICATION_NAME.xcodeproj" \
     -scheme "$APPLICATION_NAME" \
     -configuration Release \
-    -derivedDataPath "$WORKING_LOCATION/build/DerivedDataApp_arm64" \
-    -destination 'platform=macOS,variant=Mac Catalyst' \
-    -arch arm64 \
+    -derivedDataPath "$WORKING_LOCATION/build/DerivedDataApp-x86_64" \
+    -destination 'platform=macOS,arch=x86_64,variant=Mac Catalyst' \
     clean build \
     CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGN_ENTITLEMENTS="" CODE_SIGNING_ALLOWED="NO"
 
 xcodebuild -project "$WORKING_LOCATION/$APPLICATION_NAME.xcodeproj" \
     -scheme "$APPLICATION_NAME" \
     -configuration Release \
-    -derivedDataPath "$WORKING_LOCATION/build/DerivedDataApp_x86_64" \
-    -destination 'platform=macOS,variant=Mac Catalyst' \
-    -arch x86_64 \
+    -derivedDataPath "$WORKING_LOCATION/build/DerivedDataApp-arm64" \
+    -destination 'platform=macOS,arch=arm64,variant=Mac Catalyst' \
     clean build \
     CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGN_ENTITLEMENTS="" CODE_SIGNING_ALLOWED="NO"
 
-ARM64_APP_PATH="$WORKING_LOCATION/build/DerivedDataApp_arm64/Build/Products/Release-maccatalyst/$APPLICATION_NAME.app"
-X86_64_APP_PATH="$WORKING_LOCATION/build/DerivedDataApp_x86_64/Build/Products/Release-maccatalyst/$APPLICATION_NAME.app"
+DD_APP_PATH_X86_64="$WORKING_LOCATION/build/DerivedDataApp-x86_64/Build/Products/Release-maccatalyst/$APPLICATION_NAME.app"
+DD_APP_PATH_ARM64="$WORKING_LOCATION/build/DerivedDataApp-arm64/Build/Products/Release-maccatalyst/$APPLICATION_NAME.app"
 TARGET_APP="$WORKING_LOCATION/build/$APPLICATION_NAME.app"
 
-cp -r "$ARM64_APP_PATH" "$TARGET_APP"
+rm -rf "$TARGET_APP"
+cp -r "$DD_APP_PATH_ARM64" "$TARGET_APP"
 
 lipo -create \
-    "$ARM64_APP_PATH/Contents/MacOS/$APPLICATION_NAME" \
-    "$X86_64_APP_PATH/Contents/MacOS/$APPLICATION_NAME" \
+    "$DD_APP_PATH_X86_64/Contents/MacOS/$APPLICATION_NAME" \
+    "$DD_APP_PATH_ARM64/Contents/MacOS/$APPLICATION_NAME" \
     -output "$TARGET_APP/Contents/MacOS/$APPLICATION_NAME"
 
 codesign --remove "$TARGET_APP"
@@ -47,5 +46,5 @@ if [ -e "$TARGET_APP/_CodeSignature" ]; then
     rm -rf "$TARGET_APP/_CodeSignature"
 fi
 
-echo "Mac Catalyst universal binary build completed: $TARGET_APP"
-lipo -info "$TARGET_APP/Contents/MacOS/$APPLICATION_NAME"
+echo "Universal Mac Catalyst build completed: $TARGET_APP"
+lipo -archs "$TARGET_APP/Contents/MacOS/$APPLICATION_NAME"
