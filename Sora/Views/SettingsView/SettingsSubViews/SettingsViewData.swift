@@ -158,20 +158,24 @@ struct SettingsViewData: View {
                 ) {
                     VStack(spacing: 0) {
                         HStack {
-                            Image(systemName: "folder.badge.gearshape")
-                                .frame(width: 24, height: 24)
-                                .foregroundStyle(.primary)
-                            
-                            Text("Current Cache Size")
-                                .foregroundStyle(.primary)
-                            
-                            Spacer()
-                            
-                            if isCalculatingSize {
-                                ProgressView()
-                                    .scaleEffect(0.7)
-                                    .padding(.trailing, 5)
+                            Button(action: {
+                                activeAlert = .clearCache
+                                showAlert = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "trash")
+                                        .frame(width: 24, height: 24)
+                                        .foregroundStyle(.red)
+                                    
+                                    Text("Clear All Caches")
+                                        .foregroundStyle(.red)
+                                    
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
                             }
+                            .buttonStyle(PlainButtonStyle())
                             
                             Text(cacheSizeText)
                                 .foregroundStyle(.gray)
@@ -179,30 +183,11 @@ struct SettingsViewData: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
                         
-                        Button(action: {
-                            activeAlert = .clearCache
-                            showAlert = true
-                        }) {
-                            HStack {
-                                Image(systemName: "trash")
-                                    .frame(width: 24, height: 24)
-                                    .foregroundStyle(.red)
-                                
-                                Text("Clear All Caches")
-                                    .foregroundStyle(.red)
-                                
-                                Spacer()
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
                         Divider().padding(.horizontal, 16)
                         
                         SettingsButtonRow(
                             icon: "film",
-                            title: "Remove Downloaded Media",
+                            title: "Remove Downloads",
                             subtitle: formatSize(downloadsSize),
                             action: {
                                 activeAlert = .removeDownloads
