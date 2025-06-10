@@ -24,6 +24,7 @@ class VideoPlayerViewController: UIViewController {
     var episodeNumber: Int = 0
     var episodeImageUrl: String = ""
     var mediaTitle: String = ""
+    var subtitleOverlay: SubtitleOverlayView?
     
     init(module: ScrapingModule) {
         self.module = module
@@ -66,6 +67,24 @@ class VideoPlayerViewController: UIViewController {
             playerViewController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             view.addSubview(playerViewController.view)
             playerViewController.didMove(toParent: self)
+            
+            if !subtitles.isEmpty && UserDefaults.standard.bool(forKey: "subtitlesEnabled") {
+                if let subtitleURL = URL(string: subtitles) {
+                    Task {
+                        do {
+                            let subtitleCues = try await SubtitleManager.shared.loadSubtitles(from: subtitleURL)
+                            await MainActor.run {
+                                if let player = self.player {
+                                    let overlay = SubtitleManager.shared.createSubtitleOverlay(for: subtitleCues, player: player)
+                                    self.addSubtitleOverlay(overlay)
+                                }
+                            }
+                        } catch {
+                            Logger.shared.log("Failed to load subtitles: \(error.localizedDescription)", type: "Error")
+                        }
+                    }
+                }
+            }
         }
         
         addPeriodicTimeObserver(fullURL: fullUrl)
@@ -113,8 +132,8 @@ class VideoPlayerViewController: UIViewController {
             guard let self = self,
                   let currentItem = player.currentItem,
                   currentItem.duration.seconds.isFinite else {
-                      return
-                  }
+                return
+            }
             
             let currentTime = time.seconds
             let duration = currentItem.duration.seconds
@@ -158,6 +177,22 @@ class VideoPlayerViewController: UIViewController {
         }
     }
     
+    private func addSubtitleOverlay(_ overlay: SubtitleOverlayView) {
+        subtitleOverlay?.removeFromSuperview()
+        subtitleOverlay = overlay
+        
+        guard let playerView = playerViewController?.view else { return }
+        playerView.addSubview(overlay)
+        overlay.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            overlay.leadingAnchor.constraint(equalTo: playerView.leadingAnchor),
+            overlay.trailingAnchor.constraint(equalTo: playerView.trailingAnchor),
+            overlay.bottomAnchor.constraint(equalTo: playerView.bottomAnchor),
+            overlay.heightAnchor.constraint(equalToConstant: 100)
+        ])
+    }
+    
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         if UserDefaults.standard.bool(forKey: "alwaysLandscape") {
             return .landscape
@@ -179,5 +214,6 @@ class VideoPlayerViewController: UIViewController {
         if let timeObserverToken = timeObserverToken {
             player?.removeTimeObserver(timeObserverToken)
         }
+        subtitleOverlay?.removeFromSuperview()
     }
 }
