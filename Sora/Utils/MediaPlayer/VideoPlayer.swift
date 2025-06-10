@@ -24,7 +24,8 @@ class VideoPlayerViewController: UIViewController {
     var episodeNumber: Int = 0
     var episodeImageUrl: String = ""
     var mediaTitle: String = ""
-    var subtitleOverlay: SubtitleOverlayView?
+    var subtitlesLoader: VTTSubtitlesLoader?
+    var subtitleLabel: UILabel?
     
     init(module: ScrapingModule) {
         self.module = module
@@ -33,6 +34,54 @@ class VideoPlayerViewController: UIViewController {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setupSubtitles() {
+        guard !subtitles.isEmpty && UserDefaults.standard.bool(forKey: "subtitlesEnabled"),
+              let subtitleURL = URL(string: subtitles) else {
+            return
+        }
+        
+        subtitlesLoader = VTTSubtitlesLoader()
+        setupSubtitleLabel()
+        
+        subtitlesLoader?.load(from: subtitles)
+        
+        let interval = CMTime(seconds: 0.1, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            self?.updateSubtitles(at: time.seconds)
+        }
+    }
+    
+    private func setupSubtitleLabel() {
+        let label = UILabel()
+        label.numberOfLines = 0
+        label.textAlignment = .center
+        label.textColor = .white
+        label.font = .systemFont(ofSize: 16, weight: .medium)
+        label.layer.shadowColor = UIColor.black.cgColor
+        label.layer.shadowOffset = CGSize(width: 1, height: 1)
+        label.layer.shadowOpacity = 0.8
+        label.layer.shadowRadius = 2
+        
+        guard let playerView = playerViewController?.view else { return }
+        playerView.addSubview(label)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: playerView.leadingAnchor, constant: 16),
+            label.trailingAnchor.constraint(equalTo: playerView.trailingAnchor, constant: -16),
+            label.bottomAnchor.constraint(equalTo: playerView.bottomAnchor, constant: -32)
+        ])
+        
+        self.subtitleLabel = label
+    }
+    
+    private func updateSubtitles(at time: Double) {
+        let currentSubtitle = subtitlesLoader?.cues.first { cue in
+            time >= cue.startTime && time <= cue.endTime
+        }
+        subtitleLabel?.text = currentSubtitle?.text ?? ""
     }
     
     override func viewDidLoad() {
@@ -69,21 +118,7 @@ class VideoPlayerViewController: UIViewController {
             playerViewController.didMove(toParent: self)
             
             if !subtitles.isEmpty && UserDefaults.standard.bool(forKey: "subtitlesEnabled") {
-                if let subtitleURL = URL(string: subtitles) {
-                    Task {
-                        do {
-                            let subtitleCues = try await SubtitleManager.shared.loadSubtitles(from: subtitleURL)
-                            await MainActor.run {
-                                if let player = self.player {
-                                    let overlay = SubtitleManager.shared.createSubtitleOverlay(for: subtitleCues, player: player)
-                                    self.addSubtitleOverlay(overlay)
-                                }
-                            }
-                        } catch {
-                            Logger.shared.log("Failed to load subtitles: \(error.localizedDescription)", type: "Error")
-                        }
-                    }
-                }
+                setupSubtitles()
             }
         }
         
@@ -177,22 +212,6 @@ class VideoPlayerViewController: UIViewController {
         }
     }
     
-    private func addSubtitleOverlay(_ overlay: SubtitleOverlayView) {
-        subtitleOverlay?.removeFromSuperview()
-        subtitleOverlay = overlay
-        
-        guard let playerView = playerViewController?.view else { return }
-        playerView.addSubview(overlay)
-        overlay.translatesAutoresizingMaskIntoConstraints = false
-        
-        NSLayoutConstraint.activate([
-            overlay.leadingAnchor.constraint(equalTo: playerView.leadingAnchor),
-            overlay.trailingAnchor.constraint(equalTo: playerView.trailingAnchor),
-            overlay.bottomAnchor.constraint(equalTo: playerView.bottomAnchor),
-            overlay.heightAnchor.constraint(equalToConstant: 100)
-        ])
-    }
-    
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         if UserDefaults.standard.bool(forKey: "alwaysLandscape") {
             return .landscape
@@ -214,6 +233,8 @@ class VideoPlayerViewController: UIViewController {
         if let timeObserverToken = timeObserverToken {
             player?.removeTimeObserver(timeObserverToken)
         }
-        subtitleOverlay?.removeFromSuperview()
+        subtitleLabel?.removeFromSuperview()
+        subtitleLabel = nil
+        subtitlesLoader = nil
     }
 }
