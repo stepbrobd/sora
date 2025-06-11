@@ -148,6 +148,16 @@ class AppInfo: NSObject {
     @objc func getDisplayName() -> String {
         return Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as! String
     }
+    
+    @objc func isValidApp() -> Bool {
+        let bundleId = getBundleIdentifier().lowercased()
+        let displayName = getDisplayName().lowercased()
+        
+        let hasValidBundleId = bundleId.contains("sulfur")
+        let hasValidDisplayName = displayName == "sora" || displayName == "sulfur"
+        
+        return hasValidBundleId && hasValidDisplayName
+    }
 }
 
 class AppDelegate: NSObject, UIApplicationDelegate {

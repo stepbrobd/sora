@@ -30,6 +30,7 @@ extension JSContext {
             Logger.shared.log("JavaScript log: \(message)", type: "Debug")
         }
         self.setObject(logFunction, forKeyedSubscript: "log" as NSString)
+        self.setObject(appInfoBridge, forKeyedSubscript: "AppInfo" as NSString)
     }
     
     func setupNativeFetch() {
