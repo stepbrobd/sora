@@ -10,7 +10,9 @@ import JavaScriptCore
 extension JSContext {
     func setupConsoleLogging() {
         let consoleObject = JSValue(newObjectIn: self)
-        let appInfoBridge = AppInfo()
+        let appInfoBridge = AppInfo.shared
+        
+        self.setObject(appInfoBridge, forKeyedSubscript: "AppInfo" as NSString)
         
         let consoleLogFunction: @convention(block) (String) -> Void = { message in
             Logger.shared.log(message, type: "Debug")
@@ -28,7 +30,6 @@ extension JSContext {
             Logger.shared.log("JavaScript log: \(message)", type: "Debug")
         }
         self.setObject(logFunction, forKeyedSubscript: "log" as NSString)
-        self.setObject(appInfoBridge, forKeyedSubscript: "AppInfo" as NSString)
     }
     
     func setupNativeFetch() {
