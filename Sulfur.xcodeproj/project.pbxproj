@@ -353,8 +353,8 @@
 			isa = PBXGroup;
 			children = (
 				138AA1B52D2D66EC0021F9DF /* EpisodeCell */,
-				1E47859A2DEBC5960095BF2F /* AnilistMatchPopupView.swift */,
 				133D7C802D2BE2630075467E /* MediaInfoView.swift */,
+				1E47859A2DEBC5960095BF2F /* AnilistMatchPopupView.swift */,
 			);
 			path = MediaInfoView;
 			sourceTree = "<group>";

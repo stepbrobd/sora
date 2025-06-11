@@ -499,9 +499,10 @@ struct MediaInfoView: View {
                     if let originalPoster = UserDefaults.standard.string(forKey: "originalPoster_\(href)") {
                         imageUrl = originalPoster
                         UserDefaults.standard.removeObject(forKey: "tmdbPosterURL_\(href)")
+                        UserDefaults.standard.removeObject(forKey: "originalPoster_\(href)")
                     }
                 }) {
-                    Label("Revert Module Poster", systemImage: "photo.badge.arrow.down")
+                    Label("Original Poster", systemImage: "photo.badge.arrow.down")
                 }
             } else {
                 Button(action: {
