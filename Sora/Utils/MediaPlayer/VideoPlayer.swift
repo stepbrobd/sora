@@ -30,6 +30,9 @@ class VideoPlayerViewController: UIViewController {
     init(module: ScrapingModule) {
         self.module = module
         super.init(nibName: nil, bundle: nil)
+        if UserDefaults.standard.object(forKey: "subtitlesEnabled") == nil {
+            UserDefaults.standard.set(true, forKey: "subtitlesEnabled")
+        }
     }
     
     required init?(coder: NSCoder) {
@@ -37,8 +40,7 @@ class VideoPlayerViewController: UIViewController {
     }
     
     private func setupSubtitles() {
-        guard !subtitles.isEmpty && UserDefaults.standard.bool(forKey: "subtitlesEnabled"),
-              let subtitleURL = URL(string: subtitles) else {
+        guard !subtitles.isEmpty, UserDefaults.standard.bool(forKey: "subtitlesEnabled"), let subtitleURL = URL(string: subtitles) else {
             return
         }
         

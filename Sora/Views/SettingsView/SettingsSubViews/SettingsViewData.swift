@@ -167,6 +167,8 @@ struct SettingsViewData: View {
                             }
                         )
                         
+                        Divider().padding(.horizontal, 16)
+                        
                         SettingsButtonRow(
                             icon: "film",
                             title: "Remove Downloads",
