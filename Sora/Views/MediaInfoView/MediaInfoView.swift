@@ -1302,6 +1302,7 @@ struct MediaInfoView: View {
                 videoPlayerViewController.streamUrl = url
                 videoPlayerViewController.fullUrl = fullURL
                 videoPlayerViewController.episodeNumber = selectedEpisodeNumber
+                videoPlayerViewController.seasonNumber = selectedSeason + 1
                 videoPlayerViewController.episodeImageUrl = selectedEpisodeImage
                 videoPlayerViewController.mediaTitle = title
                 videoPlayerViewController.subtitles = subtitles ?? ""
@@ -1350,6 +1351,7 @@ struct MediaInfoView: View {
                     episodeImageUrl: selectedEpisodeImage,
                     headers: headers ?? nil
                 )
+                customMediaPlayer.seasonNumber = selectedSeason + 1
                 customMediaPlayer.modalPresentationStyle = .fullScreen
                 Logger.shared.log("Opening custom media player with url: \(url)")
                 

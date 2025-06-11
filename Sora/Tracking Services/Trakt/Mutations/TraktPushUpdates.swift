@@ -31,13 +31,10 @@ class TraktMutation {
     }
     
     enum ExternalIDType {
-        case imdb(String)
         case tmdb(Int)
         
         var dictionary: [String: Any] {
             switch self {
-            case .imdb(let id):
-                return ["imdb": id]
             case .tmdb(let id):
                 return ["tmdb": id]
             }
