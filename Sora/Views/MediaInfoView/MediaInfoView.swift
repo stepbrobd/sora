@@ -285,9 +285,6 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Spacer()
-            
-            // Airdate section
             if !airdate.isEmpty && airdate != "N/A" && airdate != "No Data" {
                 HStack(spacing: 4) {
                     Image(systemName: "calendar")
@@ -299,7 +296,6 @@ struct MediaInfoView: View {
                 }
             }
             
-            // Title with copy gesture
             Text(title)
                 .font(.system(size: 28, weight: .bold))
                 .foregroundColor(.primary)
@@ -308,15 +304,12 @@ struct MediaInfoView: View {
                     copyTitleToClipboard()
                 }
             
-            // Synopsis with expand/collapse
             if !synopsis.isEmpty {
                 synopsisSection
             }
             
-            // Main action buttons
             playAndBookmarkSection
             
-            // Single episode special handling
             if episodeLinks.count == 1 {
                 singleEpisodeSection
             }
@@ -347,7 +340,6 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var playAndBookmarkSection: some View {
         HStack(spacing: 12) {
-            // Play/Continue button
             Button(action: { playFirstUnwatchedEpisode() }) {
                 HStack(spacing: 8) {
                     Image(systemName: "play.fill")
@@ -366,7 +358,6 @@ struct MediaInfoView: View {
             }
             .disabled(isFetchingEpisode)
             
-            // Bookmark button
             Button(action: { toggleBookmark() }) {
                 Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
                     .resizable()
@@ -384,7 +375,6 @@ struct MediaInfoView: View {
     private var singleEpisodeSection: some View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
-                // Mark watched button
                 Button(action: { toggleSingleEpisodeWatchStatus() }) {
                     HStack(spacing: 4) {
                         Image(systemName: singleEpisodeWatchIcon)
@@ -400,7 +390,6 @@ struct MediaInfoView: View {
                     .gradientOutline()
                 }
                 
-                // Download button
                 Button(action: { downloadSingleEpisode() }) {
                     HStack(spacing: 4) {
                         Image(systemName: "arrow.down.circle")
@@ -419,7 +408,6 @@ struct MediaInfoView: View {
                 menuButton
             }
             
-            // Information text for single episodes
             VStack(spacing: 4) {
                 Text("Why am I not seeing any episodes?")
                     .font(.caption)
@@ -666,7 +654,6 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var menuContent: some View {
         Group {
-            // Current match info
             if let id = itemID ?? customAniListID {
                 let labelText = (matchedTitle?.isEmpty == false ? matchedTitle! : "\(id)")
                 Text("Matched with: \(labelText)")
@@ -677,33 +664,28 @@ struct MediaInfoView: View {
             
             Divider()
             
-            // Reset AniList ID
             if let _ = customAniListID {
                 Button(action: { resetAniListID() }) {
                     Label("Reset AniList ID", systemImage: "arrow.clockwise")
                 }
             }
             
-            // Open in AniList
             if let id = itemID ?? customAniListID {
                 Button(action: { openAniListPage(id: id) }) {
                     Label("Open in AniList", systemImage: "link")
                 }
             }
-            
-            // Match with AniList
+
             if UserDefaults.standard.string(forKey: "metadataProviders") ?? "TMDB" == "AniList" {
                 Button(action: { isMatchingPresented = true }) {
                     Label("Match with AniList", systemImage: "magnifyingglass")
                 }
             }
             
-            // Poster options
             posterMenuOptions
             
             Divider()
             
-            // Debug info
             Button(action: { logDebugInfo() }) {
                 Label("Log Debug Info", systemImage: "terminal")
             }
