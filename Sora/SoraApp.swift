@@ -31,24 +31,30 @@ struct SoraApp: App {
     
     var body: some Scene {
         WindowGroup {
-            SplashScreenView()
-                .environmentObject(moduleManager)
-                .environmentObject(settings)
-                .environmentObject(librarykManager)
-                .environmentObject(downloadManager)
-                .environmentObject(jsController)
-                .accentColor(settings.accentColor)
-                .onAppear {
-                    settings.updateAppearance()
-                    Task {
-                        if UserDefaults.standard.bool(forKey: "refreshModulesOnLaunch") {
-                            await moduleManager.refreshModules()
-                        }
+            Group {
+                if !UserDefaults.standard.bool(forKey: "hideSplashScreenEnable") {
+                    SplashScreenView()
+                } else {
+                    ContentView()
+                }
+            }
+            .environmentObject(moduleManager)
+            .environmentObject(settings)
+            .environmentObject(librarykManager)
+            .environmentObject(downloadManager)
+            .environmentObject(jsController)
+            .accentColor(settings.accentColor)
+            .onAppear {
+                settings.updateAppearance()
+                Task {
+                    if UserDefaults.standard.bool(forKey: "refreshModulesOnLaunch") {
+                        await moduleManager.refreshModules()
                     }
                 }
-                .onOpenURL { url in
-                    handleURL(url)
-                }
+            }
+            .onOpenURL { url in
+                handleURL(url)
+            }
         }
     }
     

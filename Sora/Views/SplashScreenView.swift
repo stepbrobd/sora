@@ -24,18 +24,13 @@ struct SplashScreenView: View {
                         .cornerRadius(24)
                         .scaleEffect(isAnimating ? 1.2 : 1.0)
                         .opacity(isAnimating ? 1.0 : 0.0)
-                    
-                    Text("Sora")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .opacity(isAnimating ? 1.0 : 0.0)
                 }
                 .onAppear {
                     withAnimation(.easeIn(duration: 0.5)) {
                         isAnimating = true
                     }
                     
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                         withAnimation(.easeOut(duration: 0.5)) {
                             showMainApp = true
                         }
