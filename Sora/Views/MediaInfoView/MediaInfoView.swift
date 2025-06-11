@@ -9,7 +9,6 @@ import NukeUI
 import SwiftUI
 import SafariServices
 
-
 private let tmdbFetcher = TMDBFetcher()
 
 struct MediaItem: Identifiable {
@@ -18,9 +17,6 @@ struct MediaItem: Identifiable {
     let aliases: String
     let airdate: String
 }
-
-
-
 
 struct MediaInfoView: View {
     let title: String
@@ -182,8 +178,6 @@ struct MediaInfoView: View {
             navigationOverlay
         }
     }
-    
-    // MARK: - View Builders
     
     @ViewBuilder
     private var navigationOverlay: some View {
@@ -444,8 +438,6 @@ struct MediaInfoView: View {
         }
     }
     
-    // MARK: - Computed Properties for Single Episode
-    
     private var isBookmarked: Bool {
         libraryManager.isBookmarked(href: href, moduleName: module.metadata.sourceName)
     }
@@ -469,8 +461,6 @@ struct MediaInfoView: View {
         }
         return "Mark watched"
     }
-    
-    // MARK: - Episodes Section
     
     @ViewBuilder
     private var episodesSection: some View {
@@ -638,8 +628,6 @@ struct MediaInfoView: View {
         .padding(.vertical, 50)
     }
     
-    // MARK: - Menu and Action Buttons
-    
     @ViewBuilder
     private var sourceButton: some View {
         Button(action: { openSafariViewController(with: href) }) {
@@ -737,8 +725,6 @@ struct MediaInfoView: View {
         }
     }
     
-    // MARK: - Setup and Lifecycle Methods
-    
     private func setupViewOnAppear() {
         buttonRefreshTrigger.toggle()
         tabBarController.hideTabBar()
@@ -789,8 +775,6 @@ struct MediaInfoView: View {
         showStreamLoadingView = false
         showLoadingAlert = false
     }
-    
-    // MARK: - Action Methods
     
     private func copyTitleToClipboard() {
         UIPasteboard.general.string = title
@@ -895,8 +879,6 @@ struct MediaInfoView: View {
         }
     }
     
-    // MARK: - Menu Action Methods
-    
     private func handleAniListMatch(selectedID: Int) {
         self.customAniListID = selectedID
         self.itemID = selectedID
@@ -951,8 +933,6 @@ struct MediaInfoView: View {
         )
     }
     
-    // MARK: - Utility Methods
-    
     private func getBannerImageBasedOnAppearance() -> String {
         let isLightMode = selectedAppearance == .light || (selectedAppearance == .system && colorScheme == .light)
         return isLightMode
@@ -967,7 +947,7 @@ struct MediaInfoView: View {
         } else {
             selectedRange = generateRanges().first ?? 0..<episodeChunkSize
         }
-
+        
         if let savedSeason = UserDefaults.standard.object(forKey: selectedSeasonKey) as? Int {
             let maxIndex = max(0, groupedEpisodes().count - 1)
             selectedSeason = min(savedSeason, maxIndex)
@@ -1016,8 +996,6 @@ struct MediaInfoView: View {
         
         return cleaned.isEmpty ? "Unknown" : cleaned
     }
-    
-    // MARK: - Playback Methods
     
     private func playFirstUnwatchedEpisode() {
         let indices = finishedAndUnfinishedIndices()
@@ -1069,9 +1047,9 @@ struct MediaInfoView: View {
     private func selectNextEpisode() {
         guard let currentIndex = episodeLinks.firstIndex(where: { $0.number == selectedEpisodeNumber }),
               currentIndex + 1 < episodeLinks.count else {
-                  Logger.shared.log("No more episodes to play", type: "Info")
-                  return
-              }
+            Logger.shared.log("No more episodes to play", type: "Info")
+            return
+        }
         
         let nextEpisode = episodeLinks[currentIndex + 1]
         selectedEpisodeNumber = nextEpisode.number
@@ -1083,8 +1061,6 @@ struct MediaInfoView: View {
             icon: UIImage(systemName: "arrow.triangle.2.circlepath")
         )
     }
-    
-    // MARK: - Episode Progress Management
     
     private func markAllPreviousEpisodesAsWatched(ep: EpisodeLink, inSeason: Bool) {
         let userDefaults = UserDefaults.standard

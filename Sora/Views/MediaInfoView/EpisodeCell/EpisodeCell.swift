@@ -9,10 +9,7 @@ import NukeUI
 import SwiftUI
 import AVFoundation
 
-
 struct EpisodeCell: View {
-    
-
     let episodeIndex: Int
     let episode: String
     let episodeID: Int
@@ -26,16 +23,13 @@ struct EpisodeCell: View {
     let tmdbID: Int?
     let seasonNumber: Int?
     
-
     let isMultiSelectMode: Bool
     let isSelected: Bool
     let onSelectionChanged: ((Bool) -> Void)?
     
-
     let onTap: (String) -> Void
     let onMarkAllPrevious: () -> Void
     
-
     @State private var episodeTitle = ""
     @State private var episodeImageUrl = ""
     @State private var isLoading = true
@@ -45,23 +39,19 @@ struct EpisodeCell: View {
     @State private var downloadAnimationScale: CGFloat = 1.0
     @State private var activeDownloadTask: AVAssetDownloadTask?
     
-
     @State private var swipeOffset: CGFloat = 0
     @State private var isShowingActions = false
     @State private var actionButtonWidth: CGFloat = 60
     
-
     @State private var retryAttempts = 0
     private let maxRetryAttempts = 3
     private let initialBackoffDelay: TimeInterval = 1.0
     
-
     @ObservedObject private var jsController = JSController.shared
     @EnvironmentObject var moduleManager: ModuleManager
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("selectedAppearance") private var selectedAppearance: Appearance = .system
     
-
     init(
         episodeIndex: Int,
         episode: String,
@@ -98,7 +88,7 @@ struct EpisodeCell: View {
         self.tmdbID = tmdbID
         self.seasonNumber = seasonNumber
         
-
+        
         let isLightMode = (UserDefaults.standard.string(forKey: "selectedAppearance") == "light") ||
         ((UserDefaults.standard.string(forKey: "selectedAppearance") == "system") &&
          UITraitCollection.current.userInterfaceStyle == .light)
@@ -110,13 +100,10 @@ struct EpisodeCell: View {
         (isLightMode ? defaultLightBanner : defaultDarkBanner) : defaultBannerImage
     }
     
-
     var body: some View {
         ZStack {
-
             actionButtonsBackground
             
-
             episodeCellContent
                 .offset(x: swipeOffset)
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: swipeOffset)
@@ -145,7 +132,6 @@ struct EpisodeCell: View {
         }
     }
 }
-
 
 private extension EpisodeCell {
     
@@ -365,7 +351,7 @@ private extension EpisodeCell {
     }
     
     func calculateMaxSwipeDistance() -> CGFloat {
-        var buttonCount = 1 
+        var buttonCount = 1
         
         if progress <= 0.9 { buttonCount += 1 }
         if progress != 0 { buttonCount += 1 }
@@ -796,7 +782,7 @@ private extension EpisodeCell {
             self.retryAttempts = 0
             
             if UserDefaults.standard.object(forKey: "fetchEpisodeMetadata") == nil ||
-               UserDefaults.standard.bool(forKey: "fetchEpisodeMetadata") {
+                UserDefaults.standard.bool(forKey: "fetchEpisodeMetadata") {
                 self.episodeTitle = title["en"] ?? title.values.first ?? ""
                 
                 if !image.isEmpty {
@@ -825,9 +811,9 @@ private extension EpisodeCell {
                     let stillPath = json["still_path"] as? String
                     
                     let imageUrl = stillPath.map { path in
-                        tmdbImageWidth == "original" 
-                            ? "https://image.tmdb.org/t/p/original\(path)"
-                            : "https://image.tmdb.org/t/p/w\(tmdbImageWidth)\(path)"
+                        tmdbImageWidth == "original"
+                        ? "https://image.tmdb.org/t/p/original\(path)"
+                        : "https://image.tmdb.org/t/p/w\(tmdbImageWidth)\(path)"
                     } ?? ""
                     
                     DispatchQueue.main.async {

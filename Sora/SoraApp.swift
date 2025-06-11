@@ -32,7 +32,7 @@ struct SoraApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if !UserDefaults.standard.bool(forKey: "hideSplashScreenEnable") {
+                if !UserDefaults.standard.bool(forKey: "hideSplashScreen") {
                     SplashScreenView()
                 } else {
                     ContentView()
@@ -101,27 +101,5 @@ struct SoraApp: App {
         default:
             break
         }
-    }
-}
-
-@objc class AppInfo: NSObject {
-    @objc static let shared = AppInfo()
-    
-    @objc func getBundleIdentifier() -> String {
-        return Bundle.main.bundleIdentifier ?? "me.cranci.sulfur"
-    }
-    
-    @objc func getDisplayName() -> String {
-        return Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as! String
-    }
-    
-    @objc func isValidApp() -> Bool {
-        let bundleId = getBundleIdentifier().lowercased()
-        let displayName = getDisplayName().lowercased()
-        
-        let hasValidBundleId = bundleId.contains("sulfur")
-        let hasValidDisplayName = displayName == "sora" || displayName == "sulfur"
-        
-        return hasValidBundleId && hasValidDisplayName
     }
 }

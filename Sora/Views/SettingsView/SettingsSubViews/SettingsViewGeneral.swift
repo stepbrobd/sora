@@ -153,7 +153,7 @@ struct SettingsViewGeneral: View {
     @AppStorage("refreshModulesOnLaunch") private var refreshModulesOnLaunch: Bool = true
     @AppStorage("fetchEpisodeMetadata") private var fetchEpisodeMetadata: Bool = true
     @AppStorage("analyticsEnabled") private var analyticsEnabled: Bool = false
-    @AppStorage("hideSplashScreenEnable") private var hideSplashScreenEnable: Bool = false
+    @AppStorage("hideSplashScreen") private var hideSplashScreenEnable: Bool = false
     @AppStorage("metadataProviders") private var metadataProviders: String = "TMDB"
     @AppStorage("tmdbImageWidth") private var TMDBimageWidht: String = "original"
     @AppStorage("mediaColumnsPortrait") private var mediaColumnsPortrait: Int = 2
@@ -185,7 +185,8 @@ struct SettingsViewGeneral: View {
                     SettingsToggleRow(
                         icon: "wand.and.rays.inverse",
                         title: "Hide Splash Screen",
-                        isOn: $hideSplashScreenEnable
+                        isOn: $hideSplashScreenEnable,
+                        showDivider: false
                     )
                 }
                 
