@@ -219,7 +219,7 @@ class VideoPlayerViewController: UIViewController {
                     let traktMutation = TraktMutation()
                     
                     if self.isMovie {
-                        traktMutation.markAsWatched(type: "movie", externalID: .tmdb(tmdbId)) { result in
+                        traktMutation.markAsWatched(type: "movie", tmdbID: tmdbId) { result in
                             switch result {
                             case .success:
                                 Logger.shared.log("Successfully updated Trakt progress for movie", type: "General")
@@ -230,7 +230,7 @@ class VideoPlayerViewController: UIViewController {
                     } else {
                         traktMutation.markAsWatched(
                             type: "episode",
-                            externalID: .tmdb(tmdbId),
+                            tmdbID: tmdbId,
                             episodeNumber: self.episodeNumber,
                             seasonNumber: self.seasonNumber
                         ) { result in
