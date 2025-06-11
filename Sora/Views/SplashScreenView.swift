@@ -31,13 +31,12 @@ struct SplashScreenView: View {
                         .opacity(isAnimating ? 1.0 : 0.0)
                 }
                 .onAppear {
-                    withAnimation(.easeIn(duration: 0.5)) {
+                    withAnimation(.easeIn(duration: 0.25)) {
                         isAnimating = true
                     }
                     
-                    // Transition to main app after animation
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                        withAnimation(.easeOut(duration: 0.5)) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                        withAnimation(.easeOut(duration: 0.25)) {
                             showMainApp = true
                         }
                     }
