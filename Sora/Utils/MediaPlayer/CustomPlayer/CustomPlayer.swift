@@ -1395,12 +1395,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         
         pipButton.isHidden = !isPipButtonVisible
         
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(startPipIfNeeded),
-            name: UIApplication.willResignActiveNotification,
-            object: nil
-        )
+        NotificationCenter.default.addObserver(self, selector: #selector(startPipIfNeeded), name: UIApplication.willResignActiveNotification, object: nil)
     }
     
     func setupMenuButton() {

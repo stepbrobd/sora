@@ -1175,6 +1175,19 @@ struct MediaInfoView: View {
                     Logger.shared.log("Fetched TMDB ID: \(id ?? -1) (\(type?.rawValue ?? "unknown")) for title: \(cleaned)", type: "Debug")
                 }
             }
+            
+            itemID = nil
+            fetchItemID(byTitle: cleaned) { result in
+                switch result {
+                case .success(let id):
+                    DispatchQueue.main.async {
+                        self.itemID = id
+                        Logger.shared.log("Fetched AniList ID: \(id) for title: \(cleaned)", type: "Debug")
+                    }
+                case .failure(let error):
+                    Logger.shared.log("Failed to fetch AniList ID: \(error)", type: "Error")
+                }
+            }
         } else if provider == "Anilist" {
             itemID = nil
             fetchItemID(byTitle: cleaned) { result in
