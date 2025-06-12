@@ -154,12 +154,17 @@ struct SettingsViewGeneral: View {
     @AppStorage("fetchEpisodeMetadata") private var fetchEpisodeMetadata: Bool = true
     @AppStorage("analyticsEnabled") private var analyticsEnabled: Bool = false
     @AppStorage("hideSplashScreen") private var hideSplashScreenEnable: Bool = false
-    @AppStorage("metadataProviders") private var metadataProviders: String = "TMDB"
+    @AppStorage("metadataProvidersOrder") private var metadataProvidersOrderData: Data = {
+        try! JSONEncoder().encode(["TMDB","AniList"])
+    }()
     @AppStorage("tmdbImageWidth") private var TMDBimageWidht: String = "original"
     @AppStorage("mediaColumnsPortrait") private var mediaColumnsPortrait: Int = 2
     @AppStorage("mediaColumnsLandscape") private var mediaColumnsLandscape: Int = 4
     
-    private let metadataProvidersList = ["AniList", "TMDB"]
+    private var metadataProvidersOrder: [String] {
+        get { (try? JSONDecoder().decode([String].self, from: metadataProvidersOrderData)) ?? ["AniList","TMDB"] }
+        set { metadataProvidersOrderData = try! JSONEncoder().encode(newValue) }
+    }
     private let TMDBimageWidhtList = ["300", "500", "780", "1280", "original"]
     private let sortOrderOptions = ["Ascending", "Descending"]
     @EnvironmentObject var settings: Settings
@@ -208,85 +213,70 @@ struct SettingsViewGeneral: View {
                         isOn: $fetchEpisodeMetadata
                     )
                     
-                    if metadataProviders == "TMDB" {
+                    List {
+                        ForEach(metadataProvidersOrder, id: \.self) { prov in
+                            Text(prov)
+                                .padding(.vertical, 8)
+                        }
+                        .onMove { idx, dest in
+                            var arr = metadataProvidersOrder
+                            arr.move(fromOffsets: idx, toOffset: dest)
+                            metadataProvidersOrderData = try! JSONEncoder().encode(arr)
+                        }
+                    }
+                    .environment(\.editMode, .constant(.active))
+                    .frame(height: 140)
+                    
+                    SettingsSection(
+                        title: "Media Grid Layout",
+                        footer: "Adjust the number of media items per row in portrait and landscape modes."
+                    ) {
                         SettingsPickerRow(
-                            icon: "server.rack",
-                            title: "Metadata Provider",
-                            options: metadataProvidersList,
-                            optionToString: { $0 },
-                            selection: $metadataProviders,
-                            showDivider: true
+                            icon: "rectangle.portrait",
+                            title: "Portrait Columns",
+                            options: UIDevice.current.userInterfaceIdiom == .pad ? Array(1...5) : Array(1...4),
+                            optionToString: { "\($0)" },
+                            selection: $mediaColumnsPortrait
                         )
                         
                         SettingsPickerRow(
-                            icon: "square.stack.3d.down.right",
-                            title: "Thumbnails Width",
-                            options: TMDBimageWidhtList,
-                            optionToString: { $0 },
-                            selection: $TMDBimageWidht,
+                            icon: "rectangle",
+                            title: "Landscape Columns",
+                            options: UIDevice.current.userInterfaceIdiom == .pad ? Array(2...8) : Array(2...5),
+                            optionToString: { "\($0)" },
+                            selection: $mediaColumnsLandscape,
                             showDivider: false
                         )
-                    } else {
-                        SettingsPickerRow(
-                            icon: "server.rack",
-                            title: "Metadata Provider",
-                            options: metadataProvidersList,
-                            optionToString: { $0 },
-                            selection: $metadataProviders,
+                    }
+                    
+                    SettingsSection(
+                        title: "Modules",
+                        footer: "Note that the modules will be replaced only if there is a different version string inside the JSON file."
+                    ) {
+                        SettingsToggleRow(
+                            icon: "arrow.clockwise",
+                            title: "Refresh Modules on Launch",
+                            isOn: $refreshModulesOnLaunch,
+                            showDivider: false
+                        )
+                    }
+                    
+                    SettingsSection(
+                        title: "Advanced",
+                        footer: "Anonymous data is collected to improve the app. No personal information is collected. This can be disabled at any time."
+                    ) {
+                        SettingsToggleRow(
+                            icon: "chart.bar",
+                            title: "Enable Analytics",
+                            isOn: $analyticsEnabled,
                             showDivider: false
                         )
                     }
                 }
-                
-                SettingsSection(
-                    title: "Media Grid Layout",
-                    footer: "Adjust the number of media items per row in portrait and landscape modes."
-                ) {
-                    SettingsPickerRow(
-                        icon: "rectangle.portrait",
-                        title: "Portrait Columns",
-                        options: UIDevice.current.userInterfaceIdiom == .pad ? Array(1...5) : Array(1...4),
-                        optionToString: { "\($0)" },
-                        selection: $mediaColumnsPortrait
-                    )
-                    
-                    SettingsPickerRow(
-                        icon: "rectangle",
-                        title: "Landscape Columns",
-                        options: UIDevice.current.userInterfaceIdiom == .pad ? Array(2...8) : Array(2...5),
-                        optionToString: { "\($0)" },
-                        selection: $mediaColumnsLandscape,
-                        showDivider: false
-                    )
-                }
-                
-                SettingsSection(
-                    title: "Modules",
-                    footer: "Note that the modules will be replaced only if there is a different version string inside the JSON file."
-                ) {
-                    SettingsToggleRow(
-                        icon: "arrow.clockwise",
-                        title: "Refresh Modules on Launch",
-                        isOn: $refreshModulesOnLaunch,
-                        showDivider: false
-                    )
-                }
-                
-                SettingsSection(
-                    title: "Advanced",
-                    footer: "Anonymous data is collected to improve the app. No personal information is collected. This can be disabled at any time."
-                ) {
-                    SettingsToggleRow(
-                        icon: "chart.bar",
-                        title: "Enable Analytics",
-                        isOn: $analyticsEnabled,
-                        showDivider: false
-                    )
-                }
+                .padding(.vertical, 20)
             }
-            .padding(.vertical, 20)
+            .navigationTitle("General")
+            .scrollViewBottomPadding()
         }
-        .navigationTitle("General")
-        .scrollViewBottomPadding()
     }
 }

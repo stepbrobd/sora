@@ -211,6 +211,9 @@
     "Error" : {
 
     },
+    "Error Fetching Results" : {
+
+    },
     "Failed to load contributors" : {
       "localizations" : {
         "en" : {
@@ -351,7 +354,10 @@
     "Match with AniList" : {
 
     },
-    "Matched with: %@" : {
+    "Match with TMDB" : {
+
+    },
+    "Matched ID: %lld" : {
 
     },
     "Max Concurrent Downloads" : {
@@ -429,6 +435,9 @@
 
     },
     "Please select a module from settings" : {
+
+    },
+    "Provider: %@" : {
 
     },
     "Queued" : {
@@ -553,6 +562,9 @@
     "The module provided only a single episode, this is most likely a movie, so we decided to make separate screens for these cases." : {
 
     },
+    "TMDB Match" : {
+
+    },
     "Trackers" : {
 
     },
@@ -560,6 +572,9 @@
 
     },
     "Try different search terms" : {
+
+    },
+    "Unable to fetch matches. Please try again later." : {
 
     },
     "Use TMDB Poster Image" : {
