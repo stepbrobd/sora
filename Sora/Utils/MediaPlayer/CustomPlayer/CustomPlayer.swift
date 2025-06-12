@@ -1388,7 +1388,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             pipButton.widthAnchor.constraint(equalToConstant: 44),
             pipButton.heightAnchor.constraint(equalToConstant: 44),
             airplayButton.centerYAnchor.constraint(equalTo: pipButton.centerYAnchor),
-            airplayButton.trailingAnchor.constraint(equalTo: pipButton.leadingAnchor, constant: -8),
+            airplayButton.trailingAnchor.constraint(equalTo: pipButton.leadingAnchor, constant: -6),
             airplayButton.widthAnchor.constraint(equalToConstant: 44),
             airplayButton.heightAnchor.constraint(equalToConstant: 44)
         ])
