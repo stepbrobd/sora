@@ -157,29 +157,29 @@ struct SettingsView: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("MAIN")
+                        Text("MAIN SETTINGS")
                             .font(.footnote)
                             .foregroundStyle(.gray)
                             .padding(.horizontal, 20)
                         
                         VStack(spacing: 0) {
                             NavigationLink(destination: SettingsViewGeneral()) {
-                                SettingsNavigationRow(icon: "gearshape", title: "General Preferences")
+                                SettingsNavigationRow(icon: "gearshape", title: "General Settings")
                             }
                             Divider().padding(.horizontal, 16)
                             
                             NavigationLink(destination: SettingsViewPlayer()) {
-                                SettingsNavigationRow(icon: "play.circle", title: "Video Player")
+                                SettingsNavigationRow(icon: "play.circle", title: "Player Settings")
                             }
                             Divider().padding(.horizontal, 16)
                             
                             NavigationLink(destination: SettingsViewDownloads()) {
-                                SettingsNavigationRow(icon: "arrow.down.circle", title: "Download")
+                                SettingsNavigationRow(icon: "arrow.down.circle", title: "Download Settings")
                             }
                             Divider().padding(.horizontal, 16)
                             
                             NavigationLink(destination: SettingsViewTrackers()) {
-                                SettingsNavigationRow(icon: "square.stack.3d.up", title: "Trackers")
+                                SettingsNavigationRow(icon: "square.stack.3d.up", title: "Tracking Services")
                             }
                         }
                         .background(.ultraThinMaterial)
@@ -202,7 +202,7 @@ struct SettingsView: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("DATA/LOGS")
+                        Text("DATA & LOGS")
                             .font(.footnote)
                             .foregroundStyle(.gray)
                             .padding(.horizontal, 20)
@@ -237,7 +237,7 @@ struct SettingsView: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("INFOS")
+                        Text("INFORMATION")
                             .font(.footnote)
                             .foregroundStyle(.gray)
                             .padding(.horizontal, 20)
@@ -261,7 +261,7 @@ struct SettingsView: View {
                             Link(destination: URL(string: "https://discord.gg/x7hppDWFDZ")!) {
                                 SettingsNavigationRow(
                                     icon: "bubble.left.and.bubble.right",
-                                    title: "Join the Discord",
+                                    title: "Join Discord Community",
                                     isExternal: true,
                                     textColor: .gray
                                 )
@@ -271,7 +271,7 @@ struct SettingsView: View {
                             Link(destination: URL(string: "https://github.com/cranci1/Sora/issues")!) {
                                 SettingsNavigationRow(
                                     icon: "exclamationmark.circle",
-                                    title: "Report an Issue",
+                                    title: "Report an Issue on GitHub",
                                     isExternal: true,
                                     textColor: .gray
                                 )
@@ -306,7 +306,7 @@ struct SettingsView: View {
                         .padding(.horizontal, 20)
                     }
 
-                    Text("Running Sora \(version) - cranci1")
+                    Text("Sora \(version) by cranci1")
                         .font(.footnote)
                         .foregroundStyle(.gray)
                         .frame(maxWidth: .infinity, alignment: .center)
