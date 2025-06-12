@@ -675,7 +675,7 @@ struct MediaInfoView: View {
                     Label("Open in AniList", systemImage: "link")
                 }
             }
-
+            
             if UserDefaults.standard.string(forKey: "metadataProviders") ?? "TMDB" == "AniList" {
                 Button(action: { isMatchingPresented = true }) {
                     Label("Match with AniList", systemImage: "magnifyingglass")

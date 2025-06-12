@@ -59,8 +59,6 @@ fileprivate struct SettingsSection<Content: View>: View {
 }
 
 struct SettingsViewAbout: View {
-    let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "ALPHA"
-    
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
@@ -182,7 +180,7 @@ struct ContributorsView: View {
     private func loadContributors() {
         let url = URL(string: "https://api.github.com/repos/cranci1/Sora/contributors")!
         
-        URLSession.shared.dataTask(with: url) { data, response, error in
+        URLSession.custom.dataTask(with: url) { data, response, error in
             DispatchQueue.main.async {
                 isLoading = false
                 
