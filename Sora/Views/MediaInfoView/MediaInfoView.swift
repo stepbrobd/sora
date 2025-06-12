@@ -681,7 +681,11 @@ struct MediaInfoView: View {
                 Divider()
             }
             
-            // AniList branch: match, show ID, reset & open
+
+            Text("Matched ID: \(itemID ?? 0)")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            
             if activeProvider == "AniList" {
                 Button("Match with AniList") {
                     isMatchingPresented = true
