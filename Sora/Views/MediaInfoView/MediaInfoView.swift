@@ -689,10 +689,6 @@ struct MediaInfoView: View {
                 Button("Match with AniList") {
                     isMatchingPresented = true
                 }
-                Text("Matched ID: \(itemID ?? 0)")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                
                 Button(action: { resetAniListID() }) {
                     Label("Reset AniList ID", systemImage: "arrow.clockwise")
                 }
