@@ -370,8 +370,8 @@
 		133D7C7F2D2BE2630075467E /* MediaInfoView */ = {
 			isa = PBXGroup;
 			children = (
-				1EDA48F32DFAC374002A4EC3 /* TMDBMatchPopupView.swift */,
 				138AA1B52D2D66EC0021F9DF /* EpisodeCell */,
+				1EDA48F32DFAC374002A4EC3 /* TMDBMatchPopupView.swift */,
 				133D7C802D2BE2630075467E /* MediaInfoView.swift */,
 				1E47859A2DEBC5960095BF2F /* AnilistMatchPopupView.swift */,
 			);
