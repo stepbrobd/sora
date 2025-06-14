@@ -216,6 +216,11 @@ struct SettingsView: View {
                             NavigationLink(destination: SettingsViewLogger()) {
                                 SettingsNavigationRow(icon: "doc.text", titleKey: "Logs")
                             }
+                            Divider().padding(.horizontal, 16)
+                            
+                            NavigationLink(destination: SettingsViewDNS()) {
+                                SettingsNavigationRow(icon: "server.rack", titleKey: "DNS")
+                            }
                         }
                         .background(.ultraThinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
