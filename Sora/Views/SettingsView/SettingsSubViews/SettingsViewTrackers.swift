@@ -147,7 +147,7 @@ struct SettingsViewTrackers: View {
                                         .frame(height: 18)
                                 } else if isAnilistLoggedIn {
                                     HStack(spacing: 0) {
-                                        Text(NSLocalizedString("Logged in as", comment: ""))
+                                        Text(NSLocalizedString("Logged in as ", comment: ""))
                                             .font(.footnote)
                                             .foregroundStyle(.gray)
                                         Text(anilistUsername)
@@ -240,7 +240,7 @@ struct SettingsViewTrackers: View {
                                         .frame(height: 18)
                                 } else if isTraktLoggedIn {
                                     HStack(spacing: 0) {
-                                        Text(NSLocalizedString("Logged in as", comment: ""))
+                                        Text(NSLocalizedString("Logged in as ", comment: ""))
                                             .font(.footnote)
                                             .foregroundStyle(.gray)
                                         Text(traktUsername)
