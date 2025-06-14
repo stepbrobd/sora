@@ -215,19 +215,26 @@ class VideoPlayerViewController: UIViewController {
                     }
                 }
                 
-                if let tmdbId = self.tmdbID {
+                if let tmdbId = self.tmdbID, tmdbId > 0 {
+                    Logger.shared.log("Attempting Trakt update - TMDB ID: \(tmdbId), isMovie: \(self.isMovie), episode: \(self.episodeNumber), season: \(self.seasonNumber)", type: "Debug")
+                    
                     let traktMutation = TraktMutation()
                     
                     if self.isMovie {
                         traktMutation.markAsWatched(type: "movie", tmdbID: tmdbId) { result in
                             switch result {
                             case .success:
-                                Logger.shared.log("Updated Trakt progress for movie", type: "General")
+                                Logger.shared.log("Updated Trakt progress for movie (TMDB: \(tmdbId))", type: "General")
                             case .failure(let error):
-                                Logger.shared.log("Could not update Trakt progress: \(error.localizedDescription)", type: "Error")
+                                Logger.shared.log("Could not update Trakt progress for movie: \(error.localizedDescription)", type: "Error")
                             }
                         }
                     } else {
+                        guard self.episodeNumber > 0 && self.seasonNumber > 0 else {
+                            Logger.shared.log("Invalid episode (\(self.episodeNumber)) or season (\(self.seasonNumber)) number for Trakt update", type: "Error")
+                            return
+                        }
+                        
                         traktMutation.markAsWatched(
                             type: "episode",
                             tmdbID: tmdbId,
@@ -236,12 +243,14 @@ class VideoPlayerViewController: UIViewController {
                         ) { result in
                             switch result {
                             case .success:
-                                Logger.shared.log("Updated Trakt progress for Episode \(self.episodeNumber)", type: "General")
+                                Logger.shared.log("Updated Trakt progress for Episode \(self.episodeNumber) (TMDB: \(tmdbId))", type: "General")
                             case .failure(let error):
-                                Logger.shared.log("Could not update Trakt progress: \(error.localizedDescription)", type: "Error")
+                                Logger.shared.log("Could not update Trakt progress for episode: \(error.localizedDescription)", type: "Error")
                             }
                         }
                     }
+                } else {
+                    Logger.shared.log("Skipping Trakt update - TMDB ID not set or invalid: \(self.tmdbID ?? -1)", type: "Warning")
                 }
             }
         }

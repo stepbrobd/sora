@@ -804,12 +804,12 @@ struct MediaInfoView: View {
         let total = UserDefaults.standard.double(forKey: totalTimeKey)
         let progress = total > 0 ? last/total : 0
         let watchedEp = ep.number
-
+        
         if progress <= 0.9 {
             UserDefaults.standard.set(99999999.0, forKey: lastPlayedKey)
             UserDefaults.standard.set(99999999.0, forKey: totalTimeKey)
             DropManager.shared.showDrop(title: "Marked as Watched", subtitle: "", duration: 1.0, icon: UIImage(systemName: "checkmark.circle.fill"))
-
+            
             if let listID = itemID, listID > 0 {
                 AniListMutation().updateAnimeProgress(animeId: listID, episodeNumber: watchedEp, status: "CURRENT") { result in
                     switch result {
@@ -824,7 +824,7 @@ struct MediaInfoView: View {
             UserDefaults.standard.set(0.0, forKey: lastPlayedKey)
             UserDefaults.standard.set(0.0, forKey: totalTimeKey)
             DropManager.shared.showDrop(title: "Progress Reset", subtitle: "", duration: 1.0, icon: UIImage(systemName: "arrow.counterclockwise"))
-
+            
             if let listID = itemID, listID > 0 {
                 AniListMutation().updateAnimeProgress(animeId: listID, episodeNumber: 0, status: "CURRENT") { _ in }
             }
@@ -1204,7 +1204,6 @@ struct MediaInfoView: View {
             }
         }
     }
-
     
     private func fetchAniListIDForSync() {
         let cleaned = cleanTitle(title)
@@ -1225,76 +1224,73 @@ struct MediaInfoView: View {
     func fetchMetadataIDIfNeeded() {
         let order = metadataProvidersOrder
         let cleanedTitle = cleanTitle(title)
-
+        
         itemID = nil
         tmdbID = nil
         activeProvider = nil
         isError = false
-
-        func fetchAniList(completion: @escaping (Bool) -> Void) {
-            fetchItemID(byTitle: cleanedTitle) { result in
+        
+        var aniListCompleted = false
+        var tmdbCompleted = false
+        var aniListSuccess = false
+        var tmdbSuccess = false
+        
+        func checkCompletion() {
+            guard aniListCompleted && tmdbCompleted else { return }
+            
+            let primaryProvider = order.first ?? "AniList"
+            
+            if primaryProvider == "AniList" && aniListSuccess {
+                activeProvider = "AniList"
+                UserDefaults.standard.set("AniList", forKey: "metadataProviders")
+            } else if primaryProvider == "TMDB" && tmdbSuccess {
+                activeProvider = "TMDB"
+                UserDefaults.standard.set("TMDB", forKey: "metadataProviders")
+            } else if aniListSuccess {
+                activeProvider = "AniList"
+                UserDefaults.standard.set("AniList", forKey: "metadataProviders")
+            } else if tmdbSuccess {
+                activeProvider = "TMDB"
+                UserDefaults.standard.set("TMDB", forKey: "metadataProviders")
+            } else {
+                isError = true
+            }
+        }
+        
+        fetchItemID(byTitle: cleanedTitle) { result in
+            DispatchQueue.main.async {
+                aniListCompleted = true
                 switch result {
                 case .success(let id):
-                    DispatchQueue.main.async {
-                        self.itemID = id
-                        self.activeProvider = "AniList"
-                        UserDefaults.standard.set("AniList", forKey: "metadataProviders")
-
-                        tmdbFetcher.fetchBestMatchID(for: cleanedTitle) { tmdbId, tmdbType in
-                            DispatchQueue.main.async {
-                                guard let tmdbId = tmdbId, let tmdbType = tmdbType else {
-                                    completion(true)
-                                    return
-                                }
-                                self.tmdbID = tmdbId
-                                self.tmdbType = tmdbType
-                                self.fetchTMDBPosterImageAndSet()
-                                completion(true)
-                            }
-                        }
-                    }
-
+                    self.itemID = id
+                    aniListSuccess = true
+                    Logger.shared.log("Successfully fetched AniList ID: \(id)", type: "Debug")
                 case .failure(let error):
-                    Logger.shared.log("Failed to fetch AniList ID for tracking: \(error)", type: "Error")
-                    completion(false)
+                    Logger.shared.log("Failed to fetch AniList ID: \(error)", type: "Debug")
                 }
+                checkCompletion()
             }
         }
-
-        func tryProviders(_ index: Int) {
-            guard index < order.count else {
-                isError = true
-                return
-            }
-
-            let provider = order[index]
-            switch provider {
-            case "AniList":
-                fetchAniList { success in
-                    if !success {
-                        tryProviders(index + 1)
+        
+        tmdbFetcher.fetchBestMatchID(for: cleanedTitle) { id, type in
+            DispatchQueue.main.async {
+                tmdbCompleted = true
+                if let id = id, let type = type {
+                    self.tmdbID = id
+                    self.tmdbType = type
+                    tmdbSuccess = true
+                    Logger.shared.log("Successfully fetched TMDB ID: \(id) (type: \(type.rawValue))", type: "Debug")
+                    
+                    if self.activeProvider != "TMDB" {
+                        self.fetchTMDBPosterImageAndSet()
                     }
+                } else {
+                    Logger.shared.log("Failed to fetch TMDB ID", type: "Debug")
                 }
-            case "TMDB":
-                tmdbFetcher.fetchBestMatchID(for: cleanedTitle) { id, type in
-                    DispatchQueue.main.async {
-                        if let id = id, let type = type {
-                            self.tmdbID = id
-                            self.tmdbType = type
-                            self.activeProvider = "TMDB"
-                            UserDefaults.standard.set("TMDB", forKey: "metadataProviders")
-                            self.fetchTMDBPosterImageAndSet()
-                        } else {
-                            tryProviders(index + 1)
-                        }
-                    }
-                }
-            default:
-                tryProviders(index + 1)
+                checkCompletion()
             }
         }
-
-        tryProviders(0)
+        
         fetchAniListIDForSync()
     }
     
@@ -1560,6 +1556,8 @@ struct MediaInfoView: View {
     }
     
     private func presentDefaultPlayer(url: String, fullURL: String, subtitles: String?, headers: [String:String]?) {
+        let isMovie = tmdbType == .movie
+        
         let videoPlayerViewController = VideoPlayerViewController(module: module)
         videoPlayerViewController.headers = headers
         videoPlayerViewController.streamUrl = url
@@ -1570,6 +1568,9 @@ struct MediaInfoView: View {
         videoPlayerViewController.mediaTitle = title
         videoPlayerViewController.subtitles = subtitles ?? ""
         videoPlayerViewController.aniListID = itemID ?? 0
+        videoPlayerViewController.tmdbID = tmdbID
+        videoPlayerViewController.isMovie = isMovie
+        videoPlayerViewController.seasonNumber = selectedSeason + 1
         videoPlayerViewController.modalPresentationStyle = .fullScreen
         
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
@@ -1589,6 +1590,7 @@ struct MediaInfoView: View {
         }
         
         guard self.activeFetchID == fetchID else { return }
+        let isMovie = tmdbType == .movie
         
         let customMediaPlayer = CustomMediaPlayerViewController(
             module: module,
@@ -1604,6 +1606,8 @@ struct MediaInfoView: View {
             headers: headers ?? nil
         )
         customMediaPlayer.seasonNumber = selectedSeason + 1
+        customMediaPlayer.tmdbID = tmdbID
+        customMediaPlayer.isMovie = isMovie
         customMediaPlayer.modalPresentationStyle = .fullScreen
         Logger.shared.log("Opening custom media player with url: \(url)")
         

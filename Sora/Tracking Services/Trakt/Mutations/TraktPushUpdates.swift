@@ -25,22 +25,28 @@ class TraktMutation {
         guard status == errSecSuccess,
               let tokenData = item as? Data,
               let token = String(data: tokenData, encoding: .utf8) else {
-                  return nil
-              }
+            return nil
+        }
         return token
     }
     
     func markAsWatched(type: String, tmdbID: Int, episodeNumber: Int? = nil, seasonNumber: Int? = nil, completion: @escaping (Result<Void, Error>) -> Void) {
-        if let sendTraktUpdates = UserDefaults.standard.object(forKey: "sendTraktUpdates") as? Bool,
-           sendTraktUpdates == false {
+        let sendTraktUpdates = UserDefaults.standard.object(forKey: "sendTraktUpdates") as? Bool ?? true
+        if !sendTraktUpdates {
+            Logger.shared.log("Trakt updates disabled by user preference", type: "Debug")
+            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Trakt updates disabled by user"])))
             return
         }
         
+        Logger.shared.log("Attempting to mark \(type) as watched - TMDB ID: \(tmdbID), Episode: \(episodeNumber ?? 0), Season: \(seasonNumber ?? 0)", type: "Debug")
+        
         guard let userToken = getTokenFromKeychain() else {
+            Logger.shared.log("Trakt access token not found in keychain", type: "Error")
             completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Access token not found"])))
-            Logger.shared.log("Trakt Access token not found", type: "Error")
             return
         }
+        
+        Logger.shared.log("Found Trakt access token, proceeding with API call", type: "Debug")
         
         let endpoint = "/sync/history"
         let watchedAt = ISO8601DateFormatter().string(from: Date())
@@ -48,6 +54,7 @@ class TraktMutation {
         
         switch type {
         case "movie":
+            Logger.shared.log("Preparing movie watch request for TMDB ID: \(tmdbID)", type: "Debug")
             body = [
                 "movies": [
                     [
@@ -59,10 +66,13 @@ class TraktMutation {
             
         case "episode":
             guard let episode = episodeNumber, let season = seasonNumber else {
-                completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Missing episode or season number"])))
+                let errorMsg = "Missing episode (\(episodeNumber ?? -1)) or season (\(seasonNumber ?? -1)) number"
+                Logger.shared.log(errorMsg, type: "Error")
+                completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: errorMsg])))
                 return
             }
             
+            Logger.shared.log("Preparing episode watch request - TMDB ID: \(tmdbID), Season: \(season), Episode: \(episode)", type: "Debug")
             body = [
                 "shows": [
                     [
@@ -83,6 +93,7 @@ class TraktMutation {
             ]
             
         default:
+            Logger.shared.log("Invalid content type: \(type)", type: "Error")
             completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid content type"])))
             return
         }
@@ -95,36 +106,54 @@ class TraktMutation {
         request.setValue(TraktToken.clientID, forHTTPHeaderField: "trakt-api-key")
         
         do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [.prettyPrinted])
+            let jsonData = try JSONSerialization.data(withJSONObject: body, options: [.prettyPrinted])
+            request.httpBody = jsonData
+            
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                Logger.shared.log("Trakt API Request Body: \(jsonString)", type: "Debug")
+            }
         } catch {
+            Logger.shared.log("Failed to serialize request body: \(error.localizedDescription)", type: "Error")
             completion(.failure(error))
             return
         }
         
+        Logger.shared.log("Sending Trakt API request to: \(request.url?.absoluteString ?? "unknown")", type: "Debug")
+        
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
+                Logger.shared.log("Trakt API network error: \(error.localizedDescription)", type: "Error")
                 completion(.failure(error))
                 return
             }
             
             guard let httpResponse = response as? HTTPURLResponse else {
+                Logger.shared.log("Trakt API: No HTTP response received", type: "Error")
                 completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No HTTP response"])))
                 return
             }
             
+            Logger.shared.log("Trakt API Response Status: \(httpResponse.statusCode)", type: "Debug")
+            
+            if let data = data, let responseString = String(data: data, encoding: .utf8) {
+                Logger.shared.log("Trakt API Response Body: \(responseString)", type: "Debug")
+            }
+            
             if (200...299).contains(httpResponse.statusCode) {
-                if let data = data, let responseString = String(data: data, encoding: .utf8) {
-                    Logger.shared.log("Trakt API Response: \(responseString)", type: "Debug")
-                }
-                Logger.shared.log("Successfully updated watch status on Trakt", type: "Debug")
+                Logger.shared.log("Successfully updated watch status on Trakt for \(type)", type: "General")
                 completion(.success(()))
             } else {
-                var errorMessage = "Unexpected status code: \(httpResponse.statusCode)"
+                var errorMessage = "HTTP \(httpResponse.statusCode)"
                 if let data = data,
-                   let errorJson = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let error = errorJson["error"] as? String {
-                    errorMessage = error
+                   let errorJson = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    if let error = errorJson["error"] as? String {
+                        errorMessage = "\(errorMessage): \(error)"
+                    }
+                    if let errorDescription = errorJson["error_description"] as? String {
+                        errorMessage = "\(errorMessage) - \(errorDescription)"
+                    }
                 }
+                Logger.shared.log("Trakt API Error: \(errorMessage)", type: "Error")
                 completion(.failure(NSError(domain: "", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: errorMessage])))
             }
         }
