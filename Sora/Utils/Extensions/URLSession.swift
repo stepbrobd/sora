@@ -60,8 +60,7 @@ extension URLSession {
     static let custom: URLSession = {
         let configuration = URLSessionConfiguration.default
         configuration.httpAdditionalHeaders = ["User-Agent": randomUserAgent]
-        let session = URLSession(configuration: configuration)
-        return DNSConfiguration.shared.configureDNS(for: session)
+        return URLSession(configuration: configuration)
     }()
     
     static func fetchData(allowRedirects:Bool) -> URLSession

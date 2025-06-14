@@ -50,8 +50,6 @@
 		133D7C932D2BE2640075467E /* Modules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C892D2BE2640075467E /* Modules.swift */; };
 		133D7C942D2BE2640075467E /* JSController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133D7C8B2D2BE2640075467E /* JSController.swift */; };
 		133F55BB2D33B55100E08EEA /* LibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 133F55BA2D33B55100E08EEA /* LibraryManager.swift */; };
-		134ECCA42DFD649D00372FCE /* DNSConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 134ECCA32DFD649D00372FCE /* DNSConfiguration.swift */; };
-		134ECCA82DFD655700372FCE /* SettingsViewDNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 134ECCA72DFD655700372FCE /* SettingsViewDNS.swift */; };
 		1359ED142D76F49900C13034 /* finTopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1359ED132D76F49900C13034 /* finTopView.swift */; };
 		135CCBE22D4D1138008B9C0E /* SettingsViewPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135CCBE12D4D1138008B9C0E /* SettingsViewPlayer.swift */; };
 		13637B8A2DE0EA1100BDA2FC /* UserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13637B892DE0EA1100BDA2FC /* UserDefaults.swift */; };
@@ -147,8 +145,6 @@
 		133D7C892D2BE2640075467E /* Modules.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Modules.swift; sourceTree = "<group>"; };
 		133D7C8B2D2BE2640075467E /* JSController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSController.swift; sourceTree = "<group>"; };
 		133F55BA2D33B55100E08EEA /* LibraryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryManager.swift; sourceTree = "<group>"; };
-		134ECCA32DFD649D00372FCE /* DNSConfiguration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DNSConfiguration.swift; sourceTree = "<group>"; };
-		134ECCA72DFD655700372FCE /* SettingsViewDNS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewDNS.swift; sourceTree = "<group>"; };
 		1359ED132D76F49900C13034 /* finTopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = finTopView.swift; sourceTree = "<group>"; };
 		135CCBE12D4D1138008B9C0E /* SettingsViewPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewPlayer.swift; sourceTree = "<group>"; };
 		13637B892DE0EA1100BDA2FC /* UserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaults.swift; sourceTree = "<group>"; };
@@ -382,7 +378,6 @@
 		133D7C832D2BE2630075467E /* SettingsSubViews */ = {
 			isa = PBXGroup;
 			children = (
-				134ECCA72DFD655700372FCE /* SettingsViewDNS.swift */,
 				1E9FF1D22D403E42008AC100 /* SettingsViewLoggerFilter.swift */,
 				1399FAD32D3AB38C00E97C31 /* SettingsViewLogger.swift */,
 				133D7C842D2BE2630075467E /* SettingsViewModule.swift */,
@@ -399,7 +394,6 @@
 		133D7C852D2BE2640075467E /* Utils */ = {
 			isa = PBXGroup;
 			children = (
-				134ECCA22DFD649D00372FCE /* NetworkConfig */,
 				130326B42DF979A300AEF610 /* WebAuthentication */,
 				0457C5962DE7712A000AFBD9 /* ViewModifiers */,
 				04F08EE02DE10C22006B29D9 /* Models */,
@@ -479,14 +473,6 @@
 				722248612DCBAA4700CABE2D /* JSController-HeaderManager.swift */,
 			);
 			path = Downloads;
-			sourceTree = "<group>";
-		};
-		134ECCA22DFD649D00372FCE /* NetworkConfig */ = {
-			isa = PBXGroup;
-			children = (
-				134ECCA32DFD649D00372FCE /* DNSConfiguration.swift */,
-			);
-			path = NetworkConfig;
 			sourceTree = "<group>";
 		};
 		1384DCDF2D89BE870094797A /* Helpers */ = {
@@ -784,7 +770,6 @@
 				133F55BB2D33B55100E08EEA /* LibraryManager.swift in Sources */,
 				13E62FC42DABC58C0007E259 /* Trakt-Token.swift in Sources */,
 				1398FB3F2DE4E161004D3F5F /* SettingsViewAbout.swift in Sources */,
-				134ECCA82DFD655700372FCE /* SettingsViewDNS.swift in Sources */,
 				133D7C8E2D2BE2640075467E /* LibraryView.swift in Sources */,
 				13E62FC72DABFE900007E259 /* TraktPushUpdates.swift in Sources */,
 				133D7C6E2D2BE2500075467E /* SoraApp.swift in Sources */,
@@ -806,7 +791,6 @@
 				7222485F2DCBAA2C00CABE2D /* DownloadModels.swift in Sources */,
 				722248602DCBAA2C00CABE2D /* M3U8StreamExtractor.swift in Sources */,
 				13C0E5EA2D5F85EA00E7F619 /* ContinueWatchingManager.swift in Sources */,
-				134ECCA42DFD649D00372FCE /* DNSConfiguration.swift in Sources */,
 				13637B8A2DE0EA1100BDA2FC /* UserDefaults.swift in Sources */,
 				0457C59D2DE78267000AFBD9 /* BookmarkGridView.swift in Sources */,
 				0457C59E2DE78267000AFBD9 /* BookmarkLink.swift in Sources */,
