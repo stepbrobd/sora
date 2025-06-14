@@ -238,9 +238,7 @@ class VideoPlayerViewController: UIViewController {
     
     private func sendTraktUpdate(tmdbId: Int) {
         guard !traktUpdateSent else { return }
-        
         traktUpdateSent = true
-        Logger.shared.log("Attempting Trakt update - TMDB ID: \(tmdbId), isMovie: \(self.isMovie), episode: \(self.episodeNumber), season: \(self.seasonNumber)", type: "Debug")
         
         let traktMutation = TraktMutation()
         

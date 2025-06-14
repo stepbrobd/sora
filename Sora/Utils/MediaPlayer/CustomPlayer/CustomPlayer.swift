@@ -2065,6 +2065,45 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         }
     }
     
+    private func sendTraktUpdate(tmdbId: Int) {
+        guard !traktUpdateSent else { return }
+        traktUpdateSent = true
+        
+        let traktMutation = TraktMutation()
+        
+        if self.isMovie {
+            traktMutation.markAsWatched(type: "movie", tmdbID: tmdbId) { [weak self] result in
+                switch result {
+                case .success:
+                    self?.traktUpdatedSuccessfully = true
+                    Logger.shared.log("Successfully updated Trakt progress for movie (TMDB: \(tmdbId))", type: "General")
+                case .failure(let error):
+                    Logger.shared.log("Failed to update Trakt progress for movie: \(error.localizedDescription)", type: "Error")
+                }
+            }
+        } else {
+            guard self.episodeNumber > 0 && self.seasonNumber > 0 else {
+                Logger.shared.log("Invalid episode (\(self.episodeNumber)) or season (\(self.seasonNumber)) number for Trakt update", type: "Error")
+                return
+            }
+            
+            traktMutation.markAsWatched(
+                type: "episode",
+                tmdbID: tmdbId,
+                episodeNumber: self.episodeNumber,
+                seasonNumber: self.seasonNumber
+            ) { [weak self] result in
+                switch result {
+                case .success:
+                    self?.traktUpdatedSuccessfully = true
+                    Logger.shared.log("Successfully updated Trakt progress for Episode \(self?.episodeNumber ?? 0) (TMDB: \(tmdbId))", type: "General")
+                case .failure(let error):
+                    Logger.shared.log("Failed to update Trakt progress for episode: \(error.localizedDescription)", type: "Error")
+                }
+            }
+        }
+    }
+    
     private func animateButtonRotation(_ button: UIView, clockwise: Bool = true) {
         if button.layer.animation(forKey: "rotate360") != nil {
             return
@@ -2189,9 +2228,9 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     private func switchToQuality(urlString: String) {
         guard let url = URL(string: urlString),
-              currentQualityURL?.absoluteString != urlString else { 
+              currentQualityURL?.absoluteString != urlString else {
             Logger.shared.log("Quality Selection: Switch cancelled - same quality already selected", type: "General")
-            return 
+            return
         }
         
         let qualityName = qualities.first(where: { $0.1 == urlString })?.0 ?? "Unknown"
@@ -2819,35 +2858,6 @@ class GradientOverlayButton: UIButton {
         gradientLayer.frame = bounds
         
         let path = UIBezierPath(roundedRect: bounds.insetBy(dx: 0.25, dy: 0.25), cornerRadius: bounds.height / 2)
-        let maskLayer = CAShapeLayer()
-        maskLayer.path = path.cgPath
-        maskLayer.fillColor = nil
-        maskLayer.strokeColor = UIColor.white.cgColor
-        maskLayer.lineWidth = 0.5
-        gradientLayer.mask = maskLayer
-    }
-}
-
-extension CustomMediaPlayerViewController: AVPictureInPictureControllerDelegate {
-    func pictureInPictureControllerWillStartPictureInPicture(_ pipController: AVPictureInPictureController) {
-        pipButton.alpha = 0.5
-    }
-    
-    func pictureInPictureControllerDidStopPictureInPicture(_ pipController: AVPictureInPictureController) {
-        pipButton.alpha = 1.0
-    }
-    
-    func pictureInPictureController(_ pipController: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
-        Logger.shared.log("PiP failed to start: \(error.localizedDescription)", type: "Error")
-    }
-}
-
-// yes? Like the plural of the famous american rapper ye? -IBHRAD
-// low taper fade the meme is massive -cranci
-// The mind is the source of good and evil, only you yourself can decide which you will bring yourself. -seiike
-// guys watch Clannad already - ibro
-// May the Divine Providence bestow its infinite mercy upon your soul, and may eternal grace find you beyond the shadows of this mortal realm. - paul, 15/11/2005 - 13/05/2023
-// this dumbass ↑ defo used gpt, ong he did bro
         let maskLayer = CAShapeLayer()
         maskLayer.path = path.cgPath
         maskLayer.fillColor = nil
