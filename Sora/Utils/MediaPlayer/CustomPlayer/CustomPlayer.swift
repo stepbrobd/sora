@@ -24,12 +24,18 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     let onWatchNext: () -> Void
     let aniListID: Int
     var headers: [String:String]? = nil
+    var tmdbID: Int? = nil
+    var isMovie: Bool = false
+    var seasonNumber: Int = 1
     
     private var aniListUpdatedSuccessfully = false
     private var aniListUpdateImpossible: Bool = false
     private var aniListRetryCount = 0
     private let aniListMaxRetries = 6
     private let totalEpisodes: Int
+    
+    private var traktUpdateSent = false
+    private var traktUpdatedSuccessfully = false
     
     var player: AVPlayer!
     var timeObserverToken: Any?
@@ -1291,7 +1297,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         dimButtonToRight = dimButton.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -16)
         dimButtonToSlider.isActive = true
     }
-    
     private func setupLockButton() {
         let cfg = UIImage.SymbolConfiguration(pointSize: 24, weight: .regular)
         lockButton = UIButton(type: .system)
@@ -1385,19 +1390,14 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             pipButton.widthAnchor.constraint(equalToConstant: 44),
             pipButton.heightAnchor.constraint(equalToConstant: 44),
             airplayButton.centerYAnchor.constraint(equalTo: pipButton.centerYAnchor),
-            airplayButton.trailingAnchor.constraint(equalTo: pipButton.leadingAnchor, constant: -8),
+            airplayButton.trailingAnchor.constraint(equalTo: pipButton.leadingAnchor, constant: -6),
             airplayButton.widthAnchor.constraint(equalToConstant: 44),
             airplayButton.heightAnchor.constraint(equalToConstant: 44)
         ])
         
         pipButton.isHidden = !isPipButtonVisible
         
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(startPipIfNeeded),
-            name: UIApplication.willResignActiveNotification,
-            object: nil
-        )
+        NotificationCenter.default.addObserver(self, selector: #selector(startPipIfNeeded), name: UIApplication.willResignActiveNotification, object: nil)
     }
     
     func setupMenuButton() {
@@ -1644,12 +1644,14 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                 
                 let remainingPercentage = (self.duration - self.currentTimeVal) / self.duration
                 
-                if remainingPercentage < 0.1 &&
-                    self.aniListID != 0 &&
-                    !self.aniListUpdatedSuccessfully &&
-                    !self.aniListUpdateImpossible
-                {
-                    self.tryAniListUpdate()
+                if remainingPercentage < 0.1 {
+                    if self.aniListID != 0 && !self.aniListUpdatedSuccessfully && !self.aniListUpdateImpossible {
+                        self.tryAniListUpdate()
+                    }
+                    
+                    if let tmdbId = self.tmdbID, tmdbId > 0, !self.traktUpdateSent {
+                        self.sendTraktUpdate(tmdbId: tmdbId)
+                    }
                 }
                 
                 self.sliderHostingController?.rootView = MusicProgressSlider(
@@ -1796,6 +1798,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     @objc func seekBackward() {
         let skipValue = UserDefaults.standard.double(forKey: "skipIncrement")
         let finalSkip = skipValue > 0 ? skipValue : 10
+        
         currentTimeVal = max(currentTimeVal - finalSkip, 0)
         player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600)) { [weak self] finished in
             guard self != nil else { return }
@@ -1805,6 +1808,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     @objc func seekForward() {
         let skipValue = UserDefaults.standard.double(forKey: "skipIncrement")
+        
         let finalSkip = skipValue > 0 ? skipValue : 10
         currentTimeVal = min(currentTimeVal + finalSkip, duration)
         player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600)) { [weak self] finished in
@@ -1865,8 +1869,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         guard isPipAutoEnabled,
               let pip = pipController,
               !pip.isPictureInPictureActive else {
-                  return
-              }
+            return
+        }
         pip.startPictureInPicture()
     }
     
@@ -2061,6 +2065,45 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         }
     }
     
+    private func sendTraktUpdate(tmdbId: Int) {
+        guard !traktUpdateSent else { return }
+        traktUpdateSent = true
+        
+        let traktMutation = TraktMutation()
+        
+        if self.isMovie {
+            traktMutation.markAsWatched(type: "movie", tmdbID: tmdbId) { [weak self] result in
+                switch result {
+                case .success:
+                    self?.traktUpdatedSuccessfully = true
+                    Logger.shared.log("Successfully updated Trakt progress for movie (TMDB: \(tmdbId))", type: "General")
+                case .failure(let error):
+                    Logger.shared.log("Failed to update Trakt progress for movie: \(error.localizedDescription)", type: "Error")
+                }
+            }
+        } else {
+            guard self.episodeNumber > 0 && self.seasonNumber > 0 else {
+                Logger.shared.log("Invalid episode (\(self.episodeNumber)) or season (\(self.seasonNumber)) number for Trakt update", type: "Error")
+                return
+            }
+            
+            traktMutation.markAsWatched(
+                type: "episode",
+                tmdbID: tmdbId,
+                episodeNumber: self.episodeNumber,
+                seasonNumber: self.seasonNumber
+            ) { [weak self] result in
+                switch result {
+                case .success:
+                    self?.traktUpdatedSuccessfully = true
+                    Logger.shared.log("Successfully updated Trakt progress for Episode \(self?.episodeNumber ?? 0) (TMDB: \(tmdbId))", type: "General")
+                case .failure(let error):
+                    Logger.shared.log("Failed to update Trakt progress for episode: \(error.localizedDescription)", type: "Error")
+                }
+            }
+        }
+    }
+    
     private func animateButtonRotation(_ button: UIView, clockwise: Bool = true) {
         if button.layer.animation(forKey: "rotate360") != nil {
             return
@@ -2114,13 +2157,13 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     private func processM3U8Data(data: Data?, url: URL, completion: @escaping () -> Void) {
         guard let data = data,
               let content = String(data: data, encoding: .utf8) else {
-                  Logger.shared.log("Failed to load m3u8 file")
-                  DispatchQueue.main.async {
-                      self.qualities = []
-                      completion()
-                  }
-                  return
-              }
+            Logger.shared.log("Failed to load m3u8 file")
+            DispatchQueue.main.async {
+                self.qualities = []
+                completion()
+            }
+            return
+        }
         
         let lines = content.components(separatedBy: .newlines)
         var qualities: [(String, String)] = []
@@ -2185,7 +2228,13 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     private func switchToQuality(urlString: String) {
         guard let url = URL(string: urlString),
-              currentQualityURL?.absoluteString != urlString else { return }
+              currentQualityURL?.absoluteString != urlString else {
+            Logger.shared.log("Quality Selection: Switch cancelled - same quality already selected", type: "General")
+            return
+        }
+        
+        let qualityName = qualities.first(where: { $0.1 == urlString })?.0 ?? "Unknown"
+        Logger.shared.log("Quality Selection: Switching to quality: \(qualityName) (\(urlString))", type: "General")
         
         let currentTime = player.currentTime()
         let wasPlaying = player.rate > 0
@@ -2244,7 +2293,10 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         qualityButton.menu = qualitySelectionMenu()
         
         if let selectedQuality = qualities.first(where: { $0.1 == urlString })?.0 {
+            Logger.shared.log("Quality Selection: Successfully switched to: \(selectedQuality)", type: "General")
             DropManager.shared.showDrop(title: "Quality: \(selectedQuality)", subtitle: "", duration: 0.5, icon: UIImage(systemName: "eye"))
+        } else {
+            Logger.shared.log("Quality Selection: Switch completed but quality name not found in list", type: "General")
         }
     }
     
@@ -2294,11 +2346,34 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             baseM3U8URL = url
             currentQualityURL = url
             
+            let networkType = NetworkMonitor.getCurrentNetworkType()
+            let networkTypeString = networkType == .wifi ? "WiFi" : networkType == .cellular ? "Cellular" : "Unknown"
+            Logger.shared.log("Quality Selection: Detected network type: \(networkTypeString)", type: "General")
+            
             parseM3U8(url: url) { [weak self] in
                 guard let self = self else { return }
-                if let last = UserDefaults.standard.string(forKey: "lastSelectedQuality"),
-                   self.qualities.contains(where: { $0.1 == last }) {
-                    self.switchToQuality(urlString: last)
+                
+                Logger.shared.log("Quality Selection: Found \(self.qualities.count) available qualities", type: "General")
+                for (index, quality) in self.qualities.enumerated() {
+                    Logger.shared.log("Quality Selection: Available [\(index + 1)]: \(quality.0) - \(quality.1)", type: "General")
+                }
+                
+                let preferredQuality = UserDefaults.getVideoQualityPreference()
+                Logger.shared.log("Quality Selection: User preference for \(networkTypeString): \(preferredQuality.rawValue)", type: "General")
+                
+                if let selectedQuality = VideoQualityPreference.findClosestQuality(preferred: preferredQuality, availableQualities: self.qualities) {
+                    Logger.shared.log("Quality Selection: Selected quality: \(selectedQuality.0) (URL: \(selectedQuality.1))", type: "General")
+                    self.switchToQuality(urlString: selectedQuality.1)
+                } else {
+                    Logger.shared.log("Quality Selection: No matching quality found, using default", type: "General")
+                    if let last = UserDefaults.standard.string(forKey: "lastSelectedQuality"),
+                       self.qualities.contains(where: { $0.1 == last }) {
+                        Logger.shared.log("Quality Selection: Falling back to last selected quality", type: "General")
+                        self.switchToQuality(urlString: last)
+                    } else if let firstQuality = self.qualities.first {
+                        Logger.shared.log("Quality Selection: Falling back to first available quality: \(firstQuality.0)", type: "General")
+                        self.switchToQuality(urlString: firstQuality.1)
+                    }
                 }
                 
                 self.qualityButton.isHidden = false
@@ -2312,6 +2387,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             isHLSStream = false
             qualityButton.isHidden = true
             updateMenuButtonConstraints()
+            Logger.shared.log("Quality Selection: Non-HLS stream detected, quality selection unavailable", type: "General")
         }
     }
     
@@ -2686,7 +2762,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                 height: 10,
                 onEditingChanged: { _ in }
             )
-                .shadow(color: Color.black.opacity(0.6), radius: 4, x: 0, y: 2)
+            .shadow(color: Color.black.opacity(0.6), radius: 4, x: 0, y: 2)
         }
     }
     
@@ -2700,6 +2776,57 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         case "red": return .red
         default: return .white
         }
+    }
+    
+    override var canBecomeFirstResponder: Bool {
+        return true
+    }
+    
+    override var keyCommands: [UIKeyCommand]? {
+        return [
+            UIKeyCommand(input: " ", modifierFlags: [], action: #selector(handleSpaceKey), discoverabilityTitle: "Play/Pause"),
+            UIKeyCommand(input: UIKeyCommand.inputLeftArrow, modifierFlags: [], action: #selector(handleLeftArrow), discoverabilityTitle: "Seek Backward 10s"),
+            UIKeyCommand(input: UIKeyCommand.inputRightArrow, modifierFlags: [], action: #selector(handleRightArrow), discoverabilityTitle: "Seek Forward 10s"),
+            UIKeyCommand(input: UIKeyCommand.inputUpArrow, modifierFlags: [], action: #selector(handleUpArrow), discoverabilityTitle: "Seek Forward 60s"),
+            UIKeyCommand(input: UIKeyCommand.inputDownArrow, modifierFlags: [], action: #selector(handleDownArrow), discoverabilityTitle: "Seek Backward 60s"),
+            UIKeyCommand(input: UIKeyCommand.inputEscape, modifierFlags: [], action: #selector(handleEscape), discoverabilityTitle: "Dismiss Player")
+        ]
+    }
+    
+    @objc private func handleSpaceKey() {
+        togglePlayPause()
+    }
+    
+    @objc private func handleLeftArrow() {
+        let skipValue = 10.0
+        currentTimeVal = max(currentTimeVal - skipValue, 0)
+        player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
+        animateButtonRotation(backwardButton, clockwise: false)
+    }
+    
+    @objc private func handleRightArrow() {
+        let skipValue = 10.0
+        currentTimeVal = min(currentTimeVal + skipValue, duration)
+        player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
+        animateButtonRotation(forwardButton)
+    }
+    
+    @objc private func handleUpArrow() {
+        let skipValue = 60.0
+        currentTimeVal = min(currentTimeVal + skipValue, duration)
+        player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
+        animateButtonRotation(forwardButton)
+    }
+    
+    @objc private func handleDownArrow() {
+        let skipValue = 60.0
+        currentTimeVal = max(currentTimeVal - skipValue, 0)
+        player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
+        animateButtonRotation(backwardButton, clockwise: false)
+    }
+    
+    @objc private func handleEscape() {
+        dismiss(animated: true, completion: nil)
     }
 }
 

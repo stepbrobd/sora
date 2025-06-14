@@ -5,14 +5,12 @@
 //  Created by Hamzo on 19/03/25.
 //
 
+import SoraCore
 import JavaScriptCore
 
 extension JSContext {
     func setupConsoleLogging() {
         let consoleObject = JSValue(newObjectIn: self)
-        
-        let appInfoBridge = AppInfo()
-        consoleObject?.setObject(appInfoBridge, forKeyedSubscript: "AppInfo" as NSString)
         
         let consoleLogFunction: @convention(block) (String) -> Void = { message in
             Logger.shared.log(message, type: "Debug")
@@ -139,9 +137,9 @@ extension JSContext {
             Logger.shared.log("Redirect value is \(redirect.boolValue)", type: "Error")
             let session = URLSession.fetchData(allowRedirects: redirect.boolValue)
             
-                let task = session.downloadTask(with: request) { tempFileURL, response, error in
-                    defer { session.finishTasksAndInvalidate() }
-                    
+            let task = session.downloadTask(with: request) { tempFileURL, response, error in
+                defer { session.finishTasksAndInvalidate() }
+                
                 let callReject: (String) -> Void = { message in
                     DispatchQueue.main.async {
                         reject.call(withArguments: [message])
@@ -276,6 +274,7 @@ extension JSContext {
     }
     
     func setupJavaScriptEnvironment() {
+        setupWeirdCode()
         setupConsoleLogging()
         setupNativeFetch()
         setupFetchV2()

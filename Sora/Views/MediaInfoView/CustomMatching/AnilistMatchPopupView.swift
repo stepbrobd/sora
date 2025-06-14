@@ -1,16 +1,15 @@
 //
-//  AnilistMatchPopupView.swift
-//  Sulfur
+// AnilistMatchPopupView.swift
+// Sulfur
 //
-//  Created by seiike on 01/06/2025.
-//
+// Created by seiike on 01/06/2025.
 
 import NukeUI
 import SwiftUI
 
 struct AnilistMatchPopupView: View {
     let seriesTitle: String
-    let onSelect: (Int) -> Void
+    let onSelect: (Int, String) -> Void
 
     @State private var results: [[String: Any]] = []
     @State private var isLoading = true
@@ -43,7 +42,7 @@ struct AnilistMatchPopupView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding()
                         } else if results.isEmpty {
-                            Text("No matches found")
+                            Text("No AniList matches found")
                                 .font(.subheadline)
                                 .foregroundStyle(.gray)
                                 .frame(maxWidth: .infinity)
@@ -52,10 +51,11 @@ struct AnilistMatchPopupView: View {
                             LazyVStack(spacing: 15) {
                                 ForEach(results.indices, id: \.self) { index in
                                     let result = results[index]
-
                                     Button(action: {
                                         if let id = result["id"] as? Int {
-                                            onSelect(id)
+                                            let title = result["title"] as? String ?? seriesTitle
+                                            onSelect(id, title)
+                                            dismiss()
                                         }
                                     }) {
                                         HStack(spacing: 12) {
@@ -81,7 +81,6 @@ struct AnilistMatchPopupView: View {
                                                 Text(result["title"] as? String ?? "Unknown")
                                                     .font(.body)
                                                     .foregroundStyle(.primary)
-
                                                 if let english = result["title_english"] as? String {
                                                     Text(english)
                                                         .font(.caption)
@@ -135,34 +134,32 @@ struct AnilistMatchPopupView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .foregroundColor(isLightMode ? .black : .white)
+                    Button("Cancel") { dismiss() }
+                        .foregroundColor(isLightMode ? .black : .white)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
+                    Button {
                         manualIDText = ""
                         showingManualIDAlert = true
-                    }) {
+                    } label: {
                         Image(systemName: "number")
                             .foregroundColor(isLightMode ? .black : .white)
                     }
                 }
             }
-            .alert("Set Custom AniList ID", isPresented: $showingManualIDAlert, actions: {
+            .alert("Set Custom AniList ID", isPresented: $showingManualIDAlert) {
                 TextField("AniList ID", text: $manualIDText)
                     .keyboardType(.numberPad)
                 Button("Cancel", role: .cancel) { }
-                Button("Save", action: {
+                Button("Save") {
                     if let idInt = Int(manualIDText.trimmingCharacters(in: .whitespaces)) {
-                        onSelect(idInt)
+                        onSelect(idInt, seriesTitle)
                         dismiss()
                     }
-                })
-            }, message: {
-                Text("Enter the AniList ID for this media")
-            })
+                }
+            } message: {
+                Text("Enter the AniList ID for this series")
+            }
         }
         .onAppear(perform: fetchMatches)
     }
@@ -186,7 +183,6 @@ struct AnilistMatchPopupView: View {
         """
 
         guard let url = URL(string: "https://graphql.anilist.co") else { return }
-
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -194,25 +190,23 @@ struct AnilistMatchPopupView: View {
 
         URLSession.shared.dataTask(with: request) { data, _, _ in
             DispatchQueue.main.async {
-                self.isLoading = false
+                isLoading = false
+                guard
+                    let data = data,
+                    let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                    let dataDict = json["data"] as? [String: Any],
+                    let page = dataDict["Page"] as? [String: Any],
+                    let mediaList = page["media"] as? [[String: Any]]
+                else { return }
 
-                guard let data = data,
-                      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                      let dataDict = json["data"] as? [String: Any],
-                      let page = dataDict["Page"] as? [String: Any],
-                      let mediaList = page["media"] as? [[String: Any]] else {
-                    return
-                }
-
-                self.results = mediaList.map { media in
+                results = mediaList.map { media in
                     let titleInfo = media["title"] as? [String: Any]
                     let cover = (media["coverImage"] as? [String: Any])?["large"] as? String
-
                     return [
                         "id": media["id"] ?? 0,
                         "title": titleInfo?["romaji"] ?? "Unknown",
-                        "title_english": titleInfo?["english"],
-                        "cover": cover
+                        "title_english": titleInfo?["english"] as Any,
+                        "cover": cover as Any
                     ]
                 }
             }

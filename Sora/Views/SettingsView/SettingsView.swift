@@ -6,16 +6,17 @@
 //
 
 import SwiftUI
+import NukeUI
 
 fileprivate struct SettingsNavigationRow: View {
     let icon: String
-    let title: String
+    let titleKey: String
     let isExternal: Bool
     let textColor: Color
     
-    init(icon: String, title: String, isExternal: Bool = false, textColor: Color = .primary) {
+    init(icon: String, titleKey: String, isExternal: Bool = false, textColor: Color = .primary) {
         self.icon = icon
-        self.title = title
+        self.titleKey = titleKey
         self.isExternal = isExternal
         self.textColor = textColor
     }
@@ -26,7 +27,7 @@ fileprivate struct SettingsNavigationRow: View {
                 .frame(width: 24, height: 24)
                 .foregroundStyle(textColor)
             
-            Text(title)
+            Text(NSLocalizedString(titleKey, comment: ""))
                 .foregroundStyle(textColor)
             
             Spacer()
@@ -43,10 +44,93 @@ fileprivate struct SettingsNavigationRow: View {
         .padding(.vertical, 12)
     }
 }
+
+fileprivate struct ModulePreviewRow: View {
+    @EnvironmentObject var moduleManager: ModuleManager
+    @AppStorage("selectedModuleId") private var selectedModuleId: String?
+    
+    private var selectedModule: ScrapingModule? {
+        guard let id = selectedModuleId else { return nil }
+        return moduleManager.modules.first { $0.id.uuidString == id }
+    }
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            if let module = selectedModule {
+                LazyImage(url: URL(string: module.metadata.iconUrl)) { state in
+                    if let uiImage = state.imageContainer?.image {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 60, height: 60)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    } else {
+                        Image(systemName: "cube")
+                            .font(.system(size: 36))
+                            .foregroundStyle(Color.accentColor)
+                    }
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(module.metadata.sourceName)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                    
+                    Text("Tap to manage your modules")
+                        .font(.subheadline)
+                        .foregroundStyle(.gray)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                Image(systemName: "cube")
+                    .font(.system(size: 36))
+                    .foregroundStyle(Color.accentColor)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("No Module Selected")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                    
+                    Text("Tap to select a module")
+                        .font(.subheadline)
+                        .foregroundStyle(.gray)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            
+            Image(systemName: "chevron.right")
+                .foregroundStyle(.gray)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 16)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(
+                    LinearGradient(
+                        gradient: Gradient(stops: [
+                            .init(color: Color.accentColor.opacity(0.3), location: 0),
+                            .init(color: Color.accentColor.opacity(0), location: 1)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ),
+                    lineWidth: 0.5
+                )
+        )
+    }
+}
+
 struct SettingsView: View {
     let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "ALPHA"
     @Environment(\.colorScheme) var colorScheme
     @StateObject var settings = Settings()
+    @EnvironmentObject var moduleManager: ModuleManager
     
     var body: some View {
         NavigationView {
@@ -59,35 +143,43 @@ struct SettingsView: View {
                         .padding(.horizontal, 20)
                         .padding(.top, 16)
                     
+                    // Modules Section at the top
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("MAIN")
+                        Text("MODULES")
+                            .font(.footnote)
+                            .foregroundStyle(.gray)
+                            .padding(.horizontal, 20)
+                        
+                        NavigationLink(destination: SettingsViewModule()) {
+                            ModulePreviewRow()
+                        }
+                        .padding(.horizontal, 20)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("MAIN SETTINGS")
                             .font(.footnote)
                             .foregroundStyle(.gray)
                             .padding(.horizontal, 20)
                         
                         VStack(spacing: 0) {
                             NavigationLink(destination: SettingsViewGeneral()) {
-                                SettingsNavigationRow(icon: "gearshape", title: "General Preferences")
+                                SettingsNavigationRow(icon: "gearshape", titleKey: "General Preferences")
                             }
                             Divider().padding(.horizontal, 16)
                             
                             NavigationLink(destination: SettingsViewPlayer()) {
-                                SettingsNavigationRow(icon: "play.circle", title: "Video Player")
+                                SettingsNavigationRow(icon: "play.circle", titleKey: "Video Player")
                             }
                             Divider().padding(.horizontal, 16)
                             
                             NavigationLink(destination: SettingsViewDownloads()) {
-                                SettingsNavigationRow(icon: "arrow.down.circle", title: "Download")
-                            }
-                            Divider().padding(.horizontal, 16)
-                            
-                            NavigationLink(destination: SettingsViewModule()) {
-                                SettingsNavigationRow(icon: "cube", title: "Modules")
+                                SettingsNavigationRow(icon: "arrow.down.circle", titleKey: "Download")
                             }
                             Divider().padding(.horizontal, 16)
                             
                             NavigationLink(destination: SettingsViewTrackers()) {
-                                SettingsNavigationRow(icon: "square.stack.3d.up", title: "Trackers")
+                                SettingsNavigationRow(icon: "square.stack.3d.up", titleKey: "Trackers")
                             }
                         }
                         .background(.ultraThinMaterial)
@@ -110,19 +202,19 @@ struct SettingsView: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("DATA/LOGS")
+                        Text("DATA & LOGS")
                             .font(.footnote)
                             .foregroundStyle(.gray)
                             .padding(.horizontal, 20)
                         
                         VStack(spacing: 0) {
                             NavigationLink(destination: SettingsViewData()) {
-                                SettingsNavigationRow(icon: "folder", title: "Data")
+                                SettingsNavigationRow(icon: "folder", titleKey: "Data")
                             }
                             Divider().padding(.horizontal, 16)
                             
                             NavigationLink(destination: SettingsViewLogger()) {
-                                SettingsNavigationRow(icon: "doc.text", title: "Logs")
+                                SettingsNavigationRow(icon: "doc.text", titleKey: "Logs")
                             }
                         }
                         .background(.ultraThinMaterial)
@@ -145,21 +237,21 @@ struct SettingsView: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("INFOS")
+                        Text(NSLocalizedString("INFOS", comment: ""))
                             .font(.footnote)
                             .foregroundStyle(.gray)
                             .padding(.horizontal, 20)
                         
                         VStack(spacing: 0) {
                             NavigationLink(destination: SettingsViewAbout()) {
-                                SettingsNavigationRow(icon: "info.circle", title: "About Sora")
+                                SettingsNavigationRow(icon: "info.circle", titleKey: "About Sora")
                             }
                             Divider().padding(.horizontal, 16)
 
                             Link(destination: URL(string: "https://github.com/cranci1/Sora")!) {
                                 SettingsNavigationRow(
                                     icon: "chevron.left.forwardslash.chevron.right",
-                                    title: "Sora GitHub Repository",
+                                    titleKey: "Sora GitHub Repository",
                                     isExternal: true,
                                     textColor: .gray
                                 )
@@ -169,7 +261,7 @@ struct SettingsView: View {
                             Link(destination: URL(string: "https://discord.gg/x7hppDWFDZ")!) {
                                 SettingsNavigationRow(
                                     icon: "bubble.left.and.bubble.right",
-                                    title: "Join the Discord",
+                                    titleKey: "Join the Discord",
                                     isExternal: true,
                                     textColor: .gray
                                 )
@@ -179,7 +271,7 @@ struct SettingsView: View {
                             Link(destination: URL(string: "https://github.com/cranci1/Sora/issues")!) {
                                 SettingsNavigationRow(
                                     icon: "exclamationmark.circle",
-                                    title: "Report an Issue",
+                                    titleKey: "Report an Issue",
                                     isExternal: true,
                                     textColor: .gray
                                 )
@@ -189,7 +281,7 @@ struct SettingsView: View {
                             Link(destination: URL(string: "https://github.com/cranci1/Sora/blob/dev/LICENSE")!) {
                                 SettingsNavigationRow(
                                     icon: "doc.text",
-                                    title: "License (GPLv3.0)",
+                                    titleKey: "License (GPLv3.0)",
                                     isExternal: true,
                                     textColor: .gray
                                 )
@@ -214,7 +306,7 @@ struct SettingsView: View {
                         .padding(.horizontal, 20)
                     }
 
-                    Text("Running Sora \(version) - cranci1")
+                    Text("Sora \(version) by cranci1")
                         .font(.footnote)
                         .foregroundStyle(.gray)
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -258,6 +350,12 @@ class Settings: ObservableObject {
             updateAppearance()
         }
     }
+    @Published var selectedLanguage: String {
+        didSet {
+            UserDefaults.standard.set(selectedLanguage, forKey: "selectedLanguage")
+            updateLanguage()
+        }
+    }
     
     init() {
         self.accentColor = .primary
@@ -267,7 +365,9 @@ class Settings: ObservableObject {
         } else {
             self.selectedAppearance = .system
         }
+        self.selectedLanguage = UserDefaults.standard.string(forKey: "selectedLanguage") ?? "English"
         updateAppearance()
+        updateLanguage()
     }
     
     func updateAccentColor(currentColorScheme: ColorScheme? = nil) {
@@ -297,5 +397,11 @@ class Settings: ObservableObject {
         case .dark:
             windowScene.windows.first?.overrideUserInterfaceStyle = .dark
         }
+    }
+    
+    func updateLanguage() {
+        let languageCode = selectedLanguage == "Dutch" ? "nl" : "en"
+        UserDefaults.standard.set([languageCode], forKey: "AppleLanguages")
+        UserDefaults.standard.synchronize()
     }
 }
