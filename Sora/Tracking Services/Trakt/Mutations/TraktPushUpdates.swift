@@ -33,12 +33,9 @@ class TraktMutation {
     func markAsWatched(type: String, tmdbID: Int, episodeNumber: Int? = nil, seasonNumber: Int? = nil, completion: @escaping (Result<Void, Error>) -> Void) {
         let sendTraktUpdates = UserDefaults.standard.object(forKey: "sendTraktUpdates") as? Bool ?? true
         if !sendTraktUpdates {
-            Logger.shared.log("Trakt updates disabled by user preference", type: "Debug")
             completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Trakt updates disabled by user"])))
             return
         }
-        
-        Logger.shared.log("Attempting to mark \(type) as watched - TMDB ID: \(tmdbID), Episode: \(episodeNumber ?? 0), Season: \(seasonNumber ?? 0)", type: "Debug")
         
         guard let userToken = getTokenFromKeychain() else {
             Logger.shared.log("Trakt access token not found in keychain", type: "Error")
@@ -46,15 +43,12 @@ class TraktMutation {
             return
         }
         
-        Logger.shared.log("Found Trakt access token, proceeding with API call", type: "Debug")
-        
         let endpoint = "/sync/history"
         let watchedAt = ISO8601DateFormatter().string(from: Date())
         let body: [String: Any]
         
         switch type {
         case "movie":
-            Logger.shared.log("Preparing movie watch request for TMDB ID: \(tmdbID)", type: "Debug")
             body = [
                 "movies": [
                     [
@@ -118,8 +112,6 @@ class TraktMutation {
             return
         }
         
-        Logger.shared.log("Sending Trakt API request to: \(request.url?.absoluteString ?? "unknown")", type: "Debug")
-        
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 Logger.shared.log("Trakt API network error: \(error.localizedDescription)", type: "Error")
@@ -132,8 +124,6 @@ class TraktMutation {
                 completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No HTTP response"])))
                 return
             }
-            
-            Logger.shared.log("Trakt API Response Status: \(httpResponse.statusCode)", type: "Debug")
             
             if let data = data, let responseString = String(data: data, encoding: .utf8) {
                 Logger.shared.log("Trakt API Response Body: \(responseString)", type: "Debug")

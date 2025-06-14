@@ -34,6 +34,9 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     private let aniListMaxRetries = 6
     private let totalEpisodes: Int
     
+    private var traktUpdateSent = false
+    private var traktUpdatedSuccessfully = false
+    
     var player: AVPlayer!
     var timeObserverToken: Any?
     var inactivityTimer: Timer?
@@ -1294,7 +1297,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         dimButtonToRight = dimButton.trailingAnchor.constraint(equalTo: controlsContainerView.trailingAnchor, constant: -16)
         dimButtonToSlider.isActive = true
     }
-    
     private func setupLockButton() {
         let cfg = UIImage.SymbolConfiguration(pointSize: 24, weight: .regular)
         lockButton = UIButton(type: .system)
@@ -1647,42 +1649,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                         self.tryAniListUpdate()
                     }
                     
-                    if let tmdbId = self.tmdbID, tmdbId > 0 {
-                        Logger.shared.log("Attempting Trakt update - TMDB ID: \(tmdbId), isMovie: \(self.isMovie), episode: \(self.episodeNumber), season: \(self.seasonNumber)", type: "Debug")
-                        
-                        let traktMutation = TraktMutation()
-                        
-                        if self.isMovie {
-                            traktMutation.markAsWatched(type: "movie", tmdbID: tmdbId) { result in
-                                switch result {
-                                case .success:
-                                    Logger.shared.log("Successfully updated Trakt progress for movie (TMDB: \(tmdbId))", type: "General")
-                                case .failure(let error):
-                                    Logger.shared.log("Failed to update Trakt progress for movie: \(error.localizedDescription)", type: "Error")
-                                }
-                            }
-                        } else {
-                            guard self.episodeNumber > 0 && self.seasonNumber > 0 else {
-                                Logger.shared.log("Invalid episode (\(self.episodeNumber)) or season (\(self.seasonNumber)) number for Trakt update", type: "Error")
-                                return
-                            }
-                            
-                            traktMutation.markAsWatched(
-                                type: "episode",
-                                tmdbID: tmdbId,
-                                episodeNumber: self.episodeNumber,
-                                seasonNumber: self.seasonNumber
-                            ) { result in
-                                switch result {
-                                case .success:
-                                    Logger.shared.log("Successfully updated Trakt progress for episode \(self.episodeNumber) (TMDB: \(tmdbId))", type: "General")
-                                case .failure(let error):
-                                    Logger.shared.log("Failed to update Trakt progress for episode: \(error.localizedDescription)", type: "Error")
-                                }
-                            }
-                        }
-                    } else {
-                        Logger.shared.log("Skipping Trakt update - TMDB ID not set or invalid: \(self.tmdbID ?? -1)", type: "Warning")
+                    if let tmdbId = self.tmdbID, tmdbId > 0, !self.traktUpdateSent {
+                        self.sendTraktUpdate(tmdbId: tmdbId)
                     }
                 }
                 
@@ -2851,6 +2819,35 @@ class GradientOverlayButton: UIButton {
         gradientLayer.frame = bounds
         
         let path = UIBezierPath(roundedRect: bounds.insetBy(dx: 0.25, dy: 0.25), cornerRadius: bounds.height / 2)
+        let maskLayer = CAShapeLayer()
+        maskLayer.path = path.cgPath
+        maskLayer.fillColor = nil
+        maskLayer.strokeColor = UIColor.white.cgColor
+        maskLayer.lineWidth = 0.5
+        gradientLayer.mask = maskLayer
+    }
+}
+
+extension CustomMediaPlayerViewController: AVPictureInPictureControllerDelegate {
+    func pictureInPictureControllerWillStartPictureInPicture(_ pipController: AVPictureInPictureController) {
+        pipButton.alpha = 0.5
+    }
+    
+    func pictureInPictureControllerDidStopPictureInPicture(_ pipController: AVPictureInPictureController) {
+        pipButton.alpha = 1.0
+    }
+    
+    func pictureInPictureController(_ pipController: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
+        Logger.shared.log("PiP failed to start: \(error.localizedDescription)", type: "Error")
+    }
+}
+
+// yes? Like the plural of the famous american rapper ye? -IBHRAD
+// low taper fade the meme is massive -cranci
+// The mind is the source of good and evil, only you yourself can decide which you will bring yourself. -seiike
+// guys watch Clannad already - ibro
+// May the Divine Providence bestow its infinite mercy upon your soul, and may eternal grace find you beyond the shadows of this mortal realm. - paul, 15/11/2005 - 13/05/2023
+// this dumbass ↑ defo used gpt, ong he did bro
         let maskLayer = CAShapeLayer()
         maskLayer.path = path.cgPath
         maskLayer.fillColor = nil

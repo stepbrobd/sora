@@ -29,6 +29,11 @@ class VideoPlayerViewController: UIViewController {
     var subtitlesLoader: VTTSubtitlesLoader?
     var subtitleLabel: UILabel?
     
+    private var aniListUpdateSent = false
+    private var aniListUpdatedSuccessfully = false
+    private var traktUpdateSent = false
+    private var traktUpdatedSuccessfully = false
+    
     init(module: ScrapingModule) {
         self.module = module
         super.init(nibName: nil, bundle: nil)
@@ -203,54 +208,70 @@ class VideoPlayerViewController: UIViewController {
             let remainingPercentage = (duration - currentTime) / duration
             
             if remainingPercentage < 0.1 {
-                if self.aniListID != 0 {
-                    let aniListMutation = AniListMutation()
-                    aniListMutation.updateAnimeProgress(animeId: self.aniListID, episodeNumber: self.episodeNumber) { result in
-                        switch result {
-                        case .success:
-                            Logger.shared.log("Updated AniList progress for Episode \(self.episodeNumber)", type: "General")
-                        case .failure(let error):
-                            Logger.shared.log("Could not update AniList progress: \(error.localizedDescription)", type: "Error")
-                        }
-                    }
+                if self.aniListID != 0 && !self.aniListUpdateSent {
+                    self.sendAniListUpdate()
                 }
                 
-                if let tmdbId = self.tmdbID, tmdbId > 0 {
-                    Logger.shared.log("Attempting Trakt update - TMDB ID: \(tmdbId), isMovie: \(self.isMovie), episode: \(self.episodeNumber), season: \(self.seasonNumber)", type: "Debug")
-                    
-                    let traktMutation = TraktMutation()
-                    
-                    if self.isMovie {
-                        traktMutation.markAsWatched(type: "movie", tmdbID: tmdbId) { result in
-                            switch result {
-                            case .success:
-                                Logger.shared.log("Updated Trakt progress for movie (TMDB: \(tmdbId))", type: "General")
-                            case .failure(let error):
-                                Logger.shared.log("Could not update Trakt progress for movie: \(error.localizedDescription)", type: "Error")
-                            }
-                        }
-                    } else {
-                        guard self.episodeNumber > 0 && self.seasonNumber > 0 else {
-                            Logger.shared.log("Invalid episode (\(self.episodeNumber)) or season (\(self.seasonNumber)) number for Trakt update", type: "Error")
-                            return
-                        }
-                        
-                        traktMutation.markAsWatched(
-                            type: "episode",
-                            tmdbID: tmdbId,
-                            episodeNumber: self.episodeNumber,
-                            seasonNumber: self.seasonNumber
-                        ) { result in
-                            switch result {
-                            case .success:
-                                Logger.shared.log("Updated Trakt progress for Episode \(self.episodeNumber) (TMDB: \(tmdbId))", type: "General")
-                            case .failure(let error):
-                                Logger.shared.log("Could not update Trakt progress for episode: \(error.localizedDescription)", type: "Error")
-                            }
-                        }
-                    }
-                } else {
-                    Logger.shared.log("Skipping Trakt update - TMDB ID not set or invalid: \(self.tmdbID ?? -1)", type: "Warning")
+                if let tmdbId = self.tmdbID, tmdbId > 0, !self.traktUpdateSent {
+                    self.sendTraktUpdate(tmdbId: tmdbId)
+                }
+            }
+        }
+    }
+    
+    private func sendAniListUpdate() {
+        guard !aniListUpdateSent else { return }
+        
+        aniListUpdateSent = true
+        let aniListMutation = AniListMutation()
+        
+        aniListMutation.updateAnimeProgress(animeId: self.aniListID, episodeNumber: self.episodeNumber) { [weak self] result in
+            switch result {
+            case .success:
+                self?.aniListUpdatedSuccessfully = true
+                Logger.shared.log("Successfully updated AniList progress for Episode \(self?.episodeNumber ?? 0)", type: "General")
+            case .failure(let error):
+                Logger.shared.log("Failed to update AniList progress: \(error.localizedDescription)", type: "Error")
+            }
+        }
+    }
+    
+    private func sendTraktUpdate(tmdbId: Int) {
+        guard !traktUpdateSent else { return }
+        
+        traktUpdateSent = true
+        Logger.shared.log("Attempting Trakt update - TMDB ID: \(tmdbId), isMovie: \(self.isMovie), episode: \(self.episodeNumber), season: \(self.seasonNumber)", type: "Debug")
+        
+        let traktMutation = TraktMutation()
+        
+        if self.isMovie {
+            traktMutation.markAsWatched(type: "movie", tmdbID: tmdbId) { [weak self] result in
+                switch result {
+                case .success:
+                    self?.traktUpdatedSuccessfully = true
+                    Logger.shared.log("Successfully updated Trakt progress for movie (TMDB: \(tmdbId))", type: "General")
+                case .failure(let error):
+                    Logger.shared.log("Failed to update Trakt progress for movie: \(error.localizedDescription)", type: "Error")
+                }
+            }
+        } else {
+            guard self.episodeNumber > 0 && self.seasonNumber > 0 else {
+                Logger.shared.log("Invalid episode (\(self.episodeNumber)) or season (\(self.seasonNumber)) number for Trakt update", type: "Error")
+                return
+            }
+            
+            traktMutation.markAsWatched(
+                type: "episode",
+                tmdbID: tmdbId,
+                episodeNumber: self.episodeNumber,
+                seasonNumber: self.seasonNumber
+            ) { [weak self] result in
+                switch result {
+                case .success:
+                    self?.traktUpdatedSuccessfully = true
+                    Logger.shared.log("Successfully updated Trakt progress for Episode \(self?.episodeNumber ?? 0) (TMDB: \(tmdbId))", type: "General")
+                case .failure(let error):
+                    Logger.shared.log("Failed to update Trakt progress for episode: \(error.localizedDescription)", type: "Error")
                 }
             }
         }
