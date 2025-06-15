@@ -33,6 +33,7 @@ class VideoPlayerViewController: UIViewController {
     
     private var sharePlayCoordinator: SharePlayCoordinator?
     private var subscriptions = Set<AnyCancellable>()
+    private var groupSessionObserver: AnyCancellable?
     
     private var aniListUpdateSent = false
     private var aniListUpdatedSuccessfully = false
@@ -53,7 +54,7 @@ class VideoPlayerViewController: UIViewController {
     }
     
     private func setupSubtitles() {
-        guard !subtitles.isEmpty, UserDefaults.standard.bool(forKey: "subtitlesEnabled"), let subtitleURL = URL(string: subtitles) else {
+        guard !subtitles.isEmpty, UserDefaults.standard.bool(forKey: "subtitlesEnabled"), let _ = URL(string: subtitles) else {
             return
         }
         
@@ -150,6 +151,29 @@ class VideoPlayerViewController: UIViewController {
             }
         } else {
             self.player?.play()
+        }
+        
+        observeGroupSession()
+    }
+    
+    private func observeGroupSession() {
+        groupSessionObserver = nil
+        Task { [weak self] in
+            guard let self = self else { return }
+            for await session in VideoWatchingActivity.sessions() {
+                await self.handleIncomingGroupSession(session)
+            }
+        }
+    }
+    
+    @MainActor
+    private func handleIncomingGroupSession(_ session: GroupSession<VideoWatchingActivity>) async {
+        if sharePlayCoordinator == nil {
+            sharePlayCoordinator = SharePlayCoordinator()
+        }
+        sharePlayCoordinator?.configureGroupSession()
+        if let player = self.player {
+            sharePlayCoordinator?.coordinatePlayback(with: player)
         }
     }
     
@@ -386,5 +410,6 @@ class VideoPlayerViewController: UIViewController {
         sharePlayCoordinator?.leaveGroupSession()
         sharePlayCoordinator = nil
         subscriptions.removeAll()
+        groupSessionObserver = nil
     }
 }
