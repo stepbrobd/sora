@@ -202,8 +202,29 @@ struct SettingsViewGeneral: View {
                     SettingsPickerRow(
                         icon: "globe",
                         title: NSLocalizedString("App Language", comment: ""),
-                        options: ["English", "Dutch", "French", "Arabic"],
-                        optionToString: { $0 },
+                        options: [
+                            "English",
+                            "Arabic",
+                            "Czech",
+                            "Dutch",
+                            "French",
+                            "Norsk",
+                            "Russian",
+                            "Spanish"
+                        ],
+                        optionToString: { lang in
+                            switch lang {
+                            case "English": return "English"
+                            case "Dutch": return "Nederlands"
+                            case "French": return "Français"
+                            case "Arabic": return "العربية"
+                            case "Czech": return "Čeština"
+                            case "Spanish": return "Español"
+                            case "Russian": return "Русский"
+                            case "Norsk": return "Norsk"
+                            default: return lang
+                            }
+                        },
                         selection: $settings.selectedLanguage,
                         showDivider: false
                     )
@@ -333,9 +354,9 @@ struct SettingsViewGeneral: View {
         .scrollViewBottomPadding()
         .alert(isPresented: $showRestartAlert) {
             Alert(
-                title: Text(NSLocalizedString("Restart Required", comment: "")),
-                message: Text(NSLocalizedString("Please restart the app to apply the language change.", comment: "")),
-                dismissButton: .default(Text("OK"))
+                title: Text(verbatim: "Restart Required"),
+                message: Text(verbatim: "Please restart the app to apply the language change."),
+                dismissButton: .default(Text(verbatim: "OK"))
             )
         }
     }
