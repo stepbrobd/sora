@@ -263,31 +263,6 @@ struct SettingsViewData: View {
         }
     }
     
-    func calculateMediaFilesSize(in directory: URL) -> Int64 {
-        let fileManager = FileManager.default
-        var totalSize: Int64 = 0
-        let mediaExtensions = [".mov", ".mp4", ".pkg"]
-        
-        do {
-            let contents = try fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.fileSizeKey, .isDirectoryKey])
-            for url in contents {
-                let resourceValues = try url.resourceValues(forKeys: [.fileSizeKey, .isDirectoryKey])
-                if resourceValues.isDirectory == true {
-                    totalSize += calculateMediaFilesSize(in: url)
-                } else {
-                    let fileExtension = url.pathExtension.lowercased()
-                    if mediaExtensions.contains(".\(fileExtension)") {
-                        totalSize += Int64(resourceValues.fileSize ?? 0)
-                    }
-                }
-            }
-        } catch {
-            Logger.shared.log("Error calculating media files size: \(error)", type: "Error")
-        }
-        
-        return totalSize
-    }
-    
     func clearAllCaches() {
         clearCache()
     }
