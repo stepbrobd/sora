@@ -362,4 +362,3 @@ struct SettingsViewData: View {
         return formatter.string(fromByteCount: bytes)
     }
 }
-
