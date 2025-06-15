@@ -7,6 +7,8 @@
 
 import UIKit
 import AVKit
+import Combine
+import GroupActivities
 
 class VideoPlayerViewController: UIViewController {
     let module: ScrapingModule
@@ -29,6 +31,9 @@ class VideoPlayerViewController: UIViewController {
     var subtitlesLoader: VTTSubtitlesLoader?
     var subtitleLabel: UILabel?
     
+    private var sharePlayCoordinator: SharePlayCoordinator?
+    private var subscriptions = Set<AnyCancellable>()
+    
     private var aniListUpdateSent = false
     private var aniListUpdatedSuccessfully = false
     private var traktUpdateSent = false
@@ -40,6 +45,7 @@ class VideoPlayerViewController: UIViewController {
         if UserDefaults.standard.object(forKey: "subtitlesEnabled") == nil {
             UserDefaults.standard.set(true, forKey: "subtitlesEnabled")
         }
+        setupSharePlay()
     }
     
     required init?(coder: NSCoder) {
@@ -129,6 +135,10 @@ class VideoPlayerViewController: UIViewController {
             if !subtitles.isEmpty && UserDefaults.standard.bool(forKey: "subtitlesEnabled") {
                 setupSubtitles()
             }
+            
+            // Configure SharePlay after player setup
+            setupSharePlayButton(in: playerViewController)
+            configureSharePlayForPlayer()
         }
         
         addPeriodicTimeObserver(fullURL: fullUrl)
@@ -275,6 +285,79 @@ class VideoPlayerViewController: UIViewController {
         }
     }
     
+    @MainActor
+    private func setupSharePlay() {
+        sharePlayCoordinator = SharePlayCoordinator()
+        sharePlayCoordinator?.configureGroupSession()
+        
+        if let playerViewController = playerViewController {
+            setupSharePlayButton(in: playerViewController)
+        }
+    }
+    
+    private func setupSharePlayButton(in playerViewController: NormalPlayer) {
+        // WIP
+    }
+    
+    @MainActor
+    private func startSharePlay() {
+        guard let streamUrl = streamUrl else { return }
+        
+        Task {
+            var episodeImageData: Data?
+            if !episodeImageUrl.isEmpty, let imageUrl = URL(string: episodeImageUrl) {
+                episodeImageData = try? await URLSession.shared.data(from: imageUrl).0
+            }
+            
+            let activity = VideoWatchingActivity(
+                mediaTitle: mediaTitle,
+                episodeNumber: episodeNumber,
+                streamUrl: streamUrl,
+                subtitles: subtitles,
+                aniListID: aniListID,
+                fullUrl: fullUrl,
+                headers: headers,
+                episodeImageUrl: episodeImageUrl,
+                episodeImageData: episodeImageData,
+                totalEpisodes: totalEpisodes,
+                tmdbID: tmdbID,
+                isMovie: isMovie,
+                seasonNumber: seasonNumber
+            )
+            
+            await sharePlayCoordinator?.startSharePlay(with: activity)
+        }
+    }
+    
+    private func configureSharePlayForPlayer() {
+        guard let player = player else { return }
+        sharePlayCoordinator?.coordinatePlayback(with: player)
+    }
+    
+    @MainActor
+    func presentSharePlayInvitation() {
+        guard let streamUrl = streamUrl else {
+            Logger.shared.log("Cannot start SharePlay: Stream URL is nil", type: "Error")
+            return
+        }
+        
+        SharePlayManager.shared.presentSharePlayInvitation(
+            from: self,
+            mediaTitle: mediaTitle,
+            episodeNumber: episodeNumber,
+            streamUrl: streamUrl,
+            subtitles: subtitles,
+            aniListID: aniListID,
+            fullUrl: fullUrl,
+            headers: headers,
+            episodeImageUrl: episodeImageUrl,
+            totalEpisodes: totalEpisodes,
+            tmdbID: tmdbID,
+            isMovie: isMovie,
+            seasonNumber: seasonNumber
+        )
+    }
+    
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         if UserDefaults.standard.bool(forKey: "alwaysLandscape") {
             return .landscape
@@ -299,5 +382,9 @@ class VideoPlayerViewController: UIViewController {
         subtitleLabel?.removeFromSuperview()
         subtitleLabel = nil
         subtitlesLoader = nil
+        
+        sharePlayCoordinator?.leaveGroupSession()
+        sharePlayCoordinator = nil
+        subscriptions.removeAll()
     }
 }
