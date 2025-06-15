@@ -173,7 +173,7 @@ struct SettingsViewGeneral: View {
     @State private var showRestartAlert = false
     
     var body: some View {
-        ScrollView {
+        ScrollView(showsIndicators: false) {
             VStack(spacing: 24) {
                 SettingsSection(title: NSLocalizedString("Interface", comment: "")) {
                     SettingsPickerRow(
@@ -347,8 +347,9 @@ struct SettingsViewGeneral: View {
                     )
                 }
             }
-            .navigationTitle("General")
+            .padding(.vertical, 20)
             .scrollViewBottomPadding()
+            .navigationTitle("General")
         }
         .navigationTitle(NSLocalizedString("General", comment: ""))
         .scrollViewBottomPadding()
