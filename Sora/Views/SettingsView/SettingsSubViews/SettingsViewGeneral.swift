@@ -202,9 +202,10 @@ struct SettingsViewGeneral: View {
                     SettingsPickerRow(
                         icon: "globe",
                         title: NSLocalizedString("App Language", comment: ""),
-                        options: ["English", "Dutch"],
+                        options: ["English", "Dutch", "French", "Arabic"],
                         optionToString: { $0 },
-                        selection: $settings.selectedLanguage
+                        selection: $settings.selectedLanguage,
+                        showDivider: false
                     )
                     .onChange(of: settings.selectedLanguage) { _ in
                         showRestartAlert = true

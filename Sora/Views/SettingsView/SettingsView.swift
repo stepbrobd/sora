@@ -174,7 +174,7 @@ struct SettingsView: View {
                             Divider().padding(.horizontal, 16)
                             
                             NavigationLink(destination: SettingsViewDownloads()) {
-                                SettingsNavigationRow(icon: "arrow.down.circle", titleKey: "Download")
+                                SettingsNavigationRow(icon: "arrow.down.circle", titleKey: "Downloads")
                             }
                             Divider().padding(.horizontal, 16)
                             
@@ -400,7 +400,17 @@ class Settings: ObservableObject {
     }
     
     func updateLanguage() {
-        let languageCode = selectedLanguage == "Dutch" ? "nl" : "en"
+        let languageCode: String
+        switch selectedLanguage {
+        case "Dutch":
+            languageCode = "nl"
+        case "French":
+            languageCode = "fr"
+        case "Arabic":
+            languageCode = "ar"
+        default:
+            languageCode = "en"
+        }
         UserDefaults.standard.set([languageCode], forKey: "AppleLanguages")
         UserDefaults.standard.synchronize()
     }
