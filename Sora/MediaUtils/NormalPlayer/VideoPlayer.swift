@@ -182,17 +182,30 @@ class VideoPlayerViewController: UIViewController {
         checkForFaceTimeAndPromptSharePlay()
     }
     
-    private func checkForFaceTimeAndPromptSharePlay() {
-        let autoPromptEnabled = UserDefaults.standard.object(forKey: "autoPromptSharePlay") as? Bool ?? true
-        guard autoPromptEnabled else { return }
-        
-        Task { @MainActor in
-            do {
-                try await VideoWatchingActivity.prepareForActivation()
-                showSharePlayPrompt()
-            } catch {
-                Logger.shared.log("SharePlay not available or no active FaceTime call", type: "Debug")
+    @MainActor
+    private func checkForFaceTimeAndPromptSharePlay() async {
+        do {
+            let activity = VideoWatchingActivity(
+                mediaTitle: mediaTitle,
+                episodeNumber: episodeNumber,
+                streamUrl: streamUrl ?? "",
+                subtitles: subtitles,
+                aniListID: aniListID,
+                fullUrl: fullUrl,
+                headers: headers,
+                episodeImageUrl: episodeImageUrl,
+                episodeImageData: nil,
+                totalEpisodes: totalEpisodes,
+                tmdbID: tmdbID,
+                isMovie: isMovie,
+                seasonNumber: seasonNumber
+            )
+            
+            if try await activity.prepareForActivation() {
+                await showSharePlayPrompt()
             }
+        } catch {
+            Logger.shared.log("SharePlay preparation failed: \(error)", type: "Error")
         }
     }
     
@@ -211,10 +224,6 @@ class VideoPlayerViewController: UIViewController {
         })
         
         alert.addAction(UIAlertAction(title: "Watch Alone", style: .cancel))
-        
-        alert.addAction(UIAlertAction(title: "Don't Ask Again", style: .destructive) { _ in
-            UserDefaults.standard.set(false, forKey: "autoPromptSharePlay")
-        })
         
         present(alert, animated: true)
     }
