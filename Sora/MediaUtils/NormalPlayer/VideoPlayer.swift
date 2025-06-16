@@ -179,33 +179,32 @@ class VideoPlayerViewController: UIViewController {
         player?.play()
         setInitialPlayerRate()
         
-        checkForFaceTimeAndPromptSharePlay()
+        Task {
+            await checkForFaceTimeAndPromptSharePlay()
+        }
     }
     
     @MainActor
     private func checkForFaceTimeAndPromptSharePlay() async {
-        do {
-            let activity = VideoWatchingActivity(
-                mediaTitle: mediaTitle,
-                episodeNumber: episodeNumber,
-                streamUrl: streamUrl ?? "",
-                subtitles: subtitles,
-                aniListID: aniListID,
-                fullUrl: fullUrl,
-                headers: headers,
-                episodeImageUrl: episodeImageUrl,
-                episodeImageData: nil,
-                totalEpisodes: totalEpisodes,
-                tmdbID: tmdbID,
-                isMovie: isMovie,
-                seasonNumber: seasonNumber
-            )
-            
-            if try await activity.prepareForActivation() {
-                await showSharePlayPrompt()
-            }
-        } catch {
-            Logger.shared.log("SharePlay preparation failed: \(error)", type: "Error")
+        let activity = VideoWatchingActivity(
+            mediaTitle: mediaTitle,
+            episodeNumber: episodeNumber,
+            streamUrl: streamUrl ?? "",
+            subtitles: subtitles,
+            aniListID: aniListID,
+            fullUrl: fullUrl,
+            headers: headers,
+            episodeImageUrl: episodeImageUrl,
+            episodeImageData: nil,
+            totalEpisodes: totalEpisodes,
+            tmdbID: tmdbID,
+            isMovie: isMovie,
+            seasonNumber: seasonNumber
+        )
+        
+        let result = await activity.prepareForActivation()
+        if result == .activationPreferred {
+            showSharePlayPrompt()
         }
     }
     
