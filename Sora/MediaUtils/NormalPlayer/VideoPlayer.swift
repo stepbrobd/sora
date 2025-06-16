@@ -31,6 +31,7 @@ class VideoPlayerViewController: UIViewController {
     
     private var groupSession: GroupSession<VideoWatchingActivity>?
     private var subscriptions = Set<AnyCancellable>()
+    private var isLaunchedFromSharePlay = false
     
     private var aniListUpdateSent = false
     private var aniListUpdatedSuccessfully = false
@@ -48,7 +49,15 @@ class VideoPlayerViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        configureGroupSession()
+        if isLaunchedFromSharePlay {
+            return
+        }
+
+        setupVideoPlayer()
+    }
+    
+    private func setupVideoPlayer() {
         guard let streamUrl = streamUrl, let url = URL(string: streamUrl) else {
             return
         }
@@ -90,8 +99,6 @@ class VideoPlayerViewController: UIViewController {
         } else {
             self.player?.play()
         }
-        
-        configureGroupSession()
     }
     
     private func configureGroupSession() {
@@ -105,6 +112,27 @@ class VideoPlayerViewController: UIViewController {
     @MainActor
     private func configureGroupSession(_ groupSession: GroupSession<VideoWatchingActivity>) async {
         self.groupSession = groupSession
+
+        let activity = groupSession.activity
+        
+        if streamUrl == nil {
+            streamUrl = activity.streamUrl
+            fullUrl = activity.fullUrl
+            subtitles = activity.subtitles
+            aniListID = activity.aniListID
+            headers = activity.headers
+            totalEpisodes = activity.totalEpisodes
+            tmdbID = activity.tmdbID
+            isMovie = activity.isMovie
+            seasonNumber = activity.seasonNumber
+            episodeNumber = activity.episodeNumber
+            episodeImageUrl = activity.episodeImageUrl
+            mediaTitle = activity.mediaTitle
+            
+            isLaunchedFromSharePlay = true
+            
+            setupVideoPlayer()
+        }
         
         groupSession.$state
             .receive(on: DispatchQueue.main)
@@ -112,8 +140,10 @@ class VideoPlayerViewController: UIViewController {
                 switch state {
                 case .joined:
                     self?.coordinatePlayback()
+                    Logger.shared.log("Joined SharePlay session", type: "SharePlay")
                 case .invalidated:
                     self?.groupSession = nil
+                    Logger.shared.log("SharePlay session invalidated", type: "SharePlay")
                 default:
                     break
                 }
@@ -121,6 +151,7 @@ class VideoPlayerViewController: UIViewController {
             .store(in: &subscriptions)
         
         groupSession.join()
+        Logger.shared.log("Automatically joining SharePlay session for: \(activity.mediaTitle)", type: "SharePlay")
     }
     
     private func coordinatePlayback() {
@@ -176,11 +207,18 @@ class VideoPlayerViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        player?.play()
-        setInitialPlayerRate()
         
-        Task {
-            await checkForFaceTimeAndPromptSharePlay()
+        // Only start normal playback if not launched from SharePlay
+        if !isLaunchedFromSharePlay {
+            player?.play()
+            setInitialPlayerRate()
+            
+            Task {
+                await checkForFaceTimeAndPromptSharePlay()
+            }
+        } else {
+            // For SharePlay launches, the playback will be coordinated
+            setInitialPlayerRate()
         }
     }
     
