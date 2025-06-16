@@ -28,12 +28,9 @@ class VideoPlayerViewController: UIViewController {
     var episodeNumber: Int = 0
     var episodeImageUrl: String = ""
     var mediaTitle: String = ""
-    var subtitlesLoader: VTTSubtitlesLoader?
-    var subtitleLabel: UILabel?
     
-    private var sharePlayCoordinator: SharePlayCoordinator?
+    private var groupSession: GroupSession<VideoWatchingActivity>?
     private var subscriptions = Set<AnyCancellable>()
-    private var groupSessionObserver: AnyCancellable?
     
     private var aniListUpdateSent = false
     private var aniListUpdatedSuccessfully = false
@@ -46,58 +43,10 @@ class VideoPlayerViewController: UIViewController {
         if UserDefaults.standard.object(forKey: "subtitlesEnabled") == nil {
             UserDefaults.standard.set(true, forKey: "subtitlesEnabled")
         }
-        setupSharePlay()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func setupSubtitles() {
-        guard !subtitles.isEmpty, UserDefaults.standard.bool(forKey: "subtitlesEnabled"), let _ = URL(string: subtitles) else {
-            return
-        }
-        
-        subtitlesLoader = VTTSubtitlesLoader()
-        setupSubtitleLabel()
-        
-        subtitlesLoader?.load(from: subtitles)
-        
-        let interval = CMTime(seconds: 0.1, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
-            self?.updateSubtitles(at: time.seconds)
-        }
-    }
-    
-    private func setupSubtitleLabel() {
-        let label = UILabel()
-        label.numberOfLines = 0
-        label.textAlignment = .center
-        label.textColor = .white
-        label.font = .systemFont(ofSize: 16, weight: .medium)
-        label.layer.shadowColor = UIColor.black.cgColor
-        label.layer.shadowOffset = CGSize(width: 1, height: 1)
-        label.layer.shadowOpacity = 0.8
-        label.layer.shadowRadius = 2
-        
-        guard let playerView = playerViewController?.view else { return }
-        playerView.addSubview(label)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        
-        NSLayoutConstraint.activate([
-            label.leadingAnchor.constraint(equalTo: playerView.leadingAnchor, constant: 16),
-            label.trailingAnchor.constraint(equalTo: playerView.trailingAnchor, constant: -16),
-            label.bottomAnchor.constraint(equalTo: playerView.bottomAnchor, constant: -32)
-        ])
-        
-        self.subtitleLabel = label
-    }
-    
-    private func updateSubtitles(at time: Double) {
-        let currentSubtitle = subtitlesLoader?.cues.first { cue in
-            time >= cue.startTime && time <= cue.endTime
-        }
-        subtitleLabel?.text = currentSubtitle?.text ?? ""
     }
     
     override func viewDidLoad() {
@@ -133,13 +82,11 @@ class VideoPlayerViewController: UIViewController {
             view.addSubview(playerViewController.view)
             playerViewController.didMove(toParent: self)
             
-            if !subtitles.isEmpty && UserDefaults.standard.bool(forKey: "subtitlesEnabled") {
-                setupSubtitles()
+            playerViewController.onSharePlayRequested = { [weak self] in
+                Task { @MainActor in
+                    await self?.startSharePlay()
+                }
             }
-            
-            // Configure SharePlay after player setup
-            setupSharePlayButton(in: playerViewController)
-            configureSharePlayForPlayer()
         }
         
         addPeriodicTimeObserver(fullURL: fullUrl)
@@ -153,27 +100,86 @@ class VideoPlayerViewController: UIViewController {
             self.player?.play()
         }
         
-        observeGroupSession()
+        configureGroupSession()
     }
     
-    private func observeGroupSession() {
-        groupSessionObserver = nil
-        Task { [weak self] in
-            guard let self = self else { return }
-            for await session in VideoWatchingActivity.sessions() {
-                await self.handleIncomingGroupSession(session)
+    private func configureGroupSession() {
+        Task {
+            for await groupSession in VideoWatchingActivity.sessions() {
+                await configureGroupSession(groupSession)
             }
         }
     }
     
     @MainActor
-    private func handleIncomingGroupSession(_ session: GroupSession<VideoWatchingActivity>) async {
-        if sharePlayCoordinator == nil {
-            sharePlayCoordinator = SharePlayCoordinator()
+    private func configureGroupSession(_ groupSession: GroupSession<VideoWatchingActivity>) async {
+        self.groupSession = groupSession
+        
+        groupSession.$state
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] state in
+                switch state {
+                case .joined:
+                    self?.coordinatePlayback()
+                case .invalidated:
+                    self?.groupSession = nil
+                default:
+                    break
+                }
+            }
+            .store(in: &subscriptions)
+        
+        groupSession.join()
+    }
+    
+    private func coordinatePlayback() {
+        guard let player = player, let groupSession = groupSession else { return }
+        
+        player.playbackCoordinator.coordinateWithSession(groupSession)
+    }
+    
+    @MainActor
+    func startSharePlay() async {
+        guard let streamUrl = streamUrl else { return }
+        
+        var episodeImageData: Data?
+        if !episodeImageUrl.isEmpty, let imageUrl = URL(string: episodeImageUrl) {
+            do {
+                episodeImageData = try await URLSession.shared.data(from: imageUrl).0
+            } catch {
+                Logger.shared.log("Failed to load episode image: \(error)", type: "Error")
+            }
         }
-        sharePlayCoordinator?.configureGroupSession()
-        if let player = self.player {
-            sharePlayCoordinator?.coordinatePlayback(with: player)
+        
+        let activity = VideoWatchingActivity(
+            mediaTitle: mediaTitle,
+            episodeNumber: episodeNumber,
+            streamUrl: streamUrl,
+            subtitles: subtitles,
+            aniListID: aniListID,
+            fullUrl: fullUrl,
+            headers: headers,
+            episodeImageUrl: episodeImageUrl,
+            episodeImageData: episodeImageData,
+            totalEpisodes: totalEpisodes,
+            tmdbID: tmdbID,
+            isMovie: isMovie,
+            seasonNumber: seasonNumber
+        )
+        
+        do {
+            _ = try await activity.activate()
+            Logger.shared.log("SharePlay session started successfully", type: "SharePlay")
+        } catch {
+            Logger.shared.log("Failed to start SharePlay: \(error)", type: "Error")
+            
+            let alert = UIAlertController(
+                title: "SharePlay Unavailable",
+                message: "SharePlay is not available right now. Make sure you're connected to FaceTime or have SharePlay enabled in Control Center.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
         }
     }
     
@@ -309,79 +315,6 @@ class VideoPlayerViewController: UIViewController {
         }
     }
     
-    @MainActor
-    private func setupSharePlay() {
-        sharePlayCoordinator = SharePlayCoordinator()
-        sharePlayCoordinator?.configureGroupSession()
-        
-        if let playerViewController = playerViewController {
-            setupSharePlayButton(in: playerViewController)
-        }
-    }
-    
-    private func setupSharePlayButton(in playerViewController: NormalPlayer) {
-        // WIP
-    }
-    
-    @MainActor
-    private func startSharePlay() {
-        guard let streamUrl = streamUrl else { return }
-        
-        Task {
-            var episodeImageData: Data?
-            if !episodeImageUrl.isEmpty, let imageUrl = URL(string: episodeImageUrl) {
-                episodeImageData = try? await URLSession.shared.data(from: imageUrl).0
-            }
-            
-            let activity = VideoWatchingActivity(
-                mediaTitle: mediaTitle,
-                episodeNumber: episodeNumber,
-                streamUrl: streamUrl,
-                subtitles: subtitles,
-                aniListID: aniListID,
-                fullUrl: fullUrl,
-                headers: headers,
-                episodeImageUrl: episodeImageUrl,
-                episodeImageData: episodeImageData,
-                totalEpisodes: totalEpisodes,
-                tmdbID: tmdbID,
-                isMovie: isMovie,
-                seasonNumber: seasonNumber
-            )
-            
-            await sharePlayCoordinator?.startSharePlay(with: activity)
-        }
-    }
-    
-    private func configureSharePlayForPlayer() {
-        guard let player = player else { return }
-        sharePlayCoordinator?.coordinatePlayback(with: player)
-    }
-    
-    @MainActor
-    func presentSharePlayInvitation() {
-        guard let streamUrl = streamUrl else {
-            Logger.shared.log("Cannot start SharePlay: Stream URL is nil", type: "Error")
-            return
-        }
-        
-        SharePlayManager.shared.presentSharePlayInvitation(
-            from: self,
-            mediaTitle: mediaTitle,
-            episodeNumber: episodeNumber,
-            streamUrl: streamUrl,
-            subtitles: subtitles,
-            aniListID: aniListID,
-            fullUrl: fullUrl,
-            headers: headers,
-            episodeImageUrl: episodeImageUrl,
-            totalEpisodes: totalEpisodes,
-            tmdbID: tmdbID,
-            isMovie: isMovie,
-            seasonNumber: seasonNumber
-        )
-    }
-    
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         if UserDefaults.standard.bool(forKey: "alwaysLandscape") {
             return .landscape
@@ -403,13 +336,8 @@ class VideoPlayerViewController: UIViewController {
         if let timeObserverToken = timeObserverToken {
             player?.removeTimeObserver(timeObserverToken)
         }
-        subtitleLabel?.removeFromSuperview()
-        subtitleLabel = nil
-        subtitlesLoader = nil
         
-        sharePlayCoordinator?.leaveGroupSession()
-        sharePlayCoordinator = nil
+        groupSession?.leave()
         subscriptions.removeAll()
-        groupSessionObserver = nil
     }
 }
