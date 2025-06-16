@@ -40,9 +40,6 @@ class VideoPlayerViewController: UIViewController {
     init(module: ScrapingModule) {
         self.module = module
         super.init(nibName: nil, bundle: nil)
-        if UserDefaults.standard.object(forKey: "subtitlesEnabled") == nil {
-            UserDefaults.standard.set(true, forKey: "subtitlesEnabled")
-        }
     }
     
     required init?(coder: NSCoder) {
@@ -81,12 +78,6 @@ class VideoPlayerViewController: UIViewController {
             playerViewController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             view.addSubview(playerViewController.view)
             playerViewController.didMove(toParent: self)
-            
-            playerViewController.onSharePlayRequested = { [weak self] in
-                Task { @MainActor in
-                    await self?.startSharePlay()
-                }
-            }
         }
         
         addPeriodicTimeObserver(fullURL: fullUrl)
@@ -187,6 +178,45 @@ class VideoPlayerViewController: UIViewController {
         super.viewDidAppear(animated)
         player?.play()
         setInitialPlayerRate()
+        
+        checkForFaceTimeAndPromptSharePlay()
+    }
+    
+    private func checkForFaceTimeAndPromptSharePlay() {
+        let autoPromptEnabled = UserDefaults.standard.object(forKey: "autoPromptSharePlay") as? Bool ?? true
+        guard autoPromptEnabled else { return }
+        
+        Task { @MainActor in
+            do {
+                try await VideoWatchingActivity.prepareForActivation()
+                showSharePlayPrompt()
+            } catch {
+                Logger.shared.log("SharePlay not available or no active FaceTime call", type: "Debug")
+            }
+        }
+    }
+    
+    @MainActor
+    private func showSharePlayPrompt() {
+        let alert = UIAlertController(
+            title: "Watch Together?",
+            message: "You're in a FaceTime call. Would you like to share this video with everyone?",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Share Video", style: .default) { [weak self] _ in
+            Task {
+                await self?.startSharePlay()
+            }
+        })
+        
+        alert.addAction(UIAlertAction(title: "Watch Alone", style: .cancel))
+        
+        alert.addAction(UIAlertAction(title: "Don't Ask Again", style: .destructive) { _ in
+            UserDefaults.standard.set(false, forKey: "autoPromptSharePlay")
+        })
+        
+        present(alert, animated: true)
     }
     
     override func viewDidDisappear(_ animated: Bool) {
