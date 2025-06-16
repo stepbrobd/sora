@@ -6,15 +6,37 @@
 //
 
 import AVKit
+import GroupActivities
 
 class NormalPlayer: AVPlayerViewController {
     private var originalRate: Float = 1.0
     private var holdGesture: UILongPressGestureRecognizer?
     
+    var onSharePlayRequested: (() -> Void)?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupHoldGesture()
         setupAudioSession()
+        setupSharePlayButton()
+    }
+    
+    private func setupSharePlayButton() {
+        let sharePlayItem = UIBarButtonItem(
+            image: UIImage(systemName: "shareplay"),
+            style: .plain,
+            target: self,
+            action: #selector(sharePlayButtonTapped)
+        )
+        sharePlayItem.tintColor = .white
+        
+        if responds(to: Selector(("setCustomControlItems:"))) {
+            setValue([sharePlayItem], forKey: "customControlItems")
+        }
+    }
+    
+    @objc private func sharePlayButtonTapped() {
+        onSharePlayRequested?()
     }
     
     private func setupHoldGesture() {
