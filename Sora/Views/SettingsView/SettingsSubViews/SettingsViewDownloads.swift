@@ -161,7 +161,7 @@ struct SettingsViewDownloads: View {
     @State private var isCalculating: Bool = false
     
     var body: some View {
-        ScrollView {
+        ScrollView(showsIndicators: false) {
             VStack(spacing: 24) {
                 SettingsSection(
                     title: String(localized: "Download Settings"),
@@ -169,7 +169,7 @@ struct SettingsViewDownloads: View {
                 ) {
                     SettingsPickerRow(
                         icon: "4k.tv",
-                        title: String(localized: "Quality"),
+                        title: NSLocalizedString("Maximum Quality Available", comment: "Label for the download quality picker, meaning the highest quality that can be selected."),
                         options: DownloadQualityPreference.allCases.map { $0.rawValue },
                         optionToString: { $0 },
                         selection: $downloadQuality
@@ -309,9 +309,9 @@ struct SettingsViewDownloads: View {
                 }
             }
             .padding(.vertical, 20)
+            .scrollViewBottomPadding()
+            .navigationTitle(String(localized: "Downloads"))
         }
-        .navigationTitle(String(localized: "Downloads"))
-        .scrollViewBottomPadding()
         .alert(String(localized: "Delete All Downloads"), isPresented: $showClearConfirmation) {
             Button(String(localized: "Cancel"), role: .cancel) { }
             Button(String(localized: "Delete All"), role: .destructive) {

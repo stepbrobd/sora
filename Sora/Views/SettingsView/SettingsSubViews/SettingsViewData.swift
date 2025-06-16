@@ -149,7 +149,7 @@ struct SettingsViewData: View {
     @State private var activeAlert: ActiveAlert = .eraseData
     
     var body: some View {
-        return ScrollView {
+        return ScrollView(showsIndicators: false) {
             VStack(spacing: 24) {
                 SettingsSection(
                     title: NSLocalizedString("App Storage", comment: ""),
@@ -191,6 +191,7 @@ struct SettingsViewData: View {
                     }
                 }
             }
+            .padding(.vertical, 20)
             .scrollViewBottomPadding()
             .navigationTitle(NSLocalizedString("App Data", comment: ""))
             .onAppear {
