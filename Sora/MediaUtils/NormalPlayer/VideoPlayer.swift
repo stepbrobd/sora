@@ -201,8 +201,9 @@ class VideoPlayerViewController: UIViewController {
                 seasonNumber: seasonNumber
             )
             
-            if try await activity.prepareForActivation() {
-                await showSharePlayPrompt()
+            let result = try await activity.prepareForActivation()
+            if result == .activationPreferred {
+                showSharePlayPrompt()
             }
         } catch {
             Logger.shared.log("SharePlay preparation failed: \(error)", type: "Error")
