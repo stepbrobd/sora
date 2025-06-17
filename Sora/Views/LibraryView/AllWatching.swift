@@ -275,6 +275,7 @@ struct AllWatchingView: View {
     }
 }
 
+@MainActor
 struct FullWidthContinueWatchingCell: View {
     let item: ContinueWatchingItem
     var markAsWatched: () -> Void
