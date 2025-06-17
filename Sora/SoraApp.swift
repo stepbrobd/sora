@@ -116,6 +116,17 @@ struct SoraApp: App {
             for url in tmpContents {
                 try fileManager.removeItem(at: url)
             }
+            
+            let parentURL = tmpURL.deletingLastPathComponent()
+            let parentContents = try fileManager.contentsOfDirectory(at: parentURL, includingPropertiesForKeys: [.isDirectoryKey])
+            for url in parentContents {
+                if url.lastPathComponent.hasPrefix("com.apple.UserManagedAssets") {
+                    var isDir: ObjCBool = false
+                    if fileManager.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {
+                        try fileManager.removeItem(at: url)
+                    }
+                }
+            }
         } catch {
             Logger.shared.log("Failed to clear tmp folder: \(error.localizedDescription)", type: "Error")
         }
