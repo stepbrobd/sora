@@ -667,6 +667,7 @@ struct DownloadedSection: View {
     }
 }
 
+@MainActor
 struct EnhancedActiveDownloadCard: View {
     let download: JSActiveDownload
     @State private var currentProgress: Double
@@ -847,6 +848,7 @@ struct EnhancedActiveDownloadCard: View {
     }
 }
 
+@MainActor
 struct EnhancedDownloadGroupCard: View {
     let group: SimpleDownloadGroup
     let onDelete: (DownloadedAsset) -> Void
@@ -919,6 +921,7 @@ struct EnhancedDownloadGroupCard: View {
     }
 }
 
+@MainActor
 struct EnhancedShowEpisodesView: View {
     let group: SimpleDownloadGroup
     let onDelete: (DownloadedAsset) -> Void
@@ -1146,6 +1149,7 @@ struct EnhancedShowEpisodesView: View {
     }
 }
 
+@MainActor
 struct EnhancedEpisodeRow: View {
     let asset: DownloadedAsset
     let showDivider: Bool
