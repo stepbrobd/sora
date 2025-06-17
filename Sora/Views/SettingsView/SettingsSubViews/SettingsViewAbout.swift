@@ -290,19 +290,19 @@ struct TranslatorsView: View {
             id: 3,
             login: "ibro",
             avatarUrl: "https://github.com/50n50/assets/blob/main/pfps/05cd4f3508f99ba0a4ae2d0985c2f68c_webp.png?raw=true",
-            language: "Russian - Czech"
+            language: "Russian, Czech, Kazakh"
         ),
         Translator(
             id: 4,
             login: "Ciro",
             avatarUrl: "https://github.com/50n50/assets/blob/main/pfps/4accfc2fcfa436165febe4cad18de978_webp.png?raw=true",
-            language: "Arabic - French"
+            language: "Arabic, French"
         ),
         Translator(
             id: 5,
             login: "storm",
             avatarUrl: "https://github.com/50n50/assets/blob/main/pfps/a6cc97f87d356523820461fd761fc3e1_webp.png?raw=true",
-            language: "Norwegian - Swedish"
+            language: "Norwegian, Swedish"
         ),
         Translator(
             id: 6,
@@ -326,38 +326,30 @@ struct TranslatorsView: View {
 
     var body: some View {
         ForEach(translators) { translator in
-            Button(action: {
-                if let url = URL(string: "https://github.com/\(translator.login)") {
-                    UIApplication.shared.open(url)
+            HStack {
+                LazyImage(url: URL(string: translator.avatarUrl)) { state in
+                    if let uiImage = state.imageContainer?.image {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .frame(width: 40, height: 40)
+                            .clipShape(Circle())
+                    } else {
+                        ProgressView()
+                            .frame(width: 40, height: 40)
+                    }
                 }
-            }) {
-                HStack {
-                    LazyImage(url: URL(string: translator.avatarUrl)) { state in
-                        if let uiImage = state.imageContainer?.image {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .frame(width: 40, height: 40)
-                                .clipShape(Circle())
-                        } else {
-                            ProgressView()
-                                .frame(width: 40, height: 40)
-                        }
-                    }
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(translator.login)
-                            .font(.headline)
-                            .foregroundColor(.accentColor)
-                        Text(translator.language)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    Spacer()
-                    Image(systemName: "safari")
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(translator.login)
+                        .font(.headline)
                         .foregroundColor(.accentColor)
+                    Text(translator.language)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                Spacer()
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
             if translator.id != translators.last?.id {
                 Divider()
                     .padding(.horizontal, 16)

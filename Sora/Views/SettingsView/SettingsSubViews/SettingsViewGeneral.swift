@@ -208,20 +208,28 @@ struct SettingsViewGeneral: View {
                             "Czech",
                             "Dutch",
                             "French",
+                            "German",
+                            "Kazakh",
                             "Norsk",
                             "Russian",
-                            "Spanish"
+                            "Slovak",
+                            "Spanish",
+                            "Swedish"
                         ],
                         optionToString: { lang in
                             switch lang {
                             case "English": return "English"
                             case "Dutch": return "Nederlands"
                             case "French": return "Français"
+                            case "German": return "Deutsch"
                             case "Arabic": return "العربية"
                             case "Czech": return "Čeština"
+                            case "Slovak": return "Slovenčina"
                             case "Spanish": return "Español"
                             case "Russian": return "Русский"
                             case "Norsk": return "Norsk"
+                            case "Kazakh": return "Қазақша"
+                            case "Swedish": return "Svenska"
                             default: return lang
                             }
                         },
