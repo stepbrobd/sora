@@ -1528,7 +1528,6 @@ struct MediaInfoView: View {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             guard self.activeFetchID == fetchID else { return }
-            Logger.shared.log(fullURL, type: "Stream")
             
             let externalPlayer = UserDefaults.standard.string(forKey: "externalPlayer") ?? "Sora"
             var scheme: String?
