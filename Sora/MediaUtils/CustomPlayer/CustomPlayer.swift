@@ -1592,6 +1592,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             
             self.updateSkipButtonsVisibility()
             
+            Logger.shared.log(fullUrl, type: "Stream")
             UserDefaults.standard.set(self.currentTimeVal, forKey: "lastPlayedTime_\(self.fullUrl)")
             UserDefaults.standard.set(self.duration, forKey: "totalTime_\(self.fullUrl)")
             

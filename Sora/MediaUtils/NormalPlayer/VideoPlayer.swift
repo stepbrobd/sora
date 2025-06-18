@@ -90,6 +90,7 @@ class VideoPlayerViewController: UIViewController {
         }
         
         addPeriodicTimeObserver(fullURL: fullUrl)
+        Logger.shared.log(fullUrl, type: "Stream")
         let lastPlayedTime = UserDefaults.standard.double(forKey: "lastPlayedTime_\(fullUrl)")
         if lastPlayedTime > 0 {
             let seekTime = CMTime(seconds: lastPlayedTime, preferredTimescale: 1)
@@ -208,7 +209,6 @@ class VideoPlayerViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        // Only start normal playback if not launched from SharePlay
         if !isLaunchedFromSharePlay {
             player?.play()
             setInitialPlayerRate()
@@ -217,7 +217,6 @@ class VideoPlayerViewController: UIViewController {
                 await checkForFaceTimeAndPromptSharePlay()
             }
         } else {
-            // For SharePlay launches, the playback will be coordinated
             setInitialPlayerRate()
         }
     }

@@ -87,7 +87,7 @@ struct ModuleAdditionSettingsView: View {
                                                     .fill(Color(.systemGray5))
                                             }
                                         }
-                                        .frame(width: 32, height: 32)
+                                        .frame(width: 40, height: 40)
                                         .clipShape(Circle())
                                         .shadow(
                                             color: colorScheme == .dark

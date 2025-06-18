@@ -1508,7 +1508,7 @@ struct MediaInfoView: View {
                 
                 alert.addAction(UIAlertAction(title: title, style: .default) { _ in
                     guard self.activeFetchID == fetchID else { return }
-                    self.playStream(url: streamUrl, fullURL: href, subtitles: subtitles, headers: headers, fetchID: fetchID)
+                    self.playStream(url: streamUrl, fullURL: fullURL, subtitles: subtitles, headers: headers, fetchID: fetchID)
                 })
                 
                 streamIndex += 1
@@ -1528,6 +1528,7 @@ struct MediaInfoView: View {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             guard self.activeFetchID == fetchID else { return }
+            Logger.shared.log(fullURL, type: "Stream")
             
             let externalPlayer = UserDefaults.standard.string(forKey: "externalPlayer") ?? "Sora"
             var scheme: String?
