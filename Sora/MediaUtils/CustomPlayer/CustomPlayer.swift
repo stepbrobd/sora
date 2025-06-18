@@ -183,7 +183,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         watchNextButton,
         volumeSliderHostingView,
         pipButton,
-        airplayButton
+        airplayButton,
+        timeBatteryContainer
     ].compactMap { $0 }
     
     private var originalHiddenStates: [UIView: Bool] = [:]
@@ -237,13 +238,9 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         }
         
         let asset: AVURLAsset
-        
-        // Check if this is a local file URL
         if url.scheme == "file" {
-            // For local files, don't add HTTP headers
             Logger.shared.log("Loading local file: \(url.absoluteString)", type: "Debug")
             
-            // Check if file exists
             if FileManager.default.fileExists(atPath: url.path) {
                 Logger.shared.log("Local file exists at path: \(url.path)", type: "Debug")
             } else {
@@ -252,7 +249,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             
             asset = AVURLAsset(url: url)
         } else {
-            // For remote URLs, add HTTP headers
             Logger.shared.log("Loading remote URL: \(url.absoluteString)", type: "Debug")
             var request = URLRequest(url: url)
             if let mydict = headers, !mydict.isEmpty {
@@ -271,8 +267,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         
         let playerItem = AVPlayerItem(asset: asset)
         self.player = AVPlayer(playerItem: playerItem)
-        
-        // Add error observation
         playerItem.addObserver(self, forKeyPath: "status", options: [.new], context: &playerItemKVOContext)
         
         Logger.shared.log("Created AVPlayerItem with status: \(playerItem.status.rawValue)", type: "Debug")
@@ -1396,7 +1390,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             pipButton.widthAnchor.constraint(equalToConstant: 44),
             pipButton.heightAnchor.constraint(equalToConstant: 44),
             airplayButton.centerYAnchor.constraint(equalTo: pipButton.centerYAnchor),
-            airplayButton.trailingAnchor.constraint(equalTo: pipButton.leadingAnchor, constant: -6),
+            airplayButton.trailingAnchor.constraint(equalTo: pipButton.leadingAnchor, constant: -4),
             airplayButton.widthAnchor.constraint(equalToConstant: 44),
             airplayButton.heightAnchor.constraint(equalToConstant: 44)
         ])
@@ -2836,7 +2830,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     private func setupTimeBatteryIndicator() {
-        // Create container
         let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false
         container.backgroundColor = .clear
@@ -2844,7 +2837,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         controlsContainerView.addSubview(container)
         self.timeBatteryContainer = container
         
-        // Create time label
         let timeLabel = UILabel()
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
         timeLabel.textColor = .white
@@ -2853,13 +2845,11 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         container.addSubview(timeLabel)
         self.timeLabel = timeLabel
         
-        // Create separator
         let separator = UIView()
         separator.translatesAutoresizingMaskIntoConstraints = false
         separator.backgroundColor = .white.withAlphaComponent(0.5)
         container.addSubview(separator)
         
-        // Create battery label
         let batteryLabel = UILabel()
         batteryLabel.translatesAutoresizingMaskIntoConstraints = false
         batteryLabel.textColor = .white
@@ -2868,7 +2858,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         container.addSubview(batteryLabel)
         self.batteryLabel = batteryLabel
         
-        // Setup constraints
         NSLayoutConstraint.activate([
             container.centerXAnchor.constraint(equalTo: controlsContainerView.centerXAnchor),
             container.topAnchor.constraint(equalTo: sliderHostingController?.view.bottomAnchor ?? controlsContainerView.bottomAnchor, constant: 2),
@@ -2889,19 +2878,14 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             batteryLabel.widthAnchor.constraint(equalToConstant: 50)
         ])
         
-        // Start time updates
         updateTime()
         timeUpdateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             self?.updateTime()
         }
         
-        // Setup battery monitoring
         UIDevice.current.isBatteryMonitoringEnabled = true
         updateBatteryLevel()
-        NotificationCenter.default.addObserver(self,
-                                             selector: #selector(batteryLevelDidChange),
-                                             name: UIDevice.batteryLevelDidChangeNotification,
-                                             object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(batteryLevelDidChange), name: UIDevice.batteryLevelDidChangeNotification, object: nil)
     }
     
     private func updateTime() {
