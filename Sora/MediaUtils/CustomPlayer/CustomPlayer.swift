@@ -1357,6 +1357,12 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         airplayButton.setContentCompressionResistancePriority(.required, for: .horizontal)
         controlsContainerView.addSubview(airplayButton)
         
+        airplayButton.layer.shadowColor = UIColor.black.cgColor
+        airplayButton.layer.shadowOffset = CGSize(width: 0, height: 2)
+        airplayButton.layer.shadowOpacity = 0.6
+        airplayButton.layer.shadowRadius = 4
+        airplayButton.layer.masksToBounds = false
+        
         guard AVPictureInPictureController.isPictureInPictureSupported() else {
             return
         }
@@ -1367,7 +1373,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         playerViewController.view.layer.insertSublayer(pipPlayerLayer, at: 0)
         pipController = AVPictureInPictureController(playerLayer: pipPlayerLayer)
         pipController?.delegate = self
-        
         
         let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .medium)
         let Image = UIImage(systemName: "pip", withConfiguration: config)
@@ -1416,11 +1421,11 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             menuButton.isHidden = true
         }
         
-        dismissButton.layer.shadowColor = UIColor.black.cgColor
-        dismissButton.layer.shadowOffset = CGSize(width: 0, height: 2)
-        dismissButton.layer.shadowOpacity = 0.6
-        dismissButton.layer.shadowRadius = 4
-        dismissButton.layer.masksToBounds = false
+        menuButton.layer.shadowColor = UIColor.black.cgColor
+        menuButton.layer.shadowOffset = CGSize(width: 0, height: 2)
+        menuButton.layer.shadowOpacity = 0.6
+        menuButton.layer.shadowRadius = 4
+        menuButton.layer.masksToBounds = false
         
         controlsContainerView.addSubview(menuButton)
         menuButton.translatesAutoresizingMaskIntoConstraints = false
