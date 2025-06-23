@@ -37,14 +37,15 @@ struct ContentView: View {
             default: return AnyView(LibraryView())
         }
     }
-
+    
     var body: some View {
         if #available(iOS 26, *), useNativeTabBar == true {
             TabView {
                 ForEach(Array(tabs.enumerated()), id: \.offset) { index, item in
-                    Tab(item.title, systemImage: item.icon, role: index == 3 ? .search : nil) {
-                        tabView(for: index)
-                    }
+                    tabView(for: index)
+                        .tabItem {
+                            Label(item.title, systemImage: item.icon)
+                        }
                 }
             }
             .searchable(text: $searchQuery)
