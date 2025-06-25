@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SlideOverCard
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
@@ -19,12 +18,10 @@ struct ContentView_Previews: PreviewProvider {
 
 struct ContentView: View {
     @AppStorage("useNativeTabBar") private var useNativeTabBar: Bool = false
-    @AppStorage("lastVersionPrompt") private var lastVersionPrompt: String = ""
     @StateObject private var tabBarController = TabBarController()
     @State var selectedTab: Int = 0
     @State var lastTab: Int = 0
     @State private var searchQuery: String = ""
-    @State private var showWhatsNew: Bool = false
     
     let tabs: [TabItem] = [
         TabItem(icon: "square.stack", title: NSLocalizedString("LibraryTab", comment: "")),
@@ -32,8 +29,6 @@ struct ContentView: View {
         TabItem(icon: "gearshape", title: NSLocalizedString("SettingsTab", comment: "")),
         TabItem(icon: "magnifyingglass", title: NSLocalizedString("SearchTab", comment: ""))
     ]
-    
-    private let currentVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.0"
     
     private func tabView(for index: Int) -> some View {
         switch index {
@@ -45,45 +40,35 @@ struct ContentView: View {
     }
     
     var body: some View {
-        Group {
-            if #available(iOS 26, *), useNativeTabBar == true {
-                TabView {
-                    ForEach(Array(tabs.enumerated()), id: \.offset) { index, item in
-                        tabView(for: index)
-                            .tabItem {
-                                Label(item.title, systemImage: item.icon)
-                            }
-                    }
+        if #available(iOS 26, *), useNativeTabBar == true {
+            TabView {
+                ForEach(Array(tabs.enumerated()), id: \.offset) { index, item in
+                    tabView(for: index)
+                        .tabItem {
+                            Label(item.title, systemImage: item.icon)
+                        }
                 }
-                .searchable(text: $searchQuery)
+            }
+            .searchable(text: $searchQuery)
+            .environmentObject(tabBarController)
+        } else {
+            ZStack(alignment: .bottom) {
+                Group {
+                    tabView(for: selectedTab)
+                }
                 .environmentObject(tabBarController)
-            } else {
-                ZStack(alignment: .bottom) {
-                    Group {
-                        tabView(for: selectedTab)
-                    }
-                    .environmentObject(tabBarController)
-                    
-                    TabBar(
-                        tabs: tabs,
-                        selectedTab: $selectedTab,
-                        lastTab: $lastTab,
-                        searchQuery: $searchQuery,
-                        controller: tabBarController
-                    )
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                .ignoresSafeArea(.keyboard, edges: .bottom)
-                .padding(.bottom, -20)
+                
+                TabBar(
+                    tabs: tabs,
+                    selectedTab: $selectedTab,
+                    lastTab: $lastTab,
+                    searchQuery: $searchQuery,
+                    controller: tabBarController
+                )
             }
-        }
-        .onAppear {
-            if lastVersionPrompt != currentVersion {
-                showWhatsNew = true
-            }
-        }
-        .slideOverCard(isPresented: $showWhatsNew, options: SOCOptions()) {
-            WhatsNewView(isPresented: $showWhatsNew)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            .ignoresSafeArea(.keyboard, edges: .bottom)
+            .padding(.bottom, -20)
         }
     }
 }

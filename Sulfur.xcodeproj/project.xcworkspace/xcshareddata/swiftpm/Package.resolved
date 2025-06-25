@@ -28,15 +28,6 @@
       }
     },
     {
-      "identity" : "slideovercard",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/akwasiio/SlideOverCard",
-      "state" : {
-        "branch" : "main",
-        "revision" : "5773fcbbe583ce09a2e0314d6e72494e945c4ab6"
-      }
-    },
-    {
       "identity" : "soracore",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/cranci1/SoraCore",
