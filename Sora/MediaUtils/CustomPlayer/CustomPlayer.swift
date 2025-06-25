@@ -1642,8 +1642,9 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                     ContinueWatchingManager.shared.save(item: item)
                 }
                 
-                let remainingPercentage = (duration - currentTime) / duration
-                let threshold = (100.0 - (UserDefaults.standard.double(forKey: "remainingTimePercentage"))) / 100.0 ?? 0.1
+                let remainingPercentage = (self.duration - self.currentTimeVal) / self.duration
+                let remainingTimePercentage = UserDefaults.standard.object(forKey: "remainingTimePercentage") != nil ? UserDefaults.standard.double(forKey: "remainingTimePercentage") : 90.0
+                let threshold = (100.0 - remainingTimePercentage) / 100.0
             
                 if remainingPercentage < threshold {
                     if self.aniListID != 0 && !self.aniListUpdatedSuccessfully && !self.aniListUpdateImpossible {
