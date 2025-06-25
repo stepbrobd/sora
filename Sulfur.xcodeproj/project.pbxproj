@@ -78,6 +78,8 @@
 		138AA1B82D2D66FD0021F9DF /* EpisodeCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138AA1B62D2D66FD0021F9DF /* EpisodeCell.swift */; };
 		138AA1B92D2D66FD0021F9DF /* CircularProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138AA1B72D2D66FD0021F9DF /* CircularProgressBar.swift */; };
 		138B66A02E0BEA52009BE8D9 /* WebAuthenticationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138B669F2E0BEA52009BE8D9 /* WebAuthenticationManager.swift */; };
+		138B66A82E0BF22E009BE8D9 /* SlideOverCard in Frameworks */ = {isa = PBXBuildFile; productRef = 138B66A72E0BF22E009BE8D9 /* SlideOverCard */; };
+		138B66AC2E0BF560009BE8D9 /* WhatsNewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138B66AB2E0BF560009BE8D9 /* WhatsNewView.swift */; };
 		138FE1D02DECA00D00936D81 /* TMDB-FetchID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138FE1CF2DECA00D00936D81 /* TMDB-FetchID.swift */; };
 		1398FB3F2DE4E161004D3F5F /* SettingsViewAbout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1398FB3E2DE4E161004D3F5F /* SettingsViewAbout.swift */; };
 		139935662D468C450065CEFF /* ModuleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 139935652D468C450065CEFF /* ModuleManager.swift */; };
@@ -190,6 +192,7 @@
 		138AA1B62D2D66FD0021F9DF /* EpisodeCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpisodeCell.swift; sourceTree = "<group>"; };
 		138AA1B72D2D66FD0021F9DF /* CircularProgressBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CircularProgressBar.swift; sourceTree = "<group>"; };
 		138B669F2E0BEA52009BE8D9 /* WebAuthenticationManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthenticationManager.swift; sourceTree = "<group>"; };
+		138B66AB2E0BF560009BE8D9 /* WhatsNewView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = WhatsNewView.swift; path = Sora/Views/WhatsNewView.swift; sourceTree = SOURCE_ROOT; };
 		138FE1CF2DECA00D00936D81 /* TMDB-FetchID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TMDB-FetchID.swift"; sourceTree = "<group>"; };
 		1398FB3E2DE4E161004D3F5F /* SettingsViewAbout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewAbout.swift; sourceTree = "<group>"; };
 		139935652D468C450065CEFF /* ModuleManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModuleManager.swift; sourceTree = "<group>"; };
@@ -242,6 +245,7 @@
 				13637B902DE0ECD200BDA2FC /* Drops in Frameworks */,
 				13530BDF2E0002790048B7DE /* SoraCore in Frameworks */,
 				13637B932DE0ECDB00BDA2FC /* MarqueeLabel in Frameworks */,
+				138B66A82E0BF22E009BE8D9 /* SlideOverCard in Frameworks */,
 				13367ECE2DF70698009CB33F /* NukeUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -519,8 +523,8 @@
 				13DC0C412D2EC9BA00D0F966 /* Info.plist */,
 				133D7C6D2D2BE2500075467E /* SoraApp.swift */,
 				133D7C712D2BE2520075467E /* Assets.xcassets */,
-				133D7C6F2D2BE2500075467E /* ContentView.swift */,
 				130C6BF82D53A4C200DC1432 /* Sora.entitlements */,
+				133D7C6F2D2BE2500075467E /* ContentView.swift */,
 				133D7C732D2BE2520075467E /* Preview Content */,
 			);
 			path = Sora;
@@ -537,9 +541,10 @@
 		133D7C7B2D2BE2630075467E /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				04536F732E04BA5600A11248 /* ReaderView */,
 				04EAC3992DF9E0DB00BBD483 /* SplashScreenView.swift */,
+				138B66AB2E0BF560009BE8D9 /* WhatsNewView.swift */,
 				72443C7C2DC8036500A61321 /* DownloadView.swift */,
+				04536F732E04BA5600A11248 /* ReaderView */,
 				0402DA122DE7B5EC003BB42C /* SearchView */,
 				133D7C7F2D2BE2630075467E /* MediaInfoView */,
 				1399FAD22D3AB34F00E97C31 /* SettingsView */,
@@ -551,8 +556,8 @@
 		133D7C7F2D2BE2630075467E /* MediaInfoView */ = {
 			isa = PBXGroup;
 			children = (
-				04536F762E04BA6900A11248 /* ChapterCell */,
 				1E0435F02DFCB86800FF6808 /* CustomMatching */,
+				04536F762E04BA6900A11248 /* ChapterCell */,
 				138AA1B52D2D66EC0021F9DF /* EpisodeCell */,
 				133D7C802D2BE2630075467E /* MediaInfoView.swift */,
 			);
@@ -859,6 +864,7 @@
 				13367ECB2DF70698009CB33F /* Nuke */,
 				13367ECD2DF70698009CB33F /* NukeUI */,
 				13530BDE2E0002790048B7DE /* SoraCore */,
+				138B66A72E0BF22E009BE8D9 /* SlideOverCard */,
 			);
 			productName = Sora;
 			productReference = 133D7C6A2D2BE2500075467E /* Sulfur.app */;
@@ -907,6 +913,7 @@
 				13637B912DE0ECDB00BDA2FC /* XCRemoteSwiftPackageReference "MarqueeLabel" */,
 				13367ECA2DF70698009CB33F /* XCRemoteSwiftPackageReference "Nuke" */,
 				13530BDD2E0002790048B7DE /* XCRemoteSwiftPackageReference "SoraCore" */,
+				138B66A62E0BF22E009BE8D9 /* XCRemoteSwiftPackageReference "SlideOverCard" */,
 			);
 			productRefGroup = 133D7C6B2D2BE2500075467E /* Products */;
 			projectDirPath = "";
@@ -991,6 +998,7 @@
 				04EAC39A2DF9E0DB00BBD483 /* SplashScreenView.swift in Sources */,
 				132AF1212D99951700A0140B /* JSController-Streams.swift in Sources */,
 				131845F92D47C62D00CA7A54 /* SettingsViewGeneral.swift in Sources */,
+				138B66AC2E0BF560009BE8D9 /* WhatsNewView.swift in Sources */,
 				04CD76DB2DE20F2200733536 /* AllWatching.swift in Sources */,
 				13103E8E2D58E04A000F0673 /* SkeletonCell.swift in Sources */,
 				13D842552D45267500EBBFA6 /* DropManager.swift in Sources */,
@@ -1435,6 +1443,14 @@
 				kind = branch;
 			};
 		};
+		138B66A62E0BF22E009BE8D9 /* XCRemoteSwiftPackageReference "SlideOverCard" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/akwasiio/SlideOverCard";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1462,6 +1478,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 13637B912DE0ECDB00BDA2FC /* XCRemoteSwiftPackageReference "MarqueeLabel" */;
 			productName = MarqueeLabel;
+		};
+		138B66A72E0BF22E009BE8D9 /* SlideOverCard */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 138B66A62E0BF22E009BE8D9 /* XCRemoteSwiftPackageReference "SlideOverCard" */;
+			productName = SlideOverCard;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
