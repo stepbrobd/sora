@@ -244,7 +244,7 @@ struct SettingsViewPlayer: View {
                         icon: "pip",
                         title: NSLocalizedString("Show PiP Button", comment: ""),
                         isOn: $pipButtonVisible,
-                        showDivider: false
+                        showDivider: true
                     )
                     
                     SettingsPickerRow(
@@ -252,7 +252,8 @@ struct SettingsViewPlayer: View {
                         title: NSLocalizedString("Completion Percentage", comment: ""),
                         options: [60.0, 70.0, 80.0, 90.0, 95.0, 100.0],
                         optionToString: { "\(Int($0))%" },
-                        selection: $remainingTimePercentage
+                        selection: $remainingTimePercentage,
+                        showDivider: false
                     )
                 }
                 
