@@ -57,9 +57,8 @@ struct SearchResultsGrid: View {
                             VStack {
                                 Spacer()
                                 HStack {
-                                    Text(item.title)
-                                        .lineLimit(2)
-                                        .foregroundColor(.white)
+                                    MarqueeText(item.title)
+                                        .frame(height: 20)
                                         .multilineTextAlignment(.leading)
                                     Spacer()
                                 }
