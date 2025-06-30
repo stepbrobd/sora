@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0402DA0E2DE7AA01003BB42C /* TabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0402DA0D2DE7A9FC003BB42C /* TabBarController.swift */; };
 		0402DA132DE7B5EC003BB42C /* SearchStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0402DA112DE7B5EC003BB42C /* SearchStateView.swift */; };
 		0402DA142DE7B5EC003BB42C /* SearchResultsGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0402DA102DE7B5EC003BB42C /* SearchResultsGrid.swift */; };
 		0402DA152DE7B5EC003BB42C /* SearchComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0402DA0F2DE7B5EC003BB42C /* SearchComponents.swift */; };
@@ -19,6 +18,7 @@
 		0410697F2E00ABE900A157BB /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0410697C2E00ABE900A157BB /* Localizable.strings */; };
 		041069832E00C71000A157BB /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 041069812E00C71000A157BB /* Localizable.strings */; };
 		041261042E00D14F00D05B47 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 041261022E00D14F00D05B47 /* Localizable.strings */; };
+		041E9D722E11D71F0025F150 /* SettingsViewBackup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 041E9D712E11D71F0025F150 /* SettingsViewBackup.swift */; };
 		04536F712E04BA3B00A11248 /* JSController-Novel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04536F702E04BA3B00A11248 /* JSController-Novel.swift */; };
 		04536F742E04BA5600A11248 /* ReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04536F722E04BA5600A11248 /* ReaderView.swift */; };
 		04536F772E04BA6900A11248 /* ChapterCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04536F752E04BA6900A11248 /* ChapterCell.swift */; };
@@ -27,6 +27,10 @@
 		0457C59E2DE78267000AFBD9 /* BookmarkLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0457C59B2DE78267000AFBD9 /* BookmarkLink.swift */; };
 		0457C59F2DE78267000AFBD9 /* BookmarkGridItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0457C5992DE78267000AFBD9 /* BookmarkGridItemView.swift */; };
 		0457C5A12DE78385000AFBD9 /* BookmarksDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0457C5A02DE78385000AFBD9 /* BookmarksDetailView.swift */; };
+		047F170A2E0C93E10081B5FB /* AllReading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047F17082E0C93E10081B5FB /* AllReading.swift */; };
+		047F170B2E0C93E10081B5FB /* ContinueReadingSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047F17092E0C93E10081B5FB /* ContinueReadingSection.swift */; };
+		047F170E2E0C93F30081B5FB /* ContinueReadingItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047F170C2E0C93F30081B5FB /* ContinueReadingItem.swift */; };
+		047F170F2E0C93F30081B5FB /* ContinueReadingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047F170D2E0C93F30081B5FB /* ContinueReadingManager.swift */; };
 		0488FA952DFDE724007575E1 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0488FA902DFDE724007575E1 /* Localizable.strings */; };
 		0488FA962DFDE724007575E1 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0488FA932DFDE724007575E1 /* Localizable.strings */; };
 		0488FA9A2DFDF380007575E1 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0488FA982DFDF380007575E1 /* Localizable.strings */; };
@@ -121,7 +125,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0402DA0D2DE7A9FC003BB42C /* TabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarController.swift; sourceTree = "<group>"; };
 		0402DA0F2DE7B5EC003BB42C /* SearchComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchComponents.swift; sourceTree = "<group>"; };
 		0402DA102DE7B5EC003BB42C /* SearchResultsGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultsGrid.swift; sourceTree = "<group>"; };
 		0402DA112DE7B5EC003BB42C /* SearchStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchStateView.swift; sourceTree = "<group>"; };
@@ -133,6 +136,7 @@
 		0410697B2E00ABE900A157BB /* sk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sk; path = Localizable.strings; sourceTree = "<group>"; };
 		041069802E00C71000A157BB /* kk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = kk; path = Localizable.strings; sourceTree = "<group>"; };
 		041261012E00D14F00D05B47 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = Localizable.strings; sourceTree = "<group>"; };
+		041E9D712E11D71F0025F150 /* SettingsViewBackup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewBackup.swift; sourceTree = "<group>"; };
 		0452339E2E02149C002EA23C /* bos */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = bos; path = Localizable.strings; sourceTree = "<group>"; };
 		04536F702E04BA3B00A11248 /* JSController-Novel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JSController-Novel.swift"; sourceTree = "<group>"; };
 		04536F722E04BA5600A11248 /* ReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderView.swift; sourceTree = "<group>"; };
@@ -142,6 +146,10 @@
 		0457C59A2DE78267000AFBD9 /* BookmarkGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkGridView.swift; sourceTree = "<group>"; };
 		0457C59B2DE78267000AFBD9 /* BookmarkLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkLink.swift; sourceTree = "<group>"; };
 		0457C5A02DE78385000AFBD9 /* BookmarksDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksDetailView.swift; sourceTree = "<group>"; };
+		047F17082E0C93E10081B5FB /* AllReading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllReading.swift; sourceTree = "<group>"; };
+		047F17092E0C93E10081B5FB /* ContinueReadingSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueReadingSection.swift; sourceTree = "<group>"; };
+		047F170C2E0C93F30081B5FB /* ContinueReadingItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueReadingItem.swift; sourceTree = "<group>"; };
+		047F170D2E0C93F30081B5FB /* ContinueReadingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueReadingManager.swift; sourceTree = "<group>"; };
 		0488FA8F2DFDE724007575E1 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = Localizable.strings; sourceTree = "<group>"; };
 		0488FA922DFDE724007575E1 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = Localizable.strings; sourceTree = "<group>"; };
 		0488FA992DFDF380007575E1 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = Localizable.strings; sourceTree = "<group>"; };
@@ -423,7 +431,6 @@
 		04F08EDD2DE10C05006B29D9 /* TabBar */ = {
 			isa = PBXGroup;
 			children = (
-				0402DA0D2DE7A9FC003BB42C /* TabBarController.swift */,
 				04F08EDE2DE10C1A006B29D9 /* TabBar.swift */,
 			);
 			path = TabBar;
@@ -562,6 +569,7 @@
 		133D7C832D2BE2630075467E /* SettingsSubViews */ = {
 			isa = PBXGroup;
 			children = (
+				041E9D712E11D71F0025F150 /* SettingsViewBackup.swift */,
 				1E9FF1D22D403E42008AC100 /* SettingsViewLoggerFilter.swift */,
 				1399FAD32D3AB38C00E97C31 /* SettingsViewLogger.swift */,
 				133D7C842D2BE2630075467E /* SettingsViewModule.swift */,
@@ -638,6 +646,8 @@
 		133F55B92D33B53E00E08EEA /* LibraryView */ = {
 			isa = PBXGroup;
 			children = (
+				047F17082E0C93E10081B5FB /* AllReading.swift */,
+				047F17092E0C93E10081B5FB /* ContinueReadingSection.swift */,
 				0457C59C2DE78267000AFBD9 /* BookmarkComponents */,
 				04CD76DA2DE20F2200733536 /* AllWatching.swift */,
 				133F55BA2D33B55100E08EEA /* LibraryManager.swift */,
@@ -740,6 +750,8 @@
 		13C0E5E82D5F85DD00E7F619 /* ContinueWatching */ = {
 			isa = PBXGroup;
 			children = (
+				047F170C2E0C93F30081B5FB /* ContinueReadingItem.swift */,
+				047F170D2E0C93F30081B5FB /* ContinueReadingManager.swift */,
 				13C0E5E92D5F85EA00E7F619 /* ContinueWatchingManager.swift */,
 				13C0E5EB2D5F85F800E7F619 /* ContinueWatchingItem.swift */,
 			);
@@ -947,6 +959,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				041E9D722E11D71F0025F150 /* SettingsViewBackup.swift in Sources */,
 				135CCBE22D4D1138008B9C0E /* SettingsViewPlayer.swift in Sources */,
 				04536F742E04BA5600A11248 /* ReaderView.swift in Sources */,
 				131270172DC13A010093AA9C /* DownloadManager.swift in Sources */,
@@ -966,13 +979,14 @@
 				04F08EDC2DE10BF3006B29D9 /* ProgressiveBlurView.swift in Sources */,
 				1E26E9E72DA9577900B9DC02 /* VolumeSlider.swift in Sources */,
 				136BBE802DB1038000906B5E /* Notification+Name.swift in Sources */,
+				047F170E2E0C93F30081B5FB /* ContinueReadingItem.swift in Sources */,
+				047F170F2E0C93F30081B5FB /* ContinueReadingManager.swift in Sources */,
 				13DB46902D900A38008CBC03 /* URL.swift in Sources */,
 				138FE1D02DECA00D00936D81 /* TMDB-FetchID.swift in Sources */,
 				04AD07162E03704700EB74C1 /* BookmarkCell.swift in Sources */,
 				130C6BFA2D53AB1F00DC1432 /* SettingsViewData.swift in Sources */,
 				0402DA172DE7B7B8003BB42C /* SearchViewComponents.swift in Sources */,
 				1E9FF1D32D403E49008AC100 /* SettingsViewLoggerFilter.swift in Sources */,
-				0402DA0E2DE7AA01003BB42C /* TabBarController.swift in Sources */,
 				1E47859B2DEBC5960095BF2F /* AnilistMatchPopupView.swift in Sources */,
 				13EA2BD92D32D98400C1EBD7 /* NormalPlayer.swift in Sources */,
 				133D7C932D2BE2640075467E /* Modules.swift in Sources */,
@@ -992,6 +1006,8 @@
 				132AF1212D99951700A0140B /* JSController-Streams.swift in Sources */,
 				131845F92D47C62D00CA7A54 /* SettingsViewGeneral.swift in Sources */,
 				04CD76DB2DE20F2200733536 /* AllWatching.swift in Sources */,
+				047F170A2E0C93E10081B5FB /* AllReading.swift in Sources */,
+				047F170B2E0C93E10081B5FB /* ContinueReadingSection.swift in Sources */,
 				13103E8E2D58E04A000F0673 /* SkeletonCell.swift in Sources */,
 				13D842552D45267500EBBFA6 /* DropManager.swift in Sources */,
 				13103E8B2D58E028000F0673 /* View.swift in Sources */,

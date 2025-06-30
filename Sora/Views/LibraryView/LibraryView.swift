@@ -12,18 +12,33 @@ import SwiftUI
 struct LibraryView: View {
     @EnvironmentObject private var libraryManager: LibraryManager
     @EnvironmentObject private var moduleManager: ModuleManager
-    @EnvironmentObject var tabBarController: TabBarController
+
     @Environment(\.scenePhase) private var scenePhase
     
     @AppStorage("mediaColumnsPortrait") private var mediaColumnsPortrait: Int = 2
     @AppStorage("mediaColumnsLandscape") private var mediaColumnsLandscape: Int = 4
+    @AppStorage("librarySectionsOrderData") private var librarySectionsOrderData: Data = {
+        try! JSONEncoder().encode(["continueWatching", "continueReading", "collections"])
+    }()
+    @AppStorage("disabledLibrarySectionsData") private var disabledLibrarySectionsData: Data = {
+        try! JSONEncoder().encode([String]())
+    }()
     
     @Environment(\.verticalSizeClass) var verticalSizeClass
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     @State private var continueWatchingItems: [ContinueWatchingItem] = []
+    @State private var continueReadingItems: [ContinueReadingItem] = []
     @State private var isLandscape: Bool = UIDevice.current.orientation.isLandscape
     @State private var selectedTab: Int = 0
+    
+    private var librarySectionsOrder: [String] {
+        (try? JSONDecoder().decode([String].self, from: librarySectionsOrderData)) ?? ["continueWatching", "continueReading", "collections"]
+    }
+    
+    private var disabledLibrarySections: [String] {
+        (try? JSONDecoder().decode([String].self, from: disabledLibrarySectionsData)) ?? []
+    }
     
     private let columns = [
         GridItem(.adaptive(minimum: 150), spacing: 12)
@@ -56,81 +71,26 @@ struct LibraryView: View {
             ZStack {
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 20) {
-                        Text("Library")
+                        Text(LocalizedStringKey("Library"))
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .padding(.horizontal, 20)
                             .padding(.top, 20)
-                        HStack {
-                            HStack(spacing: 4) {
-                                Image(systemName: "play.fill")
-                                    .font(.subheadline)
-                                Text("Continue Watching")
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
-                            }
-                            
-                            Spacer()
-                            
-                            NavigationLink(destination: AllWatchingView()) {
-                                Text("View All")
-                                    .font(.subheadline)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(Color.gray.opacity(0.2))
-                                    .cornerRadius(15)
-                                    .gradientOutline()
+                        
+                        ForEach(librarySectionsOrder, id: \.self) { section in
+                            if !disabledLibrarySections.contains(section) {
+                                switch section {
+                                case "continueWatching":
+                                    continueWatchingSection
+                                case "continueReading":
+                                    continueReadingSection
+                                case "collections":
+                                    collectionsSection
+                                default:
+                                    EmptyView()
+                                }
                             }
                         }
-                        .padding(.horizontal, 20)
-                        
-                        if continueWatchingItems.isEmpty {
-                            VStack(spacing: 8) {
-                                Image(systemName: "play.circle")
-                                    .font(.largeTitle)
-                                    .foregroundColor(.secondary)
-                                Text("Nothing to Continue Watching")
-                                    .font(.headline)
-                                Text("Your recently watched content will appear here")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                        } else {
-                            ContinueWatchingSection(items: $continueWatchingItems, markAsWatched: {
-                                item in
-                                markContinueWatchingItemAsWatched(item: item)
-                            }, removeItem: {
-                                item in
-                                removeContinueWatchingItem(item: item)
-                            })
-                        }
-                        
-                        HStack {
-                            HStack(spacing: 4) {
-                                Image(systemName: "folder.fill")
-                                    .font(.subheadline)
-                                Text("Collections")
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
-                            }
-                            
-                            Spacer()
-                            
-                            NavigationLink(destination: BookmarksDetailView()) {
-                                Text("View All")
-                                    .font(.subheadline)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(Color.gray.opacity(0.2))
-                                    .cornerRadius(15)
-                                    .gradientOutline()
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        
-                        BookmarksSection()
                         
                         Spacer().frame(height: 100)
                     }
@@ -140,16 +100,160 @@ struct LibraryView: View {
                 .deviceScaled()
                 .onAppear {
                     fetchContinueWatching()
-                    tabBarController.showTabBar()
+                    fetchContinueReading()
+                    
+                    NotificationCenter.default.post(name: .showTabBar, object: nil)
                 }
                 .onChange(of: scenePhase) { newPhase in
                     if newPhase == .active {
                         fetchContinueWatching()
+                        fetchContinueReading()
                     }
                 }
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
+        
+    }
+    
+    // MARK: - Section Views
+    
+    private var continueWatchingSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                HStack(spacing: 4) {
+                    Image(systemName: "play.fill")
+                        .font(.subheadline)
+                    Text(LocalizedStringKey("Continue Watching"))
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                }
+                
+                Spacer()
+                
+                NavigationLink(destination: AllWatchingView()) {
+                    Text(LocalizedStringKey("View All"))
+                        .font(.subheadline)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(15)
+                        .gradientOutline()
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 10)
+            
+            if continueWatchingItems.isEmpty {
+                VStack(spacing: 8) {
+                    Image(systemName: "play.circle")
+                        .font(.largeTitle)
+                        .foregroundColor(.secondary)
+                    Text(LocalizedStringKey("Nothing to Continue Watching"))
+                        .font(.headline)
+                    Text(LocalizedStringKey("Your recently watched content will appear here"))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding()
+                .frame(maxWidth: .infinity)
+            } else {
+                ContinueWatchingSection(items: $continueWatchingItems, markAsWatched: {
+                    item in
+                    markContinueWatchingItemAsWatched(item: item)
+                }, removeItem: {
+                    item in
+                    removeContinueWatchingItem(item: item)
+                })
+            }
+            
+            Spacer().frame(height: 20)
+        }
+    }
+    
+    private var continueReadingSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                HStack(spacing: 4) {
+                    Image(systemName: "book.fill")
+                        .font(.subheadline)
+                    Text(LocalizedStringKey("Continue Reading"))
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                }
+                
+                Spacer()
+                
+                NavigationLink(destination: AllReadingView()) {
+                    Text(LocalizedStringKey("View All"))
+                        .font(.subheadline)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(15)
+                        .gradientOutline()
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 10)
+            
+            if continueReadingItems.isEmpty {
+                VStack(spacing: 8) {
+                    Image(systemName: "book.closed")
+                        .font(.largeTitle)
+                        .foregroundColor(.secondary)
+                    Text(LocalizedStringKey("Nothing to Continue Reading"))
+                        .font(.headline)
+                    Text(LocalizedStringKey("Your recently read novels will appear here"))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding()
+                .frame(maxWidth: .infinity)
+            } else {
+                ContinueReadingSection(items: $continueReadingItems, markAsRead: {
+                    item in
+                    markContinueReadingItemAsRead(item: item)
+                }, removeItem: {
+                    item in
+                    removeContinueReadingItem(item: item)
+                })
+            }
+            
+            Spacer().frame(height: 20)
+        }
+    }
+    
+    private var collectionsSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                HStack(spacing: 4) {
+                    Image(systemName: "folder.fill")
+                        .font(.subheadline)
+                    Text(LocalizedStringKey("Collections"))
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                }
+                
+                Spacer()
+                
+                NavigationLink(destination: BookmarksDetailView()) {
+                    Text(LocalizedStringKey("View All"))
+                        .font(.subheadline)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(15)
+                        .gradientOutline()
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 10)
+            
+            BookmarksSection()
+            
+            Spacer().frame(height: 20)
+        }
     }
     
     private func fetchContinueWatching() {
@@ -170,6 +274,30 @@ struct LibraryView: View {
     private func removeContinueWatchingItem(item: ContinueWatchingItem) {
         ContinueWatchingManager.shared.remove(item: item)
         continueWatchingItems.removeAll {
+            $0.id == item.id
+        }
+    }
+    
+    private func fetchContinueReading() {
+        continueReadingItems = ContinueReadingManager.shared.fetchItems()
+        Logger.shared.log("Fetched \(continueReadingItems.count) continue reading items", type: "Debug")
+        
+        if !continueReadingItems.isEmpty {
+            for (index, item) in continueReadingItems.enumerated() {
+                Logger.shared.log("Reading item \(index): \(item.mediaTitle), chapter \(item.chapterNumber), progress \(item.progress)", type: "Debug")
+            }
+        }
+    }
+    
+    private func markContinueReadingItemAsRead(item: ContinueReadingItem) {
+        UserDefaults.standard.set(1.0, forKey: "readingProgress_\(item.href)")
+        ContinueReadingManager.shared.updateProgress(for: item.href, progress: 1.0)
+        fetchContinueReading()
+    }
+    
+    private func removeContinueReadingItem(item: ContinueReadingItem) {
+        ContinueReadingManager.shared.remove(item: item)
+        continueReadingItems.removeAll {
             $0.id == item.id
         }
     }

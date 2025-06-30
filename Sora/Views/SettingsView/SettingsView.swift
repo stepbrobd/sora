@@ -131,7 +131,7 @@ struct SettingsView: View {
     @Environment(\.colorScheme) var colorScheme
     @StateObject var settings = Settings()
     @EnvironmentObject var moduleManager: ModuleManager
-    @EnvironmentObject var tabBarController: TabBarController
+
     @State private var isNavigationActive = false
     
     var body: some View {
@@ -177,11 +177,6 @@ struct SettingsView: View {
                             NavigationLink(destination: SettingsViewDownloads().navigationBarBackButtonHidden(false)) {
                                 SettingsNavigationRow(icon: "arrow.down.circle", titleKey: "Downloads")
                             }
-                            Divider().padding(.horizontal, 16)
-                            
-                            NavigationLink(destination: SettingsViewTrackers().navigationBarBackButtonHidden(false)) {
-                                SettingsNavigationRow(icon: "square.stack.3d.up", titleKey: "Trackers")
-                            }
                         }
                         .background(.ultraThinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -217,6 +212,11 @@ struct SettingsView: View {
                             NavigationLink(destination: SettingsViewLogger().navigationBarBackButtonHidden(false)) {
                                 SettingsNavigationRow(icon: "doc.text", titleKey: "Logs")
                             }
+                            Divider().padding(.horizontal, 16)
+                            
+                            NavigationLink(destination: SettingsViewBackup().navigationBarBackButtonHidden(false)) {
+                                SettingsNavigationRow(icon: "arrow.triangle.2.circlepath", titleKey: NSLocalizedString("Backup & Restore", comment: "Settings navigation row for backup and restore"))
+                            }
                         }
                         .background(.ultraThinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -250,28 +250,52 @@ struct SettingsView: View {
                             Divider().padding(.horizontal, 16)
 
                             Link(destination: URL(string: "https://github.com/cranci1/Sora")!) {
-                                SettingsNavigationRow(
-                                    icon: "chevron.left.forwardslash.chevron.right",
-                                    titleKey: "Sora GitHub Repository",
-                                    isExternal: true,
-                                    textColor: .gray
-                                )
+                                HStack {
+                                    Image("Github Icon")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: 20, height: 20)
+                                        .padding(.leading, 2)
+                                        .padding(.trailing, 4)
+                                    
+                                    Text(NSLocalizedString("Sora GitHub Repository", comment: ""))
+                                        .foregroundStyle(.gray)
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "safari")
+                                        .foregroundStyle(.gray)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
                             }
                             Divider().padding(.horizontal, 16)
 
                             Link(destination: URL(string: "https://discord.gg/x7hppDWFDZ")!) {
-                                SettingsNavigationRow(
-                                    icon: "bubble.left.and.bubble.right",
-                                    titleKey: "Join the Discord",
-                                    isExternal: true,
-                                    textColor: .gray
-                                )
+                                HStack {
+                                    Image("Discord Icon")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: 20, height: 20)
+                                        .padding(.leading, 2)
+                                        .padding(.trailing, 4)
+                                    
+                                    Text(NSLocalizedString("Join the Discord", comment: ""))
+                                        .foregroundStyle(.gray)
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "safari")
+                                        .foregroundStyle(.gray)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
                             }
                             Divider().padding(.horizontal, 16)
 
                             Link(destination: URL(string: "https://github.com/cranci1/Sora/issues")!) {
                                 SettingsNavigationRow(
-                                    icon: "exclamationmark.circle",
+                                    icon: "exclamationmark.circle.fill",
                                     titleKey: "Report an Issue",
                                     isExternal: true,
                                     textColor: .gray
@@ -281,7 +305,7 @@ struct SettingsView: View {
 
                             Link(destination: URL(string: "https://github.com/cranci1/Sora/blob/dev/LICENSE")!) {
                                 SettingsNavigationRow(
-                                    icon: "doc.text",
+                                    icon: "doc.text.fill",
                                     titleKey: "License (GPLv3.0)",
                                     isExternal: true,
                                     textColor: .gray
@@ -330,7 +354,6 @@ struct SettingsView: View {
         }
         .onAppear {
             settings.updateAccentColor(currentColorScheme: colorScheme)
-            tabBarController.showTabBar()
         }
     }
 }

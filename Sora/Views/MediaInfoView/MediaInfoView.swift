@@ -82,7 +82,7 @@ struct MediaInfoView: View {
     @ObservedObject private var jsController = JSController.shared
     @EnvironmentObject var moduleManager: ModuleManager
     @EnvironmentObject private var libraryManager: LibraryManager
-    @EnvironmentObject var tabBarController: TabBarController
+    @ObservedObject private var navigator = ChapterNavigator.shared
     
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
@@ -185,6 +185,16 @@ struct MediaInfoView: View {
             .ignoresSafeArea(.container, edges: .top)
             .onAppear {
                 setupViewOnAppear()
+                NotificationCenter.default.post(name: .hideTabBar, object: nil)
+                UserDefaults.standard.set(true, forKey: "isMediaInfoActive")
+                //  swipe back
+                /*
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let window = windowScene.windows.first,
+                   let navigationController = window.rootViewController?.children.first as? UINavigationController {
+                    navigationController.interactivePopGestureRecognizer?.isEnabled = false
+                }
+                */
             }
             .onChange(of: selectedRange) { newValue in
                 UserDefaults.standard.set(newValue.lowerBound, forKey: selectedRangeKey)
@@ -196,9 +206,10 @@ struct MediaInfoView: View {
                 UserDefaults.standard.set(newValue.lowerBound, forKey: selectedChapterRangeKey)
             }
             .onDisappear {
-                tabBarController.showTabBar()
                 currentFetchTask?.cancel()
                 activeFetchID = nil
+                UserDefaults.standard.set(false, forKey: "isMediaInfoActive")
+                UIScrollView.appearance().bounces = true 
             }
             .task {
                 await setupInitialData()
@@ -229,14 +240,13 @@ struct MediaInfoView: View {
         VStack {
             HStack {
                 Button(action: { 
-                    tabBarController.showTabBar()
                     dismiss()
                 }) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 24))
                         .foregroundColor(.primary)
                         .padding(12)
-                        .background(Color.gray.opacity(0.2))
+                        .background(Color(.systemBackground).opacity(0.8))
                         .clipShape(Circle())
                         .circularGradientOutline()
                 }
@@ -305,7 +315,7 @@ struct MediaInfoView: View {
                     
                     if !aliases.isEmpty && !(module.metadata.novel ?? false) {
                         Text(aliases)
-                            .font(.system(size: 14))
+                            .font(.system(size: 14, weight: .bold))
                             .foregroundColor(.secondary)
                             .padding(.top, 4)
                     }
@@ -354,7 +364,7 @@ struct MediaInfoView: View {
                     Image(systemName: "calendar")
                         .foregroundColor(.accentColor)
                     Text(airdate)
-                        .font(.system(size: 14))
+                        .font(.system(size: 14, weight: .bold))
                         .foregroundColor(.accentColor)
                     Spacer()
                 }
@@ -390,7 +400,7 @@ struct MediaInfoView: View {
     private var synopsisSection: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(synopsis)
-                .font(.system(size: 16))
+                .font(.system(size: 16, weight: .bold))
                 .foregroundColor(.secondary)
                 .lineLimit(showFullSynopsis ? nil : 3)
                 .animation(nil, value: showFullSynopsis)
@@ -418,7 +428,7 @@ struct MediaInfoView: View {
                     Image(systemName: "play.fill")
                         .foregroundColor(colorScheme == .dark ? .black : .white)
                     Text(startActionText)
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.system(size: 16, weight: .bold))
                         .foregroundColor(colorScheme == .dark ? .black : .white)
                 }
                 .frame(maxWidth: .infinity)
@@ -530,8 +540,67 @@ struct MediaInfoView: View {
         if episodeLinks.count != 1 {
             VStack(alignment: .leading, spacing: 16) {
                 episodesSectionHeader
+                if isGroupedBySeasons || episodeLinks.count > episodeChunkSize {
+                    HStack(spacing: 8) {
+                        if isGroupedBySeasons {
+                            seasonSelectorStyled
+                        }
+                        Spacer()
+                        if episodeLinks.count > episodeChunkSize {
+                            rangeSelectorStyled
+                                .padding(.trailing, 4)
+                        }
+                    }
+                    .padding(.top, -8)
+                }
                 episodeListSection
             }
+        }
+    }
+
+    @ViewBuilder
+    private var seasonSelectorStyled: some View {
+        let seasons = groupedEpisodes()
+        if seasons.count > 1 {
+            Menu {
+                ForEach(0..<seasons.count, id: \..self) { index in
+                    Button(action: { selectedSeason = index }) {
+                        Text(String(format: NSLocalizedString("Season %d", comment: ""), index + 1))
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text("Season \(selectedSeason + 1)")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(.accentColor)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(.accentColor)
+                }
+                .padding(.vertical, 2)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var rangeSelectorStyled: some View {
+        Menu {
+            ForEach(generateRanges(), id: \..self) { range in
+                Button(action: { selectedRange = range }) {
+                    Text("\(range.lowerBound + 1)-\(range.upperBound)")
+                }
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Text("\(selectedRange.lowerBound + 1)-\(selectedRange.upperBound)")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(.accentColor)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(.accentColor)
+            }
+            .padding(.vertical, 2)
+            .padding(.horizontal, 4)
         }
     }
     
@@ -544,57 +613,9 @@ struct MediaInfoView: View {
             
             Spacer()
             
-            episodeNavigationSection
-            
             HStack(spacing: 4) {
                 sourceButton
                 menuButton
-            }
-        }
-    }
-    
-    @ViewBuilder
-    private var episodeNavigationSection: some View {
-        Group {
-            if !isGroupedBySeasons && episodeLinks.count <= episodeChunkSize {
-                EmptyView()
-            } else if !isGroupedBySeasons && episodeLinks.count > episodeChunkSize {
-                rangeSelectionMenu
-            } else if isGroupedBySeasons {
-                seasonSelectionMenu
-            }
-        }
-    }
-    
-    @ViewBuilder
-    private var rangeSelectionMenu: some View {
-        Menu {
-            ForEach(generateRanges(), id: \.self) { range in
-                Button(action: { selectedRange = range }) {
-                    Text("\(range.lowerBound + 1)-\(range.upperBound)")
-                }
-            }
-        } label: {
-            Text("\(selectedRange.lowerBound + 1)-\(selectedRange.upperBound)")
-                .font(.system(size: 14))
-                .foregroundColor(.accentColor)
-        }
-    }
-    
-    @ViewBuilder
-    private var seasonSelectionMenu: some View {
-        let seasons = groupedEpisodes()
-        if seasons.count > 1 {
-            Menu {
-                ForEach(0..<seasons.count, id: \.self) { index in
-                    Button(action: { selectedSeason = index }) {
-                        Text(String(format: NSLocalizedString("Season %d", comment: ""), index + 1))
-                    }
-                }
-            } label: {
-                Text("Season \(selectedSeason + 1)")
-                    .font(.system(size: 14))
-                    .foregroundColor(.accentColor)
             }
         }
     }
@@ -678,43 +699,37 @@ struct MediaInfoView: View {
                     Image(systemName: "calendar")
                         .foregroundColor(.accentColor)
                     Text(airdate)
-                        .font(.system(size: 14))
+                        .font(.system(size: 14, weight: .bold))
                         .foregroundColor(.accentColor)
                     Spacer()
                 }
             }
             if !aliases.isEmpty {
                 Text(aliases)
-                    .font(.system(size: 14))
+                    .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.secondary)
             }
-
             HStack {
                 Text(NSLocalizedString("Chapters", comment: ""))
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(.primary)
                 Spacer()
-                if chapters.count > chapterChunkSize {
-                    Menu {
-                        ForEach(generateChapterRanges(), id: \..self) { range in
-                            Button(action: { selectedChapterRange = range }) {
-                                Text("\(range.lowerBound + 1)-\(range.upperBound)")
-                            }
-                        }
-                    } label: {
-                        Text("\(selectedChapterRange.lowerBound + 1)-\(selectedChapterRange.upperBound)")
-                            .font(.system(size: 14))
-                            .foregroundColor(.accentColor)
-                    }
-                }
                 HStack(spacing: 4) {
                     sourceButton
                     menuButton
                 }
             }
-            LazyVStack(spacing: 15) {
-                ForEach(chapters.indices.filter { selectedChapterRange.contains($0) }, id: \..self) { i in
-                    let chapter = chapters[i]
+                            if chapters.count > chapterChunkSize {
+                    HStack {
+                        Spacer()
+                        chapterRangeSelectorStyled
+                    }
+                    .padding(.bottom, 0)
+                }
+                LazyVStack(spacing: 15) {
+                    ForEach(chapters.indices.filter { selectedChapterRange.contains($0) }, id: \..self) { i in
+                        let chapter = chapters[i]
+                        let _ = refreshTrigger 
                     if let href = chapter["href"] as? String,
                        let number = chapter["number"] as? Int,
                        let title = chapter["title"] as? String {
@@ -722,19 +737,81 @@ struct MediaInfoView: View {
                             destination: ReaderView(
                                 moduleId: module.id.uuidString,
                                 chapterHref: href,
-                                chapterTitle: title
+                                chapterTitle: title,
+                                chapters: chapters,
+                                mediaTitle: self.title,
+                                chapterNumber: number
                             )
+                            .onAppear {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    ChapterNavigator.shared.currentChapter = nil
+                                }
+                            }
                         ) {
                             ChapterCell(
                                 chapterNumber: String(number),
                                 chapterTitle: title,
-                                isCurrentChapter: UserDefaults.standard.string(forKey: "lastReadChapter") == href
+                                isCurrentChapter: false, 
+                                progress: UserDefaults.standard.double(forKey: "readingProgress_\(href)"),
+                                href: href
                             )
+                        }
+                        .simultaneousGesture(TapGesture().onEnded {
+                            UserDefaults.standard.set(true, forKey: "navigatingToReaderView")
+                            ChapterNavigator.shared.currentChapter = (
+                                moduleId: module.id.uuidString,
+                                href: href,
+                                title: title,
+                                chapters: chapters,
+                                mediaTitle: self.title,
+                                chapterNumber: number
+                            )
+                        })
+                        .contextMenu {
+                            Button(action: {
+                                markChapterAsRead(href: href, number: number)
+                            }) {
+                                Label("Mark as Read", systemImage: "checkmark.circle")
+                            }
+                            
+                            Button(action: {
+                                resetChapterProgress(href: href)
+                            }) {
+                                Label("Reset Progress", systemImage: "arrow.counterclockwise")
+                            }
+                            
+                            Button(action: {
+                                markAllPreviousChaptersAsRead(currentNumber: number)
+                            }) {
+                                Label("Mark Previous as Read", systemImage: "checkmark.circle.badge.plus")
+                            }
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var chapterRangeSelectorStyled: some View {
+        Menu {
+            ForEach(generateChapterRanges(), id: \..self) { range in
+                Button(action: { selectedChapterRange = range }) {
+                    Text("\(range.lowerBound + 1)-\(range.upperBound)")
+                }
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Text("\(selectedChapterRange.lowerBound + 1)-\(selectedChapterRange.upperBound)")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(.accentColor)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(.accentColor)
+            }
+            .padding(.vertical, 2)
+            .padding(.horizontal, 4)
         }
     }
     
@@ -859,7 +936,6 @@ struct MediaInfoView: View {
     
     private func setupViewOnAppear() {
         buttonRefreshTrigger.toggle()
-        tabBarController.hideTabBar()
         
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let window = windowScene.windows.first,
@@ -872,14 +948,22 @@ struct MediaInfoView: View {
     private func setupInitialData() async {
         do {
             Logger.shared.log("setupInitialData: module.metadata.novel = \(String(describing: module.metadata.novel))", type: "Debug")
+            
+            UserDefaults.standard.set(imageUrl, forKey: "mediaInfoImageUrl_\(module.id.uuidString)")
+            Logger.shared.log("Saved MediaInfoView image URL: \(imageUrl) for module \(module.id.uuidString)", type: "Debug")
+            
+
+            
             if module.metadata.novel == true {
-                DispatchQueue.main.async {
-                    DropManager.shared.showDrop(
-                        title: "Fetching Data",
-                        subtitle: "Please wait while fetching.",
-                        duration: 0.5,
-                        icon: UIImage(systemName: "arrow.triangle.2.circlepath")
-                    )
+                if !hasFetched {
+                    DispatchQueue.main.async {
+                        DropManager.shared.showDrop(
+                            title: "Fetching Data",
+                            subtitle: "Please wait while fetching.",
+                            duration: 0.5,
+                            icon: UIImage(systemName: "arrow.triangle.2.circlepath")
+                        )
+                    }
                 }
                 let jsContent = try? moduleManager.getModuleContent(module)
                 if let jsContent = jsContent {
@@ -949,12 +1033,14 @@ struct MediaInfoView: View {
                 if let savedPoster = UserDefaults.standard.string(forKey: "tmdbPosterURL_\(href)") {
                     imageUrl = savedPoster
                 }
-                DropManager.shared.showDrop(
-                    title: "Fetching Data",
-                    subtitle: "Please wait while fetching.",
-                    duration: 0.5,
-                    icon: UIImage(systemName: "arrow.triangle.2.circlepath")
-                )
+                if !hasFetched {
+                    DropManager.shared.showDrop(
+                        title: "Fetching Data",
+                        subtitle: "Please wait while fetching.",
+                        duration: 0.5,
+                        icon: UIImage(systemName: "arrow.triangle.2.circlepath")
+                    )
+                }
                 fetchDetails()
                 if savedCustomID != 0 {
                     itemID = savedCustomID
@@ -969,10 +1055,10 @@ struct MediaInfoView: View {
                     additionalData: ["title": title]
                 )
             }
-        } catch {
+        } catch let loadError {
             isError = true
             isLoading = false
-            Logger.shared.log("Error loading media info: \(error)", type: "Error")
+            Logger.shared.log("Error loading media info: \(loadError)", type: "Error")
         }
     }
     
@@ -2199,4 +2285,74 @@ struct MediaInfoView: View {
         }
         return ranges
     }
+    
+    private func markChapterAsRead(href: String, number: Int) {
+        UserDefaults.standard.set(1.0, forKey: "readingProgress_\(href)")
+        
+        UserDefaults.standard.set(1.0, forKey: "scrollPosition_\(href)")
+        
+        ContinueReadingManager.shared.updateProgress(for: href, progress: 1.0)
+        
+        DropManager.shared.showDrop(
+            title: "Chapter \(number) Marked as Read",
+            subtitle: "",
+            duration: 1.0,
+            icon: UIImage(systemName: "checkmark.circle.fill")
+        )
+        refreshTrigger.toggle()
+    }
+    
+    private func resetChapterProgress(href: String) {
+        UserDefaults.standard.set(0.0, forKey: "readingProgress_\(href)")
+        
+        UserDefaults.standard.removeObject(forKey: "scrollPosition_\(href)")
+        
+        ContinueReadingManager.shared.updateProgress(for: href, progress: 0.0)
+        
+        DropManager.shared.showDrop(
+            title: "Progress Reset",
+            subtitle: "",
+            duration: 1.0,
+            icon: UIImage(systemName: "arrow.counterclockwise")
+        )
+        refreshTrigger.toggle()
+    }
+    
+    private func markAllPreviousChaptersAsRead(currentNumber: Int) {
+        let userDefaults = UserDefaults.standard
+        var markedCount = 0
+        
+        for chapter in chapters {
+            if let number = chapter["number"] as? Int,
+               let href = chapter["href"] as? String {
+                if number < currentNumber {
+                    userDefaults.set(1.0, forKey: "readingProgress_\(href)")
+                    
+                    userDefaults.set(1.0, forKey: "scrollPosition_\(href)")
+                    
+                    ContinueReadingManager.shared.updateProgress(for: href, progress: 1.0)
+                    markedCount += 1
+                }
+            }
+        }
+        
+        userDefaults.synchronize()
+        
+        DropManager.shared.showDrop(
+            title: "Marked \(markedCount) Chapters as Read",
+            subtitle: "",
+            duration: 1.0,
+            icon: UIImage(systemName: "checkmark.circle.fill")
+        )
+        
+        refreshTrigger.toggle()
+    }
+    
+    private func simultaneousGesture(for item: NavigationLink<some View, some View>) -> some View {
+        item.simultaneousGesture(TapGesture().onEnded {
+            UserDefaults.standard.set(true, forKey: "navigatingToReaderView")
+        })
+    }
 }
+
+

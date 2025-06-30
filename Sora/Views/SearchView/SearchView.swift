@@ -23,7 +23,7 @@ struct SearchView: View {
     
     @StateObject private var jsController = JSController.shared
     @EnvironmentObject var moduleManager: ModuleManager
-    @EnvironmentObject var tabBarController: TabBarController
+
     @Environment(\.verticalSizeClass) var verticalSizeClass
     
     @Binding public var searchQuery: String
@@ -38,6 +38,7 @@ struct SearchView: View {
     @State private var isSearchFieldFocused = false
     @State private var saveDebounceTimer: Timer?
     @State private var searchDebounceTimer: Timer?
+    @State private var isActive: Bool = false
     
     init(searchQuery: Binding<String>) {
         self._searchQuery = searchQuery
@@ -75,7 +76,7 @@ struct SearchView: View {
     private var mainContent: some View {
         VStack(alignment: .leading) {
             HStack {
-                Text("Search")
+                Text(LocalizedStringKey("Search"))
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
@@ -138,11 +139,51 @@ struct SearchView: View {
             }
         }
         .onAppear {
+            isActive = true
             loadSearchHistory()
             if !searchQuery.isEmpty {
                 performSearch()
             }
-            tabBarController.showTabBar()
+            let isMediaInfoActive = UserDefaults.standard.bool(forKey: "isMediaInfoActive")
+            let isReaderActive = UserDefaults.standard.bool(forKey: "isReaderActive")
+            if !isMediaInfoActive && !isReaderActive {
+                NotificationCenter.default.post(name: .showTabBar, object: nil)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) {
+                let isMediaInfoActive = UserDefaults.standard.bool(forKey: "isMediaInfoActive")
+                let isReaderActive = UserDefaults.standard.bool(forKey: "isReaderActive")
+                if !isMediaInfoActive && !isReaderActive {
+                    NotificationCenter.default.post(name: .showTabBar, object: nil)
+                }
+            }
+            
+            NotificationCenter.default.addObserver(
+                forName: .searchQueryChanged,
+                object: nil,
+                queue: .main
+            ) { notification in
+                if let query = notification.userInfo?["searchQuery"] as? String {
+                    searchQuery = query
+                }
+            }
+        }
+        .onDisappear {
+            NotificationCenter.default.removeObserver(self, name: .searchQueryChanged, object: nil)
+        }
+        .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
+            let isMediaInfoActive = UserDefaults.standard.bool(forKey: "isMediaInfoActive")
+            let isReaderActive = UserDefaults.standard.bool(forKey: "isReaderActive")
+            if isActive && !isMediaInfoActive && !isReaderActive {
+                NotificationCenter.default.post(name: .showTabBar, object: nil)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            isActive = true
+            let isMediaInfoActive = UserDefaults.standard.bool(forKey: "isMediaInfoActive")
+            let isReaderActive = UserDefaults.standard.bool(forKey: "isReaderActive")
+            if !isMediaInfoActive && !isReaderActive {
+                NotificationCenter.default.post(name: .showTabBar, object: nil)
+            }
         }
         .onChange(of: selectedModuleId) { _ in
             if !searchQuery.isEmpty {
@@ -302,6 +343,7 @@ struct SearchView: View {
     }
 }
 
+
 struct SearchBar: View {
     @State private var debounceTimer: Timer?
     @Binding var text: String
@@ -310,7 +352,7 @@ struct SearchBar: View {
     
     var body: some View {
         HStack {
-            TextField("Search...", text: $text, onEditingChanged: { isEditing in
+            TextField(LocalizedStringKey("Search..."), text: $text, onEditingChanged: { isEditing in
                 isFocused = isEditing
             }, onCommit: onSearchButtonClicked)
                 .padding(7)

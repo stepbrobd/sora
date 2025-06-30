@@ -12,7 +12,7 @@ struct CollectionDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var libraryManager: LibraryManager
     @EnvironmentObject private var moduleManager: ModuleManager
-    @EnvironmentObject private var tabBarController: TabBarController
+
     
     let collection: BookmarkCollection
     @State private var sortOption: SortOption = .dateAdded
@@ -20,6 +20,7 @@ struct CollectionDetailView: View {
     @State private var isSearchActive: Bool = false
     @State private var isSelecting: Bool = false
     @State private var selectedBookmarks: Set<LibraryItem.ID> = []
+    @State private var isActive: Bool = false
     
     enum SortOption: String, CaseIterable {
         case dateAdded = "Date Added"
@@ -28,10 +29,15 @@ struct CollectionDetailView: View {
     }
     
     private var filteredAndSortedBookmarks: [LibraryItem] {
-        let filtered = searchText.isEmpty ? collection.bookmarks : collection.bookmarks.filter { item in
+        let validBookmarks = collection.bookmarks.filter { bookmark in
+            moduleManager.modules.contains { $0.id.uuidString == bookmark.moduleId }
+        }
+        
+        let filtered = searchText.isEmpty ? validBookmarks : validBookmarks.filter { item in
             item.title.localizedCaseInsensitiveContains(searchText) ||
             item.moduleName.localizedCaseInsensitiveContains(searchText)
         }
+        
         switch sortOption {
         case .dateAdded:
             return filtered
@@ -92,7 +98,7 @@ struct CollectionDetailView: View {
                                 sortOption = option
                             } label: {
                                 HStack {
-                                    Text(option.rawValue)
+                                    Text(NSLocalizedString(option.rawValue, comment: ""))
                                     if option == sortOption {
                                         Image(systemName: "checkmark")
                                             .foregroundColor(.accentColor)
@@ -118,7 +124,7 @@ struct CollectionDetailView: View {
                         if isSelecting {
                             if !selectedBookmarks.isEmpty {
                                 for id in selectedBookmarks {
-                                    if let item = collection.bookmarks.first(where: { $0.id == id }) {
+                                    if collection.bookmarks.contains(where: { $0.id == id }) {
                                         libraryManager.removeBookmarkFromCollection(bookmarkId: id, collectionId: collection.id)
                                     }
                                 }
@@ -156,7 +162,7 @@ struct CollectionDetailView: View {
                             .scaledToFit()
                             .frame(width: 18, height: 18)
                             .foregroundColor(.secondary)
-                        TextField("Search bookmarks...", text: $searchText)
+                        TextField(LocalizedStringKey("Search bookmarks..."), text: $searchText)
                             .textFieldStyle(PlainTextFieldStyle())
                             .foregroundColor(.primary)
                         if !searchText.isEmpty {
@@ -258,6 +264,7 @@ struct CollectionDetailView: View {
                                     )) {
                                         BookmarkGridItemView(item: bookmark, module: module)
                                     }
+                                    .isDetailLink(true)
                                     .contextMenu {
                                         Button(role: .destructive) {
                                             libraryManager.removeBookmarkFromCollection(bookmarkId: bookmark.id, collectionId: collection.id)
@@ -277,13 +284,41 @@ struct CollectionDetailView: View {
         .navigationBarBackButtonHidden(true)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
+            isActive = true
             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                let window = windowScene.windows.first,
                let navigationController = window.rootViewController?.children.first as? UINavigationController {
                 navigationController.interactivePopGestureRecognizer?.isEnabled = true
                 navigationController.interactivePopGestureRecognizer?.delegate = nil
             }
-            tabBarController.showTabBar()
+            
+            let isMediaInfoActive = UserDefaults.standard.bool(forKey: "isMediaInfoActive")
+            let isReaderActive = UserDefaults.standard.bool(forKey: "isReaderActive")
+            if !isMediaInfoActive && !isReaderActive {
+                NotificationCenter.default.post(name: .showTabBar, object: nil)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) {
+                let isMediaInfoActive = UserDefaults.standard.bool(forKey: "isMediaInfoActive")
+                let isReaderActive = UserDefaults.standard.bool(forKey: "isReaderActive")
+                if !isMediaInfoActive && !isReaderActive {
+                    NotificationCenter.default.post(name: .showTabBar, object: nil)
+                }
+            }
+        }
+        .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
+            let isMediaInfoActive = UserDefaults.standard.bool(forKey: "isMediaInfoActive")
+            let isReaderActive = UserDefaults.standard.bool(forKey: "isReaderActive")
+            if isActive && !isMediaInfoActive && !isReaderActive {
+                NotificationCenter.default.post(name: .showTabBar, object: nil)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            isActive = true
+            let isMediaInfoActive = UserDefaults.standard.bool(forKey: "isMediaInfoActive")
+            let isReaderActive = UserDefaults.standard.bool(forKey: "isReaderActive")
+            if !isMediaInfoActive && !isReaderActive {
+                NotificationCenter.default.post(name: .showTabBar, object: nil)
+            }
         }
     }
 } 

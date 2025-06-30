@@ -184,7 +184,10 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         volumeSliderHostingView,
         pipButton,
         airplayButton,
-        timeBatteryContainer
+        timeBatteryContainer,
+        endTimeIcon,
+        endTimeLabel,
+        endTimeSeparator
     ].compactMap { $0 }
     
     private var originalHiddenStates: [UIView: Bool] = [:]
@@ -207,6 +210,10 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     private var timeLabel: UILabel?
     private var batteryLabel: UILabel?
     private var timeUpdateTimer: Timer?
+    private var endTimeLabel: UILabel?
+    private var endTimeIcon: UIImageView?
+    private var endTimeSeparator: UIView?
+    private var isEndTimeVisible: Bool = false
     
     init(module: ScrapingModule,
          urlString: String,
@@ -332,10 +339,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             self?.checkForHLSStream()
         }
         
-        if isHoldPauseEnabled {
-            holdForPause()
-        }
-        
         do {
             try audioSession.setActive(true)
         } catch {
@@ -394,6 +397,11 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         if let slider = hiddenVolumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
             systemVolumeSlider = slider
         }
+        
+        let twoFingerTapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTwoFingerTapPause(_:)))
+        twoFingerTapGesture.numberOfTouchesRequired = 2
+        twoFingerTapGesture.delegate = self
+        view.addGestureRecognizer(twoFingerTapGesture)
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -461,6 +469,11 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         NotificationCenter.default.removeObserver(self)
         UIDevice.current.isBatteryMonitoringEnabled = false
         
+        // Clean up end time related resources
+        endTimeIcon?.removeFromSuperview()
+        endTimeLabel?.removeFromSuperview()
+        endTimeSeparator?.removeFromSuperview()
+        
         inactivityTimer?.invalidate()
         inactivityTimer = nil
         
@@ -473,7 +486,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             player?.removeTimeObserver(token)
         }
         
-        // Remove observer from player item if it exists
         if let currentItem = player?.currentItem {
             currentItem.removeObserver(self, forKeyPath: "status", context: &playerItemKVOContext)
         }
@@ -548,7 +560,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                 }
             }
         } else if keyPath == "loadedTimeRanges" {
-            // Handle loaded time ranges if needed
         }
     }
     
@@ -593,13 +604,14 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(toggleControls))
         view.addGestureRecognizer(tapGesture)
-    }
-    
-    func setupControls() {
-        controlsContainerView = UIView()
+        
+        controlsContainerView = PassthroughView()
         controlsContainerView.backgroundColor = UIColor.black.withAlphaComponent(0.0)
         view.addSubview(controlsContainerView)
         controlsContainerView.translatesAutoresizingMaskIntoConstraints = false
+    }
+    
+    func setupControls() {
         NSLayoutConstraint.activate([
             controlsContainerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             controlsContainerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
@@ -610,6 +622,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         blackCoverView = UIView()
         blackCoverView.backgroundColor = UIColor.black.withAlphaComponent(0.4)
         blackCoverView.translatesAutoresizingMaskIntoConstraints = false
+        blackCoverView.isUserInteractionEnabled = false
         controlsContainerView.insertSubview(blackCoverView, at: 0)
         NSLayoutConstraint.activate([
             blackCoverView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -765,11 +778,10 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         ])
     }
     
-    func holdForPause() {
-        let holdForPauseGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleHoldForPause(_:)))
-        holdForPauseGesture.minimumPressDuration = 1
-        holdForPauseGesture.numberOfTouchesRequired = 2
-        view.addGestureRecognizer(holdForPauseGesture)
+    @objc private func handleTwoFingerTapPause(_ gesture: UITapGestureRecognizer) {
+        if gesture.state == .ended {
+            togglePlayPause()
+        }
     }
     
     func addInvisibleControlOverlays() {
@@ -1589,6 +1601,9 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                 self.sliderViewModel.sliderValue = max(0, min(self.currentTimeVal, self.duration))
             }
             
+            // Update end time when current time changes
+            self.updateEndTime()
+            
             self.updateSkipButtonsVisibility()
             
             UserDefaults.standard.set(self.currentTimeVal, forKey: "lastPlayedTime_\(self.fullUrl)")
@@ -1746,6 +1761,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             return
         }
         
+        isControlsVisible.toggle()
+        
         if isDimmed {
             dimButton.isHidden = false
             dimButton.alpha = 1.0
@@ -1755,12 +1772,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                     self?.dimButton.alpha = 0
                 }
             }
-            
-            updateSkipButtonsVisibility()
-            return
         }
         
-        isControlsVisible.toggle()
         UIView.animate(withDuration: 0.2) {
             let alpha: CGFloat = self.isControlsVisible ? 1.0 : 0.0
             self.controlsContainerView.alpha = alpha
@@ -1947,31 +1960,12 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         player.seek(to: CMTime(seconds: currentTimeVal, preferredTimescale: 600))
     }
     
-    @objc private func handleHoldForPause(_ gesture: UILongPressGestureRecognizer) {
-        guard isHoldPauseEnabled else { return }
-        
-        if gesture.state == .began {
-            togglePlayPause()
-        }
-    }
-    
     @objc private func dimTapped() {
         isDimmed.toggle()
-        isControlsVisible = !isDimmed
         dimButtonTimer?.invalidate()
-        
         UIView.animate(withDuration: 0.25) {
             self.blackCoverView.alpha = self.isDimmed ? 1.0 : 0.4
-            for v in self.controlsToHide { v.alpha = self.isDimmed ? 0 :  1 }
-            self.dimButton.alpha  = self.isDimmed ? 0 : 1
-            self.lockButton.alpha = self.isDimmed ? 0 : 1
-            
-            self.subtitleBottomToSafeAreaConstraint?.isActive = !self.isControlsVisible
-            self.subtitleBottomToSliderConstraint?.isActive    =  self.isControlsVisible
-            
-            self.view.layoutIfNeeded()
         }
-        
         dimButtonToSlider.isActive = !isDimmed
         dimButtonToRight.isActive  =  isDimmed
     }
@@ -2131,7 +2125,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     
     private func parseM3U8(url: URL, completion: @escaping () -> Void) {
-        // For local file URLs, use a simple data task without custom headers
         if url.scheme == "file" {
             URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
                 self?.processM3U8Data(data: data, url: url, completion: completion)
@@ -2139,7 +2132,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             return
         }
         
-        // For remote URLs, add HTTP headers
         var request = URLRequest(url: url)
         if let mydict = headers, !mydict.isEmpty {
             for (key,value) in mydict {
@@ -2243,12 +2235,10 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         
         let asset: AVURLAsset
         
-        // Check if this is a local file URL
         if url.scheme == "file" {
-            // For local files, don't add HTTP headers
             Logger.shared.log("Switching to local file: \(url.absoluteString)", type: "Debug")
             
-            // Check if file exists
+
             if FileManager.default.fileExists(atPath: url.path) {
                 Logger.shared.log("Local file exists for quality switch: \(url.path)", type: "Debug")
             } else {
@@ -2257,7 +2247,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             
             asset = AVURLAsset(url: url)
         } else {
-            // For remote URLs, add HTTP headers
             Logger.shared.log("Switching to remote URL: \(url.absoluteString)", type: "Debug")
             var request = URLRequest(url: url)
             if let mydict = headers, !mydict.isEmpty {
@@ -2275,10 +2264,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         
         let playerItem = AVPlayerItem(asset: asset)
         
-        // Add observer for the new player item
         playerItem.addObserver(self, forKeyPath: "status", options: [.new], context: &playerItemKVOContext)
         
-        // Remove observer from old item if it exists
         if let currentItem = player.currentItem {
             currentItem.removeObserver(self, forKeyPath: "status", context: &playerItemKVOContext)
         }
@@ -2839,6 +2826,36 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         controlsContainerView.addSubview(container)
         self.timeBatteryContainer = container
         
+        // Add tap gesture to toggle end time visibility
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(toggleEndTimeVisibility))
+        container.addGestureRecognizer(tapGesture)
+        container.isUserInteractionEnabled = true
+        
+        // Add end time components (initially hidden)
+        let endTimeIcon = UIImageView(image: UIImage(systemName: "timer"))
+        endTimeIcon.translatesAutoresizingMaskIntoConstraints = false
+        endTimeIcon.tintColor = .white
+        endTimeIcon.contentMode = .scaleAspectFit
+        endTimeIcon.alpha = 0
+        container.addSubview(endTimeIcon)
+        self.endTimeIcon = endTimeIcon
+        
+        let endTimeLabel = UILabel()
+        endTimeLabel.translatesAutoresizingMaskIntoConstraints = false
+        endTimeLabel.textColor = .white
+        endTimeLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        endTimeLabel.textAlignment = .center
+        endTimeLabel.alpha = 0
+        container.addSubview(endTimeLabel)
+        self.endTimeLabel = endTimeLabel
+        
+        let endTimeSeparator = UIView()
+        endTimeSeparator.translatesAutoresizingMaskIntoConstraints = false
+        endTimeSeparator.backgroundColor = .white.withAlphaComponent(0.5)
+        endTimeSeparator.alpha = 0
+        container.addSubview(endTimeSeparator)
+        self.endTimeSeparator = endTimeSeparator
+        
         let timeLabel = UILabel()
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
         timeLabel.textColor = .white
@@ -2860,12 +2877,28 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         container.addSubview(batteryLabel)
         self.batteryLabel = batteryLabel
         
+        let centerXConstraint = container.centerXAnchor.constraint(equalTo: controlsContainerView.centerXAnchor)
+        centerXConstraint.isActive = true
+        
         NSLayoutConstraint.activate([
-            container.centerXAnchor.constraint(equalTo: controlsContainerView.centerXAnchor),
             container.topAnchor.constraint(equalTo: sliderHostingController?.view.bottomAnchor ?? controlsContainerView.bottomAnchor, constant: 2),
             container.heightAnchor.constraint(equalToConstant: 20),
             
-            timeLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
+            endTimeIcon.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
+            endTimeIcon.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            endTimeIcon.widthAnchor.constraint(equalToConstant: 12),
+            endTimeIcon.heightAnchor.constraint(equalToConstant: 12),
+            
+            endTimeLabel.leadingAnchor.constraint(equalTo: endTimeIcon.trailingAnchor, constant: 4),
+            endTimeLabel.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            endTimeLabel.widthAnchor.constraint(equalToConstant: 50),
+            
+            endTimeSeparator.leadingAnchor.constraint(equalTo: endTimeLabel.trailingAnchor, constant: 8),
+            endTimeSeparator.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            endTimeSeparator.widthAnchor.constraint(equalToConstant: 1),
+            endTimeSeparator.heightAnchor.constraint(equalToConstant: 12),
+            
+            timeLabel.leadingAnchor.constraint(equalTo: endTimeSeparator.trailingAnchor, constant: 8),
             timeLabel.centerYAnchor.constraint(equalTo: container.centerYAnchor),
             timeLabel.widthAnchor.constraint(equalToConstant: 50),
             
@@ -2880,9 +2913,14 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             batteryLabel.widthAnchor.constraint(equalToConstant: 50)
         ])
         
+        isEndTimeVisible = UserDefaults.standard.bool(forKey: "showEndTime")
+        updateEndTimeVisibility(animated: false)
+        
         updateTime()
+        updateEndTime()
         timeUpdateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             self?.updateTime()
+            self?.updateEndTime()
         }
         
         UIDevice.current.isBatteryMonitoringEnabled = true
@@ -2890,10 +2928,60 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         NotificationCenter.default.addObserver(self, selector: #selector(batteryLevelDidChange), name: UIDevice.batteryLevelDidChangeNotification, object: nil)
     }
     
+    @objc private func toggleEndTimeVisibility() {
+        isEndTimeVisible.toggle()
+        UserDefaults.standard.set(isEndTimeVisible, forKey: "showEndTime")
+        updateEndTimeVisibility(animated: true)
+    }
+    
+    private func updateEndTimeVisibility(animated: Bool) {
+        let alpha: CGFloat = isEndTimeVisible ? 1.0 : 0.0
+        let offset: CGFloat = isEndTimeVisible ? 0 : -37 
+        
+        if animated {
+            UIView.animate(withDuration: 0.3) {
+                self.endTimeIcon?.alpha = alpha
+                self.endTimeSeparator?.alpha = alpha
+                self.endTimeLabel?.alpha = alpha
+                
+                if let container = self.timeBatteryContainer {
+                    container.transform = CGAffineTransform(translationX: offset, y: 0)
+                }
+            }
+        } else {
+            self.endTimeIcon?.alpha = alpha
+            self.endTimeSeparator?.alpha = alpha
+            self.endTimeLabel?.alpha = alpha
+            
+            // 调整容器位置以保持居中
+            if let container = self.timeBatteryContainer {
+                container.transform = CGAffineTransform(translationX: offset, y: 0)
+            }
+        }
+    }
+    
     private func updateTime() {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         timeLabel?.text = formatter.string(from: Date())
+    }
+    
+    private func updateEndTime() {
+        guard let player = player, duration > 0 else { return }
+        
+        let currentSeconds = CMTimeGetSeconds(player.currentTime())
+        let remainingSeconds = duration - currentSeconds
+        
+        if remainingSeconds <= 0 {
+            endTimeLabel?.text = "--:--"
+            return
+        }
+        
+        // Calculate end time by adding remaining seconds to current time
+        let endTime = Date().addingTimeInterval(remainingSeconds)
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        endTimeLabel?.text = formatter.string(from: endTime)
     }
     
     @objc private func batteryLevelDidChange() {
@@ -2962,9 +3050,28 @@ extension CustomMediaPlayerViewController: AVPictureInPictureControllerDelegate 
     }
 }
 
+extension CustomMediaPlayerViewController {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+}
+
 // yes? Like the plural of the famous american rapper ye? -IBHRAD
 // low taper fade the meme is massive -cranci
 // The mind is the source of good and evil, only you yourself can decide which you will bring yourself. -seiike
 // guys watch Clannad already - ibro
 // May the Divine Providence bestow its infinite mercy upon your soul, and may eternal grace find you beyond the shadows of this mortal realm. - paul, 15/11/2005 - 13/05/2023
 // this dumbass ↑ defo used gpt, ong he did bro
+// A view that passes through touches to views behind it unless the touch hits a subview
+// fuck yall stories, continue below this code
+
+class PassthroughView: UIView {
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        for subview in subviews {
+            if !subview.isHidden && subview.alpha > 0 && subview.isUserInteractionEnabled && subview.point(inside: convert(point, to: subview), with: event) {
+                return true
+            }
+        }
+        return false
+    }
+}
