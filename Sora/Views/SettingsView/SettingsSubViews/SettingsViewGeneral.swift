@@ -341,6 +341,8 @@ struct SettingsViewGeneral: View {
                             .font(.caption)
                             .foregroundStyle(.gray)
                             .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.top, -6)
+                            .padding(.bottom, 8)
                     }
                     .environment(\.editMode, .constant(.active))
                 }
