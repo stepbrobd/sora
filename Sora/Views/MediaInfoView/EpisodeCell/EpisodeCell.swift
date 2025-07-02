@@ -233,7 +233,7 @@ private extension EpisodeCell {
     }
     
     var downloadedIndicator: some View {
-        Image(systemName: "folder.fill")
+        Image(systemName: "externaldrive.fill.badge.checkmark")
             .foregroundColor(.accentColor)
             .font(.system(size: 18))
     }
