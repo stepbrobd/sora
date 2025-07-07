@@ -540,19 +540,6 @@ struct MediaInfoView: View {
         if episodeLinks.count != 1 {
             VStack(alignment: .leading, spacing: 16) {
                 episodesSectionHeader
-                if isGroupedBySeasons || episodeLinks.count > episodeChunkSize {
-                    HStack(spacing: 8) {
-                        if isGroupedBySeasons {
-                            seasonSelectorStyled
-                        }
-                        Spacer()
-                        if episodeLinks.count > episodeChunkSize {
-                            rangeSelectorStyled
-                                .padding(.trailing, 4)
-                        }
-                    }
-                    .padding(.top, -8)
-                }
                 episodeListSection
             }
         }
@@ -614,6 +601,20 @@ struct MediaInfoView: View {
             Spacer()
             
             HStack(spacing: 4) {
+                if isGroupedBySeasons || episodeLinks.count > episodeChunkSize {
+                    HStack(spacing: 8) {
+                        if isGroupedBySeasons {
+                            seasonSelectorStyled
+                        }
+                        Spacer()
+                        if episodeLinks.count > episodeChunkSize {
+                            rangeSelectorStyled
+                                .padding(.trailing, 4)
+                        }
+                    }
+                    .padding(.top, -8)
+                }
+                
                 sourceButton
                 menuButton
             }
@@ -715,17 +716,19 @@ struct MediaInfoView: View {
                     .foregroundColor(.primary)
                 Spacer()
                 HStack(spacing: 4) {
+                    if chapters.count > chapterChunkSize {
+                        HStack {
+                            Spacer()
+                            chapterRangeSelectorStyled
+                        }
+                        .padding(.bottom, 0)
+                    }
+                    
                     sourceButton
                     menuButton
                 }
             }
-            if chapters.count > chapterChunkSize {
-                HStack {
-                    Spacer()
-                    chapterRangeSelectorStyled
-                }
-                .padding(.bottom, 0)
-            }
+            
             LazyVStack(spacing: 15) {
                 ForEach(chapters.indices.filter { selectedChapterRange.contains($0) }, id: \..self) { i in
                     let chapter = chapters[i]
