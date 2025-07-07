@@ -149,7 +149,7 @@ fileprivate struct SettingsPickerRow<T: Hashable>: View {
 }
 
 struct SettingsViewGeneral: View {
-    @AppStorage("episodeChunkSize") private var episodeChunkSize: Int = 100
+    @AppStorage("episodeChunkSize") private var episodeChunkSize: Int = 50
     @AppStorage("refreshModulesOnLaunch") private var refreshModulesOnLaunch: Bool = true
     @AppStorage("fetchEpisodeMetadata") private var fetchEpisodeMetadata: Bool = true
     @AppStorage("analyticsEnabled") private var analyticsEnabled: Bool = false

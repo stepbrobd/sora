@@ -47,7 +47,7 @@ struct MediaInfoView: View {
     @State private var selectedSeason: Int = 0
     @State private var selectedRange: Range<Int> = {
         let size = UserDefaults.standard.integer(forKey: "episodeChunkSize")
-        let chunk = size == 0 ? 100 : size
+        let chunk = size == 0 ? 50 : size
         return 0..<chunk
     }()
     
@@ -76,7 +76,7 @@ struct MediaInfoView: View {
     private var selectedSeasonKey: String { "selectedSeason_\(href)" }
     
     @AppStorage("externalPlayer") private var externalPlayer: String = "Default"
-    @AppStorage("episodeChunkSize") private var episodeChunkSize: Int = 100
+    @AppStorage("episodeChunkSize") private var episodeChunkSize: Int = 50
     @AppStorage("selectedAppearance") private var selectedAppearance: Appearance = .system
     
     @ObservedObject private var jsController = JSController.shared
@@ -164,11 +164,11 @@ struct MediaInfoView: View {
     }
     
     @State private var selectedChapterRange: Range<Int> = {
-        let size = UserDefaults.standard.integer(forKey: "chapterChunkSize")
-        let chunk = size == 0 ? 100 : size
+        let size = UserDefaults.standard.integer(forKey: "episodeChunkSize")
+        let chunk = size == 0 ? 50 : size
         return 0..<chunk
     }()
-    @AppStorage("chapterChunkSize") private var chapterChunkSize: Int = 100
+    @AppStorage("chapterChunkSize") private var chapterChunkSize: Int = 50
     private var selectedChapterRangeKey: String { "selectedChapterRangeStart_\(href)" }
     
     var body: some View {
