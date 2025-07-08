@@ -4,17 +4,5 @@
 <dict>
 	<key>com.apple.developer.group-session</key>
 	<true/>
-	<key>com.apple.security.app-sandbox</key>
-	<true/>
-	<key>com.apple.security.assets.movies.read-write</key>
-	<true/>
-	<key>com.apple.security.assets.music.read-write</key>
-	<true/>
-	<key>com.apple.security.files.user-selected.read-write</key>
-	<true/>
-	<key>com.apple.security.network.client</key>
-	<true/>
-	<key>com.apple.security.network.server</key>
-	<true/>
 </dict>
 </plist>
