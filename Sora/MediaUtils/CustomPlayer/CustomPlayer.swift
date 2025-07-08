@@ -177,6 +177,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     private var dimButtonToRight: NSLayoutConstraint!
     private var dimButtonTimer: Timer?
     
+    let cfg = UIImage.SymbolConfiguration(pointSize: 15, weight: .medium)
+    
     private var controlsToHide: [UIView] {
         var views = [
             dismissButton,
@@ -1105,8 +1107,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     func setupDismissButton() {
-        let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
-        let image = UIImage(systemName: "xmark", withConfiguration: config)
+        let image = UIImage(systemName: "xmark", withConfiguration: cfg)
         
         let dismissCircle = createCircularBlurBackground(size: 42)
         view.addSubview(dismissCircle)
@@ -1534,15 +1535,13 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             skip85Button.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: 18),
             skip85Button.bottomAnchor.constraint(equalTo: sliderHostingController!.view.topAnchor, constant: -12),
             skip85Button.heightAnchor.constraint(equalToConstant: 40),
-            skip85Button.widthAnchor.constraint(greaterThanOrEqualToConstant: 97)
+            skip85Button.widthAnchor.constraint(greaterThanOrEqualToConstant: 104)
         ]
         NSLayoutConstraint.activate(skip85Constraints)
     }
     
-    
     private func setupQualityButton() {
-        let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
-        let image = UIImage(systemName: "tv", withConfiguration: config)
+        let image = UIImage(systemName: "tv", withConfiguration: cfg)
         
         qualityButton = UIButton(type: .system)
         qualityButton.setImage(image, for: .normal)
@@ -1814,8 +1813,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             self.currentTimeVal = self.player.currentTime().seconds
         }
     }
-    
-
     
     @objc func toggleControls() {
         if controlsLocked {
@@ -2112,6 +2109,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         dimButtonTimer?.invalidate()
         UIView.animate(withDuration: 0.25) {
             self.blackCoverView.alpha = self.isDimmed ? 1.0 : 0.0
+            let iconName = self.isDimmed ? "moon.fill" : "moon"
+            self.dimButton.setImage(UIImage(systemName: iconName, withConfiguration: self.cfg), for: .normal)
         }
     }
     
@@ -3208,8 +3207,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     func setupWatchNextButton() {
-        let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
-        let image = UIImage(systemName: "forward.end", withConfiguration: config)
+        let image = UIImage(systemName: "forward.end", withConfiguration: cfg)
         
         watchNextButton = UIButton(type: .system)
         watchNextButton.setImage(image, for: .normal)
@@ -3221,7 +3219,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     private func setupDimButton() {
-        let cfg = UIImage.SymbolConfiguration(pointSize: 15, weight: .medium)
         dimButton = UIButton(type: .system)
         dimButton.setImage(UIImage(systemName: "moon", withConfiguration: cfg), for: .normal)
         dimButton.tintColor = .white
@@ -3240,8 +3237,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     func setupSpeedButton() {
-        let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
-        let image = UIImage(systemName: "speedometer", withConfiguration: config)
+        let image = UIImage(systemName: "speedometer", withConfiguration: cfg)
         
         speedButton = UIButton(type: .system)
         speedButton.setImage(image, for: .normal)
@@ -3255,8 +3251,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     func setupMenuButton() {
-        let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .bold)
-        let image = UIImage(systemName: "captions.bubble", withConfiguration: config)
+        let image = UIImage(systemName: "captions.bubble", withConfiguration: cfg)
         
         menuButton = UIButton(type: .system)
         menuButton.setImage(image, for: .normal)
@@ -3275,7 +3270,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     private func setupLockButton() {
-        let cfg = UIImage.SymbolConfiguration(pointSize: 15, weight: .medium)
         lockButton = UIButton(type: .system)
         lockButton.setImage(
             UIImage(systemName: "lock.open", withConfiguration: cfg),
@@ -3295,10 +3289,10 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     private func setupUnlockButton() {
-        let cfg = UIImage.SymbolConfiguration(pointSize: 40, weight: .medium)
+        let config = UIImage.SymbolConfiguration(pointSize: 30, weight: .medium)
         unlockButton = UIButton(type: .system)
         unlockButton.setImage(
-            UIImage(systemName: "lock", withConfiguration: cfg),
+            UIImage(systemName: "lock", withConfiguration: config),
             for: .normal
         )
         unlockButton.tintColor = .white
@@ -3315,9 +3309,9 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         unlockButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             unlockButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            unlockButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            unlockButton.widthAnchor.constraint(equalToConstant: 80),
-            unlockButton.heightAnchor.constraint(equalToConstant: 80)
+            unlockButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            unlockButton.widthAnchor.constraint(equalToConstant: 60),
+            unlockButton.heightAnchor.constraint(equalToConstant: 60)
         ])
     }
     
@@ -3379,8 +3373,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         pipController = AVPictureInPictureController(playerLayer: playerLayer)
         pipController?.delegate = self
         
-        let config = UIImage.SymbolConfiguration(pointSize: 15, weight: .medium)
-        let Image = UIImage(systemName: "pip", withConfiguration: config)
+        let Image = UIImage(systemName: "pip", withConfiguration: cfg)
         pipButton = UIButton(type: .system)
         pipButton.setImage(Image, for: .normal)
         pipButton.tintColor = .white
