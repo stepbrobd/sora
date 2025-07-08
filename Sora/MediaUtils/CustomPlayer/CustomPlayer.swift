@@ -208,7 +208,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         }
         
         views.append(contentsOf: view.subviews.filter {
-            $0 is UIVisualEffectView || 
+            $0 is UIVisualEffectView ||
             ($0.layer.cornerRadius > 0 && $0 != dismissButton && $0 != lockButton && $0 != dimButton && $0 != pipButton && $0 != holdSpeedIndicator && $0 != volumeSliderHostingView)
         })
         
@@ -468,14 +468,14 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             object: player.currentItem
         )
         
-
+        
     }
     
     private func setupTopRowLayout() {
         if let old = view.subviews.first(where: { $0 is GradientBlurButton && $0 != controlButtonsContainer && $0 != skip85Button }) {
             old.removeFromSuperview()
         }
-
+        
         let capsuleContainer = GradientBlurButton(type: .custom)
         capsuleContainer.translatesAutoresizingMaskIntoConstraints = false
         capsuleContainer.backgroundColor = .clear
@@ -483,19 +483,19 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         capsuleContainer.clipsToBounds = true
         view.addSubview(capsuleContainer)
         capsuleContainer.alpha = isControlsVisible ? 1.0 : 0.0
-
+        
         let buttons: [UIView] = [airplayButton, pipButton, lockButton, dimButton]
         for btn in buttons {
             btn.removeFromSuperview()
             capsuleContainer.addSubview(btn)
         }
-
+        
         NSLayoutConstraint.activate([
             capsuleContainer.leadingAnchor.constraint(equalTo: dismissButton.superview!.trailingAnchor, constant: 12),
             capsuleContainer.centerYAnchor.constraint(equalTo: dismissButton.superview!.centerYAnchor),
             capsuleContainer.heightAnchor.constraint(equalToConstant: 42)
         ])
-
+        
         for (index, btn) in buttons.enumerated() {
             NSLayoutConstraint.activate([
                 btn.centerYAnchor.constraint(equalTo: capsuleContainer.centerYAnchor),
@@ -511,8 +511,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                 btn.trailingAnchor.constraint(equalTo: capsuleContainer.trailingAnchor, constant: -10).isActive = true
             }
         }
-
-
+        
+        
         view.bringSubviewToFront(skip85Button)
         
         if let volumeSlider = volumeSliderHostingView {
@@ -524,6 +524,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         super.viewWillTransition(to: size, with: coordinator)
         coordinator.animate(alongsideTransition: { _ in
             self.updateMarqueeConstraints()
+        }, completion: { _ in
+            self.view.layoutIfNeeded()
         })
     }
     
@@ -1280,15 +1282,15 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         if !isControlsVisible { return }
         let t = currentTimeVal
         
-        let skipIntroAvailable = skipIntervals.op != nil && 
-                                t >= skipIntervals.op!.start.seconds && 
-                                t <= skipIntervals.op!.end.seconds &&
-                                !skipIntroDismissedInSession
+        let skipIntroAvailable = skipIntervals.op != nil &&
+        t >= skipIntervals.op!.start.seconds &&
+        t <= skipIntervals.op!.end.seconds &&
+        !skipIntroDismissedInSession
         
-        let skipOutroAvailable = skipIntervals.ed != nil && 
-                                t >= skipIntervals.ed!.start.seconds && 
-                                t <= skipIntervals.ed!.end.seconds &&
-                                !skipOutroDismissedInSession
+        let skipOutroAvailable = skipIntervals.ed != nil &&
+        t >= skipIntervals.ed!.start.seconds &&
+        t <= skipIntervals.ed!.end.seconds &&
+        !skipOutroDismissedInSession
         
         let shouldShowSkip85 = isSkip85Visible && !skipIntroAvailable
         
@@ -1335,7 +1337,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                 view.setNeedsLayout()
                 view.layoutIfNeeded()
             }
-
+            
             UIView.animate(withDuration: 0.2) {
                 self.skipOutroButton.alpha = 1.0
             }
@@ -1530,7 +1532,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         skip85Button.addTarget(self, action: #selector(skip85Tapped), for: .touchUpInside)
         controlsContainerView.addSubview(skip85Button)
         skip85Button.translatesAutoresizingMaskIntoConstraints = false
-
+        
         let skip85Constraints = [
             skip85Button.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: 18),
             skip85Button.bottomAnchor.constraint(equalTo: sliderHostingController!.view.topAnchor, constant: -12),
@@ -1554,7 +1556,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         
         qualityButton.translatesAutoresizingMaskIntoConstraints = false
     }
-
+    
     private func setupControlButtonsContainer() {
         controlButtonsContainer?.removeFromSuperview()
         
@@ -1578,20 +1580,20 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         }
         
         let visibleButtons = [watchNextButton, speedButton, qualityButton, menuButton].compactMap { button -> UIButton? in
-            guard let button = button else { 
+            guard let button = button else {
                 Logger.shared.log("Button is nil", type: "Debug")
-                return nil 
+                return nil
             }
             
             if button == qualityButton {
                 Logger.shared.log("Quality button state - isHidden: \(button.isHidden), isHLSStream: \(isHLSStream)", type: "Debug")
             }
             
-            if button.isHidden { 
+            if button.isHidden {
                 if button == qualityButton {
                     Logger.shared.log("Quality button is hidden, skipping", type: "Debug")
                 }
-                return nil 
+                return nil
             }
             
             controlButtonsContainer.addSubview(button)
@@ -1745,7 +1747,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                 let remainingPercentage = (self.duration - self.currentTimeVal) / self.duration
                 let remainingTimePercentage = UserDefaults.standard.object(forKey: "remainingTimePercentage") != nil ? UserDefaults.standard.double(forKey: "remainingTimePercentage") : 90.0
                 let threshold = (100.0 - remainingTimePercentage) / 100.0
-            
+                
                 if remainingPercentage <= threshold {
                     if self.aniListID != 0 && !self.aniListUpdatedSuccessfully && !self.aniListUpdateImpossible {
                         self.tryAniListUpdate()
@@ -1957,9 +1959,9 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     @objc private func pipButtonTapped(_ sender: UIButton) {
         Logger.shared.log("PiP button tapped", type: "Debug")
-        guard let pip = pipController else { 
+        guard let pip = pipController else {
             Logger.shared.log("PiP controller is nil", type: "Error")
-            return 
+            return
         }
         Logger.shared.log("PiP controller found, isActive: \(pip.isPictureInPictureActive)", type: "Debug")
         if pip.isPictureInPictureActive {
@@ -2382,7 +2384,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         if url.scheme == "file" {
             Logger.shared.log("Switching to local file: \(url.absoluteString)", type: "Debug")
             
-
+            
             if FileManager.default.fileExists(atPath: url.path) {
                 Logger.shared.log("Local file exists for quality switch: \(url.path)", type: "Debug")
             } else {
@@ -3083,7 +3085,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     
     private func updateEndTimeVisibility(animated: Bool) {
         let alpha: CGFloat = isEndTimeVisible ? 1.0 : 0.0
-        let offset: CGFloat = isEndTimeVisible ? 0 : -37 
+        let offset: CGFloat = isEndTimeVisible ? 0 : -37
         
         if animated {
             UIView.animate(withDuration: 0.3) {
@@ -3166,7 +3168,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         }
     }
     
-
+    
     
     @objc private func protectMenuFromRecreation() {
         isMenuOpen = true
@@ -3180,25 +3182,28 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         let skip85Visible = !(skip85Button?.isHidden ?? true) && (skip85Button?.alpha ?? 0) > 0.1
         let skipOutroVisible = skipOutroButton.superview != nil && !skipOutroButton.isHidden && skipOutroButton.alpha > 0.1
         
+        let isLandscape = view.bounds.width > view.bounds.height
+        let widthMultiplier: CGFloat = isLandscape ? 0.5 : 0.7
+        
         if skipIntroVisible && skipIntroButton?.superview != nil && titleStackView.superview != nil {
             titleStackAboveSkipButtonConstraints = [
                 titleStackView.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: 18),
                 titleStackView.bottomAnchor.constraint(equalTo: skipIntroButton.topAnchor, constant: -4),
-                titleStackView.widthAnchor.constraint(lessThanOrEqualTo: controlsContainerView.widthAnchor, multiplier: 0.7)
+                titleStackView.widthAnchor.constraint(lessThanOrEqualTo: controlsContainerView.widthAnchor, multiplier: widthMultiplier)
             ]
             NSLayoutConstraint.activate(titleStackAboveSkipButtonConstraints)
         } else if skip85Visible && skip85Button?.superview != nil && titleStackView.superview != nil {
             titleStackAboveSkipButtonConstraints = [
                 titleStackView.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: 18),
                 titleStackView.bottomAnchor.constraint(equalTo: skip85Button.topAnchor, constant: -4),
-                titleStackView.widthAnchor.constraint(lessThanOrEqualTo: controlsContainerView.widthAnchor, multiplier: 0.7)
+                titleStackView.widthAnchor.constraint(lessThanOrEqualTo: controlsContainerView.widthAnchor, multiplier: widthMultiplier)
             ]
             NSLayoutConstraint.activate(titleStackAboveSkipButtonConstraints)
         } else if let sliderView = sliderHostingController?.view, titleStackView.superview != nil {
             titleStackAboveSliderConstraints = [
                 titleStackView.leadingAnchor.constraint(equalTo: controlsContainerView.leadingAnchor, constant: 18),
                 titleStackView.bottomAnchor.constraint(equalTo: sliderView.topAnchor, constant: -4),
-                titleStackView.widthAnchor.constraint(lessThanOrEqualTo: controlsContainerView.widthAnchor, multiplier: 0.7)
+                titleStackView.widthAnchor.constraint(lessThanOrEqualTo: controlsContainerView.widthAnchor, multiplier: widthMultiplier)
             ]
             NSLayoutConstraint.activate(titleStackAboveSliderConstraints)
         }
@@ -3347,11 +3352,11 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                 button.contentEdgeInsets = .zero
             }
         }
-
+        
         guard AVPictureInPictureController.isPictureInPictureSupported() else {
             return
         }
-
+        
         playerViewController.allowsPictureInPicturePlayback = true
         
         let playerLayerContainer = UIView()
@@ -3416,7 +3421,13 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                 episodeNumberLabel.centerYAnchor.constraint(equalTo: dismissButton.centerYAnchor)
             ]
             NSLayoutConstraint.activate(currentMarqueeConstraints)
+            updateMarqueeConstraintsForBottom()
+            
             view.layoutIfNeeded()
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.titleLabel?.restartLabel()
+            }
         }
     }
 }
