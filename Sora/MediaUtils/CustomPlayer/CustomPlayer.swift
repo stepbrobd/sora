@@ -917,11 +917,30 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     private func createCircularBlurBackground(size: CGFloat) -> UIView {
-        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let blurEffect = UIBlurEffect(style: .systemMaterial)
         let blurView = UIVisualEffectView(effect: blurEffect)
         blurView.translatesAutoresizingMaskIntoConstraints = false
         blurView.layer.cornerRadius = size / 2
         blurView.clipsToBounds = true
+        
+        let vibrancyEffect = UIVibrancyEffect(blurEffect: blurEffect)
+        let vibrancyView = UIVisualEffectView(effect: vibrancyEffect)
+        vibrancyView.frame = blurView.bounds
+        vibrancyView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        blurView.contentView.addSubview(vibrancyView)
+        
+        let tintView = UIView()
+        tintView.backgroundColor = UIColor.white.withAlphaComponent(0.08)
+        tintView.layer.cornerRadius = size / 2
+        tintView.clipsToBounds = true
+        tintView.translatesAutoresizingMaskIntoConstraints = false
+        vibrancyView.contentView.addSubview(tintView)
+        NSLayoutConstraint.activate([
+            tintView.leadingAnchor.constraint(equalTo: vibrancyView.contentView.leadingAnchor),
+            tintView.trailingAnchor.constraint(equalTo: vibrancyView.contentView.trailingAnchor),
+            tintView.topAnchor.constraint(equalTo: vibrancyView.contentView.topAnchor),
+            tintView.bottomAnchor.constraint(equalTo: vibrancyView.contentView.bottomAnchor)
+        ])
         
         NSLayoutConstraint.activate([
             blurView.widthAnchor.constraint(equalToConstant: size),
