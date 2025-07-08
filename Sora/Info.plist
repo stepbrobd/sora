@@ -6,8 +6,6 @@
 	<array>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	</array>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>
