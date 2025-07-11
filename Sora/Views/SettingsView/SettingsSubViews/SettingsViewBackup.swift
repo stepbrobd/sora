@@ -125,6 +125,30 @@ struct SettingsViewBackup: View {
                         showDivider: false
                     )
                 }
+                SettingsSection(
+                    title: NSLocalizedString("Backup Informations", comment: "Settings section title for backup informations"),
+                    footer: ""
+                ) {
+                    VStack {
+                        HStack {
+                            Image(systemName: "")
+                                .frame(width: 24, height: 24)
+                            Text("title")
+                        }
+                        
+                        Spacer()
+                        
+                        HStack {
+                            Image(systemName: "")
+                                .frame(width: 24, height: 24)
+                            Text("title")
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Color.clear)
+                    .contentShape(Rectangle())
+                }
             }
             .padding(.vertical, 20)
         }
