@@ -80,7 +80,7 @@ struct BookmarkCollectionGridCell: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            .frame(width: width, height: height)
+            .frame(width: width)
             .padding(.horizontal, 4)
         }
     }
