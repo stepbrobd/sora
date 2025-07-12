@@ -19,13 +19,16 @@ struct SoraApp: App {
         if let userAccentColor = UserDefaults.standard.color(forKey: "accentColor") {
             UIView.appearance(whenContainedInInstancesOf: [UIAlertController.self]).tintColor = userAccentColor
         }
-        clearTmpFolder()
         
-        TraktToken.checkAuthenticationStatus { isAuthenticated in
-            if isAuthenticated {
-                Logger.shared.log("Trakt authentication is valid", type: "Debug")
-            } else {
-                Logger.shared.log("Trakt authentication required", type: "Debug")
+        Task { @MainActor in
+            await Self.clearTmpFolder()
+            
+            TraktToken.checkAuthenticationStatus { isAuthenticated in
+                if isAuthenticated {
+                    Logger.shared.log("Trakt authentication is valid", type: "Debug")
+                } else {
+                    Logger.shared.log("Trakt authentication required", type: "Debug")
+                }
             }
         }
     }
@@ -105,7 +108,7 @@ struct SoraApp: App {
         }
     }
     
-    private func clearTmpFolder() {
+    private static func clearTmpFolder() async {
         let fileManager = FileManager.default
         let tmpDirectory = NSTemporaryDirectory()
         
@@ -113,19 +116,13 @@ struct SoraApp: App {
             let tmpURL = URL(fileURLWithPath: tmpDirectory)
             let tmpContents = try fileManager.contentsOfDirectory(at: tmpURL, includingPropertiesForKeys: nil)
             
-            for url in tmpContents {
-                try fileManager.removeItem(at: url)
-            }
-            
-            let parentURL = tmpURL.deletingLastPathComponent()
-            let parentContents = try fileManager.contentsOfDirectory(at: parentURL, includingPropertiesForKeys: [.isDirectoryKey])
-            for url in parentContents {
-                if url.lastPathComponent.hasPrefix("com.apple.UserManagedAssets") {
-                    var isDir: ObjCBool = false
-                    if fileManager.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {
-                        try fileManager.removeItem(at: url)
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                for url in tmpContents {
+                    group.addTask {
+                        try FileManager.default.removeItem(at: url)
                     }
                 }
+                try await group.waitForAll()
             }
         } catch {
             Logger.shared.log("Failed to clear tmp folder: \(error.localizedDescription)", type: "Error")
