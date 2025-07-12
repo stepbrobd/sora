@@ -187,14 +187,6 @@ struct MediaInfoView: View {
                 setupViewOnAppear()
                 NotificationCenter.default.post(name: .hideTabBar, object: nil)
                 UserDefaults.standard.set(true, forKey: "isMediaInfoActive")
-                //  swipe back
-                /*
-                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                 let window = windowScene.windows.first,
-                 let navigationController = window.rootViewController?.children.first as? UINavigationController {
-                 navigationController.interactivePopGestureRecognizer?.isEnabled = false
-                 }
-                 */
             }
             .onChange(of: selectedRange) { newValue in
                 UserDefaults.standard.set(newValue.lowerBound, forKey: selectedRangeKey)
@@ -738,7 +730,7 @@ struct MediaInfoView: View {
                        let title = chapter["title"] as? String {
                         NavigationLink(
                             destination: ReaderView(
-                                moduleId: module.id.uuidString,
+                                moduleId: module.id,
                                 chapterHref: href,
                                 chapterTitle: title,
                                 chapters: chapters,
@@ -762,13 +754,13 @@ struct MediaInfoView: View {
                         .simultaneousGesture(TapGesture().onEnded {
                             UserDefaults.standard.set(true, forKey: "navigatingToReaderView")
                             ChapterNavigator.shared.currentChapter = (
-                                moduleId: module.id.uuidString,
+                                moduleId: module.id,
                                 href: href,
                                 title: title,
                                 chapters: chapters,
                                 mediaTitle: self.title,
                                 chapterNumber: number
-                            )
+                            ) as! (moduleId: UUID, href: String, title: String, chapters: [[String : Any]], mediaTitle: String, chapterNumber: Int)
                         })
                         .contextMenu {
                             Button(action: {
@@ -950,12 +942,8 @@ struct MediaInfoView: View {
     
     private func setupInitialData() async {
         do {
-            Logger.shared.log("setupInitialData: module.metadata.novel = \(String(describing: module.metadata.novel))", type: "Debug")
-            
             UserDefaults.standard.set(imageUrl, forKey: "mediaInfoImageUrl_\(module.id.uuidString)")
             Logger.shared.log("Saved MediaInfoView image URL: \(imageUrl) for module \(module.id.uuidString)", type: "Debug")
-            
-            
             
             if module.metadata.novel == true {
                 if !hasFetched {
@@ -974,25 +962,13 @@ struct MediaInfoView: View {
                 }
                 
                 await withTaskGroup(of: Void.self) { group in
-                    var chaptersLoaded = false
                     var detailsLoaded = false
                     
-                    group.addTask {
-                        let fetchedChapters = try? await JSController.shared.extractChapters(moduleId: module.id.uuidString, href: href)
-                        await MainActor.run {
-                            if let fetchedChapters = fetchedChapters {
-                                Logger.shared.log("setupInitialData: fetchedChapters count = \(fetchedChapters.count)", type: "Debug")
-                                Logger.shared.log("setupInitialData: fetchedChapters = \(fetchedChapters)", type: "Debug")
-                                self.chapters = fetchedChapters
-                            }
-                            chaptersLoaded = true
-                        }
-                    }
                     group.addTask {
                         await MainActor.run {
                             self.fetchDetails()
                         }
-                        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in@Sendable
                             func checkDetails() {
                                 Task { @MainActor in
                                     if !(self.synopsis.isEmpty && self.aliases.isEmpty && self.airdate.isEmpty) {
@@ -1009,7 +985,7 @@ struct MediaInfoView: View {
                         }
                     }
                     while true {
-                        let loaded = await MainActor.run { chaptersLoaded && detailsLoaded }
+                        let loaded = await MainActor.run { detailsLoaded }
                         if loaded { break }
                         try? await Task.sleep(nanoseconds: 100_000_000)
                     }
@@ -1433,39 +1409,50 @@ struct MediaInfoView: View {
     }
     
     func fetchDetails() {
-        Logger.shared.log("fetchDetails: called", type: "Debug")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            Task {
-                do {
-                    let jsContent = try moduleManager.getModuleContent(module)
-                    jsController.loadScript(jsContent)
-                    
-                    let completion: (Any?, [EpisodeLink]) -> Void = { items, episodes in
+            do {
+                let jsContent = try self.moduleManager.getModuleContent(self.module)
+                self.jsController.loadScript(jsContent)
+                
+                let completion: (Any?, [EpisodeLink]) -> Void = { items, episodes in
+                    if self.module.metadata.novel ?? true {
+                        self.jsController.extractChapters(moduleId: self.module.id, href: self.href) { chapters in
+                            DispatchQueue.main.async {
+                                self.handleFetchDetailsResponse(items: chapters, episodes: episodes)
+                            }
+                        }
+                    } else {
                         self.handleFetchDetailsResponse(items: items, episodes: episodes)
                     }
-                    
-                    if module.metadata.asyncJS == true {
-                        jsController.fetchDetailsJS(url: href, completion: completion)
-                    } else {
-                        jsController.fetchDetails(url: href, completion: completion)
-                    }
-                } catch {
-                    Logger.shared.log("Error loading module: \(error)", type: "Error")
-                    self.isLoading = false
-                    self.isRefetching = false
                 }
+                
+                if self.module.metadata.asyncJS == true {
+                    self.jsController.fetchDetailsJS(url: self.href, completion: completion)
+                } else {
+                    self.jsController.fetchDetails(url: self.href, completion: completion)
+                }
+            } catch {
+                Logger.shared.log("Error loading module: \(error)", type: "Error")
+                self.isLoading = false
+                self.isRefetching = false
             }
         }
     }
     
     private func handleFetchDetailsResponse(items: Any?, episodes: [EpisodeLink]) {
-        Logger.shared.log("fetchDetails: items = \(items)", type: "Debug")
+        Logger.shared.log("fetchDetails: items = \(String(describing: items))", type: "Debug")
         Logger.shared.log("fetchDetails: episodes = \(episodes)", type: "Debug")
         
         processItemsResponse(items)
         
         if module.metadata.novel ?? false {
-            Logger.shared.log("fetchDetails: (novel) chapters count = \(chapters.count)", type: "Debug")
+            if let chaptersData = items as? [[String: Any]] {
+                chapters = chaptersData
+                Logger.shared.log("fetchDetails: (novel) chapters count = \(chapters.count)", type: "Debug")
+            } else {
+                Logger.shared.log("fetchDetails: (novel) no chapters found in response", type: "Warning")
+                chapters = []
+            }
         } else {
             Logger.shared.log("fetchDetails: (episodes) episodes count = \(episodes.count)", type: "Debug")
             episodeLinks = episodes
