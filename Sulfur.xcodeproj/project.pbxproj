@@ -108,10 +108,10 @@
 		13EA2BD62D32D97400C1EBD7 /* Double+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD32D32D97400C1EBD7 /* Double+Extension.swift */; };
 		13EA2BD92D32D98400C1EBD7 /* NormalPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EA2BD82D32D98400C1EBD7 /* NormalPlayer.swift */; };
 		1E26E9E72DA9577900B9DC02 /* VolumeSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E26E9E62DA9577900B9DC02 /* VolumeSlider.swift */; };
-		1E47859B2DEBC5960095BF2F /* AnilistMatchPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E47859A2DEBC5960095BF2F /* AnilistMatchPopupView.swift */; };
+		1E47859B2DEBC5960095BF2F /* AnilistMatchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E47859A2DEBC5960095BF2F /* AnilistMatchView.swift */; };
 		1E9FF1D32D403E49008AC100 /* SettingsViewLoggerFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E9FF1D22D403E42008AC100 /* SettingsViewLoggerFilter.swift */; };
 		1EAC7A322D888BC50083984D /* MusicProgressSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EAC7A312D888BC50083984D /* MusicProgressSlider.swift */; };
-		1EDA48F42DFAC374002A4EC3 /* TMDBMatchPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EDA48F32DFAC374002A4EC3 /* TMDBMatchPopupView.swift */; };
+		1EDA48F42DFAC374002A4EC3 /* TMDBMatchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EDA48F32DFAC374002A4EC3 /* TMDBMatchView.swift */; };
 		1EF5C3A92DB988E40032BF07 /* CommunityLib.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EF5C3A82DB988D70032BF07 /* CommunityLib.swift */; };
 		7222485F2DCBAA2C00CABE2D /* DownloadModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7222485D2DCBAA2C00CABE2D /* DownloadModels.swift */; };
 		722248602DCBAA2C00CABE2D /* M3U8StreamExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7222485E2DCBAA2C00CABE2D /* M3U8StreamExtractor.swift */; };
@@ -226,10 +226,10 @@
 		13EA2BD32D32D97400C1EBD7 /* Double+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Double+Extension.swift"; sourceTree = "<group>"; };
 		13EA2BD82D32D98400C1EBD7 /* NormalPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NormalPlayer.swift; sourceTree = "<group>"; };
 		1E26E9E62DA9577900B9DC02 /* VolumeSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeSlider.swift; sourceTree = "<group>"; };
-		1E47859A2DEBC5960095BF2F /* AnilistMatchPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnilistMatchPopupView.swift; sourceTree = "<group>"; };
+		1E47859A2DEBC5960095BF2F /* AnilistMatchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnilistMatchView.swift; sourceTree = "<group>"; };
 		1E9FF1D22D403E42008AC100 /* SettingsViewLoggerFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewLoggerFilter.swift; sourceTree = "<group>"; };
 		1EAC7A312D888BC50083984D /* MusicProgressSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicProgressSlider.swift; sourceTree = "<group>"; };
-		1EDA48F32DFAC374002A4EC3 /* TMDBMatchPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TMDBMatchPopupView.swift; sourceTree = "<group>"; };
+		1EDA48F32DFAC374002A4EC3 /* TMDBMatchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TMDBMatchView.swift; sourceTree = "<group>"; };
 		1EF5C3A82DB988D70032BF07 /* CommunityLib.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityLib.swift; sourceTree = "<group>"; };
 		7222485D2DCBAA2C00CABE2D /* DownloadModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadModels.swift; sourceTree = "<group>"; };
 		7222485E2DCBAA2C00CABE2D /* M3U8StreamExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = M3U8StreamExtractor.swift; sourceTree = "<group>"; };
@@ -567,7 +567,7 @@
 		133D7C7F2D2BE2630075467E /* MediaInfoView */ = {
 			isa = PBXGroup;
 			children = (
-				1E0435F02DFCB86800FF6808 /* CustomMatching */,
+				1E0435F02DFCB86800FF6808 /* Matching */,
 				04536F762E04BA6900A11248 /* ChapterCell */,
 				138AA1B52D2D66EC0021F9DF /* EpisodeCell */,
 				133D7C802D2BE2630075467E /* MediaInfoView.swift */,
@@ -840,13 +840,13 @@
 			path = Components;
 			sourceTree = "<group>";
 		};
-		1E0435F02DFCB86800FF6808 /* CustomMatching */ = {
+		1E0435F02DFCB86800FF6808 /* Matching */ = {
 			isa = PBXGroup;
 			children = (
-				1EDA48F32DFAC374002A4EC3 /* TMDBMatchPopupView.swift */,
-				1E47859A2DEBC5960095BF2F /* AnilistMatchPopupView.swift */,
+				1EDA48F32DFAC374002A4EC3 /* TMDBMatchView.swift */,
+				1E47859A2DEBC5960095BF2F /* AnilistMatchView.swift */,
 			);
-			path = CustomMatching;
+			path = Matching;
 			sourceTree = "<group>";
 		};
 		72443C832DC8046500A61321 /* DownloadUtils */ = {
@@ -974,7 +974,7 @@
 				135CCBE22D4D1138008B9C0E /* SettingsViewPlayer.swift in Sources */,
 				04536F742E04BA5600A11248 /* ReaderView.swift in Sources */,
 				131270172DC13A010093AA9C /* DownloadManager.swift in Sources */,
-				1EDA48F42DFAC374002A4EC3 /* TMDBMatchPopupView.swift in Sources */,
+				1EDA48F42DFAC374002A4EC3 /* TMDBMatchView.swift in Sources */,
 				1327FBA72D758CEA00FC6689 /* Analytics.swift in Sources */,
 				13DC0C462D302C7500D0F966 /* VideoPlayer.swift in Sources */,
 				1359ED142D76F49900C13034 /* finTopView.swift in Sources */,
@@ -998,7 +998,7 @@
 				130C6BFA2D53AB1F00DC1432 /* SettingsViewData.swift in Sources */,
 				0402DA172DE7B7B8003BB42C /* SearchViewComponents.swift in Sources */,
 				1E9FF1D32D403E49008AC100 /* SettingsViewLoggerFilter.swift in Sources */,
-				1E47859B2DEBC5960095BF2F /* AnilistMatchPopupView.swift in Sources */,
+				1E47859B2DEBC5960095BF2F /* AnilistMatchView.swift in Sources */,
 				13EA2BD92D32D98400C1EBD7 /* NormalPlayer.swift in Sources */,
 				133D7C932D2BE2640075467E /* Modules.swift in Sources */,
 				138B66A02E0BEA52009BE8D9 /* WebAuthenticationManager.swift in Sources */,
