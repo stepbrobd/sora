@@ -760,7 +760,7 @@ struct MediaInfoView: View {
                                 chapters: chapters,
                                 mediaTitle: self.title,
                                 chapterNumber: number
-                            ) as! (moduleId: UUID, href: String, title: String, chapters: [[String : Any]], mediaTitle: String, chapterNumber: Int)
+                            )
                         })
                         .contextMenu {
                             Button(action: {
