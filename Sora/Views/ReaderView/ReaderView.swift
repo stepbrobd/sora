@@ -123,8 +123,6 @@ struct ReaderView: View {
         }
     }
     
-    
-    
     var body: some View {
         ZStack(alignment: .bottom) {
             currentTheme.background.ignoresSafeArea()
@@ -267,10 +265,10 @@ struct ReaderView: View {
                             chapterNumber: next.chapterNumber
                         )
                         
-                        
                         let hostingController = UIHostingController(rootView: nextReader)
-                        hostingController.modalPresentationStyle = .fullScreen
+                        hostingController.modalPresentationStyle = .overFullScreen
                         hostingController.modalTransitionStyle = .crossDissolve
+                        hostingController.isModalInPresentation = true
                         
                         findTopViewController.findViewController(rootVC).present(hostingController, animated: true)
                     }
@@ -430,7 +428,7 @@ struct ReaderView: View {
             ZStack(alignment: .top) {
                 HStack {
                     Button(action: {
-                        dismiss()
+                        dismissReaderView()
                     }) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 16, weight: .bold))
@@ -792,6 +790,18 @@ struct ReaderView: View {
             .background(currentTheme.background.opacity(0.8))
             .clipShape(Circle())
             .circularGradientOutline()
+    }
+    
+    private func dismissReaderView() {
+        dismiss()
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootVC = windowScene.windows.first?.rootViewController {
+            let topVC = findTopViewController.findViewController(rootVC)
+            if topVC is UIHostingController<ReaderView> {
+                topVC.dismiss(animated: true)
+            }
+        }
     }
     
     private func goToNextChapter() {

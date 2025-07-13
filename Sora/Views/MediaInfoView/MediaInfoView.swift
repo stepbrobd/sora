@@ -728,8 +728,8 @@ struct MediaInfoView: View {
                     if let href = chapter["href"] as? String,
                        let number = chapter["number"] as? Int,
                        let title = chapter["title"] as? String {
-                        NavigationLink(
-                            destination: ReaderView(
+                        Button(action: {
+                            presentReaderView(
                                 moduleId: module.id,
                                 chapterHref: href,
                                 chapterTitle: title,
@@ -737,12 +737,7 @@ struct MediaInfoView: View {
                                 mediaTitle: self.title,
                                 chapterNumber: number
                             )
-                            .onAppear {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                    ChapterNavigator.shared.currentChapter = nil
-                                }
-                            }
-                        ) {
+                        }) {
                             ChapterCell(
                                 chapterNumber: String(number),
                                 chapterTitle: title,
@@ -751,17 +746,7 @@ struct MediaInfoView: View {
                                 href: href
                             )
                         }
-                        .simultaneousGesture(TapGesture().onEnded {
-                            UserDefaults.standard.set(true, forKey: "navigatingToReaderView")
-                            ChapterNavigator.shared.currentChapter = (
-                                moduleId: module.id,
-                                href: href,
-                                title: title,
-                                chapters: chapters,
-                                mediaTitle: self.title,
-                                chapterNumber: number
-                            )
-                        })
+                        .buttonStyle(PlainButtonStyle())
                         .contextMenu {
                             Button(action: {
                                 markChapterAsRead(href: href, number: number)
@@ -1295,10 +1280,10 @@ struct MediaInfoView: View {
                let number = chapterToRead["number"] as? Int {
                 
                 UserDefaults.standard.set(true, forKey: "navigatingToReaderView")
-                ChapterNavigator.shared.currentChapter = (
+                presentReaderView(
                     moduleId: module.id,
-                    href: href,
-                    title: title,
+                    chapterHref: href,
+                    chapterTitle: title,
                     chapters: chapters,
                     mediaTitle: self.title,
                     chapterNumber: number
@@ -1437,6 +1422,40 @@ struct MediaInfoView: View {
         }
     }
     
+    
+    private func presentReaderView(moduleId: UUID, chapterHref: String, chapterTitle: String, chapters: [[String: Any]], mediaTitle: String, chapterNumber: Int) {
+        UserDefaults.standard.set(true, forKey: "navigatingToReaderView")
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootVC = windowScene.windows.first?.rootViewController {
+            let topVC = findTopViewController.findViewController(rootVC)
+            
+            if topVC is UIHostingController<ReaderView> {
+                Logger.shared.log("ReaderView is already presented, skipping presentation", type: "Debug")
+                return
+            }
+        }
+        
+        let readerView = ReaderView(
+            moduleId: moduleId,
+            chapterHref: chapterHref,
+            chapterTitle: chapterTitle,
+            chapters: chapters,
+            mediaTitle: mediaTitle,
+            chapterNumber: chapterNumber
+        )
+        
+        let hostingController = UIHostingController(rootView: readerView)
+        hostingController.modalPresentationStyle = .overFullScreen
+        hostingController.modalTransitionStyle = .crossDissolve
+        
+        hostingController.isModalInPresentation = true
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootVC = windowScene.windows.first?.rootViewController {
+            findTopViewController.findViewController(rootVC).present(hostingController, animated: true)
+        }
+    }
     
     private func openSafariViewController(with urlString: String) {
         guard let url = URL(string: urlString), UIApplication.shared.canOpenURL(url) else {
