@@ -52,10 +52,8 @@ struct ReaderView: View {
     @State private var readingProgress: Double = 0.0
     @State private var lastProgressUpdate: Date = Date()
     @Environment(\.dismiss) private var dismiss
-
-    @StateObject private var navigator = ChapterNavigator.shared
     
-    // Status bar control
+    @StateObject private var navigator = ChapterNavigator.shared
     @State private var statusBarHidden = false
     
     private let fontOptions = [
@@ -125,7 +123,7 @@ struct ReaderView: View {
         }
     }
     
-
+    
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -161,7 +159,7 @@ struct ReaderView: View {
                             }
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-
+                    
                     HTMLView(
                         htmlContent: htmlContent,
                         fontSize: fontSize,
@@ -208,7 +206,7 @@ struct ReaderView: View {
                 .zIndex(1)
             
             if isHeaderVisible {
-            footerView
+                footerView
                     .transition(.move(edge: .bottom))
                     .zIndex(2)
             }
@@ -268,7 +266,7 @@ struct ReaderView: View {
                             mediaTitle: next.mediaTitle,
                             chapterNumber: next.chapterNumber
                         )
-
+                        
                         
                         let hostingController = UIHostingController(rootView: nextReader)
                         hostingController.modalPresentationStyle = .fullScreen
@@ -280,8 +278,8 @@ struct ReaderView: View {
             } else {
                 if !htmlContent.isEmpty {
                     let validHtmlContent = (!htmlContent.isEmpty &&
-                                          !htmlContent.contains("undefined") &&
-                                          htmlContent.count > 50) ? htmlContent : nil
+                                            !htmlContent.contains("undefined") &&
+                                            htmlContent.count > 50) ? htmlContent : nil
                     
                     if validHtmlContent == nil {
                         Logger.shared.log("Not caching HTML content on disappear as it appears invalid", type: "Warning")
@@ -330,6 +328,9 @@ struct ReaderView: View {
                         self.setStatusBarHidden(true)
                     }
                 }
+            } else {
+                Logger.shared.log("No valid cached content found, fetching new content for \(self.chapterHref)", type: "Debug")
+                fetchContentWithRetries(attempts: 0, maxAttempts: 3)
             }
         } catch {
             self.error = error
@@ -378,14 +379,16 @@ struct ReaderView: View {
                     return
                 }
                 
-                self.htmlContent = content
-                self.isLoading = false
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        self.isHeaderVisible = false
-                        self.statusBarHidden = true
-                        self.setStatusBarHidden(true)
+                DispatchQueue.main.async {
+                    self.htmlContent = content
+                    self.isLoading = false
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            self.isHeaderVisible = false
+                            self.statusBarHidden = true
+                            self.setStatusBarHidden(true)
+                        }
                     }
                 }
                 
@@ -448,7 +451,7 @@ struct ReaderView: View {
                         .padding(.trailing, 100)
                     
                     Spacer()
-
+                    
                     Color.clear
                         .frame(width: 44, height: 44)
                         .padding(.trailing)
@@ -463,7 +466,7 @@ struct ReaderView: View {
                         isSettingsExpanded = false
                     }
                 }
-
+                
                 HStack {
                     Spacer()
                     Button(action: {
@@ -935,8 +938,8 @@ struct ReaderView: View {
         Logger.shared.log("Saving continue reading item: title=\(novelTitle), chapter=\(chapterTitle), number=\(currentChapterNumber), href=\(chapterHref), progress=\(progress), imageUrl=\(imageUrl)", type: "Debug")
         
         let validHtmlContent = (!htmlContent.isEmpty &&
-                               !htmlContent.contains("undefined") &&
-                               htmlContent.count > 50) ? htmlContent : nil
+                                !htmlContent.contains("undefined") &&
+                                htmlContent.count > 50) ? htmlContent : nil
         
         if validHtmlContent == nil && !htmlContent.isEmpty {
             Logger.shared.log("Not caching HTML content as it appears invalid", type: "Warning")
@@ -1008,8 +1011,8 @@ struct ReaderView: View {
         Logger.shared.log("Updating reading progress: \(roundedProgress) for \(chapterHref), title: \(novelTitle), image: \(imageUrl)", type: "Debug")
         
         let validHtmlContent = (!htmlContent.isEmpty &&
-                               !htmlContent.contains("undefined") &&
-                               htmlContent.count > 50) ? htmlContent : nil
+                                !htmlContent.contains("undefined") &&
+                                htmlContent.count > 50) ? htmlContent : nil
         
         if validHtmlContent == nil && !htmlContent.isEmpty {
             Logger.shared.log("Not caching HTML content as it appears invalid", type: "Warning")
@@ -1160,6 +1163,16 @@ struct HTMLView: UIViewRepresentable {
         }
         
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            Logger.shared.log("WebView finished loading navigation", type: "Debug")
+            
+            webView.evaluateJavaScript("document.body.innerText.length") { result, error in
+                if let textLength = result as? Int {
+                    Logger.shared.log("WebView loaded content with text length: \(textLength)", type: "Debug")
+                } else {
+                    Logger.shared.log("WebView error checking content length: \(error?.localizedDescription ?? "Unknown error")", type: "Error")
+                }
+            }
+            
             if let href = parent.chapterHref {
                 let savedPosition = UserDefaults.standard.double(forKey: "scrollPosition_\(href)")
                 if savedPosition > 0.01 {
@@ -1175,6 +1188,14 @@ struct HTMLView: UIViewRepresentable {
             }
             
             startProgressTracking(webView: webView)
+        }
+        
+        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            Logger.shared.log("WebView navigation failed: \(error.localizedDescription)", type: "Error")
+        }
+        
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            Logger.shared.log("WebView provisional navigation failed: \(error.localizedDescription)", type: "Error")
         }
         
         func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
@@ -1295,7 +1316,7 @@ struct HTMLView: UIViewRepresentable {
             }
         }
     }
-
+    
     func makeUIView(context: Context) -> WKWebView {
         let webView = WKWebView()
         webView.backgroundColor = .clear
@@ -1329,8 +1350,11 @@ struct HTMLView: UIViewRepresentable {
         }
         
         guard !htmlContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            Logger.shared.log("HTMLView: Empty HTML content, skipping update", type: "Warning")
             return
         }
+        
+        Logger.shared.log("HTMLView: Updating with content length: \(htmlContent.count)", type: "Debug")
         
         let contentChanged = coordinator.lastHtmlContent != htmlContent
         let fontSizeChanged = coordinator.lastFontSize != fontSize
@@ -1342,7 +1366,7 @@ struct HTMLView: UIViewRepresentable {
         let colorChanged = coordinator.lastColorPreset != colorPreset.name
         
         if contentChanged || fontSizeChanged || fontFamilyChanged || fontWeightChanged ||
-           alignmentChanged || lineSpacingChanged || marginChanged || colorChanged {
+            alignmentChanged || lineSpacingChanged || marginChanged || colorChanged {
             let htmlTemplate = """
             <!DOCTYPE html>
             <html>

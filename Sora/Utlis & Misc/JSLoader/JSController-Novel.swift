@@ -267,7 +267,7 @@ extension JSController {
         
         Logger.shared.log("Attempting direct fetch from: \(url.absoluteString)", type: "Debug")
         
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+        let task = URLSession.shared.dataTask(with: request) { [self] data, response, error in
             if let error = error {
                 DispatchQueue.main.async {
                     Logger.shared.log("Direct fetch error: \(error.localizedDescription)", type: "Error")
@@ -300,24 +300,49 @@ extension JSController {
                 let startIndex = contentRange.lowerBound
                 let endIndex = endRange.upperBound
                 content = String(htmlString[startIndex..<endIndex])
+                Logger.shared.log("Extracted content from <article> tag", type: "Debug")
             } else if let contentRange = htmlString.range(of: "<div class=\"chapter-content\"", options: .caseInsensitive),
                       let endRange = htmlString.range(of: "</div>", options: .caseInsensitive, range: contentRange.upperBound..<htmlString.endIndex) {
                 let startIndex = contentRange.lowerBound
                 let endIndex = endRange.upperBound
                 content = String(htmlString[startIndex..<endIndex])
+                Logger.shared.log("Extracted content from chapter-content div", type: "Debug")
             } else if let contentRange = htmlString.range(of: "<div class=\"content\"", options: .caseInsensitive),
                       let endRange = htmlString.range(of: "</div>", options: .caseInsensitive, range: contentRange.upperBound..<htmlString.endIndex) {
                 let startIndex = contentRange.lowerBound
                 let endIndex = endRange.upperBound
                 content = String(htmlString[startIndex..<endIndex])
+                Logger.shared.log("Extracted content from content div", type: "Debug")
+            } else if let contentRange = htmlString.range(of: "<div id=\"chapter-content\"", options: .caseInsensitive),
+                      let endRange = htmlString.range(of: "</div>", options: .caseInsensitive, range: contentRange.upperBound..<htmlString.endIndex) {
+                let startIndex = contentRange.lowerBound
+                let endIndex = endRange.upperBound
+                content = String(htmlString[startIndex..<endIndex])
+                Logger.shared.log("Extracted content from chapter-content id div", type: "Debug")
+            } else if let contentRange = htmlString.range(of: "<div class=\"chapter\"", options: .caseInsensitive),
+                      let endRange = htmlString.range(of: "</div>", options: .caseInsensitive, range: contentRange.upperBound..<htmlString.endIndex) {
+                let startIndex = contentRange.lowerBound
+                let endIndex = endRange.upperBound
+                content = String(htmlString[startIndex..<endIndex])
+                Logger.shared.log("Extracted content from chapter div", type: "Debug")
+            } else if let contentRange = htmlString.range(of: "<main", options: .caseInsensitive),
+                      let endRange = htmlString.range(of: "</main>", options: .caseInsensitive) {
+                let startIndex = contentRange.lowerBound
+                let endIndex = endRange.upperBound
+                content = String(htmlString[startIndex..<endIndex])
+                Logger.shared.log("Extracted content from <main> tag", type: "Debug")
             } else if let bodyRange = htmlString.range(of: "<body", options: .caseInsensitive),
                       let endBodyRange = htmlString.range(of: "</body>", options: .caseInsensitive) {
                 let startIndex = bodyRange.lowerBound
                 let endIndex = endBodyRange.upperBound
                 content = String(htmlString[startIndex..<endIndex])
+                Logger.shared.log("Extracted content from <body> tag", type: "Debug")
             } else {
                 content = htmlString
+                Logger.shared.log("Using full HTML content", type: "Debug")
             }
+            
+            content = cleanHTMLContent(content)
             
             DispatchQueue.main.async {
                 Logger.shared.log("Direct fetch successful, content length: \(content.count)", type: "Debug")
@@ -326,5 +351,56 @@ extension JSController {
         }
         
         task.resume()
+    }
+    
+    private func cleanHTMLContent(_ content: String) -> String {
+        var cleaned = content
+        
+        cleaned = cleaned.replacingOccurrences(
+            of: "<script[^>]*>.*?</script>",
+            with: "",
+            options: [.regularExpression, .caseInsensitive]
+        )
+        
+        cleaned = cleaned.replacingOccurrences(
+            of: "<style[^>]*>.*?</style>",
+            with: "",
+            options: [.regularExpression, .caseInsensitive]
+        )
+        
+        cleaned = cleaned.replacingOccurrences(
+            of: "<nav[^>]*>.*?</nav>",
+            with: "",
+            options: [.regularExpression, .caseInsensitive]
+        )
+        
+        cleaned = cleaned.replacingOccurrences(
+            of: "<header[^>]*>.*?</header>",
+            with: "",
+            options: [.regularExpression, .caseInsensitive]
+        )
+        
+        cleaned = cleaned.replacingOccurrences(
+            of: "<footer[^>]*>.*?</footer>",
+            with: "",
+            options: [.regularExpression, .caseInsensitive]
+        )
+        
+        let unwantedClasses = ["advertisement", "ad", "ads", "sidebar", "menu", "navigation", "nav", "header", "footer", "comments", "comment"]
+        for className in unwantedClasses {
+            cleaned = cleaned.replacingOccurrences(
+                of: "<div[^>]*class=\"[^\"]*\(className)[^\"]*\"[^>]*>.*?</div>",
+                with: "",
+                options: [.regularExpression, .caseInsensitive]
+            )
+        }
+        
+        cleaned = cleaned.replacingOccurrences(
+            of: "\\s+",
+            with: " ",
+            options: .regularExpression
+        )
+        
+        return cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

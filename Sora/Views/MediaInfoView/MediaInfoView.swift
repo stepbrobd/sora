@@ -1221,6 +1221,13 @@ struct MediaInfoView: View {
             let maxIndex = max(0, groupedEpisodes().count - 1)
             selectedSeason = min(savedSeason, maxIndex)
         }
+        
+        if let savedChapterStart = UserDefaults.standard.object(forKey: selectedChapterRangeKey) as? Int,
+           let savedChapterRange = generateChapterRanges().first(where: { $0.lowerBound == savedChapterStart }) {
+            selectedChapterRange = savedChapterRange
+        } else {
+            selectedChapterRange = generateChapterRanges().first ?? 0..<chapterChunkSize
+        }
     }
     
     private func generateRanges() -> [Range<Int>] {
@@ -1267,6 +1274,41 @@ struct MediaInfoView: View {
     }
     
     private func playFirstUnwatchedEpisode() {
+        if module.metadata.novel ?? false {
+            guard !chapters.isEmpty else { return }
+            
+            var firstUnreadChapter: [String: Any]? = nil
+            for chapter in chapters {
+                if let href = chapter["href"] as? String {
+                    let progress = UserDefaults.standard.double(forKey: "readingProgress_\(href)")
+                    if progress < 0.95 {
+                        firstUnreadChapter = chapter
+                        break
+                    }
+                }
+            }
+            
+            let chapterToRead = firstUnreadChapter ?? chapters[0]
+            
+            if let href = chapterToRead["href"] as? String,
+               let title = chapterToRead["title"] as? String,
+               let number = chapterToRead["number"] as? Int {
+                
+                UserDefaults.standard.set(true, forKey: "navigatingToReaderView")
+                ChapterNavigator.shared.currentChapter = (
+                    moduleId: module.id,
+                    href: href,
+                    title: title,
+                    chapters: chapters,
+                    mediaTitle: self.title,
+                    chapterNumber: number
+                )
+                
+                Logger.shared.log("Navigating to chapter: \(title)", type: "Debug")
+            }
+            return
+        }
+        
         let indices = finishedAndUnfinishedIndices()
         let finished = indices.finished
         let unfinished = indices.unfinished
@@ -1415,10 +1457,17 @@ struct MediaInfoView: View {
                 self.jsController.loadScript(jsContent)
                 
                 let completion: (Any?, [EpisodeLink]) -> Void = { items, episodes in
-                    if self.module.metadata.novel ?? true {
+                    if self.module.metadata.novel ?? false {
+                        self.processItemsResponse(items)
+                        
                         self.jsController.extractChapters(moduleId: self.module.id, href: self.href) { chapters in
                             DispatchQueue.main.async {
-                                self.handleFetchDetailsResponse(items: chapters, episodes: episodes)
+                                self.chapters = chapters
+                                Logger.shared.log("fetchDetails: (novel) chapters count = \(self.chapters.count)", type: "Debug")
+                                self.restoreSelectionState()
+                                
+                                self.isLoading = false
+                                self.isRefetching = false
                             }
                         }
                     } else {
@@ -1442,22 +1491,11 @@ struct MediaInfoView: View {
     private func handleFetchDetailsResponse(items: Any?, episodes: [EpisodeLink]) {
         Logger.shared.log("fetchDetails: items = \(String(describing: items))", type: "Debug")
         Logger.shared.log("fetchDetails: episodes = \(episodes)", type: "Debug")
-        
         processItemsResponse(items)
         
-        if module.metadata.novel ?? false {
-            if let chaptersData = items as? [[String: Any]] {
-                chapters = chaptersData
-                Logger.shared.log("fetchDetails: (novel) chapters count = \(chapters.count)", type: "Debug")
-            } else {
-                Logger.shared.log("fetchDetails: (novel) no chapters found in response", type: "Warning")
-                chapters = []
-            }
-        } else {
-            Logger.shared.log("fetchDetails: (episodes) episodes count = \(episodes.count)", type: "Debug")
-            episodeLinks = episodes
-            restoreSelectionState()
-        }
+        Logger.shared.log("fetchDetails: (episodes) episodes count = \(episodes.count)", type: "Debug")
+        episodeLinks = episodes
+        restoreSelectionState()
         
         isLoading = false
         isRefetching = false
