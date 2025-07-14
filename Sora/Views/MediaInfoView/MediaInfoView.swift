@@ -202,6 +202,7 @@ struct MediaInfoView: View {
                 activeFetchID = nil
                 UserDefaults.standard.set(false, forKey: "isMediaInfoActive")
                 UIScrollView.appearance().bounces = true
+                NotificationCenter.default.post(name: .showTabBar, object: nil)
             }
             .task {
                 await setupInitialData()

@@ -632,6 +632,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         NotificationCenter.default.addObserver(self, selector: #selector(playerItemDidChange), name: .AVPlayerItemNewAccessLogEntry, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(subtitleSettingsDidChange), name: .subtitleSettingsDidChange, object: nil)
         skip85Button?.isHidden = !isSkip85Visible
         if !isSkip85Visible {
             skip85Button?.alpha = 0.0
@@ -779,6 +780,15 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
                     self.view.layoutIfNeeded()
                 }
             }
+        }
+    }
+    
+    @objc private func subtitleSettingsDidChange() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.loadSubtitleSettings()
+            self.updateSubtitleLabelAppearance()
+            self.updateSubtitleLabelConstraints()
         }
     }
     
