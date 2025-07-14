@@ -1255,9 +1255,25 @@ struct HTMLView: UIViewRepresentable {
             }
             
             let script = """
-            document.addEventListener('scroll', function() {
-                window.webkit.messageHandlers.scrollHandler.postMessage('scroll');
-            }, { passive: true });
+            (function() {
+                let lastUpdate = 0;
+                const throttleInterval = 16;
+                
+                function updateProgress() {
+                    const now = Date.now();
+                    if (now - lastUpdate >= throttleInterval) {
+                        window.webkit.messageHandlers.scrollHandler.postMessage('scroll');
+                        lastUpdate = now;
+                    }
+                    requestAnimationFrame(updateProgress);
+                }
+                
+                requestAnimationFrame(updateProgress);
+                
+                document.addEventListener('scroll', function() {
+                    requestAnimationFrame(updateProgress);
+                }, { passive: true });
+            })();
             """
             
             let userScript = WKUserScript(source: script, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
