@@ -997,9 +997,10 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     private func createCircularBlurBackground(size: CGFloat) -> UIView {
-        let blurEffect = UIBlurEffect(style: .systemMaterial)
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
         let blurView = UIVisualEffectView(effect: blurEffect)
         blurView.translatesAutoresizingMaskIntoConstraints = false
+        blurView.alpha = 0.7
         blurView.layer.cornerRadius = size / 2
         blurView.clipsToBounds = true
         
@@ -1388,9 +1389,10 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         holdSpeedIndicator.setTitleColor(.white, for: .normal)
         holdSpeedIndicator.alpha = 0.0
         
-        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
         let blurView = UIVisualEffectView(effect: blurEffect)
         blurView.translatesAutoresizingMaskIntoConstraints = false
+        blurView.alpha = 0.7
         blurView.layer.cornerRadius = 21
         blurView.clipsToBounds = true
         
@@ -3804,8 +3806,9 @@ class GradientBlurButton: UIButton {
     }
     
     private func setupBlurAndGradient() {
-        let blur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+        let blur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterialDark))
         blur.isUserInteractionEnabled = false
+        blur.alpha = 0.7
         blur.layer.cornerRadius = 21
         blur.clipsToBounds = true
         blur.translatesAutoresizingMaskIntoConstraints = false

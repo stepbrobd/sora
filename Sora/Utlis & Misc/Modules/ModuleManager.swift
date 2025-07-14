@@ -9,6 +9,8 @@ import Foundation
 
 @MainActor
 class ModuleManager: ObservableObject {
+    static let shared = ModuleManager()
+    
     @Published var modules: [ScrapingModule] = []
     @Published var selectedModuleChanged = false
     

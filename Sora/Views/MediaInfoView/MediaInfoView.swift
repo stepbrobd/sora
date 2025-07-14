@@ -80,7 +80,7 @@ struct MediaInfoView: View {
     @AppStorage("selectedAppearance") private var selectedAppearance: Appearance = .system
     
     @ObservedObject private var jsController = JSController.shared
-    @EnvironmentObject var moduleManager: ModuleManager
+    @EnvironmentObject private var moduleManager: ModuleManager
     @EnvironmentObject private var libraryManager: LibraryManager
     @ObservedObject private var navigator = ChapterNavigator.shared
     
