@@ -100,12 +100,8 @@ extension JSController {
         guard let promiseDetails = promiseValueDetails else {
             Logger.shared.log("extractDetails did not return a Promise", type: "Error")
             detailsGroupQueue.sync {
-                guard !hasLeftDetailsGroup else { 
-                    Logger.shared.log("extractDetails: guard block called but group already left", type: "Debug")
-                    return 
-                }
+                guard !hasLeftDetailsGroup else { return }
                 hasLeftDetailsGroup = true
-                Logger.shared.log("Leaving dispatch group due to nil promise (details)", type: "Debug")
                 dispatchGroup.leave()
             }
             completion([], [])
@@ -140,7 +136,6 @@ extension JSController {
                 } else {
                     Logger.shared.log("Result is not a string of extractDetails", type: "Error")
                 }
-                Logger.shared.log("Leaving dispatch group from details thenBlock", type: "Debug")
                 dispatchGroup.leave()
             }
         }
@@ -154,7 +149,6 @@ extension JSController {
                 hasLeftDetailsGroup = true
                 
                 Logger.shared.log("Promise rejected of extractDetails: \(String(describing: error.toString()))", type: "Error")
-                Logger.shared.log("Leaving dispatch group from details catchBlock", type: "Debug")
                 dispatchGroup.leave()
             }
         }
@@ -179,7 +173,6 @@ extension JSController {
                     return
                 }
                 hasLeftEpisodesGroup = true
-                Logger.shared.log("Leaving dispatch group due to timeout", type: "Debug")
                 dispatchGroup.leave()
             }
         }
@@ -189,12 +182,8 @@ extension JSController {
             Logger.shared.log("extractEpisodes did not return a Promise", type: "Error")
             timeoutWorkItem.cancel()
             episodesGroupQueue.sync {
-                guard !hasLeftEpisodesGroup else { 
-                    Logger.shared.log("extractEpisodes: guard block called but group already left", type: "Debug")
-                    return 
-                }
+                guard !hasLeftEpisodesGroup else { return }
                 hasLeftEpisodesGroup = true
-                Logger.shared.log("Leaving dispatch group due to nil promise", type: "Debug")
                 dispatchGroup.leave()
             }
             completion([], [])
@@ -231,7 +220,6 @@ extension JSController {
                 } else {
                     Logger.shared.log("Result is not a string of extractEpisodes", type: "Error")
                 }
-                Logger.shared.log("Leaving dispatch group from thenBlock", type: "Debug")
                 dispatchGroup.leave()
             }
         }
@@ -246,7 +234,6 @@ extension JSController {
                 hasLeftEpisodesGroup = true
                 
                 Logger.shared.log("Promise rejected of extractEpisodes: \(String(describing: error.toString()))", type: "Error")
-                Logger.shared.log("Leaving dispatch group from catchBlock", type: "Debug")
                 dispatchGroup.leave()
             }
         }
