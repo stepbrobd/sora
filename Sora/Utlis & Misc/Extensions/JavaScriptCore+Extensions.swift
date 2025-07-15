@@ -195,12 +195,20 @@ extension JSContext {
                 
                 let callReject: (String) -> Void = { message in
                     DispatchQueue.main.async {
-                        reject.call(withArguments: [message])
+                        if !reject.isUndefined {
+                            reject.call(withArguments: [message])
+                        } else {
+                            Logger.shared.log("Reject callback is undefined", type: "Error")
+                        }
                     }
                 }
                 let callResolve: ([String: Any]) -> Void = { dict in
                     DispatchQueue.main.async {
-                        resolve.call(withArguments: [dict])
+                        if !resolve.isUndefined {
+                            resolve.call(withArguments: [dict])
+                        } else {
+                            Logger.shared.log("Resolve callback is undefined", type: "Error")
+                        }
                     }
                 }
                 
