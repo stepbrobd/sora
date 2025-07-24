@@ -92,6 +92,74 @@ fileprivate struct SettingsActionRow: View {
     }
 }
 
+fileprivate struct BackupCoverageItem: View {
+    let icon: String
+    let title: String
+    let isIncluded: Bool
+    var showDivider: Bool = false
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .frame(width: 24, height: 24)
+                .foregroundStyle(isIncluded ? Color.green : Color.red)
+            
+            Text(title)
+                .foregroundStyle(Color.primary)
+            
+            Spacer()
+            
+            Image(systemName: isIncluded ? "checkmark.circle.fill" : "xmark.circle.fill")
+                .foregroundStyle(isIncluded ? Color.green : Color.red)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 6)
+        .contentShape(Rectangle())
+    }
+}
+
+fileprivate struct BackupCoverageView: View {
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(NSLocalizedString("Included", comment: "Title for items included in backup"))
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal)
+                
+                Rectangle()
+                    .fill(Color.secondary.opacity(0.3))
+                    .frame(height: 1)
+            }
+            .padding(.vertical, 4)
+            .padding(.horizontal, 16)
+            
+            BackupCoverageItem(icon: "film", title: NSLocalizedString("Continue Watching", comment: "Continue watching backup item"), isIncluded: true, showDivider: false)
+            BackupCoverageItem(icon: "book", title: NSLocalizedString("Continue Reading", comment: "Continue reading backup item"), isIncluded: true, showDivider: false)
+            BackupCoverageItem(icon: "bookmark.fill", title: NSLocalizedString("Collections & Bookmarks", comment: "Collections backup item"), isIncluded: true, showDivider: false)
+            BackupCoverageItem(icon: "magnifyingglass", title: NSLocalizedString("Search History", comment: "Search history backup item"), isIncluded: true, showDivider: false)
+            BackupCoverageItem(icon: "puzzlepiece.fill", title: NSLocalizedString("Modules", comment: "Modules backup item"), isIncluded: true, showDivider: false)
+            
+            HStack {
+                Text(NSLocalizedString("Not Included", comment: "Title for items not included in backup"))
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal)
+                
+                Rectangle()
+                    .fill(Color.secondary.opacity(0.3))
+                    .frame(height: 1)
+            }
+            .padding(.vertical, 4)
+            .padding(.horizontal, 16)
+            
+            BackupCoverageItem(icon: "arrow.down.circle", title: NSLocalizedString("Downloaded Files", comment: "Downloads backup item"), isIncluded: false, showDivider: false)
+            BackupCoverageItem(icon: "gearshape", title: NSLocalizedString("App Settings", comment: "App settings backup item"), isIncluded: false, showDivider: false)
+            BackupCoverageItem(icon: "person.crop.circle", title: NSLocalizedString("Account Logins", comment: "Account logins backup item"), isIncluded: false, showDivider: false)
+        }
+    }
+}
+
 struct SettingsViewBackup: View {
     @State private var showExporter = false
     @State private var showImporter = false
@@ -105,7 +173,7 @@ struct SettingsViewBackup: View {
             VStack(spacing: 24) {
                 SettingsSection(
                     title: NSLocalizedString("Backup & Restore", comment: "Settings section title for backup and restore"),
-                    footer: NSLocalizedString("Notice: This feature is still experimental. Please double-check your data after import/export. \nAlso note that when importing a backup your current data will be overwritten, it is not possible to merge yet.", comment: "Footer notice for experimental backup/restore feature")
+                    footer: nil
                 ) {
                     SettingsActionRow(
                         icon: "arrow.up.doc",
@@ -125,8 +193,26 @@ struct SettingsViewBackup: View {
                         showDivider: false
                     )
                 }
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(NSLocalizedString("Backup Coverage", comment: "Settings section title for backup coverage details"))
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 2)
+                    BackupCoverageView()
+                }
+                
+                Text(NSLocalizedString("Notice: This feature is still experimental. Please double-check your data after import/export. \nAlso note that when importing a backup your current data will be overwritten, it is not possible to merge yet.", comment: "Footer notice for experimental backup/restore feature"))
+                    .font(.footnote)
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
             }
-            .padding(.vertical, 20)
+            .scrollViewBottomPadding()
+            .padding(.bottom, 20)
+            .padding(.top, 20)
         }
         .navigationTitle(NSLocalizedString("Backup & Restore", comment: "Navigation title for backup and restore view"))
         .fileExporter(
