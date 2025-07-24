@@ -20,6 +20,23 @@ struct SoraApp: App {
             UIView.appearance(whenContainedInInstancesOf: [UIAlertController.self]).tintColor = userAccentColor
         }
         
+        _ = LocalizationManager.shared
+        
+        if let languages = UserDefaults.standard.object(forKey: "AppleLanguages") as? [String],
+           let primaryLanguage = languages.first,
+           primaryLanguage == "mn" || primaryLanguage == "mn-Cyrl" {
+            Logger.shared.log("App initialized with Mongolian language: \(primaryLanguage)", type: "Debug")
+            
+            if let path = Bundle.main.path(forResource: "mn", ofType: "lproj"),
+               let bundle = Bundle(path: path) {
+                let testKey = "About"
+                let testString = bundle.localizedString(forKey: testKey, value: nil, table: nil)
+                Logger.shared.log("Test Mongolian string for '\(testKey)': \(testString)", type: "Debug")
+            } else {
+                Logger.shared.log("Failed to load Mongolian bundle", type: "Error")
+            }
+        }
+        
         Task { @MainActor in
             await Self.clearTmpFolder()
             
