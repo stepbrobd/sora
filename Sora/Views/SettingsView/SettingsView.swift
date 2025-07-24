@@ -171,6 +171,11 @@ struct SettingsView: View {
                             }
                             Divider().padding(.horizontal, 16)
                             
+                            NavigationLink(destination: SettingsViewLibrary().navigationBarBackButtonHidden(false)) {
+                                SettingsNavigationRow(icon: "books.vertical", titleKey: "Library")
+                            }
+                            Divider().padding(.horizontal, 16)
+                            
                             NavigationLink(destination: SettingsViewPlayer().navigationBarBackButtonHidden(false)) {
                                 SettingsNavigationRow(icon: "play.circle", titleKey: "Video Player")
                             }

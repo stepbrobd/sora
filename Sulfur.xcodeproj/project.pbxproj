@@ -21,6 +21,7 @@
 		0414ECFE2E32D6EF00A7E76A /* Bundle+Language.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0414ECFC2E32D6EF00A7E76A /* Bundle+Language.swift */; };
 		0414ECFF2E32D6EF00A7E76A /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0414ECFD2E32D6EF00A7E76A /* LocalizationManager.swift */; };
 		0414ED032E32D72400A7E76A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0414ED012E32D72400A7E76A /* Localizable.strings */; };
+		0414ED052E32D90000A7E76A /* SettingsViewLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0414ED042E32D90000A7E76A /* SettingsViewLibrary.swift */; };
 		041E9D722E11D71F0025F150 /* SettingsViewBackup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 041E9D712E11D71F0025F150 /* SettingsViewBackup.swift */; };
 		04536F712E04BA3B00A11248 /* JSController-Novel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04536F702E04BA3B00A11248 /* JSController-Novel.swift */; };
 		04536F742E04BA5600A11248 /* ReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04536F722E04BA5600A11248 /* ReaderView.swift */; };
@@ -143,6 +144,7 @@
 		0414ECFC2E32D6EF00A7E76A /* Bundle+Language.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+Language.swift"; sourceTree = "<group>"; };
 		0414ECFD2E32D6EF00A7E76A /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
 		0414ED002E32D72400A7E76A /* mn-Cyrl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "mn-Cyrl"; path = Localizable.strings; sourceTree = "<group>"; };
+		0414ED042E32D90000A7E76A /* SettingsViewLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewLibrary.swift; sourceTree = "<group>"; };
 		041E9D712E11D71F0025F150 /* SettingsViewBackup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewBackup.swift; sourceTree = "<group>"; };
 		0452339E2E02149C002EA23C /* bos */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = bos; path = Localizable.strings; sourceTree = "<group>"; };
 		04536F702E04BA3B00A11248 /* JSController-Novel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JSController-Novel.swift"; sourceTree = "<group>"; };
@@ -594,6 +596,7 @@
 		133D7C832D2BE2630075467E /* SettingsSubViews */ = {
 			isa = PBXGroup;
 			children = (
+				0414ED042E32D90000A7E76A /* SettingsViewLibrary.swift */,
 				041E9D712E11D71F0025F150 /* SettingsViewBackup.swift */,
 				1E9FF1D22D403E42008AC100 /* SettingsViewLoggerFilter.swift */,
 				1399FAD32D3AB38C00E97C31 /* SettingsViewLogger.swift */,
@@ -1015,6 +1018,7 @@
 				047F170E2E0C93F30081B5FB /* ContinueReadingItem.swift in Sources */,
 				047F170F2E0C93F30081B5FB /* ContinueReadingManager.swift in Sources */,
 				13DB46902D900A38008CBC03 /* URL.swift in Sources */,
+				0414ED052E32D90000A7E76A /* SettingsViewLibrary.swift in Sources */,
 				138FE1D02DECA00D00936D81 /* TMDB-FetchID.swift in Sources */,
 				04AD07162E03704700EB74C1 /* BookmarkCell.swift in Sources */,
 				130C6BFA2D53AB1F00DC1432 /* SettingsViewData.swift in Sources */,
