@@ -590,27 +590,24 @@ struct MediaInfoView: View {
             Text(NSLocalizedString("Episodes", comment: ""))
                 .font(.system(size: 22, weight: .bold))
                 .foregroundColor(.primary)
-            
             Spacer()
-            
-            HStack(spacing: 4) {
-                if isGroupedBySeasons || episodeLinks.count > episodeChunkSize {
-                    HStack(spacing: 8) {
-                        if isGroupedBySeasons {
-                            seasonSelectorStyled
-                        }
-                        Spacer()
-                        if episodeLinks.count > episodeChunkSize {
-                            rangeSelectorStyled
-                                .padding(.trailing, 4)
-                        }
-                    }
-                    .padding(.top, -8)
+            sourceButton
+            menuButton
+        }
+        if isGroupedBySeasons || episodeLinks.count > episodeChunkSize {
+            HStack {
+                if isGroupedBySeasons {
+                    seasonSelectorStyled
+                } else {
+                    Spacer(minLength: 0)
                 }
-                
-                sourceButton
-                menuButton
+                Spacer()
+                if episodeLinks.count > episodeChunkSize {
+                    rangeSelectorStyled
+                        .padding(.trailing, 4)
+                }
             }
+            .padding(.top, -8)
         }
     }
     
