@@ -192,6 +192,12 @@ struct MediaInfoView: View {
                 UserDefaults.standard.set(newValue.lowerBound, forKey: selectedRangeKey)
             }
             .onChange(of: selectedSeason) { newValue in
+                let ranges = generateRanges(for: currentEpisodeList.count)
+                if let validRange = ranges.first(where: { $0 == selectedRange }) {
+                    selectedRange = validRange
+                } else {
+                    selectedRange = ranges.first ?? 0..<episodeChunkSize
+                }
                 UserDefaults.standard.set(newValue, forKey: selectedSeasonKey)
             }
             .onChange(of: selectedChapterRange) { newValue in
@@ -565,7 +571,7 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var rangeSelectorStyled: some View {
         Menu {
-            ForEach(generateRanges(), id: \..self) { range in
+            ForEach(episodeRanges, id: \.self) { range in
                 Button(action: { selectedRange = range }) {
                     Text("\(range.lowerBound + 1)-\(range.upperBound)")
                 }
@@ -625,9 +631,9 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var flatEpisodeList: some View {
         VStack(spacing: 15) {
-            ForEach(episodeLinks.indices.filter { selectedRange.contains($0) }, id: \.self) { i in
-                let ep = episodeLinks[i]
-                createEpisodeCell(episode: ep, index: i, season: 1)
+            ForEach(currentEpisodeList.indices.filter { selectedRange.contains($0) }, id: \.self) { i in
+                let ep = currentEpisodeList[i]
+                createEpisodeCell(episode: ep, index: i, season: isGroupedBySeasons ? selectedSeason + 1 : 1)
             }
         }
     }
@@ -637,8 +643,9 @@ struct MediaInfoView: View {
         let seasons = groupedEpisodes()
         if !seasons.isEmpty, selectedSeason < seasons.count {
             VStack(spacing: 15) {
-                ForEach(seasons[selectedSeason]) { ep in
-                    createEpisodeCell(episode: ep, index: selectedSeason, season: selectedSeason + 1)
+                ForEach(seasons[selectedSeason].indices.filter { selectedRange.contains($0) }, id: \.self) { i in
+                    let ep = seasons[selectedSeason][i]
+                    createEpisodeCell(episode: ep, index: i, season: selectedSeason + 1)
                 }
             }
         } else {
@@ -2355,5 +2362,32 @@ struct MediaInfoView: View {
         item.simultaneousGesture(TapGesture().onEnded {
             UserDefaults.standard.set(true, forKey: "navigatingToReaderView")
         })
+    }
+    
+    // MARK: - Episode Range Fix for Seasons
+    private func generateRanges(for count: Int) -> [Range<Int>] {
+        let chunkSize = episodeChunkSize
+        var ranges: [Range<Int>] = []
+        for i in stride(from: 0, to: count, by: chunkSize) {
+            let end = min(i + chunkSize, count)
+            ranges.append(i..<end)
+        }
+        return ranges
+    }
+    
+    private var currentEpisodeList: [EpisodeLink] {
+        if isGroupedBySeasons {
+            let seasons = groupedEpisodes()
+            if selectedSeason < seasons.count {
+                return seasons[selectedSeason]
+            }
+            return []
+        } else {
+            return episodeLinks
+        }
+    }
+    
+    private var episodeRanges: [Range<Int>] {
+        generateRanges(for: currentEpisodeList.count)
     }
 }
