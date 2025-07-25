@@ -32,6 +32,17 @@ class LanguageBundleManager {
                 return bundle
             }
         }
+
+        if language == "ro" {
+            if let path = mainBundle.path(forResource: "ro", ofType: "lproj"),
+               let bundle = Bundle(path: path) {
+                bundles[language] = bundle
+                Logger.shared.log("Found Romanian bundle using ro.lproj", type: "Debug")
+                return bundle
+            } else {
+                Logger.shared.log("Could not find bundle for Romanian (ro)", type: "Error")
+            }
+        }
         
         Logger.shared.log("Could not find bundle for language: \(language)", type: "Error")
         return mainBundle

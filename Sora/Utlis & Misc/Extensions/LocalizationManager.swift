@@ -22,6 +22,7 @@ class LocalizationManager {
         }
         
         loadTranslationsIfNeeded(for: "mn")
+        loadTranslationsIfNeeded(for: "ro")
     }
     
     func setLanguage(_ languageCode: String) {
@@ -46,12 +47,28 @@ class LocalizationManager {
             
             Logger.shared.log("Missing Mongolian translation for key: \(key)", type: "Debug")
         }
+
+        if currentLanguage == "ro" {
+            if let translations = translationCache["ro"],
+               let localizedString = translations[key] {
+                return localizedString
+            }
+
+            loadTranslationsIfNeeded(for: "ro")
+
+            if let translations = translationCache["ro"],
+               let localizedString = translations[key] {
+                return localizedString
+            }
+
+            Logger.shared.log("Missing Romanian translation for key: \(key)", type: "Debug")
+        }
         
         return NSLocalizedString(key, comment: comment)
     }
     
     private func loadTranslationsIfNeeded(for languageCode: String) {
-        if translationCache[languageCode] != nil {
+        if translationCache[languageCode] != nil {  
             return
         }
         

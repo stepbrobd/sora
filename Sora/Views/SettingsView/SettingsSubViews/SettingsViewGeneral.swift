@@ -226,6 +226,7 @@ struct SettingsViewGeneral: View {
                             "Kazakh",
                             "Mongolian",
                             "Norsk",
+                            "Romanian",
                             "Russian",
                             "Slovak",
                             "Spanish",
@@ -248,6 +249,7 @@ struct SettingsViewGeneral: View {
                             case "Mongolian": return "Монгол"
                             case "Swedish": return "Svenska"
                             case "Italian": return "Italiano"
+                            case "Romanian": return "Română"
                             default: return lang
                             }
                         },
