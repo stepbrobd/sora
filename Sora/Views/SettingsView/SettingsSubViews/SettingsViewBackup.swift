@@ -139,6 +139,7 @@ fileprivate struct BackupCoverageView: View {
             BackupCoverageItem(icon: "bookmark.fill", title: NSLocalizedString("Collections & Bookmarks", comment: "Collections backup item"), isIncluded: true, showDivider: false)
             BackupCoverageItem(icon: "magnifyingglass", title: NSLocalizedString("Search History", comment: "Search history backup item"), isIncluded: true, showDivider: false)
             BackupCoverageItem(icon: "puzzlepiece.fill", title: NSLocalizedString("Modules", comment: "Modules backup item"), isIncluded: true, showDivider: false)
+            BackupCoverageItem(icon: "gearshape", title: NSLocalizedString("User Settings", comment: "User settings backup item"), isIncluded: true, showDivider: false)
             
             HStack {
                 Text(NSLocalizedString("Not Included", comment: "Title for items not included in backup"))
@@ -154,7 +155,6 @@ fileprivate struct BackupCoverageView: View {
             .padding(.horizontal, 16)
             
             BackupCoverageItem(icon: "arrow.down.circle", title: NSLocalizedString("Downloaded Files", comment: "Downloads backup item"), isIncluded: false, showDivider: false)
-            BackupCoverageItem(icon: "gearshape", title: NSLocalizedString("App Settings", comment: "App settings backup item"), isIncluded: false, showDivider: false)
             BackupCoverageItem(icon: "person.crop.circle", title: NSLocalizedString("Account Logins", comment: "Account logins backup item"), isIncluded: false, showDivider: false)
         }
     }
@@ -266,12 +266,73 @@ struct SettingsViewBackup: View {
         let searchHistory = UserDefaults.standard.stringArray(forKey: "searchHistory") ?? []
         let modules = ModuleManager().modules 
 
+        let userSettingsKeys: [String] = [
+            "episodeChunkSize",
+            "fetchEpisodeMetadata",
+            "analyticsEnabled",
+            "hideSplashScreen",
+            "useNativeTabBar",
+            "metadataProvidersOrderData",
+            "tmdbImageWidth",
+            "metadataProviders",
+            "externalPlayer",
+            "alwaysLandscape",
+            "rememberPlaySpeed",
+            "holdSpeedPlayer",
+            "skipIncrement",
+            "skipIncrementHold",
+            "remainingTimePercentage",
+            "holdForPauseEnabled",
+            "skip85Visible",
+            "doubleTapSeekEnabled",
+            "skipIntroOutroVisible",
+            "pipButtonVisible",
+            "autoplayNext",
+            "videoQualityWiFi",
+            "videoQualityCellular",
+            "subtitlesEnabled",
+            "allowCellularDownloads",
+            "maxConcurrentDownloads",
+            "downloadQuality",
+            "mediaColumnsPortrait",
+            "mediaColumnsLandscape",
+            "librarySectionsOrderData",
+            "disabledLibrarySectionsData",
+            "selectedModuleId",
+            "didReceiveDefaultPageLink",
+            "refreshModulesOnLaunch",
+            "sendPushUpdates",
+            "sendTraktUpdates",
+            "selectedAppearance",
+            "selectedLanguage",
+            "metadataProvidersOrder",
+            "chapterChunkSize",
+            "lastCommunityURL"
+        ]
+        var userSettings: [String: Any] = [:]
+        for key in userSettingsKeys {
+            if let data = UserDefaults.standard.object(forKey: key) as? Data {
+                userSettings[key] = data.base64EncodedString()
+            } else {
+                userSettings[key] = UserDefaults.standard.object(forKey: key)
+            }
+        }
+        if let subtitleSettings = UserDefaults.standard.data(forKey: "SubtitleSettings") {
+            userSettings["SubtitleSettings"] = subtitleSettings.base64EncodedString()
+        }
+        if let logFilterStates = UserDefaults.standard.dictionary(forKey: "LogFilterStates") {
+            userSettings["LogFilterStates"] = logFilterStates
+        }
+        if let segmentsColorData = UserDefaults.standard.data(forKey: "segmentsColorData") {
+            userSettings["segmentsColorData"] = segmentsColorData.base64EncodedString()
+        }
         let backup: [String: Any] = [
             "continueWatching": continueWatching.map { try? $0.toDictionary() },
             "continueReading": continueReading.map { try? $0.toDictionary() },
             "collections": collections.map { try? $0.toDictionary() },
             "searchHistory": searchHistory,
-            "modules": modules.map { try? $0.toDictionary() }
+            "modules": modules.map { try? $0.toDictionary() },
+            "userSettings": userSettings
         ]
         
         return try? JSONSerialization.data(withJSONObject: backup, options: .prettyPrinted)
@@ -302,6 +363,16 @@ struct SettingsViewBackup: View {
             let docs = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
             let modulesURL = docs.appendingPathComponent("modules.json")
             try modData.write(to: modulesURL)
+        }
+        // Restore user settings if present
+        if let userSettings = json["userSettings"] as? [String: Any] {
+            for (key, value) in userSettings {
+                if let str = value as? String, let data = Data(base64Encoded: str), ["SubtitleSettings", "segmentsColorData", "metadataProvidersOrderData", "librarySectionsOrderData", "disabledLibrarySectionsData"].contains(key) {
+                    UserDefaults.standard.set(data, forKey: key)
+                } else {
+                    UserDefaults.standard.set(value, forKey: key)
+                }
+            }
         }
         UserDefaults.standard.synchronize()
     }
