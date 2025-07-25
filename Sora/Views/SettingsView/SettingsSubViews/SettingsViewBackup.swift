@@ -195,12 +195,8 @@ struct SettingsViewBackup: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(NSLocalizedString("Backup Coverage", comment: "Settings section title for backup coverage details"))
-                        .font(.footnote)
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 2)
                     BackupCoverageView()
+                        .padding(.horizontal, 20)
                 }
                 
                 Text(NSLocalizedString("Notice: This feature is still experimental. Please double-check your data after import/export. \nAlso note that when importing a backup your current data will be overwritten, it is not possible to merge yet.", comment: "Footer notice for experimental backup/restore feature"))
