@@ -8,6 +8,31 @@
 import SwiftUI
 import Foundation
 import UniformTypeIdentifiers
+import UIKit
+
+fileprivate func backupsFolderURL() -> URL {
+    let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    let backups = docs.appendingPathComponent("Backups")
+    if !FileManager.default.fileExists(atPath: backups.path) {
+        try? FileManager.default.createDirectory(at: backups, withIntermediateDirectories: true, attributes: nil)
+    }
+    return backups
+}
+
+fileprivate func listBackupFiles() -> [URL] {
+    let folder = backupsFolderURL()
+    let files = (try? FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)) ?? []
+    return files.filter { $0.pathExtension == "json" }
+        .sorted { $0.lastPathComponent > $1.lastPathComponent }
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
 
 fileprivate struct SettingsSection<Content: View>: View {
     let title: String
@@ -121,39 +146,36 @@ fileprivate struct BackupCoverageItem: View {
 fileprivate struct BackupCoverageView: View {
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
+            HStack(spacing: 8) {
+                Image(systemName: "checkmark.circle")
+                    .foregroundColor(.gray)
                 Text(NSLocalizedString("Included", comment: "Title for items included in backup"))
                     .font(.footnote)
                     .foregroundColor(.secondary)
-                    .padding(.horizontal)
-                
                 Rectangle()
                     .fill(Color.secondary.opacity(0.3))
                     .frame(height: 1)
+                    .frame(maxWidth: .infinity)
             }
             .padding(.vertical, 4)
-            .padding(.horizontal, 16)
-            
             BackupCoverageItem(icon: "film", title: NSLocalizedString("Continue Watching", comment: "Continue watching backup item"), isIncluded: true, showDivider: false)
             BackupCoverageItem(icon: "book", title: NSLocalizedString("Continue Reading", comment: "Continue reading backup item"), isIncluded: true, showDivider: false)
-            BackupCoverageItem(icon: "bookmark.fill", title: NSLocalizedString("Collections & Bookmarks", comment: "Collections backup item"), isIncluded: true, showDivider: false)
+            BackupCoverageItem(icon: "bookmark", title: NSLocalizedString("Collections & Bookmarks", comment: "Collections backup item"), isIncluded: true, showDivider: false)
             BackupCoverageItem(icon: "magnifyingglass", title: NSLocalizedString("Search History", comment: "Search history backup item"), isIncluded: true, showDivider: false)
-            BackupCoverageItem(icon: "puzzlepiece.fill", title: NSLocalizedString("Modules", comment: "Modules backup item"), isIncluded: true, showDivider: false)
+            BackupCoverageItem(icon: "puzzlepiece", title: NSLocalizedString("Modules", comment: "Modules backup item"), isIncluded: true, showDivider: false)
             BackupCoverageItem(icon: "gearshape", title: NSLocalizedString("User Settings", comment: "User settings backup item"), isIncluded: true, showDivider: false)
-            
-            HStack {
+            HStack(spacing: 8) {
+                Image(systemName: "xmark.circle")
+                    .foregroundColor(.gray)
                 Text(NSLocalizedString("Not Included", comment: "Title for items not included in backup"))
                     .font(.footnote)
                     .foregroundColor(.secondary)
-                    .padding(.horizontal)
-                
                 Rectangle()
                     .fill(Color.secondary.opacity(0.3))
                     .frame(height: 1)
+                    .frame(maxWidth: .infinity)
             }
             .padding(.vertical, 4)
-            .padding(.horizontal, 16)
-            
             BackupCoverageItem(icon: "arrow.down.circle", title: NSLocalizedString("Downloaded Files", comment: "Downloads backup item"), isIncluded: false, showDivider: false)
             BackupCoverageItem(icon: "person.crop.circle", title: NSLocalizedString("Account Logins", comment: "Account logins backup item"), isIncluded: false, showDivider: false)
         }
@@ -161,44 +183,68 @@ fileprivate struct BackupCoverageView: View {
 }
 
 struct SettingsViewBackup: View {
-    @State private var showExporter = false
-    @State private var showImporter = false
-    @State private var exportURL: URL?
     @State private var showAlert = false
     @State private var alertMessage = ""
-    @State private var exportData: Data? = nil
+    @State private var selectedBackup: URL? = nil
+    @State private var showImportNotice = false
+    @State private var showBackupList = false
     
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 24) {
-                SettingsSection(
-                    title: NSLocalizedString("Backup & Restore", comment: "Settings section title for backup and restore"),
-                    footer: nil
-                ) {
-                    SettingsActionRow(
-                        icon: "arrow.up.doc",
-                        title: NSLocalizedString("Export Backup", comment: "Export backup button title"),
-                        action: {
-                            exportData = generateBackupData()
-                            showExporter = true
-                        },
-                        showDivider: true
-                    )
-                    SettingsActionRow(
-                        icon: "arrow.down.doc",
-                        title: NSLocalizedString("Import Backup", comment: "Import backup button title"),
-                        action: {
-                            showImporter = true
-                        },
-                        showDivider: false
-                    )
+                VStack(spacing: 0) {
+                    VStack(spacing: 0) {
+                        SettingsNavigationRow(icon: "arrow.up.doc", title: NSLocalizedString("Save Backup", comment: "Save backup button title"), showChevron: false, textColor: .accentColor) {
+                            if let data = generateBackupData() {
+                                let url = backupsFolderURL().appendingPathComponent(exportFilename())
+                                do {
+                                    try data.write(to: url)
+                                    alertMessage = "Backup saved to Backups folder."
+                                } catch {
+                                    alertMessage = "Failed to save backup: \(error.localizedDescription)"
+                                }
+                                showAlert = true
+                            }
+                        }
+                        Divider()
+                    }
+                    .padding(.horizontal, 16)
+                    VStack(spacing: 0) {
+                        SettingsNavigationRow(icon: "arrow.down.doc", title: NSLocalizedString("Import Backup", comment: "Import backup button title"), showChevron: false, textColor: .accentColor) {
+                            showImportNotice = true
+                        }
+                        Divider()
+                    }
+                    .padding(.horizontal, 16)
+                    VStack(spacing: 0) {
+                        SettingsNavigationRow(icon: "folder", title: "Show Backups", showChevron: true, textColor: .accentColor) {
+                            showBackupList = true
+                        }
+                    }
+                    .padding(.horizontal, 16)
                 }
-                
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(
+                            LinearGradient(
+                                gradient: Gradient(stops: [
+                                    .init(color: Color.accentColor.opacity(0.3), location: 0),
+                                    .init(color: Color.accentColor.opacity(0), location: 1)
+                                ]),
+                                startPoint: .top,
+                                endPoint: .bottom
+                            ),
+                            lineWidth: 0.5
+                        )
+                )
+                .padding(.horizontal, 20)
+                NavigationLink(destination: BackupListView(), isActive: $showBackupList) { EmptyView() }
                 VStack(alignment: .leading, spacing: 8) {
                     BackupCoverageView()
                         .padding(.horizontal, 20)
                 }
-                
                 Text(NSLocalizedString("Notice: This feature is still experimental. Please double-check your data after import/export. \nAlso note that when importing a backup your current data will be overwritten, it is not possible to merge yet.", comment: "Footer notice for experimental backup/restore feature"))
                     .font(.footnote)
                     .foregroundColor(.gray)
@@ -211,55 +257,23 @@ struct SettingsViewBackup: View {
             .padding(.top, 20)
         }
         .navigationTitle(NSLocalizedString("Backup & Restore", comment: "Navigation title for backup and restore view"))
-        .fileExporter(
-            isPresented: $showExporter,
-            document: BackupDocument(data: exportData ?? Data()),
-            contentType: .json,
-            defaultFilename: exportFilename()
-        ) { result in
-            switch result {
-            case .success(let url):
-                alertMessage = "Exported to \(url.lastPathComponent)"
-                showAlert = true
-            case .failure(let error):
-                alertMessage = "Export failed: \(error.localizedDescription)"
-                showAlert = true
-            }
-        }
-        .fileImporter(
-            isPresented: $showImporter,
-            allowedContentTypes: [.json]
-        ) { result in
-            switch result {
-            case .success(let url):
-                var success = false
-                if url.startAccessingSecurityScopedResource() {
-                    defer { url.stopAccessingSecurityScopedResource() }
-                    do {
-                        let data = try Data(contentsOf: url)
-                        try restoreBackupData(data)
-                        alertMessage = "Import successful!"
-                        success = true
-                    } catch {
-                        alertMessage = "Import failed: \(error.localizedDescription)"
-                    }
-                }
-                if !success {
-                    alertMessage = "Import failed: Could not access file."
-                }
-                showAlert = true
-            case .failure(let error):
-                alertMessage = "Import failed: \(error.localizedDescription)"
-                showAlert = true
-            }
-        }
         .alert(isPresented: $showAlert) {
             Alert(title: Text(NSLocalizedString("Backup", comment: "Alert title for backup actions")), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }
+        .sheet(isPresented: $showImportNotice) {
+            ImportNoticeView()
+        }
     }
     
-    @MainActor
-    private func generateBackupData() -> Data? {
+    private func exportFilename() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
+        let dateString = formatter.string(from: Date())
+        return "SoraBackup_\(dateString).json"
+    }
+}
+
+@MainActor private func generateBackupData() -> Data? {
         let continueWatching = ContinueWatchingManager.shared.fetchItems()
         let continueReading = ContinueReadingManager.shared.fetchItems()
         let collections = (try? JSONDecoder().decode([BookmarkCollection].self, from: UserDefaults.standard.data(forKey: "bookmarkCollections") ?? Data())) ?? []
@@ -334,7 +348,6 @@ struct SettingsViewBackup: View {
             "modules": modules.map { try? $0.toDictionary() },
             "userSettings": userSettings
         ]
-        
         return try? JSONSerialization.data(withJSONObject: backup, options: .prettyPrinted)
     }
     
@@ -377,12 +390,242 @@ struct SettingsViewBackup: View {
         UserDefaults.standard.synchronize()
     }
     
-    
-    private func exportFilename() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
-        let dateString = formatter.string(from: Date())
-        return "SoraBackup_\(dateString).json"
+fileprivate struct SettingsNavigationRow: View {
+    let icon: String
+    let title: String
+    let showChevron: Bool
+    let textColor: Color
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: icon)
+                    .frame(width: 24, height: 24)
+                    .foregroundStyle(textColor)
+                Text(title)
+                    .foregroundStyle(textColor)
+                Spacer()
+                if showChevron {
+                    Image(systemName: "chevron.right")
+                        .foregroundStyle(.gray)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .background(Color.clear)
+        .contentShape(Rectangle())
+    }
+}
+
+struct BackupListView: View {
+    @State private var backups: [URL] = []
+    @State private var showShareSheet = false
+    @State private var shareURL: URL? = nil
+    @State private var selectedBackup: URL? = nil
+    @State private var deleteURL: URL? = nil
+    @State private var alertMessage = ""
+    @State private var activeAlert: ActiveAlert? = nil
+
+    private enum ActiveAlert: Identifiable {
+        case delete, importBackup, info
+        var id: Int {
+            switch self {
+            case .delete: return 0
+            case .importBackup: return 1
+            case .info: return 2
+            }
+        }
+    }
+
+    private func refreshBackups() {
+        backups = listBackupFiles()
+    }
+
+    var body: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 24) {
+                VStack(spacing: 0) {
+                    ForEach(backups.indices, id: \ .self) { idx in
+                        let url = backups[idx]
+                        VStack(spacing: 0) {
+                            SettingsNavigationRow(
+                                icon: "doc",
+                                title: url.lastPathComponent,
+                                showChevron: false,
+                                textColor: .accentColor
+                            ) {
+                                selectedBackup = url
+                                activeAlert = .importBackup
+                            }
+                            .contextMenu {
+                                Button("Export", systemImage: "square.and.arrow.up") {
+                                    shareURL = url
+                                    showShareSheet = true
+                                }
+                                Button("Delete", role: .destructive, action: {
+                                    deleteURL = url
+                                    activeAlert = .delete
+                                })
+                            }
+                            if idx != backups.count - 1 {
+                                Divider()
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                    }
+                    if !backups.isEmpty {
+                        Divider()
+                            .padding(.horizontal, 16)
+                    }
+                    if backups.isEmpty {
+                        Text("No backups found in the Backups folder.")
+                            .foregroundColor(.gray)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 20)
+                    }
+                    if !backups.isEmpty {
+                        Text("Tap on a backup to import it.")
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.top, 16)
+                            .padding(.bottom, 8)
+                    }
+                }
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(
+                            LinearGradient(
+                                gradient: Gradient(stops: [
+                                    .init(color: Color.accentColor.opacity(0.3), location: 0),
+                                    .init(color: Color.accentColor.opacity(0), location: 1)
+                                ]),
+                                startPoint: .top,
+                                endPoint: .bottom
+                            ),
+                            lineWidth: 0.5
+                        )
+                )
+                .padding(.horizontal, 20)
+            }
+            .padding(.top, 20)
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: { refreshBackups() }) {
+                    Image(systemName: "arrow.clockwise")
+                }
+            }
+        }
+        .onAppear(perform: refreshBackups)
+        .sheet(isPresented: $showShareSheet) {
+            if let url = shareURL {
+                ShareSheet(activityItems: [url])
+            }
+        }
+        .alert(item: $activeAlert) { alertType in
+            switch alertType {
+            case .delete:
+                return Alert(
+                    title: Text("Delete Backup"),
+                    message: Text("Are you sure you want to delete this backup?"),
+                    primaryButton: .destructive(Text("Delete")) {
+                        if let url = deleteURL {
+                            try? FileManager.default.removeItem(at: url)
+                            refreshBackups()
+                        }
+                    },
+                    secondaryButton: .cancel()
+                )
+            case .importBackup:
+                return Alert(
+                    title: Text("Import Backup"),
+                    message: Text("Are you sure you want to import this backup? This will overwrite your current data."),
+                    primaryButton: .destructive(Text("Import")) {
+                        if let url = selectedBackup {
+                            do {
+                                let data = try Data(contentsOf: url)
+                                try restoreBackupData(data)
+                                alertMessage = "Import successful! The app will now restart to apply the changes."
+                            } catch {
+                                alertMessage = "Import failed: \(error.localizedDescription)"
+                            }
+                            activeAlert = .info
+                        }
+                    },
+                    secondaryButton: .cancel()
+                )
+            case .info:
+                return Alert(title: Text("Backup"), message: Text(alertMessage), dismissButton: .default(Text("OK")) {
+                    if alertMessage.contains("restart") {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            exit(0)
+                        }
+                    }
+                })
+            }
+        }
+        .navigationTitle("Backups")
+    }
+}
+
+struct ImportNoticeView: View {
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+            VStack(spacing: 20) {
+                Image(systemName: "arrow.down.doc")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 48, height: 48)
+                    .foregroundColor(.accentColor)
+                Text("How to Import a Backup")
+                    .font(.title2).bold()
+                    .padding(.bottom, 8)
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "1.circle.fill").foregroundColor(.accentColor)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Open the **Files** app on your device.")
+                            Text("")
+                        }
+                    }
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "2.circle.fill").foregroundColor(.accentColor)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Navigate to:")
+                            Text("**On My iPhone/iPad** > **Sora** > **Backups**")
+                                .font(.callout)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "3.circle.fill").foregroundColor(.accentColor)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Copy your backup file (ending in **.json**) into the **Backups** folder.")
+                        }
+                    }
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "4.circle.fill").foregroundColor(.accentColor)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Return to Sora and tap **Show Backups** to see your file.")
+                        }
+                    }
+                }
+                .font(.body)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 8)
+                .background(Color(.systemGray6))
+                .cornerRadius(12)
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
+            Spacer()
+        }
     }
 }
 
