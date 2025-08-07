@@ -19,22 +19,6 @@ struct SoraApp: App {
         if let userAccentColor = UserDefaults.standard.color(forKey: "accentColor") {
             UIView.appearance(whenContainedInInstancesOf: [UIAlertController.self]).tintColor = userAccentColor
         }
-        
-        Task {
-            await Self.clearTmpFolder()
-            
-            await MainActor.run {
-                jsController.initializeDownloadSession()
-            }
-            
-            TraktToken.checkAuthenticationStatus { isAuthenticated in
-                if isAuthenticated {
-                    Logger.shared.log("Trakt authentication is valid", type: "Debug")
-                } else {
-                    Logger.shared.log("Trakt authentication required", type: "Debug")
-                }
-            }
-        }
     }
     
     var body: some Scene {
@@ -58,6 +42,21 @@ struct SoraApp: App {
                 Task {
                     if UserDefaults.standard.bool(forKey: "refreshModulesOnLaunch") {
                         await moduleManager.refreshModules()
+                    }
+                }
+                
+                Task {
+                    await Self.clearTmpFolder()
+                    await MainActor.run {
+                        jsController.initializeDownloadSession()
+                    }
+                    
+                    TraktToken.checkAuthenticationStatus { isAuthenticated in
+                        if isAuthenticated {
+                            Logger.shared.log("Trakt authentication is valid", type: "Debug")
+                        } else {
+                            Logger.shared.log("Trakt authentication required", type: "Debug")
+                        }
                     }
                 }
             }
