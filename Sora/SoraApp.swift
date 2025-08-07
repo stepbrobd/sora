@@ -20,8 +20,12 @@ struct SoraApp: App {
             UIView.appearance(whenContainedInInstancesOf: [UIAlertController.self]).tintColor = userAccentColor
         }
         
-        Task { @MainActor in
+        Task {
             await Self.clearTmpFolder()
+            
+            await MainActor.run {
+                jsController.initializeDownloadSession()
+            }
             
             TraktToken.checkAuthenticationStatus { isAuthenticated in
                 if isAuthenticated {

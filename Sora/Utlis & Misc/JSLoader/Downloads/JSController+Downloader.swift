@@ -143,7 +143,15 @@ extension JSController {
         }
         
         guard let downloadSession = downloadURLSession else {
-            completionHandler?(false, "Download session not available")
+            Logger.shared.log("Download session not initialized, initializing and retrying...", type: "Warning")
+            Task {
+                await MainActor.run {
+                    self.initializeDownloadSession()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        self.downloadMP4(request: request, completionHandler: completionHandler)
+                    }
+                }
+            }
             return
         }
         

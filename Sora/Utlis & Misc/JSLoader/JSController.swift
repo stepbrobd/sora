@@ -69,13 +69,14 @@ class JSController: NSObject, ObservableObject {
         context.exceptionHandler = { context, exception in
             print("[JS Exception]", exception?.toString() ?? "unknown")
         }
-        setupDownloadSession()
     }
     
     private func setupDownloadSession() {
         if downloadURLSession == nil {
-            initializeDownloadSession()
-            setupDownloadFunction()
+            Task {
+                initializeDownloadSession()
+                setupDownloadFunction()
+            }
         }
     }
     

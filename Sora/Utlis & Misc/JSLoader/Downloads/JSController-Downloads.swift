@@ -46,24 +46,25 @@ extension JSController {
         #if targetEnvironment(simulator)
             Logger.shared.log("Download Sessions are not available on Simulator", type: "Error")
         #else
-            // Create a unique identifier for the background session
-            let sessionIdentifier = "hls-downloader-\(UUID().uuidString)"
+            Task {
+                let sessionIdentifier = "hls-downloader-\(UUID().uuidString)"
 
-            let configuration = URLSessionConfiguration.background(withIdentifier: sessionIdentifier)
+                let configuration = URLSessionConfiguration.background(withIdentifier: sessionIdentifier)
 
-            // Configure session
-            configuration.allowsCellularAccess = true
-            configuration.shouldUseExtendedBackgroundIdleMode = true
-            configuration.waitsForConnectivity = true
+                configuration.allowsCellularAccess = true
+                configuration.shouldUseExtendedBackgroundIdleMode = true
+                configuration.waitsForConnectivity = true
 
-            // Create session with configuration
-            downloadURLSession = AVAssetDownloadURLSession(
-                configuration: configuration,
-                assetDownloadDelegate: self,
-                delegateQueue: .main
-            )
+                await MainActor.run {
+                    self.downloadURLSession = AVAssetDownloadURLSession(
+                        configuration: configuration,
+                        assetDownloadDelegate: self,
+                        delegateQueue: .main
+                    )
 
-            print("Download session initialized with ID: \(sessionIdentifier)")
+                    print("Download session initialized with ID: \(sessionIdentifier)")
+                }
+            }
         #endif
 
         loadSavedAssets()
@@ -208,6 +209,17 @@ extension JSController {
         // Set flag to prevent multiple concurrent processing
         isProcessingQueue = true
         
+        // Check if download session is ready before processing queue
+        guard downloadURLSession != nil else {
+            print("Download session not ready, deferring queue processing...")
+            isProcessingQueue = false
+            // Retry after a delay to allow session initialization
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                self?.processDownloadQueue()
+            }
+            return
+        }
+        
         // Calculate how many more downloads we can start
         let activeCount = activeDownloads.count
         let slotsAvailable = max(0, maxConcurrentDownloads - activeCount)
@@ -288,8 +300,15 @@ extension JSController {
             return
         }
         
-        // Create the download task
-        guard let task = downloadURLSession?.makeAssetDownloadTask(
+        guard let downloadSession = downloadURLSession else {
+            print("Download session not yet initialized, retrying in background...")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.startQueuedDownload(queuedDownload)
+            }
+            return
+        }
+        
+        guard let task = downloadSession.makeAssetDownloadTask(
             asset: asset,
             assetTitle: queuedDownload.title ?? queuedDownload.originalURL.lastPathComponent,
             assetArtworkData: nil,
