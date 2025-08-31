@@ -1,3 +1,5 @@
+## Project has been archived in favor of [Sora-2](https://github.com/cranci1/Sora-2), the recoded version on Sora, integrated with better features and more stability.
+
 # Sora
 > Also known as Sulfur due to copyright considerations.
 

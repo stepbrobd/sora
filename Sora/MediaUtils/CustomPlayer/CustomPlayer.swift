@@ -300,6 +300,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             }
             
             asset = AVURLAsset(url: url)
+            // Try to load OP/ED skip sidecar for local files
+            self.loadLocalSkipSidecar(for: url)
         } else {
             Logger.shared.log("Loading remote URL: \(url.absoluteString)", type: "Debug")
             var request = URLRequest(url: url)
@@ -2648,6 +2650,8 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             }
             
             asset = AVURLAsset(url: url)
+            // Try to load OP/ED skip sidecar for local files
+            self.loadLocalSkipSidecar(for: url)
         } else {
             Logger.shared.log("Switching to remote URL: \(url.absoluteString)", type: "Debug")
             var request = URLRequest(url: url)
@@ -3862,5 +3866,50 @@ class GradientBlurButton: UIButton {
     override func removeFromSuperview() {
         cleanupVisualEffects()
         super.removeFromSuperview()
+    }
+}
+
+
+    /// Load OP/ED skip data from a simple sidecar JSON saved next to the local video (if present)
+extension CustomMediaPlayerViewController {
+
+    private struct SkipSidecar: Decodable {
+        struct Interval: Decodable {
+            let start_time: Double
+            let end_time: Double
+        }
+        struct Result: Decodable {
+            let interval: Interval
+            let skip_type: String
+        }
+        let results: [Result]
+    }
+
+    func loadLocalSkipSidecar(for fileURL: URL) {
+        let sidecarURL = fileURL.deletingPathExtension().appendingPathExtension("skip.json")
+        do {
+            let data = try Data(contentsOf: sidecarURL)
+            let model = try JSONDecoder().decode(SkipSidecar.self, from: data)
+            for r in model.results {
+                let range = CMTimeRange(
+                    start: CMTime(seconds: r.interval.start_time, preferredTimescale: 600),
+                    end:   CMTime(seconds: r.interval.end_time,   preferredTimescale: 600)
+                )
+                switch r.skip_type.lowercased() {
+                case "op":
+                    self.skipIntervals.op = range
+                case "ed":
+                    self.skipIntervals.ed = range
+                default:
+                    break
+                }
+            }
+            if self.duration > 0 {
+                self.updateSegments()
+                self.updateSkipButtonsVisibility()
+            }
+        } catch {
+            print("[Player] No local skip sidecar found or failed to load: \(error.localizedDescription)")
+        }
     }
 }
