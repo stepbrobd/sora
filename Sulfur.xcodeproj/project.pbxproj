@@ -82,6 +82,7 @@
 		135CCBE22D4D1138008B9C0E /* SettingsViewPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135CCBE12D4D1138008B9C0E /* SettingsViewPlayer.swift */; };
 		13627FDD2E6892EE0062CAD5 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 13627FDB2E6892EE0062CAD5 /* Localizable.strings */; };
 		13627FE12E6892F70062CAD5 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 13627FDF2E6892F70062CAD5 /* Localizable.strings */; };
+		13627FE32E6894970062CAD5 /* JSController-NetworkFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13627FE22E6894970062CAD5 /* JSController-NetworkFetch.swift */; };
 		13637B8A2DE0EA1100BDA2FC /* UserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13637B892DE0EA1100BDA2FC /* UserDefaults.swift */; };
 		13637B902DE0ECD200BDA2FC /* Drops in Frameworks */ = {isa = PBXBuildFile; productRef = 13637B8F2DE0ECD200BDA2FC /* Drops */; };
 		13637B932DE0ECDB00BDA2FC /* MarqueeLabel in Frameworks */ = {isa = PBXBuildFile; productRef = 13637B922DE0ECDB00BDA2FC /* MarqueeLabel */; };
@@ -210,6 +211,7 @@
 		135CCBE12D4D1138008B9C0E /* SettingsViewPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewPlayer.swift; sourceTree = "<group>"; };
 		13627FDC2E6892EE0062CAD5 /* hi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hi; path = Localizable.strings; sourceTree = "<group>"; };
 		13627FE02E6892F70062CAD5 /* as */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = as; path = Localizable.strings; sourceTree = "<group>"; };
+		13627FE22E6894970062CAD5 /* JSController-NetworkFetch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "JSController-NetworkFetch.swift"; sourceTree = "<group>"; };
 		13637B892DE0EA1100BDA2FC /* UserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaults.swift; sourceTree = "<group>"; };
 		136BBE7F2DB1038000906B5E /* Notification+Name.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Notification+Name.swift"; sourceTree = "<group>"; };
 		138AA1B62D2D66FD0021F9DF /* EpisodeCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpisodeCell.swift; sourceTree = "<group>"; };
@@ -682,6 +684,7 @@
 			children = (
 				134A387B2DE4B5B90041B687 /* Downloads */,
 				133D7C8B2D2BE2640075467E /* JSController.swift */,
+				13627FE22E6894970062CAD5 /* JSController-NetworkFetch.swift */,
 				04536F702E04BA3B00A11248 /* JSController-Novel.swift */,
 				132AF1202D99951700A0140B /* JSController-Streams.swift */,
 				132AF1222D9995C300A0140B /* JSController-Details.swift */,
@@ -1103,6 +1106,7 @@
 				133D7C942D2BE2640075467E /* JSController.swift in Sources */,
 				133D7C922D2BE2640075467E /* URLSession.swift in Sources */,
 				0457C5A12DE78385000AFBD9 /* BookmarksDetailView.swift in Sources */,
+				13627FE32E6894970062CAD5 /* JSController-NetworkFetch.swift in Sources */,
 				133D7C912D2BE2640075467E /* SettingsViewModule.swift in Sources */,
 				13E62FC22DABC5830007E259 /* Trakt-Login.swift in Sources */,
 				133F55BB2D33B55100E08EEA /* LibraryManager.swift in Sources */,
