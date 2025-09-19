@@ -80,7 +80,7 @@ extension JSContext {
             guard let url = URL(string: urlString) else {
                 Logger.shared.log("Invalid URL", type: "Error")
                 DispatchQueue.main.async {
-                    reject.call(withArguments: ["Invalid URL"])
+                    resolve.call(withArguments: ["Invalid URL"])
                 }
                 return
             }
