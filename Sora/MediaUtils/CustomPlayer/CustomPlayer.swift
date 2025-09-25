@@ -68,10 +68,6 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         return UserDefaults.standard.bool(forKey: "doubleTapSeekEnabled")
     }
     
-    private var isPipAutoEnabled: Bool {
-        UserDefaults.standard.bool(forKey: "pipAutoEnabled")
-    }
-    
     private var isPipButtonVisible: Bool {
         if UserDefaults.standard.object(forKey: "pipButtonVisible") == nil {
             return true
@@ -484,8 +480,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             name: .AVPlayerItemDidPlayToEndTime,
             object: player.currentItem
         )
-        
-        
+        NotificationCenter.default.addObserver(self, selector: #selector(startPipIfNeeded), name: UIApplication.didEnterBackgroundNotification, object: nil)
     }
     
     private func setupTopRowLayout() {
@@ -2211,28 +2206,17 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
     }
     
     @objc private func pipButtonTapped(_ sender: UIButton) {
-        Logger.shared.log("PiP button tapped", type: "Debug")
-        guard let pip = pipController else {
-            Logger.shared.log("PiP controller is nil", type: "Error")
-            return
-        }
-        Logger.shared.log("PiP controller found, isActive: \(pip.isPictureInPictureActive)", type: "Debug")
+        guard let pip = pipController else { return }
         if pip.isPictureInPictureActive {
             pip.stopPictureInPicture()
-            Logger.shared.log("Stopping PiP", type: "Debug")
         } else {
             pip.startPictureInPicture()
-            Logger.shared.log("Starting PiP", type: "Debug")
         }
     }
     
     @objc private func startPipIfNeeded() {
-        guard isPipAutoEnabled,
-              let pip = pipController,
-              !pip.isPictureInPictureActive else {
-            return
-        }
-        pip.startPictureInPicture()
+        Logger.shared.log("PIP", type: "Genral")
+        pipController!.startPictureInPicture()
     }
     
     @objc private func lockTapped() {
@@ -3595,12 +3579,12 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             playerLayerContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
         
-        let playerLayer = AVPlayerLayer(player: player)
-        playerLayer.frame = playerLayerContainer.bounds
-        playerLayer.videoGravity = .resizeAspect
-        playerLayerContainer.layer.addSublayer(playerLayer)
-        
-        pipController = AVPictureInPictureController(playerLayer: playerLayer)
+        let pipPlayerLayer = AVPlayerLayer(player: playerViewController.player)
+        pipPlayerLayer.frame = playerViewController.view.layer.bounds
+        pipPlayerLayer.videoGravity = .resizeAspect
+
+        playerViewController.view.layer.insertSublayer(pipPlayerLayer, at: 0)
+        pipController = AVPictureInPictureController(playerLayer: pipPlayerLayer)
         pipController?.delegate = self
         
         let Image = UIImage(systemName: "pip", withConfiguration: cfg)
@@ -3625,7 +3609,7 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
         
         pipButton.isHidden = !isPipButtonVisible
         
-        NotificationCenter.default.addObserver(self, selector: #selector(startPipIfNeeded), name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(startPipIfNeeded), name: UIApplication.didEnterBackgroundNotification, object: nil)
     }
     
     func updateMarqueeConstraints() {
