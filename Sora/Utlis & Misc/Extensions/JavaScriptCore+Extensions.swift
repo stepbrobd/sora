@@ -165,7 +165,7 @@ extension JSContext {
             if httpMethod == "GET" && !bodyIsEmpty {
                 Logger.shared.log("GET request must not have a body", type: "Error")
                 DispatchQueue.main.async {
-                    reject.call(withArguments: ["GET request must not have a body"])
+                    resolve.call(withArguments: ["GET request must not have a body"])
                 }
                 return
             }
