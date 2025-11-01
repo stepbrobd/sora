@@ -41,10 +41,7 @@ lipo -create \
     "$DD_APP_PATH_ARM64/Contents/MacOS/$APPLICATION_NAME" \
     -output "$TARGET_APP/Contents/MacOS/$APPLICATION_NAME"
 
-codesign --remove "$TARGET_APP"
-if [ -e "$TARGET_APP/_CodeSignature" ]; then
-    rm -rf "$TARGET_APP/_CodeSignature"
-fi
+codesign --force --deep --sign - "$TARGET_APP"
 
 echo "Universal Mac Catalyst build completed: $TARGET_APP"
 lipo -archs "$TARGET_APP/Contents/MacOS/$APPLICATION_NAME"
