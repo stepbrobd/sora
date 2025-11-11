@@ -34,13 +34,10 @@ struct MediaInfoView: View {
     @State private var tmdbType: TMDBFetcher.MediaType? = nil
     @State private var currentFetchTask: Task<Void, Never>? = nil
 
-    // Jikan filler set for this media (passed down to EpisodeCell)
     @State private var jikanFillerSet: Set<Int>? = nil
-
-    // Static/shared Jikan cache & progress guards (one cache for the app to avoid duplicate/expensive fetches)
     private static var jikanCache: [Int: (fetchedAt: Date, episodes: [JikanEpisode])] = [:]
     private static let jikanCacheQueue = DispatchQueue(label: "sora.jikan.cache.queue", attributes: .concurrent)
-    private static let jikanCacheTTL: TimeInterval = 60 * 60 * 24 * 7 // 1 week
+    private static let jikanCacheTTL: TimeInterval = 60 * 60 * 24 * 7
     private static var inProgressMALIDs: Set<Int> = []
     private static let inProgressQueue = DispatchQueue(label: "sora.jikan.inprogress.queue")
     
@@ -297,37 +294,15 @@ struct MediaInfoView: View {
                 contentContainer
             }
         }
-        .onAppear {
-            UIScrollView.appearance().bounces = false
-        }
     }
     
     @ViewBuilder
     private var heroImageSection: some View {
-        LazyImage(url: URL(string: imageUrl)) { state in
-            if let uiImage = state.imageContainer?.image {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: UIScreen.main.bounds.width, height: 700)
-                    .clipped()
-            } else {
-                Rectangle()
-                    .fill(
-                        LinearGradient(
-                            gradient: Gradient(colors: [
-                                Color.gray.opacity(0.2),
-                                Color.gray.opacity(0.3),
-                                Color.gray.opacity(0.2)
-                            ]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: UIScreen.main.bounds.width, height: 700)
-                    .clipped()
-            }
-        }
+        StretchyHeaderView(
+            backdropURL: imageUrl,
+            headerHeight: 700,
+            minHeaderHeight: 400
+        )
     }
     
     @ViewBuilder
