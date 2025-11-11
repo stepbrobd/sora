@@ -1910,6 +1910,37 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             subtitleLabel.layer.shadowOffset = .zero
         }
     }
+
+    private func clearSubtitleStack() {
+        guard subtitleStackView != nil else { return }
+        for view in subtitleStackView.arrangedSubviews {
+            subtitleStackView.removeArrangedSubview(view)
+            view.removeFromSuperview()
+        }
+        subtitleLabels.removeAll()
+    }
+
+    private func updateSubtitleStack(with lines: [String]) {
+        clearSubtitleStack()
+        for line in lines {
+            let label = UILabel()
+            label.textAlignment = .center
+            label.numberOfLines = 0
+            label.font = UIFont.systemFont(ofSize: CGFloat(subtitleFontSize))
+            label.textColor = subtitleUIColor()
+            label.backgroundColor = subtitleBackgroundEnabled ? UIColor.black.withAlphaComponent(0.6) : .clear
+            label.layer.cornerRadius = 5
+            label.clipsToBounds = true
+            label.layer.shadowColor = UIColor.black.cgColor
+            label.layer.shadowRadius = CGFloat(subtitleShadowRadius)
+            label.layer.shadowOpacity = 1.0
+            label.layer.shadowOffset = .zero
+            label.text = line
+            subtitleLabels.append(label)
+            subtitleStackView.addArrangedSubview(label)
+        }
+        subtitleStackView.isHidden = lines.isEmpty || !subtitlesEnabled
+    }
     
     func addTimeObserver() {
         let interval = CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
@@ -1936,29 +1967,30 @@ class CustomMediaPlayerViewController: UIViewController, UIGestureRecognizerDele
             UserDefaults.standard.set(self.currentTimeVal, forKey: "lastPlayedTime_\(self.fullUrl)")
             UserDefaults.standard.set(self.duration, forKey: "totalTime_\(self.fullUrl)")
             
-            if self.subtitlesEnabled {
-                let adjustedTime = self.currentTimeVal - self.subtitleDelay
-                let cues = self.subtitlesLoader.cues.filter { adjustedTime >= $0.startTime && adjustedTime <= $0.endTime }
-                if cues.count > 0 {
-                    self.subtitleLabels[0].text = cues[0].text.strippedHTML
-                    self.subtitleLabels[0].isHidden = false
+                if self.subtitlesEnabled {
+                    let adjustedTime = self.currentTimeVal - self.subtitleDelay
+                    let cues = self.subtitlesLoader.cues.filter { adjustedTime >= $0.startTime && adjustedTime <= $0.endTime }
+
+                    if cues.isEmpty {
+                        self.clearSubtitleStack()
+                    } else {
+                        var lines: [String] = []
+                        let maxLines = 6
+                        for cue in cues {
+                            for rawLine in cue.lines {
+                                if lines.count >= maxLines { break }
+                                let cleaned = rawLine.strippedHTML
+                                if !cleaned.isEmpty {
+                                    lines.append(cleaned)
+                                }
+                            }
+                            if lines.count >= maxLines { break }
+                        }
+                        self.updateSubtitleStack(with: lines)
+                    }
                 } else {
-                    self.subtitleLabels[0].text = ""
-                    self.subtitleLabels[0].isHidden = !self.subtitlesEnabled
+                    self.clearSubtitleStack()
                 }
-                if cues.count > 1 {
-                    self.subtitleLabels[1].text = cues[1].text.strippedHTML
-                    self.subtitleLabels[1].isHidden = false
-                } else {
-                    self.subtitleLabels[1].text = ""
-                    self.subtitleLabels[1].isHidden = true
-                }
-            } else {
-                self.subtitleLabels[0].text = ""
-                self.subtitleLabels[0].isHidden = true
-                self.subtitleLabels[1].text = ""
-                self.subtitleLabels[1].isHidden = true
-            }
             
             let segmentsColor = self.getSegmentsColor()
             

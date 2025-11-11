@@ -12,6 +12,15 @@ struct SubtitleCue: Identifiable {
     let startTime: Double
     let endTime: Double
     let text: String
+    let lines: [String]
+
+    init(startTime: Double, endTime: Double, text: String) {
+        self.startTime = startTime
+        self.endTime = endTime
+        self.text = text
+        let rawLines = text.components(separatedBy: .newlines)
+        self.lines = rawLines.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+    }
 }
 
 class VTTSubtitlesLoader: ObservableObject {
