@@ -580,7 +580,7 @@ struct MediaInfoView: View {
         let seasons = groupedEpisodes()
         if seasons.count > 1 {
             Menu {
-                ForEach(0..<seasons.count, id: \.self) { index in
+                ForEach(0..<seasons.count, id: \..self) { index in
                     Button(action: { selectedSeason = index }) {
                         Text(String(format: NSLocalizedString("Season %d", comment: ""), index + 1))
                     }
@@ -602,7 +602,7 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var rangeSelectorStyled: some View {
         Menu {
-            ForEach(episodeRanges, id: \.self) { range in
+            ForEach(generateRanges(), id: \..self) { range in
                 Button(action: { selectedRange = range }) {
                     Text("\(range.lowerBound + 1)-\(range.upperBound)")
                 }
@@ -661,12 +661,10 @@ struct MediaInfoView: View {
     
     @ViewBuilder
     private var flatEpisodeList: some View {
-        ScrollView {
-            VStack(spacing: 15) {
-                ForEach(currentEpisodeList.indices.filter { selectedRange.contains($0) }, id: \.self) { i in
-                    let ep = currentEpisodeList[i]
-                    createEpisodeCell(episode: ep, index: i, season: isGroupedBySeasons ? selectedSeason + 1 : 1)
-                }
+        VStack(spacing: 15) {
+            ForEach(episodeLinks.indices.filter { selectedRange.contains($0) }, id: \.self) { i in
+                let ep = episodeLinks[i]
+                createEpisodeCell(episode: ep, index: i, season: 1)
             }
         }
     }
@@ -675,12 +673,9 @@ struct MediaInfoView: View {
     private var seasonsEpisodeList: some View {
         let seasons = groupedEpisodes()
         if !seasons.isEmpty, selectedSeason < seasons.count {
-            ScrollView {
-                VStack(spacing: 15) {
-                    ForEach(seasons[selectedSeason].indices.filter { selectedRange.contains($0) }, id: \.self) { i in
-                        let ep = seasons[selectedSeason][i]
-                        createEpisodeCell(episode: ep, index: i, season: selectedSeason + 1)
-                    }
+            VStack(spacing: 15) {
+                ForEach(seasons[selectedSeason]) { ep in
+                    createEpisodeCell(episode: ep, index: selectedSeason, season: selectedSeason + 1)
                 }
             }
         } else {
@@ -764,7 +759,7 @@ struct MediaInfoView: View {
             }
             
             LazyVStack(spacing: 15) {
-                ForEach(chapters.indices.filter { selectedChapterRange.contains($0) }, id: \.self) { i in
+                ForEach(chapters.indices.filter { selectedChapterRange.contains($0) }, id: \..self) { i in
                     let chapter = chapters[i]
                     let _ = refreshTrigger
                     if let href = chapter["href"] as? String,
@@ -818,7 +813,7 @@ struct MediaInfoView: View {
     @ViewBuilder
     private var chapterRangeSelectorStyled: some View {
         Menu {
-            ForEach(generateChapterRanges(), id: \.self) { range in
+            ForEach(generateChapterRanges(), id: \..self) { range in
                 Button(action: { selectedChapterRange = range }) {
                     Text("\(range.lowerBound + 1)-\(range.upperBound)")
                 }
@@ -1750,37 +1745,38 @@ struct MediaInfoView: View {
     }
     
     func fetchMalIDFromAniList(anilistID: Int, completion: @escaping (Int?) -> Void) {
-    let query = """
-    query {
-      Media(id: \(anilistID)) {
-        idMal
-      }
-    }
-    """
-    guard let url = URL(string: "https://graphql.anilist.co") else {
-        completion(nil)
-        return
-    }
-
-    var request = URLRequest(url: url)
-    request.httpMethod = "POST"
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.httpBody = try? JSONSerialization.data(withJSONObject: ["query": query])
-
-    URLSession.shared.dataTask(with: request) { data, _, _ in
-        var malID: Int? = nil
-        if let data = data,
-           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-           let dataDict = json["data"] as? [String: Any],
-           let media = dataDict["Media"] as? [String: Any],
-           let idMal = media["idMal"] as? Int {
-            malID = idMal
+        let query = """
+        query {
+        Media(id: \(anilistID)) {
+            idMal
         }
-        DispatchQueue.main.async {
-            completion(malID)
         }
-    }.resume()
-}
+        """
+        guard let url = URL(string: "https://graphql.anilist.co") else {
+            completion(nil)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: ["query": query])
+        
+        URLSession.custom.dataTask(with: request) { data, _, _ in
+            var malID: Int? = nil
+            if let data = data,
+               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let dataDict = json["data"] as? [String: Any],
+               let media = dataDict["Media"] as? [String: Any],
+               let idMal = media["idMal"] as? Int {
+                malID = idMal
+            }
+            DispatchQueue.main.async {
+                completion(malID)
+            }
+        }.resume()
+    }
+    
     private func fetchTMDBPosterImageAndSet() {
         guard let tmdbID = tmdbID, let tmdbType = tmdbType else { return }
         let apiType = tmdbType.rawValue
@@ -2305,14 +2301,8 @@ struct MediaInfoView: View {
             completion(nil as EpisodeMetadataInfo?)
             return
         }
-        fetchEpisodeMetadataFromNetwork(anilistId: anilistId, episodeNumber: episode.number) { info in
-            if let info = info, let enTitle = info.title["en"] {
-                DispatchQueue.main.async {
-                    episodeTitleCache[episode.number] = enTitle
-                }
-            }
-            completion(info)
-        }
+        
+        fetchEpisodeMetadataFromNetwork(anilistId: anilistId, episodeNumber: episode.number, completion: completion)
     }
     
     private func fetchEpisodeMetadataFromNetwork(anilistId: Int, episodeNumber: Int, completion: @escaping (EpisodeMetadataInfo?) -> Void) {
