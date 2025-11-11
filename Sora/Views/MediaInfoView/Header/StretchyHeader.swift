@@ -41,8 +41,6 @@ struct StretchyHeaderView: View {
                             if case .success(let response) = result {
                                 let uiImage = response.image
                                 backdropImage = uiImage
-                                let extractedColor = Color.ambientColor(from: uiImage)
-                                localAmbientColor = extractedColor
                             }
                         },
                         alignment: .center
@@ -50,19 +48,6 @@ struct StretchyHeaderView: View {
                     .clipped()
                     .frame(height: height)
                     .offset(y: offset)
-                
-                LinearGradient(
-                    gradient: Gradient(stops: [
-                        .init(color: localAmbientColor.opacity(0.0), location: 0.0),
-                        .init(color: localAmbientColor.opacity(0.1), location: 0.2),
-                        .init(color: localAmbientColor.opacity(0.3), location: 0.7),
-                        .init(color: localAmbientColor.opacity(0.6), location: 1.0)
-                    ]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 100)
-                .clipShape(RoundedRectangle(cornerRadius: 0))
             }
         }
         .frame(height: headerHeight)
@@ -73,8 +58,6 @@ struct StretchyHeaderView: View {
                     if let response = try? await ImagePipeline.shared.image(for: request) {
                         await MainActor.run {
                             backdropImage = response
-                            let extractedColor = Color.ambientColor(from: response)
-                            localAmbientColor = extractedColor
                         }
                     }
                 }

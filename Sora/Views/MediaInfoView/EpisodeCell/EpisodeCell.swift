@@ -156,7 +156,6 @@ struct EpisodeCell: View {
 }
 
 private extension EpisodeCell {
-    
     var actionButtonsBackground: some View {
         HStack {
             Spacer()
@@ -216,14 +215,9 @@ private extension EpisodeCell {
             actionButtonsBackground
         }
         .contentShape(Rectangle())
-        .padding(.horizontal, 8)
-        .padding(.vertical, 8)
         .frame(maxWidth: .infinity)
-        .background(cellBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 15))
         .contextMenu { contextMenuContent }
         .swipeActions(edge: .trailing) {
-            
             Button(action: { downloadEpisode() }) {
                 Label("Download", systemImage: "arrow.down.circle")
             }
