@@ -37,12 +37,12 @@ struct StretchyHeaderView: View {
                                     .fill(Color.gray.opacity(0.3))
                             }
                         }
-                        .onCompletion { result in
-                            if case .success(let response) = result {
-                                let uiImage = response.image
-                                backdropImage = uiImage
-                            }
-                        },
+                            .onCompletion { result in
+                                if case .success(let response) = result {
+                                    let uiImage = response.image
+                                    backdropImage = uiImage
+                                }
+                            },
                         alignment: .center
                     )
                     .clipped()
@@ -51,17 +51,5 @@ struct StretchyHeaderView: View {
             }
         }
         .frame(height: headerHeight)
-        .onAppear {
-            if let backdropURL = backdropURL, let url = URL(string: backdropURL) {
-                Task {
-                    let request = ImageRequest(url: url)
-                    if let response = try? await ImagePipeline.shared.image(for: request) {
-                        await MainActor.run {
-                            backdropImage = response
-                        }
-                    }
-                }
-            }
-        }
     }
 }
