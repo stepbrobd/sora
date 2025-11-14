@@ -13,7 +13,7 @@ struct SubtitleCue: Identifiable {
     let endTime: Double
     let text: String
     let lines: [String]
-
+    
     init(startTime: Double, endTime: Double, text: String) {
         self.startTime = startTime
         self.endTime = endTime
@@ -46,7 +46,8 @@ class VTTSubtitlesLoader: ObservableObject {
                 return
             }
             
-            let detectedFormat = self.determineSubtitleFormat(from: url)
+            let trimmed = subtitleContent.trimmingCharacters(in: .whitespacesAndNewlines)
+            let detectedFormat: SubtitleFormat = trimmed.contains("WEBVTT") ? .vtt : .srt
             
             DispatchQueue.main.async {
                 switch detectedFormat {
@@ -55,7 +56,7 @@ class VTTSubtitlesLoader: ObservableObject {
                 case .srt:
                     self.cues = self.parseSRT(content: subtitleContent)
                 case .unknown:
-                    if subtitleContent.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("WEBVTT") {
+                    if trimmed.contains("WEBVTT") {
                         self.cues = self.parseVTT(content: subtitleContent)
                     } else {
                         self.cues = self.parseSRT(content: subtitleContent)
@@ -63,18 +64,6 @@ class VTTSubtitlesLoader: ObservableObject {
                 }
             }
         }.resume()
-    }
-    
-    private func determineSubtitleFormat(from url: URL) -> SubtitleFormat {
-        let fileExtension = url.pathExtension.lowercased()
-        switch fileExtension {
-        case "vtt", "webvtt":
-            return .vtt
-        case "srt":
-            return .srt
-        default:
-            return .unknown
-        }
     }
     
     private func parseVTT(content: String) -> [SubtitleCue] {
