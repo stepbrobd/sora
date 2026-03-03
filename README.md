@@ -55,8 +55,6 @@ You can download Sora using Xcode or using the .ipa file, which you can find in 
 
 ## Acknowledgements
 
-## Acknowledgements
-
 Frameworks:
 - [Drops](https://github.com/omaralbeik/Drops) – MIT License  
 - [NukeUI](https://github.com/kean/NukeUI) – MIT License  
@@ -86,7 +84,7 @@ Translators:
 This project is licensed under the [GNU General Public License v3.0](LICENSE) (GPLv3.0).
 
 ```
-Copyright © 2024-2025 cranci. All rights reserved.
+Copyright © 2024-2026 cranci. All rights reserved.
 
 Sora is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
